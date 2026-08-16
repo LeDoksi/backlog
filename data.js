@@ -785,6 +785,54 @@ const TITLES = [
     rating: null,
     synopsis: 'Молодой талантливый водитель, работающий на криминального босса под звуки собственного плейлиста, пытается вырваться из преступного мира ради новой возлюбленной, но его втягивают в одно последнее опасное ограбление.',
     cover: 'images/covers/baby-driver-2017.jpg'
+  },
+  {
+    id: 'split-fiction-2025',
+    title: 'Split Fiction',
+    category: 'game',
+    status: 'queue',
+    airingStatus: null,
+    year: 2025,
+    genres: ['кооператив', 'приключение', 'экшен'],
+    rating: null,
+    synopsis: 'Две писательницы, Мио и Зои, попадают в ловушку внутри машины, похищающей творческие идеи, и вынуждены сообща пройти через миры их собственных научно-фантастических и фэнтезийных историй, чтобы найти выход.',
+    cover: 'images/covers/split-fiction-2025.jpg'
+  },
+  {
+    id: 'unravel-two-2018',
+    title: 'Unravel Two',
+    category: 'game',
+    status: 'queue',
+    airingStatus: null,
+    year: 2018,
+    genres: ['кооператив', 'платформер', 'головоломка'],
+    rating: null,
+    synopsis: 'Два маленьких существа из пряжи, связанные общей нитью, оказываются выброшены на остров и учатся действовать сообща, преодолевая препятствия и головоломки в трогательной истории о дружбе и взаимовыручке.',
+    cover: 'images/covers/unravel-two-2018.jpg'
+  },
+  {
+    id: 'divinity-original-sin-2014',
+    title: 'Divinity: Original Sin',
+    category: 'game',
+    status: 'queue',
+    airingStatus: null,
+    year: 2014,
+    genres: ['ролевая игра', 'пошаговая тактика'],
+    rating: null,
+    synopsis: 'Двое Охотников за Истоком расследуют убийство советника в городе Сайсил и постепенно раскрывают заговор, связанный с запретной магией Истока, сражаясь в пошаговых боях на изометрической карте мира Ривеллон.',
+    cover: 'images/covers/divinity-original-sin-2014.jpg'
+  },
+  {
+    id: 'divinity-original-sin-ii-2017',
+    title: 'Divinity: Original Sin II',
+    category: 'game',
+    status: 'queue',
+    airingStatus: null,
+    year: 2017,
+    genres: ['ролевая игра', 'пошаговая тактика'],
+    rating: null,
+    synopsis: 'Изгои-Истокорожденные пытаются выжить в мире, охваченном нашествием Пустоты, создавая собственного героя или выбирая одного из персонажей с уникальной предысторией и путешествуя по Ривеллону в пошаговых тактических сражениях.',
+    cover: 'images/covers/divinity-original-sin-ii-2017.jpg'
   }
 ];
 
