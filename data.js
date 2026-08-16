@@ -1289,6 +1289,66 @@ const TITLES = [
     rating: null,
     synopsis: 'После событий «Нет пути домой» Питер Паркер, забытый всем миром, пытается заново выстроить жизнь и отношения, оставаясь Человеком-пауком и сталкиваясь с новыми врагами.',
     cover: 'images/covers/spider-man-brand-new-day-2026.jpg'
+  },
+  {
+    id: 'avengers-doomsday-2026',
+    title: 'Мстители: Судный день',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2026,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Герои из трёх разных вселенных оказываются на пути столкновения с небывалой угрозой в лице Виктора фон Дума — в этой роли на экран возвращается Роберт Дауни-младший, ранее игравший Тони Старка.',
+    cover: 'images/covers/avengers-doomsday-2026.jpg'
+  },
+  {
+    id: 'avengers-secret-wars-2027',
+    title: 'Мстители: Секретные войны',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2027,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Финал Саги Мультивселенной: герои и злодеи Marvel сходятся в решающей битве с Доктором Думом на арене, вдохновлённой комиксовым Battleworld, — режиссёры Энтони и Джо Руссо завершают историю, начатую в «Судном дне».',
+    cover: 'images/covers/_placeholder.svg'
+  },
+  {
+    id: 'x-men-2028',
+    title: 'Люди Икс',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2028,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Перезапуск истории о мутантах внутри MCU после событий «Секретных войн»: новый актёрский состав во главе с Джин Грей и Циклопом, представленный режиссёром Джейком Шрайером.',
+    cover: 'images/covers/_placeholder.svg'
+  },
+  {
+    id: 'ghost-rider-2028',
+    title: 'Призрачный гонщик',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2028,
+    genres: ['супергероика', 'боевик', 'мистика'],
+    rating: null,
+    synopsis: 'Джонни Блейз заключает сделку с дьяволом и становится Призрачным гонщиком — байкером-мстителем с горящим черепом — в отдельном фильме Marvel Studios с Райаном Гослингом в главной роли, режиссёр Шон Леви.',
+    cover: 'images/covers/_placeholder.svg'
+  },
+  {
+    id: 'black-panther-iii-2028',
+    title: 'Чёрная пантера 3',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2028,
+    genres: ['супергероика', 'боевик', 'драма'],
+    rating: null,
+    synopsis: 'Повзрослевший сын Т’Чаллы принимает мантию Чёрной пантеры и наследие Ваканды — третий фильм франшизы Райана Куглера, с Дэвидом Джонссоном в главной роли.',
+    cover: 'images/covers/_placeholder.svg'
   }
 ];
 
