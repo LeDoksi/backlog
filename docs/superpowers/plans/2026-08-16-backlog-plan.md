@@ -1273,8 +1273,6 @@ git commit -m "feat: add filters, search and sort"
 Add these functions and the grid click listener, and extend the final `window.BacklogApp` export:
 
 ```js
-  var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Пройдено' };
-
   function findTitleById(id) {
     return baseTitles().filter(function (t) { return t.id === id; })[0];
   }
@@ -1320,8 +1318,6 @@ Update the final export line to:
     state: state
   };
 ```
-
-(`STATUS_LABELS` is defined here for reuse but not yet displayed as text next to the `<select>` — it becomes useful if a read-only label is added later; it's fine if unused for now, or wire it as the option list already covers the same labels via static HTML from Task 6.)
 
 - [ ] **Step 2: Verify manually in the browser**
 
