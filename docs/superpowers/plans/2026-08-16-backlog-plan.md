@@ -1674,6 +1674,161 @@ git commit -m "feat: add quick-add-title form with draft/enrichment workflow"
 
 ---
 
+### Task 21: Season info + backlog-first sorting
+
+> Added mid-execution at the user's request: (1) series/anime need visible info about current/future seasons; (2) once the catalog fills up with dozens of "Пройдено" MCU entries in Phase B, the user doesn't want to scroll past all of them to find what's still in the backlog — needs a better default than sorting by add-order.
+
+**Files:**
+- Modify: `lib/query.js`
+- Modify: `tests/query.test.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+- Modify: `data.js`
+
+**Interfaces:**
+- Consumes: existing `sortTitles(titles, sortKey)` (Task 3), `state`/`getVisibleTitles`/`refresh` (Tasks 7-8), `openTitleModal` (Task 9).
+- Produces: `sortTitles(titles, 'status')` — nothing later depends on this beyond this task.
+
+**Design notes:**
+- **Season info** is a new, optional, unvalidated field: `seasonInfo: string | null`, meant for `category: "series" | "anime"` titles. It is NOT added to `lib/validate.js`'s required-field checks — it's free text Claude fills in when it knows something concrete ("2 сезона вышло, 3-й анонсирован на 2026"), and simply absent/`null` for everything else. Shown in the title modal only when present.
+- **Backlog-first sorting**: a new `sortTitles` mode, `'status'`, orders `in_progress` first, `queue` second, `done` last (stable within each group). This becomes the new **default** sort (replacing `'added'`) so opening the app always surfaces active/queued titles first without the user having to change anything. A separate one-click **"Скрыть пройденное"** checkbox (same pattern as the existing "Ждут продолжения" checkbox) lets the user fully hide `done` titles when the list is long — this is an addition to `app.js`'s filter composition, not to `lib/query.js`'s `matchesFilters` (whose tested contract shouldn't change).
+
+- [ ] **Step 1: Write the failing tests for `sortTitles(titles, 'status')`**
+
+Append to `tests/query.test.js`:
+
+```js
+test('sortTitles by status puts in_progress first, queue second, done last', () => {
+  var titles = [
+    { title: 'A', status: 'done' },
+    { title: 'B', status: 'queue' },
+    { title: 'C', status: 'in_progress' }
+  ];
+  var sorted = sortTitles(titles, 'status');
+  assert.deepEqual(sorted.map(function (t) { return t.title; }), ['C', 'B', 'A']);
+});
+
+test('sortTitles by status is stable for equal-priority items', () => {
+  var titles = [
+    { title: 'A', status: 'queue' },
+    { title: 'B', status: 'queue' }
+  ];
+  var sorted = sortTitles(titles, 'status');
+  assert.deepEqual(sorted.map(function (t) { return t.title; }), ['A', 'B']);
+});
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `node --test tests/query.test.js`
+Expected: FAIL — sorted order for the first new test comes back in original array order (`['A', 'B', 'C']`), not `['C', 'B', 'A']`, since `'status'` isn't a recognized `sortKey` yet and falls through to the `default`/`'added'` case.
+
+- [ ] **Step 3: Add the `'status'` case to `sortTitles` in `lib/query.js`**
+
+Add a `STATUS_PRIORITY` constant near the top of the factory function (alongside where `isReturning` etc. are defined), and a new `case` in the `switch` inside `sortTitles`, before the `case 'added':` line:
+
+```js
+  var STATUS_PRIORITY = { in_progress: 0, queue: 1, done: 2 };
+```
+
+```js
+      case 'status':
+        return copy.sort(function (a, b) { return STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]; });
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `node --test tests/query.test.js`
+Expected: PASS — 12 tests passing (10 from Task 3 + 2 new)
+
+- [ ] **Step 5: Update `index.html`**
+
+In `<select id="sort-select">`, add a new first option and make it the default-selected one (replace the existing block):
+
+```html
+    <select id="sort-select" class="toolbar__select">
+      <option value="status" selected>Актуальное сначала</option>
+      <option value="added">По дате добавления</option>
+      <option value="name">По названию</option>
+      <option value="year">По году</option>
+      <option value="rating">По оценке</option>
+    </select>
+```
+
+Add a second checkbox right after the existing "Ждут продолжения" one, inside `.toolbar`:
+
+```html
+    <label class="toolbar__checkbox">
+      <input id="hide-done-filter" type="checkbox"> Скрыть пройденное
+    </label>
+```
+
+In the modal body, add a new `<p>` between `#modal-meta` and `#modal-synopsis`:
+
+```html
+        <p id="modal-seasons" class="modal__seasons" hidden></p>
+```
+
+- [ ] **Step 6: Style `.modal__seasons` in `styles.css`**
+
+Add a small rule reusing the existing muted-text treatment already used for `.modal__meta` (same font-size/color token, do not introduce a new hardcoded color) — e.g. matching `.modal__meta`'s `color: var(--text-muted)` and font-size, with a little top margin so it reads as a distinct line from the meta row above it and the synopsis below it.
+
+- [ ] **Step 7: Wire it up in `app.js`**
+
+Change the initial `state` line to default to the new sort and add the hide-done flag:
+
+```js
+  var state = { category: 'all', status: 'all', genre: 'all', returning: false, hideDone: false, search: '', sort: 'status' };
+```
+
+Change `getVisibleTitles` to also apply the hide-done filter (add the `.filter(...)` before the existing one, or fold the condition into the existing filter callback — either is fine as long as both conditions apply):
+
+```js
+  function getVisibleTitles() {
+    var titles = titlesForCategory(state.category).filter(function (t) {
+      if (state.hideDone && t.status === 'done') return false;
+      return BacklogQuery.matchesFilters(t, { status: state.status, genre: state.genre, returning: state.returning })
+        && BacklogQuery.matchesSearch(t, state.search);
+    });
+    return BacklogQuery.sortTitles(titles, state.sort);
+  }
+```
+
+Add the new checkbox's listener alongside the existing `#returning-filter` one:
+
+```js
+  document.getElementById('hide-done-filter').addEventListener('change', function (e) {
+    state.hideDone = e.target.checked;
+    refresh();
+  });
+```
+
+In `openTitleModal`, add season-info display right after the existing `modal-meta` block (after the `document.getElementById('modal-meta').textContent = meta;` line):
+
+```js
+    var seasonsEl = document.getElementById('modal-seasons');
+    seasonsEl.textContent = title.seasonInfo ? 'Сезоны: ' + title.seasonInfo : '';
+    seasonsEl.hidden = !title.seasonInfo;
+```
+
+- [ ] **Step 8: Add `seasonInfo` to the four series/anime titles already in `data.js`**
+
+Add a `seasonInfo` field (a short Russian sentence) to each of the 4 existing `category: "series"`/`category: "anime"` seed entries — `frieren-2023`, `re-zero-starting-life-in-another-world-2016`, `the-boys-2019`, `ted-lasso-2020` — right after each one's `airingStatus` field. Use your own best current knowledge of each show's season status (how many seasons/parts have aired, whether/when a next one is confirmed) — this is exactly the kind of free-text enrichment the field exists for, so write real, reasonably accurate sentences rather than placeholders. Leave every other field on those 4 objects unchanged.
+
+- [ ] **Step 9: Verify manually in the browser**
+
+Reload `index.html`. Expected: the sort dropdown opens already on "Актуальное сначала" and the grid order reflects it (any `in_progress`/`queue` seed titles before `done` ones within the currently visible set); checking "Скрыть пройденное" immediately hides all `status: done` cards and unchecking restores them; opening a modal for one of the 4 enriched series/anime titles shows a "Сезоны: …" line between the meta line and the synopsis, while opening a movie/game title's modal shows no such line (element stays `hidden`).
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add lib/query.js tests/query.test.js index.html styles.css app.js data.js
+git commit -m "feat: add season info display and backlog-first sorting"
+```
+
+---
+
 ### Task 12: README
 
 **Files:**
@@ -1709,9 +1864,12 @@ git commit -m "feat: add quick-add-title form with draft/enrichment workflow"
   genres: ["жанр1", "жанр2"],
   rating: null,                                   // 1-10 или null, задаётся пользователем в UI
   synopsis: "Краткое описание.",
-  cover: "images/covers/slug-year.jpg"
+  cover: "images/covers/slug-year.jpg",
+  seasonInfo: "Вышло 2 сезона, 3-й анонсирован на 2026."  // опционально, только для series/anime, не валидируется
 }
 ```
+
+Также можно быстро добавить тайтл прямо в интерфейсе (только название + категория) — он появится как «черновик» с плейсхолдером, а полные данные (жанры/год/постер/описание/seasonInfo) вы допишете тем же способом, попросив Claude, когда будете готовы — черновик автоматически исчезнет, как только в `data.js` появится тайтл с тем же id.
 
 ## Тесты
 
@@ -1768,10 +1926,11 @@ Phase A ships a fully working app with 8 real seed titles. The remaining ~110 ti
 **Batch recipe (applies to every task in this phase):**
 
 1. For each title in the task's list, web-search to confirm/find: release year, 2-3 genre tags (Russian), a 1-2 sentence Russian synopsis, current `airingStatus` (`ongoing`/`completed`) if the category is `series`/`anime`, and a poster image.
-2. Compute `id` via the convention `lib/slug.js`'s `makeId(title, year)` (or by hand following the same rule: lowercase, transliterate Cyrillic, hyphenate).
-3. Download the poster to `images/covers/<id>.jpg` (or `.png`/`.webp` matching the source) and append the title object to the `TITLES` array in `data.js`, matching the schema enforced by `lib/validate.js`.
-4. Run `node tools/validate-data.js` — expected `OK: <N> titles, no errors.` Fix any reported errors before moving on.
-5. Commit, e.g. `git commit -m "data: add anime batch"`.
+2. For `series`/`anime` titles specifically, also fill in `seasonInfo` (a short free-text Russian sentence — see Task 21): how many seasons/parts have released and whether/when a next one is confirmed, e.g. `"Вышло 2 сезона, 3-й анонсирован на 2026."`. Omit the field (or set `null`) only if you genuinely can't find anything current — don't guess a date.
+3. Compute `id` via the convention `lib/slug.js`'s `makeId(title, year)` (or by hand following the same rule: lowercase, transliterate Cyrillic, hyphenate).
+4. Download the poster to `images/covers/<id>.jpg` (or `.png`/`.webp` matching the source) and append the title object to the `TITLES` array in `data.js`, matching the schema enforced by `lib/validate.js`.
+5. Run `node tools/validate-data.js` — expected `OK: <N> titles, no errors.` Fix any reported errors before moving on.
+6. Commit, e.g. `git commit -m "data: add anime batch"`.
 
 Do not mark a title `status: "done"` if it has not actually released yet as of 2026-08-16 — for unreleased/announced-only entries, use `status: "queue"` regardless of what the batch note below says, since "done" means the user has already watched/played it.
 
