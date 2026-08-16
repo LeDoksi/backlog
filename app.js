@@ -22,15 +22,26 @@
     });
   }
 
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function cardHtml(title) {
     var returningBadge = BacklogQuery.isReturning(title)
       ? '<span class="badge badge--returning">Ждёт продолжения</span>'
       : '';
     var draftBadge = title.draft ? '<span class="badge badge--draft">Черновик</span>' : '';
+    var safeTitle = escapeHtml(title.title);
+    var safeCover = escapeHtml(title.cover);
     return (
-      '<img class="card__cover" src="' + title.cover + '" alt="' + title.title + '">' +
+      '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '">' +
       '<div class="card__body">' +
-      '<div class="card__title">' + title.title + '</div>' +
+      '<div class="card__title">' + safeTitle + '</div>' +
       '<span class="badge">' + (STATUS_LABELS[title.status] || title.status) + '</span>' + returningBadge + draftBadge +
       '</div>'
     );
