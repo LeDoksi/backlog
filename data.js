@@ -336,7 +336,7 @@ const TITLES = [
   },
   {
     id: 'avatar-the-last-airbender-2005',
-    title: 'Avatar: The Last Airbender (2005)',
+    title: 'Аватар: Легенда об Аанге (2005)',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -349,7 +349,7 @@ const TITLES = [
   },
   {
     id: 'avatar-the-last-airbender-2024',
-    title: 'Avatar: The Last Airbender (2024)',
+    title: 'Аватар: Легенда об Аанге (2024)',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -362,7 +362,7 @@ const TITLES = [
   },
   {
     id: 'castlevania-2017',
-    title: 'Castlevania / Castlevania: Nocturne',
+    title: 'Кастлвания / Кастлвания: Ноктюрн',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -375,7 +375,7 @@ const TITLES = [
   },
   {
     id: 'the-legend-of-vox-machina-2022',
-    title: 'The Legend of Vox Machina',
+    title: 'Легенда о Vox Machina',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -388,7 +388,7 @@ const TITLES = [
   },
   {
     id: 'the-mighty-nein-2025',
-    title: 'The Mighty Nein',
+    title: 'Могучая девятка',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -401,7 +401,7 @@ const TITLES = [
   },
   {
     id: 'money-heist-2017',
-    title: 'Money Heist (La Casa de Papel)',
+    title: 'Бумажный дом',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -414,7 +414,7 @@ const TITLES = [
   },
   {
     id: 'gen-v-2023',
-    title: 'Gen V',
+    title: 'Поколение «Ви»',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -427,7 +427,7 @@ const TITLES = [
   },
   {
     id: 'masters-of-the-universe-revelation-2021',
-    title: 'Masters of the Universe: Revelation / Revolution',
+    title: 'Властелины вселенной: Откровение / Революция',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
