@@ -35,6 +35,11 @@
   /* Supporting tokens */
   --surface-sunken: #10131a;            /* input wells, image placeholders   */
   --border-strong: #333a48;             /* hover / active hairlines          */
+  /* The visible boundary of an input control, which WCAG 1.4.11 holds to 3:1
+     against its surround. --border-strong is only 1.68:1 on --bg — fine for a
+     decorative hairline, not for a control the user must find. 3.69:1 here,
+     and 3.57:1 against the box's own --surface-sunken fill. */
+  --border-control: #656d7d;
   --accent-bright: #ff5f78;             /* accent as TEXT (6.5:1 on --bg)    */
   --accent-glow: rgba(233, 69, 96, 0.35);
   --signal: #f2c14e;                    /* "waiting for more" — a warm flag  */
@@ -343,7 +348,9 @@ body {
 .toolbar__checkbox:hover { color: var(--text); }
 
 /* Drawn rather than native: the UA checkbox renders as a pale slab that is the
-   brightest object on the page — louder than any poster. */
+   brightest object on the page — louder than any poster. The border does all the
+   work of announcing the control (there is no icon here as there is on the search
+   and the selects), so it is the one hairline in the room held to the 3:1 floor. */
 .toolbar__checkbox input {
   -webkit-appearance: none;
   appearance: none;
@@ -351,7 +358,7 @@ body {
   width: 16px;
   height: 16px;
   margin: 0;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-control);
   border-radius: 4px;
   background: var(--surface-sunken);
   cursor: pointer;
@@ -471,6 +478,16 @@ body {
 .card:is(:hover, :focus-visible)::after { opacity: 0.45; }
 
 .card:active { transform: translateY(-2px); transition-duration: var(--dur-fast); }
+
+/* The shelf light is a pointer gesture. On a touch device there is no pointer to
+   turn it on, so every card would sit permanently unlit — the covers dimmed and
+   veiled with nothing able to reveal them, which is the exact opposite of the
+   premise. Where hover does not exist, the lit state IS the resting state:
+   full colour, scrim pulled back to the same 45% the light reaches on desktop. */
+@media (hover: none) {
+  .card__cover { filter: none; }
+  .card::after { opacity: 0.45; }
+}
 
 /* Block flow, not flex: badges are inline chips that should hug their text and
    wrap as a group — as flex items they stretch to the full card width. */
