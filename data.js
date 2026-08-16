@@ -437,9 +437,105 @@ const TITLES = [
     rating: null,
     synopsis: 'Netflix-продолжение классической франшизы: Хи-Мэн и Скелетор сходятся в решающей битве за судьбу Этернии, а после его исхода на защиту планеты встаёт новое поколение защитников.',
     cover: 'images/covers/masters-of-the-universe-revelation-2021.jpg'
-  }
+  },
+  {
+    id: 'the-amazing-spider-man-2012',
+    title: 'Новый Человек-паук',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2012,
+    genres: ['фантастика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'Питер Паркер получает суперспособности после укуса радиоактивного паука и, распутывая тайну исчезновения отца, впервые сталкивается с Ящером — учёным, одержимым генетическими экспериментами.',
+    cover: 'images/covers/the-amazing-spider-man-2012.jpg'
+  },
+  {
+    id: 'the-amazing-spider-man-2-2014',
+    title: 'Новый Человек-паук: Высокое напряжение',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2014,
+    genres: ['фантастика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'Питер Паркер пытается совмещать жизнь супергероя и отношения с Гвен Стейси, но городу угрожают электрический злодей Электро и бывший друг Гарри Озборн, вставший на путь Зелёного гоблина.',
+    cover: 'images/covers/the-amazing-spider-man-2-2014.jpg'
+  },
+  {
+    id: 'superman-2025',
+    title: 'Супермен',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2025,
+    genres: ['фантастика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'Молодой Супермен пытается совместить свою человечность с наследием криптонца, сражаясь с олигархом Лексом Лютором и отстаивая идеалы добра в циничном мире, — первый фильм новой киновселенной DC Джеймса Ганна.',
+    cover: 'images/covers/superman-2025.jpg'
+  },
+  {
+    id: 'the-gentlemen-2019',
+    title: 'Джентльмены',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2019,
+    genres: ['криминал', 'комедия', 'боевик'],
+    rating: null,
+    synopsis: 'Американец, построивший в Британии империю по выращиванию марихуаны, решает продать бизнес и отойти от дел, что запускает цепь интриг, шантажа и предательств среди лондонского криминального мира.',
+    cover: 'images/covers/the-gentlemen-2019.jpg'
+  },
+  {
+    id: 'the-man-from-u-n-c-l-e-2015',
+    title: 'Агенты А.Н.К.Л.',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2015,
+    genres: ['боевик', 'комедия', 'приключения'],
+    rating: null,
+    synopsis: 'В разгар Холодной войны агенты ЦРУ и КГБ вынуждены объединить усилия, чтобы остановить таинственную преступную организацию, стремящуюся завладеть ядерным оружием.',
+    cover: 'images/covers/the-man-from-u-n-c-l-e-2015.jpg'
+  },
+  {
+    id: 'eurotrip-2004',
+    title: 'Евротур',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2004,
+    genres: ['комедия', 'приключения'],
+    rating: null,
+    synopsis: 'Брошенный подругой выпускник школы отправляется вместе с друзьями в путешествие по Европе, чтобы найти немецкую переписчицу, в которую он неожиданно влюбился по интернету.',
+    cover: 'images/covers/eurotrip-2004.jpg'
+  },
+  {
+    id: 'the-hobbit-2012',
+    title: 'Хоббит (трилогия)',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2012,
+    genres: ['фэнтези', 'приключения', 'боевик'],
+    rating: null,
+    synopsis: 'Хоббит Бильбо Бэггинс отправляется с волшебником Гэндальфом и отрядом гномов в опасное путешествие, чтобы отвоевать древнее королевство Эребор у дракона Смауга, — трилогия-приквел «Властелина колец».',
+    cover: 'images/covers/the-hobbit-2012.jpg'
+  },
+  {
+    id: 'drive-2011',
+    title: 'Драйв',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2011,
+    genres: ['криминал', 'драма', 'триллер'],
+    rating: null,
+    synopsis: 'Безымянный каскадёр и водитель на подработке ввязывается в ограбление, чтобы защитить соседку и её сына, и оказывается втянут в жестокое противостояние с криминальным миром Лос-Анджелеса.',
+    cover: 'images/covers/drive-2011.jpg'
+  },
 ];
 
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = TITLES;
 }
