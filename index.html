@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Бэклог</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="topbar__title">Бэклог</h1>
+    <nav id="tabs" class="tabs">
+      <button class="tabs__item" data-category="all">Всё</button>
+      <button class="tabs__item" data-category="game">Игры</button>
+      <button class="tabs__item" data-category="series">Сериалы</button>
+      <button class="tabs__item" data-category="movie">Кино</button>
+      <button class="tabs__item" data-category="anime">Аниме</button>
+    </nav>
+  </header>
+
+  <section class="toolbar">
+    <input id="search-input" class="toolbar__search" type="search" placeholder="Поиск по названию…">
+    <select id="status-filter" class="toolbar__select">
+      <option value="all">Любой статус</option>
+      <option value="queue">В очереди</option>
+      <option value="in_progress">В процессе</option>
+      <option value="done">Пройдено</option>
+    </select>
+    <select id="genre-filter" class="toolbar__select">
+      <option value="all">Любой жанр</option>
+    </select>
+    <label class="toolbar__checkbox">
+      <input id="returning-filter" type="checkbox"> Ждут продолжения
+    </label>
+    <select id="sort-select" class="toolbar__select">
+      <option value="added">По дате добавления</option>
+      <option value="name">По названию</option>
+      <option value="year">По году</option>
+      <option value="rating">По оценке</option>
+    </select>
+  </section>
+
+  <main id="grid" class="grid"></main>
+
+  <div id="title-modal" class="modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel">
+      <button id="modal-close" class="modal__close" aria-label="Закрыть">×</button>
+      <img id="modal-cover" class="modal__cover" alt="">
+      <div class="modal__body">
+        <h2 id="modal-title" class="modal__title"></h2>
+        <p id="modal-meta" class="modal__meta"></p>
+        <p id="modal-synopsis" class="modal__synopsis"></p>
+        <label class="modal__field">
+          Статус
+          <select id="modal-status">
+            <option value="queue">В очереди</option>
+            <option value="in_progress">В процессе</option>
+            <option value="done">Пройдено</option>
+          </select>
+        </label>
+        <label class="modal__field">
+          Моя оценка
+          <input id="modal-rating" type="number" min="1" max="10">
+        </label>
+        <button id="modal-delete" class="modal__delete">Удалить тайтл</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="lib/slug.js"></script>
+  <script src="lib/storage.js"></script>
+  <script src="lib/query.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
