@@ -1193,6 +1193,66 @@ const TITLES = [
     rating: null,
     synopsis: 'После смерти короля Т’Чаллы королева Рамонда и защитники Ваканды должны отстоять независимость страны от новых угроз, включая подводное королевство Талокан во главе с Нэмором.',
     cover: 'images/covers/black-panther-wakanda-forever-2022.jpg'
+  },
+  {
+    id: 'ant-man-and-the-wasp-quantumania-2023',
+    title: 'Человек-муравей и Оса: Квантомания',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2023,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Семья Лэнг случайно оказывается заброшена в Квантовую сферу, где сталкивается с могущественным завоевателем Кэнгом, чьи планы угрожают не только их миру, но и всей мультивселенной.',
+    cover: 'images/covers/ant-man-and-the-wasp-quantumania-2023.jpg'
+  },
+  {
+    id: 'guardians-of-the-galaxy-vol-3-2023',
+    title: 'Стражи Галактики. Часть 3',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2023,
+    genres: ['фантастика', 'приключения', 'боевик'],
+    rating: null,
+    synopsis: 'Стражи Галактики отправляются в опасную миссию, чтобы спасти жизнь Ракеты, и попутно раскрывают тёмную историю его создания корпорацией «Верховная эволюция».',
+    cover: 'images/covers/guardians-of-the-galaxy-vol-3-2023.jpg'
+  },
+  {
+    id: 'the-marvels-2023',
+    title: 'Марвелы',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2023,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Капитан Марвел, Мисс Марвел и Моника Рэмбо случайно меняются местами каждый раз при использовании своих сил и вынуждены объединиться, чтобы вместе остановить новую угрозу галактике.',
+    cover: 'images/covers/the-marvels-2023.jpg'
+  },
+  {
+    id: 'deadpool-wolverine-2024',
+    title: 'Дэдпул и Росомаха',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2024,
+    genres: ['супергероика', 'боевик', 'комедия'],
+    rating: null,
+    synopsis: 'Уэйд Уилсон попадает в поле зрения Управления временными изменениями и вынужден уговорить недовольного жизнью Росомаху помочь ему спасти собственную реальность от уничтожения.',
+    cover: 'images/covers/deadpool-wolverine-2024.jpg'
+  },
+  {
+    id: 'captain-america-brave-new-world-2025',
+    title: 'Капитан Америка: Новый мир',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2025,
+    genres: ['супергероика', 'боевик', 'триллер'],
+    rating: null,
+    synopsis: 'Новый Капитан Америка Сэм Уилсон оказывается втянут в международный заговор, когда покушение на президента США заставляет его выяснить, кто пытается разжечь мировую войну.',
+    cover: 'images/covers/captain-america-brave-new-world-2025.jpg'
   }
 ];
 
