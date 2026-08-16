@@ -1596,17 +1596,17 @@ All `category: game`, `status: queue`, `airingStatus: null`:
 
 Follow the batch recipe above for all 4.
 
-### Task 18: Data batch — MCU фильмы
+### Task 18: Data batch — Кино: MCU (партия внутри «Кино»)
 
-The originally-marked-done "марвел" row is replaced by the full Marvel Cinematic Universe film catalog, all `category: movie`, `airingStatus: null`. Web-search "list of Marvel Cinematic Universe films" (e.g. Wikipedia) first to get the authoritative, current list — the list below (Iron Man 2008 through Deadpool & Wolverine 2024, plus 2025 releases known at spec time: Captain America: Brave New World, Thunderbolts*, The Fantastic Four: First Steps) is a starting reference, not exhaustive; add any films you find that are missing, and do **not** include unreleased/cancelled films (e.g. don't mark an announced-but-unreleased film as `status: done`).
+Not a separate section or category — these are ordinary `category: "movie"` entries that land in the same "Кино" tab and grid as Task 16's titles, just split into their own task because of volume. The originally-marked-done "марвел" row is replaced by the full Marvel Cinematic Universe film catalog, all `category: movie`, `airingStatus: null`. Web-search "list of Marvel Cinematic Universe films" (e.g. Wikipedia) first to get the authoritative, current list — the list below (Iron Man 2008 through Deadpool & Wolverine 2024, plus 2025 releases known at spec time: Captain America: Brave New World, Thunderbolts*, The Fantastic Four: First Steps) is a starting reference, not exhaustive; add any films you find that are missing, and do **not** include unreleased/cancelled films (e.g. don't mark an announced-but-unreleased film as `status: done`).
 
 For every released film in the confirmed list: `status: done`. For any film in the list that has not released as of 2026-08-16: `status: queue`.
 
 Follow the batch recipe above. Given the size (~35+ films), split the web-research/entry work into a few sittings if needed, running `node tools/validate-data.js` and committing after each sitting rather than only once at the very end.
 
-### Task 19: Data batch — MCU сериалы
+### Task 19: Data batch — Сериалы: MCU (партия внутри «Сериалы»)
 
-The Disney+ MCU series catalog, all `category: series`. Web-search "list of Marvel Cinematic Universe television series" first for the authoritative, current list — WandaVision, Loki (S1-S2), The Falcon and the Winter Soldier, Hawkeye, Moon Knight, Ms. Marvel, She-Hulk: Attorney at Law, Secret Invasion, Echo, Agatha All Along, Daredevil: Born Again, Ironheart, and any 2025/2026 additions found via search (e.g. Wonder Man, Marvel Zombies) are a starting reference, not exhaustive.
+Not a separate section or category — these are ordinary `category: "series"` entries that land in the same "Сериалы" tab and grid as Task 15's titles, just split into their own task because of volume. The Disney+ MCU series catalog, all `category: series`. Web-search "list of Marvel Cinematic Universe television series" first for the authoritative, current list — WandaVision, Loki (S1-S2), The Falcon and the Winter Soldier, Hawkeye, Moon Knight, Ms. Marvel, She-Hulk: Attorney at Law, Secret Invasion, Echo, Agatha All Along, Daredevil: Born Again, Ironheart, and any 2025/2026 additions found via search (e.g. Wonder Man, Marvel Zombies) are a starting reference, not exhaustive.
 
 For each series, set `airingStatus` based on whether it has been renewed/has more seasons confirmed (`ongoing`) or is a concluded/limited series with no more seasons announced (`completed`) — verify per-title via search rather than guessing, since renewal status changes over time. `status: done` for already-released seasons the catalog implies were "watched" per the original excel `марвел = готово` mark; `status: queue` for anything not yet released as of 2026-08-16.
 
