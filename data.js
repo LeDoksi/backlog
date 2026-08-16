@@ -618,6 +618,90 @@ const TITLES = [
     synopsis: 'Жители изолированной деревни XIX века живут в страхе перед существами, обитающими в окружающем лесу, но попытка одной из девушек покинуть поселение раскрывает мрачную тайну этого места.',
     cover: 'images/covers/the-village-2004.jpg'
   },
+  {
+    id: 'orphan-2009',
+    title: 'Дитя тьмы',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2009,
+    genres: ['ужасы', 'триллер'],
+    rating: null,
+    synopsis: 'Супружеская пара, потерявшая ребёнка, удочеряет девочку из приюта, но вскоре начинает подозревать, что с новой дочерью и её прошлым связано нечто зловещее.',
+    cover: 'images/covers/orphan-2009.jpg'
+  },
+  {
+    id: 'case-39-2009',
+    title: 'Дело №39',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2009,
+    genres: ['ужасы', 'триллер'],
+    rating: null,
+    synopsis: 'Социальный работник забирает к себе домой девочку, которую, как ей кажется, жестоко истязают собственные родители, но вскоре понимает, что настоящая опасность исходит от самого ребёнка.',
+    cover: 'images/covers/case-39-2009.jpg'
+  },
+  {
+    id: 'house-at-the-end-of-the-street-2012',
+    title: 'Дом в конце улицы',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2012,
+    genres: ['ужасы', 'триллер'],
+    rating: null,
+    synopsis: 'Мать с дочерью переезжают в дом по соседству с местом, где несколько лет назад произошло жуткое убийство, и вскоре девушка сближается с выжившим членом той семьи, скрывающим страшную тайну.',
+    cover: 'images/covers/house-at-the-end-of-the-street-2012.jpg'
+  },
+  {
+    id: 'the-skeleton-key-2005',
+    title: 'Ключ от всех дверей',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2005,
+    genres: ['ужасы', 'триллер', 'мистика'],
+    rating: null,
+    synopsis: 'Сиделка устраивается на работу в старинный особняк в Луизиане и, обнаружив мастер-ключ, открывающий все двери дома, погружается в тайны, связанные с практиками худу.',
+    cover: 'images/covers/the-skeleton-key-2005.jpg'
+  },
+  {
+    id: 'klaustrofoby-2019',
+    title: 'Клаустрофобы',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2019,
+    genres: ['ужасы', 'триллер'],
+    rating: null,
+    synopsis: 'Шестеро незнакомцев получают таинственное приглашение принять участие в эскейп-руме, который оказывается смертельно опасной игрой на выживание, где любая ошибка стоит жизни.',
+    cover: 'images/covers/klaustrofoby-2019.jpg'
+  },
+  {
+    id: 'red-dragon-2002',
+    title: 'Красный дракон',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2002,
+    genres: ['триллер', 'криминал', 'ужасы'],
+    rating: null,
+    synopsis: 'Бывший агент ФБР Уилл Грэм, вышедший на пенсию после поимки Ганнибала Лектера, вынужден вновь обратиться за помощью к гениальному маньяку, чтобы выследить нового серийного убийцу по прозвищу Зубная Фея.',
+    cover: 'images/covers/red-dragon-2002.jpg'
+  },
+  {
+    id: 'hannibal-2001',
+    title: 'Ганнибал',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2001,
+    genres: ['триллер', 'криминал', 'ужасы'],
+    rating: null,
+    synopsis: 'Спустя десять лет после побега Ганнибал Лектер ведёт размеренную жизнь в Италии, пока агент ФБР Кларис Старлинг и жаждущий мести богач-инвалид не начинают на него охоту.',
+    cover: 'images/covers/hannibal-2001.jpg'
+  },
 ];
 
 if (typeof module !== "undefined" && module.exports) {
