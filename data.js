@@ -905,6 +905,78 @@ const TITLES = [
     rating: null,
     synopsis: 'Когда Локи похищает Тессеракт и угрожает Земле армией читаури, Ник Фьюри собирает команду супергероев — Железного человека, Тора, Капитана Америку, Халка и других — чтобы остановить вторжение.',
     cover: 'images/covers/the-avengers-2012.jpg'
+  },
+  {
+    id: 'iron-man-3-2013',
+    title: 'Железный человек 3',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2013,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'После разрушительной атаки террориста Мандарина и пережитых в Нью-Йорке потрясений Тони Старк, лишившийся дома и брони, должен рассчитывать только на собственную изобретательность, чтобы защитить близких.',
+    cover: 'images/covers/iron-man-3-2013.jpg'
+  },
+  {
+    id: 'thor-the-dark-world-2013',
+    title: 'Тор 2: Царство тьмы',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2013,
+    genres: ['фэнтези', 'супергероика', 'боевик'],
+    rating: null,
+    synopsis: 'Тор должен спасти Вселенную от древнего зла — тёмного эльфа Малекита, который стремится погрузить все девять миров во тьму с помощью могущественного оружия Эфира.',
+    cover: 'images/covers/thor-the-dark-world-2013.jpg'
+  },
+  {
+    id: 'captain-america-the-winter-soldier-2014',
+    title: 'Первый мститель: Другая война',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2014,
+    genres: ['супергероика', 'боевик', 'триллер'],
+    rating: null,
+    synopsis: 'Стив Роджерс обнаруживает, что организация Щ.И.Т. поражена изнутри Гидрой, и вынужден противостоять таинственному наёмному убийце по прозвищу Зимний солдат.',
+    cover: 'images/covers/captain-america-the-winter-soldier-2014.jpg'
+  },
+  {
+    id: 'guardians-of-the-galaxy-2014',
+    title: 'Стражи Галактики',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2014,
+    genres: ['фантастика', 'приключения', 'комедия'],
+    rating: null,
+    synopsis: 'Авантюрист Питер Квилл становится мишенью охотников за головами после кражи таинственной сферы и вынужден объединиться со странной компанией изгоев, чтобы спасти галактику.',
+    cover: 'images/covers/guardians-of-the-galaxy-2014.jpg'
+  },
+  {
+    id: 'avengers-age-of-ultron-2015',
+    title: 'Мстители: Эра Альтрона',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2015,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Тони Старк создаёт искусственный интеллект Альтрона для защиты Земли, но программа выходит из-под контроля и решает, что для спасения планеты человечество нужно уничтожить.',
+    cover: 'images/covers/avengers-age-of-ultron-2015.jpg'
+  },
+  {
+    id: 'ant-man-2015',
+    title: 'Человек-муравей',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2015,
+    genres: ['супергероика', 'боевик', 'комедия'],
+    rating: null,
+    synopsis: 'Мелкий вор Скотт Лэнг получает от учёного Хэнка Пима костюм, позволяющий уменьшаться до размеров насекомого при сохранении силы удара, и должен использовать эту способность ради спасительного ограбления.',
+    cover: 'images/covers/ant-man-2015.jpg'
   }
 ];
 
