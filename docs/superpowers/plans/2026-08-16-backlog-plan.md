@@ -2040,6 +2040,238 @@ Follow the batch recipe above, committing incrementally.
 
 ---
 
+## Phase C — UX refinements & data corrections
+
+Added mid-execution from user feedback while Phase B was in progress. Independent of Phase B's remaining batches (18-19) — can run before, after, or interleaved with them.
+
+### Task 22: Rating stars + status quick-actions
+
+**Files:**
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+
+**Why:** a `<select>` for a 1-10 rating and a `<select>` for status are functional but unpleasant — the user wants a star-click rating and small, clearly-labeled status buttons, including a way to change status **without opening a title's modal** (directly from its grid card).
+
+- [ ] **Step 1: Replace the rating `<select>`/number input with a 10-star widget in the modal**
+
+Replace the existing `<label class="modal__field">Моя оценка<input id="modal-rating" ...></label>` block in `index.html` with a row of 10 star buttons inside a container kept at id `modal-rating` (so `app.js` selectors referencing `#modal-rating` for reading/writing rating still resolve to something sensible — adjust the read/write logic accordingly, see Step 3):
+
+```html
+<div class="modal__field">
+  Моя оценка
+  <div id="modal-rating" class="star-rating" role="radiogroup" aria-label="Оценка от 1 до 10">
+    <button type="button" class="star-rating__star" data-value="1" aria-label="1">★</button>
+    <button type="button" class="star-rating__star" data-value="2" aria-label="2">★</button>
+    <button type="button" class="star-rating__star" data-value="3" aria-label="3">★</button>
+    <button type="button" class="star-rating__star" data-value="4" aria-label="4">★</button>
+    <button type="button" class="star-rating__star" data-value="5" aria-label="5">★</button>
+    <button type="button" class="star-rating__star" data-value="6" aria-label="6">★</button>
+    <button type="button" class="star-rating__star" data-value="7" aria-label="7">★</button>
+    <button type="button" class="star-rating__star" data-value="8" aria-label="8">★</button>
+    <button type="button" class="star-rating__star" data-value="9" aria-label="9">★</button>
+    <button type="button" class="star-rating__star" data-value="10" aria-label="10">★</button>
+  </div>
+</div>
+```
+
+- [ ] **Step 2: Replace the status `<select>` with 3 buttons in the modal**
+
+Replace `<label class="modal__field">Статус<select id="modal-status">...</select></label>` with:
+
+```html
+<div class="modal__field">
+  Статус
+  <div id="modal-status" class="status-buttons" role="radiogroup" aria-label="Статус">
+    <button type="button" class="status-buttons__btn" data-status="queue">В очереди</button>
+    <button type="button" class="status-buttons__btn" data-status="in_progress">В процессе</button>
+    <button type="button" class="status-buttons__btn" data-status="done">Готово</button>
+  </div>
+</div>
+```
+
+(The third label, "Готово", replaces "Пройдено" — see Task 23, which handles the rename everywhere else; if Task 23 hasn't run yet when you do this step, use "Готово" here anyway so the two tasks agree once both land — whichever runs second should find the other's label already matching and do nothing.)
+
+- [ ] **Step 3: Update `app.js`'s modal logic for the new widgets**
+
+Replace the rating-read/write and status-read/write logic. In `openTitleModal`, replace `document.getElementById('modal-status').value = title.status;` and `document.getElementById('modal-rating').value = title.rating || '';` with calls that visually reflect state on the new button/star widgets (e.g. toggle an `is-active`/`is-filled` class on the matching `.status-buttons__btn`/`.star-rating__star` elements based on `title.status`/`title.rating`). Replace the old `#modal-status` `change` listener and `#modal-rating` `change` listener with `click` listeners on `.status-buttons__btn` and `.star-rating__star` respectively:
+  - Status button click: read `event.target.dataset.status`, call `BacklogStorage.setOverride(window.localStorage, id, { status: ... })`, update the button active-states in place (or just call `openTitleModal(id)` again to redraw), and call `refresh()`.
+  - Star click: read `event.target.dataset.value` as an integer. If it equals the title's *current* rating, clear the rating (`setOverride(..., { rating: null })`) — this is a toggle-off so users can un-rate something; otherwise set it to the clicked value. Update the star fill states and call `refresh()`.
+
+- [ ] **Step 4: Add status quick-actions to grid cards**
+
+Add the same 3-button status control (or a visually compact variant — smaller buttons/icons, your design call) to each card in `cardHtml`/`renderGrid`, positioned so it doesn't visually compete with the poster (e.g. revealed on hover for desktop, always visible in a compact form for touch devices — mirror the `@media (hover: none)` pattern already established in `styles.css` from Task 11's touch-device work). Clicking a card's status button must call `event.stopPropagation()` (or otherwise avoid triggering the card's own click-to-open-modal handler) and must not require opening the modal — it should update `localStorage` and the card's own displayed status badge immediately via the existing `refresh()` mechanism.
+
+- [ ] **Step 5: Design pass**
+
+Invoke the `frontend-design` skill before finalizing the visual treatment of the stars, status buttons, and card hover overlay — match the dark cinematic system already established in Task 11 (reuse existing tokens, don't introduce a new color language). The star widget in particular should read as elegant, not like 10 default HTML buttons in a row — consider size, spacing, hover/fill color (likely the existing `--accent`/`--accent-bright` tokens), and transition polish consistent with the rest of the app.
+
+- [ ] **Step 6: Verify manually in the browser**
+
+Confirm: clicking a star sets the rating and fills stars up to that value; clicking the same star again clears the rating; clicking a status button in the modal changes status immediately and updates the card underneath; a card's own status buttons change its status without opening the modal; keyboard/focus states are visible on all new buttons; mobile layout (375px) still works with no horizontal scroll.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add index.html styles.css app.js
+git commit -m "feat: replace rating/status selects with stars and quick-action buttons"
+```
+
+---
+
+### Task 23: Status label rename + genre filter scoped to category
+
+**Files:**
+- Modify: `app.js`
+- Modify: `index.html`
+
+**Why:** "Пройдено" reads oddly for a mixed games/movies/series/anime backlog (works for games, awkward for a movie). Separately, the genre `<select>` currently lists every genre in the whole catalog regardless of which category tab is active, so switching to "Игры" still offers "комедия" as a filter option even though no game in the catalog has that genre.
+
+- [ ] **Step 1: Rename the "done" status label**
+
+Replace every user-facing occurrence of "Пройдено" with **"Готово"** (short, neutral, works across games/movies/series/anime alike, and echoes the original spreadsheet's "готово" column) — in `app.js`'s `STATUS_LABELS` map, in `index.html`'s `#status-filter` `<option value="done">`, and in the status buttons markup from Task 22 Step 2 if that task hasn't landed yet (if it has, it already says "Готово" — nothing to do there).
+
+- [ ] **Step 2: Scope the genre filter to the active category**
+
+Change `populateGenreFilter()` in `app.js` to accept the current category and only collect genres from titles in that category:
+
+```js
+  function populateGenreFilter() {
+    var select = document.getElementById('genre-filter');
+    select.innerHTML = '<option value="all">Любой жанр</option>';
+    var genres = {};
+    titlesForCategory(state.category).forEach(function (t) { t.genres.forEach(function (g) { genres[g] = true; }); });
+    Object.keys(genres).sort().forEach(function (g) {
+      var option = document.createElement('option');
+      option.value = g;
+      option.textContent = g;
+      select.appendChild(option);
+    });
+  }
+```
+
+Call `populateGenreFilter()` again whenever the category tab changes — add it to `onTabClick`, right after `state.category` is updated and before `refresh()`. Also reset the genre filter to "all" on category change, since a previously-selected genre may not exist in the new category's title set:
+
+```js
+    state.genre = 'all';
+    populateGenreFilter();
+```
+
+(add these two lines to `onTabClick`, in that order, right after `state.category = button.getAttribute('data-category');`)
+
+- [ ] **Step 3: Verify manually in the browser**
+
+Confirm: the status filter dropdown and any status buttons now read "Готово" instead of "Пройдено" everywhere; switching to the "Игры" tab shows only genres that actually appear on game titles in the genre filter (e.g. "кооператив", "ролевая игра" — not "комедия" unless a game in the catalog genuinely has that tag); switching tabs resets the genre filter to "Любой жанр" rather than leaving a stale, now-invalid selection.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add app.js index.html
+git commit -m "fix: rename done status label, scope genre filter to active category"
+```
+
+---
+
+### Task 24: Compact season-info format
+
+**Files:**
+- Modify: `styles.css`
+- Modify: `app.js`
+- Modify: `data.js`
+
+**Why:** the current `seasonInfo` values are long prose paragraphs ("Вышло три сезона: первый в 2016-м, второй в 2020–2021-м..."). The user wants something scannable: a short season-count line, then one line per confirmed/upcoming season, e.g.:
+
+```
+4 сезона
+Сезон 5 — дата выхода: март 2027
+Сезон 6 — дата выхода ещё не анонсирована
+```
+
+- [ ] **Step 1: Render newlines in the season-info display**
+
+In `styles.css`, add `white-space: pre-line;` to the existing `.modal__seasons` rule (this makes literal `\n` characters in the string render as line breaks, without needing any HTML changes).
+
+- [ ] **Step 2: Drop the "Сезоны: " prefix in `app.js`**
+
+In `openTitleModal`, change `seasonsEl.textContent = title.seasonInfo ? 'Сезоны: ' + title.seasonInfo : '';` to `seasonsEl.textContent = title.seasonInfo || '';` — the new format's first line already states the season count, so the old prefix is redundant.
+
+- [ ] **Step 3: Reformat every existing `seasonInfo` value in `data.js`**
+
+Every current non-null `seasonInfo` string in `data.js` (there are about two dozen as of this task) needs to be rewritten from a prose paragraph into the compact multi-line format: first line is a short season/part count (e.g. `"4 сезона"`, `"3 сезона и фильм"`, `"Полностью завершён, 3 сезона"` for concluded shows — adapt wording naturally per title), followed by one line per confirmed-but-unaired season with what's known about its release timing (`"Сезон 5 — дата выхода: март 2027"`, or `"Сезон 6 — дата выхода ещё не анонсирована"` when a season is confirmed but undated). Shows with no more seasons coming just get the one count line, nothing more. All the underlying facts are already present in the existing prose — this is a reformatting pass using information you already have in the file, not new research (though double-check anything that reads ambiguously). Use `\n` inside the JS string literal for line breaks (e.g. `seasonInfo: '4 сезона\nСезон 5 — премьера в марте 2027 года.'`).
+
+- [ ] **Step 4: Validate and verify**
+
+Run `node tools/validate-data.js` (schema doesn't care about the field's internal formatting, so this just confirms nothing else broke) and `node --test tests/*.test.js`. Open a few series/anime titles' modals in the browser and confirm the season info now renders as short stacked lines, not a paragraph.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add styles.css app.js data.js
+git commit -m "feat: compact multi-line season info format"
+```
+
+---
+
+### Task 25: Poster crop/fit audit
+
+**Files:** none pre-specified — this task edits `data.js`/`images/covers/` only for entries found to need a replacement image.
+
+**Why:** cards display covers at a fixed 2:3 aspect ratio via `object-fit: cover`, which crops any image that isn't already close to 2:3. Posters sourced during Phase B batches weren't checked against this — some may be landscape stills, square thumbnails, or oddly-cropped, which look bad once forced into a portrait card.
+
+- [ ] **Step 1: Visually audit every cover in the browser**
+
+Open the app and inspect the full grid (all 4 category tabs) at desktop width. For each card, judge whether the poster reads as a natural, un-mutilated portrait image — faces/logos/key art not cut off awkwardly, no obvious "this was a 16:9 still forced into 2:3" look. Zoom in on any card that looks suspicious.
+
+- [ ] **Step 2: Replace flagged covers**
+
+For every title flagged in Step 1, web-search for a proper portrait/poster-format image for that specific title (most films/shows/anime have an official portrait poster even if the first image found wasn't one — search "<title> poster" rather than "<title> still" or "<title> screenshot"), download it to the same `images/covers/<id>.<ext>` path (overwriting the old file — update the extension in `data.js`'s `cover` field too if it changes), and re-check it in the browser.
+
+- [ ] **Step 3: Verify and commit**
+
+Run `node tools/validate-data.js` to confirm nothing broke. Re-open the grid and confirm all previously-flagged cards now look right. Commit any replaced images and `data.js` changes:
+
+```bash
+git add data.js images/covers
+git commit -m "fix: replace poorly-cropped cover images"
+```
+
+(If nothing needed replacing, no commit is needed — just report that the audit found the existing covers acceptable.)
+
+---
+
+### Task 26: Data fixes — split combined franchise entries, resolve the 2026 Aang title
+
+**Files:**
+- Modify: `data.js`
+- Create: new `images/covers/*` files for the split-off entries
+
+**Why:** the user clarified two things: (1) "Кастлвания" and "Кастлвания: Ноктюрн" are different works in the same universe and should be separate cards, not one combined entry — same for "Властелины вселенной: Откровение"/"Революция"; (2) what they meant by "Легенда об Аанге" in the original spreadsheet was specifically **"Легенда об Аанге: Последний маг воздуха (2026)"** — a title not yet in the catalog.
+
+- [ ] **Step 1: Split the Castlevania combined entry**
+
+Find the `castlevania-2017` entry in `data.js` (currently titled "Кастлвания / Кастлвания: Ноктюрн", combining both shows). Replace it with two separate entries — one for the original *Castlevania* (2017-2021, 4 seasons, completed) and one for *Castlevania: Nocturne* (2023-, status per current renewal info — the existing combined entry's `seasonInfo` already has the research: Nocturne was in limbo as of early 2025 pending Netflix's renewal decision; re-verify via a quick search since time has passed). Give each its own `id` (e.g. `castlevania-2017` for the original, `castlevania-nocturne-2023` for the sequel), Russian `title`, `seasonInfo` (reformatted per Task 24's compact style if that task has landed, prose is fine otherwise), and its own poster (search for and download a distinct poster for each — do not reuse the same image for both).
+
+- [ ] **Step 2: Split the Masters of the Universe combined entry**
+
+Find the `masters-of-the-universe-revelation-2021` entry (currently titled "Властелины вселенной: Откровение / Революция"). Replace it with two separate entries — one for *Masters of the Universe: Revelation* (2021) and one for *Masters of the Universe: Revolution* (2024) — each with its own `id`, Russian title, and a distinct poster.
+
+- [ ] **Step 3: Add "Легенда об Аанге: Последний маг воздуха (2026)"**
+
+Web-search this exact title to confirm what it is (format/category — likely an animated film or series; the existing two Avatar entries in the catalog, the 2005 original series and the 2024 Netflix live-action series, are separately correct and should NOT be removed — this is a third, additional entry) and add it with real year/genres/synopsis/poster/status per the usual recipe (`status: "queue"` unless you confirm the user has actually already watched it, which is unlikely for a 2026 release added just now).
+
+- [ ] **Step 4: Validate and verify**
+
+Run `node tools/validate-data.js` and `node --test tests/*.test.js`. Open the grid in the browser and confirm: Castlevania and Castlevania: Nocturne appear as two distinct cards with two distinct posters; the two Masters of the Universe entries appear as two distinct cards with two distinct posters; the new Aang 2026 title appears alongside (not replacing) the existing two Avatar entries.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add data.js images/covers
+git commit -m "data: split Castlevania/MOTU into separate cards, add Легенда об Аанге (2026)"
+```
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
