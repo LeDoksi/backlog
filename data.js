@@ -1049,6 +1049,78 @@ const TITLES = [
     rating: null,
     synopsis: 'После смерти отца Т’Чалла возвращается в технологически передовое африканское королевство Ваканда, чтобы занять трон, но сталкивается с претендентом, ставящим под угрозу судьбу страны и всего мира.',
     cover: 'images/covers/black-panther-2018.jpg'
+  },
+  {
+    id: 'avengers-infinity-war-2018',
+    title: 'Мстители: Война бесконечности',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2018,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Мстители и их союзники объединяются, чтобы остановить безумного титана Таноса, собирающего Камни Бесконечности ради уничтожения половины всего живого во Вселенной.',
+    cover: 'images/covers/avengers-infinity-war-2018.jpg'
+  },
+  {
+    id: 'ant-man-and-the-wasp-2018',
+    title: 'Человек-муравей и Оса',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2018,
+    genres: ['супергероика', 'боевик', 'комедия'],
+    rating: null,
+    synopsis: 'Скотт Лэнг вновь надевает костюм Человека-муравья и объединяется с Хоуп ван Дайн, ставшей Осой, чтобы спасти её мать из Квантовой сферы, где она пропала много лет назад.',
+    cover: 'images/covers/ant-man-and-the-wasp-2018.jpg'
+  },
+  {
+    id: 'captain-marvel-2019',
+    title: 'Капитан Марвел',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2019,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Пилот военно-космических сил Кри Вирс Данверс, обретя сверхспособности, оказывается в центре межгалактического конфликта и постепенно вспоминает своё прошлое на Земле.',
+    cover: 'images/covers/captain-marvel-2019.jpg'
+  },
+  {
+    id: 'avengers-endgame-2019',
+    title: 'Мстители: Финал',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2019,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'После уничтожения половины Вселенной оставшиеся Мстители разрабатывают отчаянный план с использованием путешествий во времени, чтобы отменить деяния Таноса и вернуть погибших.',
+    cover: 'images/covers/avengers-endgame-2019.jpg'
+  },
+  {
+    id: 'spider-man-far-from-home-2019',
+    title: 'Человек-паук: Вдали от дома',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2019,
+    genres: ['супергероика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'Питер Паркер отправляется на каникулы в Европу, но вынужден вернуться к обязанностям супергероя, когда Ник Фьюри просит его помочь остановить нападения загадочных существ из стихий.',
+    cover: 'images/covers/spider-man-far-from-home-2019.jpg'
+  },
+  {
+    id: 'black-widow-2021',
+    title: 'Чёрная вдова',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2021,
+    genres: ['супергероика', 'боевик', 'триллер'],
+    rating: null,
+    synopsis: 'Наташа Романофф сталкивается с тёмным прошлым, когда всплывает опасная заговорщическая организация, связывающая её с семьёй шпионов, вырастившей её, и требующая закрыть счёты.',
+    cover: 'images/covers/black-widow-2021.jpg'
   }
 ];
 
