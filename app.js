@@ -1,6 +1,7 @@
 // app.js
 (function () {
   var state = { category: 'all', status: 'all', genre: 'all', returning: false, search: '', sort: 'added' };
+  var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Пройдено' };
 
   function baseTitles() {
     return BacklogStorage.applyOverlay(TITLES, window.localStorage);
@@ -28,7 +29,7 @@
       '<img class="card__cover" src="' + title.cover + '" alt="' + title.title + '">' +
       '<div class="card__body">' +
       '<div class="card__title">' + title.title + '</div>' +
-      '<span class="badge">' + title.status + '</span>' + returningBadge +
+      '<span class="badge">' + (STATUS_LABELS[title.status] || title.status) + '</span>' + returningBadge +
       '</div>'
     );
   }
