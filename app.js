@@ -134,6 +134,30 @@
   document.getElementById('modal-close').addEventListener('click', closeTitleModal);
   document.querySelector('.modal__backdrop').addEventListener('click', closeTitleModal);
 
+  document.getElementById('modal-status').addEventListener('change', function (e) {
+    var id = document.getElementById('title-modal').dataset.id;
+    BacklogStorage.setOverride(window.localStorage, id, { status: e.target.value });
+    refresh();
+  });
+
+  document.getElementById('modal-rating').addEventListener('change', function (e) {
+    var id = document.getElementById('title-modal').dataset.id;
+    var value = e.target.value ? parseInt(e.target.value, 10) : null;
+    BacklogStorage.setOverride(window.localStorage, id, { rating: value });
+    refresh();
+  });
+
+  document.getElementById('modal-delete').addEventListener('click', function () {
+    var id = document.getElementById('title-modal').dataset.id;
+    var title = findTitleById(id);
+    if (!title) return;
+    var confirmed = window.confirm('Удалить «' + title.title + '» из бэклога? Это действие нельзя отменить.');
+    if (!confirmed) return;
+    BacklogStorage.deleteTitle(window.localStorage, id);
+    closeTitleModal();
+    refresh();
+  });
+
   populateGenreFilter();
   refresh();
 
