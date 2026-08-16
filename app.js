@@ -41,6 +41,9 @@
       var card = document.createElement('article');
       card.className = 'card';
       card.dataset.id = title.id;
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', title.title);
       card.innerHTML = cardHtml(title);
       grid.appendChild(card);
     });
@@ -131,6 +134,13 @@
   document.getElementById('grid').addEventListener('click', function (event) {
     var card = event.target.closest('.card');
     if (card) openTitleModal(card.dataset.id);
+  });
+  document.getElementById('grid').addEventListener('keydown', function (event) {
+    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar') return;
+    var card = event.target.closest('.card');
+    if (!card) return;
+    if (event.key === ' ' || event.key === 'Spacebar') event.preventDefault();
+    openTitleModal(card.dataset.id);
   });
   document.getElementById('modal-close').addEventListener('click', closeTitleModal);
   document.querySelector('.modal__backdrop').addEventListener('click', closeTitleModal);
