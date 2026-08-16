@@ -534,6 +534,90 @@ const TITLES = [
     synopsis: 'Безымянный каскадёр и водитель на подработке ввязывается в ограбление, чтобы защитить соседку и её сына, и оказывается втянут в жестокое противостояние с криминальным миром Лос-Анджелеса.',
     cover: 'images/covers/drive-2011.jpg'
   },
+  {
+    id: 'the-batman-2022',
+    title: 'Бэтмен',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2022,
+    genres: ['боевик', 'детектив', 'триллер'],
+    rating: null,
+    synopsis: 'На втором году своей войны с преступностью Бэтмен расследует серию убийств, устроенных загадочным Риддлером, и раскрывает глубокую коррупцию, пронизывающую Готэм.',
+    cover: 'images/covers/the-batman-2022.jpg'
+  },
+  {
+    id: 'bullet-train-2022',
+    title: 'Быстрее пули',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2022,
+    genres: ['боевик', 'чёрная комедия', 'триллер'],
+    rating: null,
+    synopsis: 'Незадачливый наёмник по кличке Божья Коровка садится в скоростной японский поезд ради простого задания, но обнаруживает, что в вагонах едут ещё несколько убийц с пересекающимися и смертельно опасными миссиями.',
+    cover: 'images/covers/bullet-train-2022.jpg'
+  },
+  {
+    id: 'snatch-2000',
+    title: 'Большой куш',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2000,
+    genres: ['криминал', 'комедия', 'боевик'],
+    rating: null,
+    synopsis: 'Кража огромного бриллианта сталкивает лондонских бандитов, боксёров-нелегалов и цыганского боксёра по прозвищу Пуля в переплетении хаотичных и уморительных криминальных сюжетных линий.',
+    cover: 'images/covers/snatch-2000.jpg'
+  },
+  {
+    id: 'the-fountain-of-youth-2025',
+    title: 'Источник вечной молодости',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2025,
+    genres: ['приключения', 'боевик', 'фэнтези'],
+    rating: null,
+    synopsis: 'Рассорившиеся брат и сестра объединяются в погоне за легендарным источником вечной молодости, спрятанным в череде опасных мест по всему миру.',
+    cover: 'images/covers/the-fountain-of-youth-2025.jpg'
+  },
+  {
+    id: 'jay-and-silent-bob-strike-back-2001',
+    title: 'Джей и Молчаливый Боб наносят ответный удар',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2001,
+    genres: ['комедия'],
+    rating: null,
+    synopsis: 'Узнав, что о них снимают фильм по комиксам без их разрешения и денег, Джей и Молчаливый Боб отправляются в Голливуд, чтобы сорвать съёмки, — комедийный привет всей киновселенной Кевина Смита.',
+    cover: 'images/covers/jay-and-silent-bob-strike-back-2001.jpg'
+  },
+  {
+    id: 'masters-of-the-universe-2026',
+    title: 'Властелины Вселенной',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2026,
+    genres: ['фэнтези', 'приключения', 'боевик'],
+    rating: null,
+    synopsis: 'Принц Адам возвращается на порабощённую Скелетором Этернию и должен принять свою судьбу, превратившись в Хи-Мэна, чтобы освободить родную планету, — игровая экранизация классической франшизы.',
+    cover: 'images/covers/masters-of-the-universe-2026.jpg'
+  },
+  {
+    id: 'the-village-2004',
+    title: 'Таинственный лес',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2004,
+    genres: ['триллер', 'драма', 'мистика'],
+    rating: null,
+    synopsis: 'Жители изолированной деревни XIX века живут в страхе перед существами, обитающими в окружающем лесу, но попытка одной из девушек покинуть поселение раскрывает мрачную тайну этого места.',
+    cover: 'images/covers/the-village-2004.jpg'
+  },
 ];
 
 if (typeof module !== "undefined" && module.exports) {
