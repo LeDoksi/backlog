@@ -1253,6 +1253,42 @@ const TITLES = [
     rating: null,
     synopsis: 'Новый Капитан Америка Сэм Уилсон оказывается втянут в международный заговор, когда покушение на президента США заставляет его выяснить, кто пытается разжечь мировую войну.',
     cover: 'images/covers/captain-america-brave-new-world-2025.jpg'
+  },
+  {
+    id: 'thunderbolts-2025',
+    title: 'Громовержцы*',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2025,
+    genres: ['супергероика', 'боевик', 'триллер'],
+    rating: null,
+    synopsis: 'Группа бывших наёмников, шпионов и антигероев, преданных собственным правительством, вынуждена объединиться в опасную команду, чтобы выжить и раскрыть тёмную тайну.',
+    cover: 'images/covers/thunderbolts-2025.jpg'
+  },
+  {
+    id: 'the-fantastic-four-first-steps-2025',
+    title: 'Фантастическая четвёрка: Первые шаги',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2025,
+    genres: ['супергероика', 'фантастика', 'приключения'],
+    rating: null,
+    synopsis: 'В ретрофутуристическом 1960-х Реед Ричардс, Сью Шторм, Джонни Шторм и Бен Гримм, обретшие сверхспособности после космической экспедиции, должны защитить Землю от пожирателя планет Галактуса.',
+    cover: 'images/covers/the-fantastic-four-first-steps-2025.jpg'
+  },
+  {
+    id: 'spider-man-brand-new-day-2026',
+    title: 'Человек-паук: Новый день',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2026,
+    genres: ['супергероика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'После событий «Нет пути домой» Питер Паркер, забытый всем миром, пытается заново выстроить жизнь и отношения, оставаясь Человеком-пауком и сталкиваясь с новыми врагами.',
+    cover: 'images/covers/spider-man-brand-new-day-2026.jpg'
   }
 ];
 
