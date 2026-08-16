@@ -102,8 +102,47 @@
     refresh();
   });
 
+  function findTitleById(id) {
+    return baseTitles().filter(function (t) { return t.id === id; })[0];
+  }
+
+  function openTitleModal(id) {
+    var title = findTitleById(id);
+    if (!title) return;
+    document.getElementById('modal-cover').src = title.cover;
+    document.getElementById('modal-cover').alt = title.title;
+    document.getElementById('modal-title').textContent = title.title;
+    var meta = [title.year, title.genres.join(', ')].filter(Boolean).join(' · ');
+    if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'выходит' : 'завершено');
+    document.getElementById('modal-meta').textContent = meta;
+    document.getElementById('modal-synopsis').textContent = title.synopsis;
+    document.getElementById('modal-status').value = title.status;
+    document.getElementById('modal-rating').value = title.rating || '';
+    var modal = document.getElementById('title-modal');
+    modal.dataset.id = id;
+    modal.hidden = false;
+  }
+
+  function closeTitleModal() {
+    document.getElementById('title-modal').hidden = true;
+  }
+
+  document.getElementById('grid').addEventListener('click', function (event) {
+    var card = event.target.closest('.card');
+    if (card) openTitleModal(card.dataset.id);
+  });
+  document.getElementById('modal-close').addEventListener('click', closeTitleModal);
+  document.querySelector('.modal__backdrop').addEventListener('click', closeTitleModal);
+
   populateGenreFilter();
   refresh();
 
-  window.BacklogApp = { getVisibleTitles: getVisibleTitles, renderGrid: renderGrid, refresh: refresh, state: state };
+  window.BacklogApp = {
+    getVisibleTitles: getVisibleTitles,
+    renderGrid: renderGrid,
+    refresh: refresh,
+    openTitleModal: openTitleModal,
+    closeTitleModal: closeTitleModal,
+    state: state
+  };
 }());
