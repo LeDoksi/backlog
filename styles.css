@@ -44,6 +44,16 @@
   --accent-glow: rgba(233, 69, 96, 0.35);
   --signal: #f2c14e;                    /* "waiting for more" — a warm flag  */
   --signal-soft: rgba(242, 193, 78, 0.13);
+
+  /* Rating gold — deliberately the SAME warm as --signal, not a third hue.
+     The room has two colours besides the greys, and a filled star belongs to
+     the warm one: the red is a marker (focus ring, active rim, destructive)
+     and ten red-filled stars would make it a surface, which is the one thing
+     the accent is never allowed to be. */
+  --star-off: #434a59;                  /* an empty slot: quiet but countable */
+  --star: #f2c14e;                      /* the committed rating              */
+  --star-lit: #ffd97a;                  /* the light running under the finger */
+  --star-glow: rgba(242, 193, 78, 0.45);
   --scrim: rgba(8, 9, 12, 0.72);
   --bg-veil: rgba(13, 15, 20, 0.82);    /* sticky header backdrop            */
 
@@ -515,13 +525,21 @@ body {
     box-shadow var(--dur-fast) var(--ease-out);
 }
 
+/* The poster is its own positioning context so the quick-action strip can hang
+   off its bottom edge — over the artwork, but never over the title below it. */
+.card__poster {
+  position: relative;
+  display: block;
+}
+
 /* Scrim over the poster: unifies covers of wildly different brightness and
-   ties the artwork into the body below it. Lifts away under the light. */
-.card::after {
+   ties the artwork into the body below it. Lifts away under the light.
+   It also does double duty now — the strip lands on its darkest end, so the
+   icons sit on a guaranteed floor no matter how bright the cover is. */
+.card__poster::after {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  aspect-ratio: 2 / 3;
+  inset: 0;
   pointer-events: none;
   background: linear-gradient(
     to bottom,
@@ -547,7 +565,9 @@ body {
     transform var(--dur-slow) var(--ease-out);
 }
 
-.card:is(:hover, :focus-visible) {
+/* :focus-within joins the set so tabbing into the card's quick-actions turns
+   the shelf light on exactly as pointing at it does. */
+.card:is(:hover, :focus-visible, :focus-within) {
   transform: translateY(-6px);
   box-shadow:
     var(--lift-hover),
@@ -556,12 +576,12 @@ body {
   transition-duration: var(--dur-base);
 }
 
-.card:is(:hover, :focus-visible) .card__cover {
+.card:is(:hover, :focus-visible, :focus-within) .card__cover {
   filter: none;
   transform: scale(1.045);
 }
 
-.card:is(:hover, :focus-visible)::after { opacity: 0.45; }
+.card:is(:hover, :focus-visible, :focus-within) .card__poster::after { opacity: 0.45; }
 
 .card:active { transform: translateY(-2px); transition-duration: var(--dur-fast); }
 
@@ -572,7 +592,105 @@ body {
    full colour, scrim pulled back to the same 45% the light reaches on desktop. */
 @media (hover: none) {
   .card__cover { filter: none; }
-  .card::after { opacity: 0.45; }
+  .card__poster::after { opacity: 0.45; }
+}
+
+/* ── Card quick-actions ───────────────────────────────────────────────── */
+
+/* Moving a title along the shelf is the one thing done often enough to deserve
+   a control on the card itself. It rides in on the shelf light rather than
+   sitting on the poster permanently: at rest there is nothing but artwork, and
+   the moment the card lights up the strip rises into the scrim at its foot.
+   Icons, not words — three labels cannot set legibly in 140px, and the three
+   silhouettes (ruled lines / half-turned dial / tick) are distinct at 15px. */
+.card-status {
+  position: absolute;
+  left: var(--sp-2);
+  right: var(--sp-2);
+  bottom: var(--sp-2);
+  z-index: 2;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: rgba(9, 10, 14, 0.78);
+  backdrop-filter: blur(8px) saturate(130%);
+  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 8px 20px -10px rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  transform: translateY(6px);
+  /* Invisible must also mean intangible, or every card would swallow clicks
+     along a dead band above its title. */
+  pointer-events: none;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.card:is(:hover, :focus-visible, :focus-within) .card-status {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.card-status__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.card-status__btn svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.card-status__btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* The same warm rim the tabs use for "you are here" — the accent as an edge,
+   never as a fill. */
+.card-status__btn.is-active {
+  color: var(--text);
+  background: rgba(233, 69, 96, 0.20);
+  box-shadow: inset 0 0 0 1px rgba(233, 69, 96, 0.5);
+}
+
+/* The strip lives inside a clipped, 3px-padded slab; the standard 3px offset
+   would be cropped by the card's own overflow. */
+.card-status__btn:focus-visible { outline-offset: 1px; }
+
+/* No pointer to summon the light, so the strip is simply always there —
+   pulled down in weight and size so it reads as a footnote on the poster
+   rather than a toolbar bolted to it. */
+@media (hover: none) {
+  .card-status {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    padding: 2px;
+    background: rgba(9, 10, 14, 0.7);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  }
+
+  .card-status__btn { height: 24px; }
+  .card-status__btn svg { width: 14px; height: 14px; }
 }
 
 /* Block flow, not flex: badges are inline chips that should hug their text and
@@ -739,56 +857,191 @@ body {
   max-width: 56ch;
 }
 
-/* Inline-block so status and rating sit as one control row, then the
-   destructive action drops below on its own line. */
+/* Both controls are now wide enough that pairing them on one line would crowd
+   the panel at any width — they stack, and the destructive action follows. */
 .modal__field {
-  display: inline-block;
-  vertical-align: top;
-  margin: 0 var(--sp-5) var(--sp-4) 0;
+  display: block;
+  margin: 0 0 var(--sp-4);
+  color: var(--text-muted);
+}
+
+.modal__field-label {
+  display: block;
   font-family: var(--font-display);
   font-size: var(--fs-micro);
   font-weight: 600;
   letter-spacing: var(--track-label);
   text-transform: uppercase;
-  color: var(--text-muted);
 }
 
-.modal__field select,
-.modal__field input {
-  display: block;
+/* ── Status: a segmented control ──────────────────────────────────────── */
+
+/* Three loose buttons would say "three actions"; one track with three seats
+   says "pick exactly one", which is the truth. Read left to right it is also
+   the pipeline itself — queue, in progress, done — so the order carries
+   information rather than decorating it. Same 36px silhouette and sunken well
+   as every other control in the app. */
+.status-buttons {
+  display: flex;
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
   margin-top: var(--sp-2);
-  height: 36px;
-  min-width: 180px;
-  background-color: var(--surface-sunken);
+  padding: 3px;
+  background: var(--surface-sunken);
   border: 1px solid var(--border);
-  color: var(--text);
-  padding: 0 var(--sp-3);
   border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: var(--fs-sm);
-  letter-spacing: normal;
-  text-transform: none;
   transition: border-color var(--dur-fast) var(--ease-out);
 }
 
-.modal__field select {
-  -webkit-appearance: none;
-  appearance: none;
-  padding-right: 30px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%238a8f9c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 11px 11px;
+.status-buttons:hover { border-color: var(--border-strong); }
+
+.status-buttons__btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.status-buttons__btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Contrast plus a warm rim — the same "you are here" the tabs use. A solid
+   accent slab under 12px text would not clear AA, and would spend the red. */
+.status-buttons__btn.is-active {
+  color: var(--text);
+  background: var(--surface-hover);
+  box-shadow:
+    inset 0 0 0 1px rgba(233, 69, 96, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.status-buttons__btn:focus-visible { outline-offset: 1px; }
+
+/* ── Rating: ten stars and a readout ──────────────────────────────────── */
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  /* Hit areas tile edge to edge: no dead gutters between stars, and the visual
+     spacing comes from the mark being smaller than its cell. An 18px mark in a
+     26px cell leaves exactly 4px of air on each side — which is also why the
+     strip is pulled back 4px, so the first star sits flush with its label. */
+  margin-left: -4px;
+}
+
+.star-rating__star {
+  flex: 1 1 0;
+  min-width: 26px;
+  max-width: 32px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
-.modal__field input { width: 96px; min-width: 0; font-variant-numeric: tabular-nums; }
+.star-rating__star:focus-visible { outline-offset: 0; }
 
-.modal__field select:hover,
-.modal__field input:hover { border-color: var(--border-strong); }
+/* Drawn, not typed. The ★ glyph is a different animal in every font that ships
+   it; clip-path gives one sharp silhouette everywhere — and it is already the
+   house technique, since the checkbox tick is cut the same way. */
+.star-rating__mark {
+  width: 18px;
+  height: 18px;
+  background: var(--star-off);
+  transform: scale(0.86);
+  clip-path: polygon(
+    50% 0%, 62.3% 33%, 97.6% 34.5%, 70% 56.5%, 79.4% 90.5%,
+    50% 71%, 20.6% 90.5%, 30% 56.5%, 2.4% 34.5%, 37.7% 33%
+  );
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    filter var(--dur-base) var(--ease-out);
+}
 
-.modal__field select:focus-visible,
-.modal__field input:focus-visible { border-color: rgba(233, 69, 96, 0.6); }
+.star-rating__star.is-filled .star-rating__mark {
+  background: var(--star);
+  transform: scale(1);
+  filter: drop-shadow(0 0 5px var(--star-glow));
+}
+
+/* The signature move, borrowed from the shelf: pointing at the strip turns the
+   committed rating off and runs the light out to where the finger is, so you
+   always see the rating you are about to set rather than the one you have.
+   Driven by a class rather than :hover so the keyboard gets the same preview
+   when arrowing along the row. */
+.star-rating.is-previewing .star-rating__star .star-rating__mark {
+  background: var(--star-off);
+  transform: scale(0.86);
+  filter: none;
+}
+
+.star-rating.is-previewing .star-rating__star.is-preview .star-rating__mark {
+  background: var(--star-lit);
+  transform: scale(1);
+  filter: drop-shadow(0 0 6px var(--star-glow));
+}
+
+/* A backlog is a count, so the rating gets a readout rather than a suffix —
+   the same reasoning as the tab counters. It is also where the toggle-off
+   affordance is announced: hovering the star you already gave says УБРАТЬ,
+   so clearing a rating is discoverable instead of a secret. */
+.rating__readout {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.rating__value {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.star-rating.is-previewing + .rating__readout .rating__value { color: var(--star-lit); }
+
+.rating__readout--clear { color: var(--accent-bright); }
 
 /* Destructive: outlined and cool until you touch it, then it commits. */
 .modal__delete {
@@ -923,8 +1176,17 @@ body {
 
   .card__body { padding: var(--sp-3) var(--sp-2) var(--sp-2); }
 
-  /* Two controls side by side would not fit a 375px panel. */
-  .modal__field { display: block; margin-right: 0; }
+  /* The segmented control takes the full width and its labels lose their side
+     padding rather than their letters — all three still set on one line. */
+  .status-buttons { width: 100%; }
+  .status-buttons__btn { height: 32px; padding: 0 var(--sp-2); }
+
+  /* Ten stars plus a readout will not share a 296px line, so the readout drops
+     under the row and the stars spread across the full width — a bigger,
+     easier target than they get on desktop. */
+  .rating { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+  .star-rating { width: 100%; flex: none; }
+  .star-rating__star { max-width: none; height: 34px; }
 
   .modal { padding: var(--sp-3); align-items: flex-end; }
 
@@ -940,7 +1202,6 @@ body {
   .modal__cover { width: 132px; }
   .modal__body { padding-right: 0; width: 100%; }
   .modal__synopsis { font-size: var(--fs-base); }
-  .modal__field select, .modal__field input { height: 40px; }
   .modal__delete { width: 100%; height: 40px; }
 }
 
@@ -957,6 +1218,9 @@ body {
     scroll-behavior: auto !important;
   }
 
-  .card:is(:hover, :focus-visible) { transform: none; }
-  .card:is(:hover, :focus-visible) .card__cover { transform: none; }
+  .card:is(:hover, :focus-visible, :focus-within) { transform: none; }
+  .card:is(:hover, :focus-visible, :focus-within) .card__cover { transform: none; }
+
+  /* The strip appears and disappears; it no longer rises to do it. */
+  .card-status { transform: none; }
 }
