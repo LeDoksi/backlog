@@ -977,6 +977,78 @@ const TITLES = [
     rating: null,
     synopsis: 'Мелкий вор Скотт Лэнг получает от учёного Хэнка Пима костюм, позволяющий уменьшаться до размеров насекомого при сохранении силы удара, и должен использовать эту способность ради спасительного ограбления.',
     cover: 'images/covers/ant-man-2015.jpg'
+  },
+  {
+    id: 'captain-america-civil-war-2016',
+    title: 'Первый мститель: Противостояние',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2016,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'Разногласия по поводу государственного контроля над супергероями раскалывают Мстителей на два враждующих лагеря во главе с Капитаном Америкой и Железным человеком.',
+    cover: 'images/covers/captain-america-civil-war-2016.jpg'
+  },
+  {
+    id: 'doctor-strange-2016',
+    title: 'Доктор Стрэндж',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2016,
+    genres: ['фэнтези', 'супергероика', 'боевик'],
+    rating: null,
+    synopsis: 'Блестящий, но самонадеянный нейрохирург Стивен Стрэндж после автокатастрофы, лишившей его рук, отправляется на поиски исцеления и открывает для себя мир магии и параллельных измерений.',
+    cover: 'images/covers/doctor-strange-2016.jpg'
+  },
+  {
+    id: 'guardians-of-the-galaxy-vol-2-2017',
+    title: 'Стражи Галактики. Часть 2',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2017,
+    genres: ['фантастика', 'приключения', 'комедия'],
+    rating: null,
+    synopsis: 'Стражи Галактики отправляются на поиски таинственного отца Питера Квилла и попутно защищают новообретённую семью от предательства и новых врагов.',
+    cover: 'images/covers/guardians-of-the-galaxy-vol-2-2017.jpg'
+  },
+  {
+    id: 'spider-man-homecoming-2017',
+    title: 'Человек-паук: Возвращение домой',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2017,
+    genres: ['супергероика', 'боевик', 'комедия'],
+    rating: null,
+    synopsis: 'Питер Паркер пытается совмещать школьную жизнь с обязанностями супергероя под присмотром Тони Старка, попутно раскрывая заговор торговца оружием Стервятника.',
+    cover: 'images/covers/spider-man-homecoming-2017.jpg'
+  },
+  {
+    id: 'thor-ragnarok-2017',
+    title: 'Тор: Рагнарёк',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2017,
+    genres: ['фэнтези', 'супергероика', 'комедия'],
+    rating: null,
+    synopsis: 'Лишённый молота и заточённый на планете-свалке Сакааре, Тор должен успеть вернуться в Асгард и остановить свою сестру Хелу, богиню смерти, несущую Рагнарёк — конец света.',
+    cover: 'images/covers/thor-ragnarok-2017.jpg'
+  },
+  {
+    id: 'black-panther-2018',
+    title: 'Чёрная пантера',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2018,
+    genres: ['супергероика', 'боевик', 'фантастика'],
+    rating: null,
+    synopsis: 'После смерти отца Т’Чалла возвращается в технологически передовое африканское королевство Ваканда, чтобы занять трон, но сталкивается с претендентом, ставящим под угрозу судьбу страны и всего мира.',
+    cover: 'images/covers/black-panther-2018.jpg'
   }
 ];
 
