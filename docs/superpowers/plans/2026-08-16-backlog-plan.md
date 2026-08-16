@@ -1406,6 +1406,274 @@ git commit -m "style: polish dark cinematic visual design"
 
 ---
 
+### Task 20: Quick-add title from the UI
+
+> Added mid-execution at the user's request, placed here (after Task 11) because it's a UI feature that belongs before the README documents it. Numbered 20 to avoid renumbering already-completed tasks.
+
+**Files:**
+- Modify: `lib/slug.js`
+- Modify: `tests/slug.test.js`
+- Modify: `lib/storage.js`
+- Modify: `tests/storage.test.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+- Create: `images/covers/_placeholder.svg`
+
+**Interfaces:**
+- Consumes: `BacklogSlug.slugify` (Task 1); `BacklogStorage`'s existing `getOverrides`/`setOverride`/`getDeleted`/`deleteTitle`/`applyOverlay` pattern (Task 2); `refresh`/`openTitleModal`/`cardHtml` (Tasks 7-9).
+- Produces: `BacklogSlug.uniqueId(title, existingIds)`, `BacklogStorage.getAdded(storage)`, `BacklogStorage.addTitle(storage, title)`, `BacklogStorage.pruneAdded(storage, baseIds)`, `BacklogStorage.combineWithAdded(baseTitles, storage)` — nothing later depends on these beyond this task.
+
+**Why this exists:** the user wants to add a title from the browser by typing just its name and picking a category — nothing else. Everything else (year, genres, synopsis, poster) still gets filled in later by asking Claude to edit `data.js` directly, exactly as before. Since `data.js` is a static file only Claude edits, a browser-added title can't land there directly — it's stored client-side in a third `localStorage` key, `backlog-added`, as a lightweight "draft" object with placeholder/empty enrichment fields and `draft: true`. `combineWithAdded` merges `TITLES` (from `data.js`) with the kept contents of `backlog-added`, and — critically — **a base-catalog entry always supersedes a same-id draft**: when Claude later adds a fully-enriched entry to `data.js` using the same id convention (`BacklogSlug.slugify(title)`, no year suffix needed to match since quick-add never has a year), the draft is automatically dropped from view and pruned out of `localStorage` on the next render. This is what closes the loop described in the design: "I'll ask you to add the rest" only works if the id Claude uses when enriching lines up with the id the quick-add form generated.
+
+- [ ] **Step 1: Write the failing tests for `uniqueId`**
+
+Append to `tests/slug.test.js`:
+
+```js
+test('uniqueId returns the plain slug when not taken', () => {
+  assert.equal(uniqueId('Dune 3', []), 'dune-3');
+});
+
+test('uniqueId appends a numeric suffix on collision', () => {
+  assert.equal(uniqueId('Dune 3', ['dune-3']), 'dune-3-2');
+});
+
+test('uniqueId keeps incrementing past multiple collisions', () => {
+  assert.equal(uniqueId('Dune 3', ['dune-3', 'dune-3-2', 'dune-3-3']), 'dune-3-4');
+});
+```
+
+Also change the `require` line at the top of `tests/slug.test.js` to pull in `uniqueId`:
+
+```js
+const { slugify, makeId, uniqueId } = require('../lib/slug.js');
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `node --test tests/slug.test.js`
+Expected: FAIL — `uniqueId is not a function`
+
+- [ ] **Step 3: Add `uniqueId` to `lib/slug.js`**
+
+Add this function inside the factory (after `makeId`), and add `uniqueId: uniqueId` to the returned object:
+
+```js
+  function uniqueId(title, existingIds) {
+    var base = slugify(title);
+    var candidate = base;
+    var n = 2;
+    while (existingIds.indexOf(candidate) !== -1) {
+      candidate = base + '-' + n;
+      n += 1;
+    }
+    return candidate;
+  }
+```
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `node --test tests/slug.test.js`
+Expected: PASS — 8 tests passing (5 from Task 1 + 3 new)
+
+- [ ] **Step 5: Write the failing tests for the added/draft storage functions**
+
+Append to `tests/storage.test.js` (reuse the existing `fakeStorage()` helper already in that file):
+
+```js
+test('addTitle appends to the added list', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
+  assert.deepEqual(getAdded(storage), [{ id: 'dune-3', title: 'Dune 3' }]);
+});
+
+test('combineWithAdded appends added titles after base titles', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
+  var base = [{ id: 'barbie-2023', title: 'Barbie' }];
+  var result = combineWithAdded(base, storage);
+  assert.deepEqual(result.map(function (t) { return t.id; }), ['barbie-2023', 'dune-3']);
+});
+
+test('combineWithAdded drops an added draft once the base catalog adopts its id', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3 (draft)' });
+  var base = [{ id: 'dune-3', title: 'Dune 3', synopsis: 'real synopsis' }];
+  var result = combineWithAdded(base, storage);
+  assert.deepEqual(result, base);
+  assert.deepEqual(getAdded(storage), []);
+});
+
+test('pruneAdded is a no-op when nothing to prune', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
+  pruneAdded(storage, ['barbie-2023']);
+  assert.equal(getAdded(storage).length, 1);
+});
+```
+
+Also change the `require` line at the top of `tests/storage.test.js`:
+
+```js
+const { setOverride, getDeleted, deleteTitle, applyOverlay, addTitle, getAdded, pruneAdded, combineWithAdded } = require('../lib/storage.js');
+```
+
+- [ ] **Step 6: Run tests to verify they fail**
+
+Run: `node --test tests/storage.test.js`
+Expected: FAIL — `addTitle is not a function`
+
+- [ ] **Step 7: Add the added/draft functions to `lib/storage.js`**
+
+Add near the top, alongside the existing `OVERRIDES_KEY`/`DELETED_KEY` constants:
+
+```js
+  var ADDED_KEY = 'backlog-added';
+```
+
+Add these functions (after `applyOverlay`), and add `getAdded: getAdded, addTitle: addTitle, pruneAdded: pruneAdded, combineWithAdded: combineWithAdded` to the returned object:
+
+```js
+  function getAdded(storage) {
+    return readJSON(storage, ADDED_KEY, []);
+  }
+
+  function addTitle(storage, title) {
+    var added = getAdded(storage);
+    added.push(title);
+    storage.setItem(ADDED_KEY, JSON.stringify(added));
+  }
+
+  function pruneAdded(storage, baseIds) {
+    var added = getAdded(storage);
+    var kept = added.filter(function (t) { return baseIds.indexOf(t.id) === -1; });
+    if (kept.length !== added.length) {
+      storage.setItem(ADDED_KEY, JSON.stringify(kept));
+    }
+    return kept;
+  }
+
+  function combineWithAdded(baseTitles, storage) {
+    var baseIds = baseTitles.map(function (t) { return t.id; });
+    var added = pruneAdded(storage, baseIds);
+    return baseTitles.concat(added);
+  }
+```
+
+- [ ] **Step 8: Run tests to verify they pass**
+
+Run: `node --test tests/storage.test.js`
+Expected: PASS — 9 tests passing (5 from Task 2 + 4 new)
+
+- [ ] **Step 9: Create the placeholder cover**
+
+Create `images/covers/_placeholder.svg` — a simple dark SVG matching the theme, shown on draft cards until a real poster is added:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600">
+  <rect width="400" height="600" fill="#171a21"/>
+  <rect x="0.5" y="0.5" width="399" height="599" fill="none" stroke="#262a34"/>
+  <text x="200" y="290" text-anchor="middle" font-family="sans-serif" font-size="72" fill="#8a8f9c">?</text>
+  <text x="200" y="340" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#8a8f9c">нет постера</text>
+</svg>
+```
+
+- [ ] **Step 10: Add the quick-add form to `index.html`**
+
+Add this new section directly after the closing `</section>` of the existing `.toolbar` block (before `<main id="grid" class="grid"></main>`):
+
+```html
+<form id="quick-add-form" class="quick-add">
+  <input id="quick-add-title" class="quick-add__input" type="text" placeholder="Название нового тайтла…" required>
+  <select id="quick-add-category" class="quick-add__select" required>
+    <option value="" disabled selected>Категория…</option>
+    <option value="game">Игра</option>
+    <option value="series">Сериал</option>
+    <option value="movie">Кино</option>
+    <option value="anime">Аниме</option>
+  </select>
+  <button type="submit" class="quick-add__submit">+ Добавить</button>
+</form>
+```
+
+- [ ] **Step 11: Style the quick-add form in `styles.css`**
+
+Add rules for `.quick-add`, `.quick-add__input`, `.quick-add__select`, `.quick-add__submit`, and a `.badge--draft` variant (for the card badge added in Step 12). Match the existing dark theme exactly: reuse the CSS custom properties already defined (`--surface`, `--border`, `--text`, `--accent`, `--radius`, and the `--sp-*`/`--fs-*`/`--dur-*` tokens introduced in Task 11) rather than introducing new hard-coded colors. `.quick-add` should lay out as a single flex row that wraps sensibly at the existing ≤600px breakpoint, matching how `.toolbar` already wraps. `.badge--draft` should read as clearly "unfinished" (e.g. a muted/outlined treatment, distinct from the existing `.badge` and `.badge--returning` colors) without being alarming.
+
+- [ ] **Step 12: Wire the form and the draft badge in `app.js`**
+
+Change `baseTitles()` to combine base and added titles before applying the overlay:
+
+```js
+  function baseTitles() {
+    var combined = BacklogStorage.combineWithAdded(TITLES, window.localStorage);
+    return BacklogStorage.applyOverlay(combined, window.localStorage);
+  }
+```
+
+In `cardHtml(title)`, add a draft badge alongside the existing returning badge:
+
+```js
+    var draftBadge = title.draft ? '<span class="badge badge--draft">Черновик</span>' : '';
+```
+
+...and include `draftBadge` in the returned markup next to `returningBadge`.
+
+In `openTitleModal(title)`, when the title is a draft with no synopsis yet, show a helper line instead of an empty paragraph — replace the `document.getElementById('modal-synopsis').textContent = title.synopsis;` line with:
+
+```js
+    document.getElementById('modal-synopsis').textContent = title.draft
+      ? 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».'
+      : title.synopsis;
+```
+
+Add the form submit handler (anywhere among the other listeners, before the final `refresh()` call):
+
+```js
+  document.getElementById('quick-add-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var titleInput = document.getElementById('quick-add-title');
+    var categorySelect = document.getElementById('quick-add-category');
+    var name = titleInput.value.trim();
+    var category = categorySelect.value;
+    if (!name || !category) return;
+    var existingIds = baseTitles().map(function (t) { return t.id; });
+    var id = BacklogSlug.uniqueId(name, existingIds);
+    BacklogStorage.addTitle(window.localStorage, {
+      id: id,
+      title: name,
+      category: category,
+      status: 'queue',
+      airingStatus: (category === 'series' || category === 'anime') ? 'ongoing' : null,
+      year: null,
+      genres: [],
+      rating: null,
+      synopsis: '',
+      cover: 'images/covers/_placeholder.svg',
+      draft: true
+    });
+    titleInput.value = '';
+    categorySelect.value = '';
+    refresh();
+  });
+```
+
+Also add `lib/slug.js` to the `<script>` load order in `index.html` if it is not already loaded before `app.js` (it should already be first per Task 6 — confirm, don't duplicate the tag).
+
+- [ ] **Step 13: Verify manually in the browser**
+
+Reload `index.html`. Add a new title via the form (e.g. name "Тестовый черновик", category "Кино") — expect: a new card appears immediately in "Кино" (and "Всё") with the placeholder cover, a "Черновик" badge, status "В очереди"; opening its modal shows the helper synopsis line and an empty rating; reloading the page keeps the draft (persisted in `localStorage['backlog-added']`); adding the same title name twice produces two distinct cards with ids `тестовый-черновик`-based-slug and a `-2` suffix on the second. Then simulate the "Claude enriches it" path: in the browser console, temporarily push a matching-id object into the in-memory `TITLES` array and call `BacklogApp.refresh()` — expect the draft badge and placeholder to disappear in favor of the enriched data, and `localStorage['backlog-added']` to no longer contain that id after the next `refresh()`.
+
+- [ ] **Step 14: Commit**
+
+```bash
+git add lib/slug.js tests/slug.test.js lib/storage.js tests/storage.test.js index.html styles.css app.js images/covers/_placeholder.svg
+git commit -m "feat: add quick-add-title form with draft/enrichment workflow"
+```
+
+---
+
 ### Task 12: README
 
 **Files:**
