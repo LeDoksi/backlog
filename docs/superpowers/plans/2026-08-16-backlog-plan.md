@@ -1718,9 +1718,11 @@ git commit -m "feat: add quick-add-title form with draft/enrichment workflow"
 `lib/` — чистая логика (слаги, фильтры/сортировка, localStorage-оверлей, валидация) — покрыта тестами на встроенном тест-раннере Node (без установки зависимостей):
 
 ```bash
-node --test tests/
+node --test tests/*.test.js
 node tools/validate-data.js
 ```
+
+(Note: the bare `node --test tests/` without a glob fails with `MODULE_NOT_FOUND` on this machine's Node version when run from this path — always use the `tests/*.test.js` glob form.)
 ```
 
 - [ ] **Step 2: Commit**
@@ -1738,8 +1740,8 @@ git commit -m "docs: add README"
 
 - [ ] **Step 1: Run the full test suite**
 
-Run: `node --test tests/`
-Expected: all tests from Tasks 1-4 pass (29 tests total).
+Run: `node --test tests/*.test.js` (the bare `node --test tests/` without a glob fails with `MODULE_NOT_FOUND` on this machine — always use the glob form)
+Expected: all tests pass (36 as of Task 20; count grows if later tasks add more).
 
 Run: `node tools/validate-data.js`
 Expected: `OK: 8 titles, no errors.`
