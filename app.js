@@ -1,6 +1,6 @@
 // app.js
 (function () {
-  var state = { category: 'all' };
+  var state = { category: 'all', status: 'all', genre: 'all', returning: false, search: '', sort: 'added' };
 
   function baseTitles() {
     return BacklogStorage.applyOverlay(TITLES, window.localStorage);
@@ -45,8 +45,24 @@
     });
   }
 
+  function populateGenreFilter() {
+    var select = document.getElementById('genre-filter');
+    var genres = {};
+    baseTitles().forEach(function (t) { t.genres.forEach(function (g) { genres[g] = true; }); });
+    Object.keys(genres).sort().forEach(function (g) {
+      var option = document.createElement('option');
+      option.value = g;
+      option.textContent = g;
+      select.appendChild(option);
+    });
+  }
+
   function getVisibleTitles() {
-    return titlesForCategory(state.category);
+    var titles = titlesForCategory(state.category).filter(function (t) {
+      return BacklogQuery.matchesFilters(t, { status: state.status, genre: state.genre, returning: state.returning })
+        && BacklogQuery.matchesSearch(t, state.search);
+    });
+    return BacklogQuery.sortTitles(titles, state.sort);
   }
 
   function refresh() {
@@ -64,6 +80,29 @@
   }
 
   document.getElementById('tabs').addEventListener('click', onTabClick);
+
+  document.getElementById('status-filter').addEventListener('change', function (e) {
+    state.status = e.target.value;
+    refresh();
+  });
+  document.getElementById('genre-filter').addEventListener('change', function (e) {
+    state.genre = e.target.value;
+    refresh();
+  });
+  document.getElementById('returning-filter').addEventListener('change', function (e) {
+    state.returning = e.target.checked;
+    refresh();
+  });
+  document.getElementById('sort-select').addEventListener('change', function (e) {
+    state.sort = e.target.value;
+    refresh();
+  });
+  document.getElementById('search-input').addEventListener('input', function (e) {
+    state.search = e.target.value;
+    refresh();
+  });
+
+  populateGenreFilter();
   refresh();
 
   window.BacklogApp = { getVisibleTitles: getVisibleTitles, renderGrid: renderGrid, refresh: refresh, state: state };
