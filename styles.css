@@ -1,5 +1,27 @@
-/* styles.css */
+/* styles.css
+ * ─────────────────────────────────────────────────────────────────────────
+ * "Полка" — a dark room with lit shelves.
+ *
+ * Direction: the covers are the content; every piece of chrome recedes so the
+ * poster wall reads first. At rest a card sits slightly unlit — dimmed and
+ * desaturated, like a spine on a dark shelf. Pointing at it turns the light on:
+ * the art comes up to full colour, the poster lifts, and a thin warm rim picks
+ * out its edge. That single "shelf light" gesture is the signature; everything
+ * around it stays quiet.
+ *
+ * Voice: labels, tabs and the wordmark are set in a technical grotesk
+ * (Bahnschrift / DIN lineage), uppercase and widely tracked — the vernacular of
+ * catalogue spines and end-credit cards. Reading text stays in the platform UI
+ * sans so Cyrillic titles and synopses read comfortably.
+ *
+ * Accent discipline: the red is a marker, never a surface. It appears as a
+ * focus ring, an active-state rim, the count chip tint, the destructive action,
+ * and one barely-there ceiling glow behind the page. It is never a large fill
+ * and never carries small text at low contrast (see --accent-bright).
+ * ───────────────────────────────────────────────────────────────────────── */
+
 :root {
+  /* Core palette — unchanged identity */
   --bg: #0d0f14;
   --surface: #171a21;
   --surface-hover: #20242e;
@@ -9,93 +31,412 @@
   --accent-soft: rgba(233, 69, 96, 0.15);
   --border: #262a34;
   --radius: 10px;
+
+  /* Supporting tokens */
+  --surface-sunken: #10131a;            /* input wells, image placeholders   */
+  --border-strong: #333a48;             /* hover / active hairlines          */
+  --accent-bright: #ff5f78;             /* accent as TEXT (6.5:1 on --bg)    */
+  --accent-glow: rgba(233, 69, 96, 0.35);
+  --signal: #f2c14e;                    /* "waiting for more" — a warm flag  */
+  --signal-soft: rgba(242, 193, 78, 0.13);
+  --scrim: rgba(8, 9, 12, 0.72);
+  --bg-veil: rgba(13, 15, 20, 0.82);    /* sticky header backdrop            */
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* Spacing — 4px rhythm, one scale for the whole app */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --gutter: clamp(16px, 4vw, 40px);     /* page margin, collapses on mobile  */
+
+  /* Type */
+  --font-display: Bahnschrift, "DIN Alternate", "Segoe UI Semibold",
+                  "Segoe UI", system-ui, sans-serif;
+  --font-body: "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui,
+               Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --fs-micro: 11px;   /* badges, counters            */
+  --fs-xs: 12px;      /* field labels                */
+  --fs-sm: 13px;      /* meta, secondary             */
+  --fs-base: 14px;    /* controls, card titles       */
+  --fs-md: 15px;      /* reading text                */
+  --fs-lg: 19px;      /* wordmark                    */
+  --fs-xl: 25px;      /* modal title                 */
+  --track-label: 0.11em;   /* uppercase label tracking */
+
+  /* Elevation — one light source, above and slightly behind */
+  --lift-rest: 0 1px 2px rgba(0, 0, 0, 0.45),
+               0 0 0 1px rgba(255, 255, 255, 0.03);
+  --lift-hover: 0 18px 38px -14px rgba(0, 0, 0, 0.85),
+                0 4px 12px -4px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 40px 90px -20px rgba(0, 0, 0, 0.9);
+
+  /* Motion — a soft expo-out; leaving is quicker than arriving */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+
+  --card-min: 168px;
+
+  color-scheme: dark;
 }
+
+/* ── Reset & page ─────────────────────────────────────────────────────── */
 
 * { box-sizing: border-box; }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
+  background-color: var(--bg);
+  /* A faint spill of warm light from above the fold — the only ambient use
+     of the accent, at 6% it registers as atmosphere rather than colour. */
+  background-image: radial-gradient(
+    120% 55% at 50% -12%,
+    rgba(233, 69, 96, 0.09) 0%,
+    rgba(233, 69, 96, 0.03) 40%,
+    transparent 72%
+  );
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--text);
-  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
+::selection {
+  background: rgba(233, 69, 96, 0.32);
+  color: #fff;
+}
+
+/* Scrollbars, dressed to match the room */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover { background: #454d5e; }
+
+/* One focus treatment, everywhere. Offset so it never crowds the control;
+   no border-radius here — the outline already follows each control's own. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible,
+.card:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 3px;
+}
+
+/* Suppress the UA ring for pointer focus only. Written as :not(:focus-visible)
+   so it can never out-specify the rule above and swallow the keyboard ring. */
+:focus:not(:focus-visible) { outline: none; }
+
+/* ── Top bar ──────────────────────────────────────────────────────────── */
+
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 20px 32px;
+  flex-wrap: wrap;
+  gap: var(--sp-5);
+  padding: var(--sp-4) var(--gutter);
+  background: var(--bg-veil);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--border);
 }
 
 .topbar__title {
-  font-size: 20px;
-  font-weight: 700;
   margin: 0;
+  flex: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--text);
 }
 
-.tabs { display: flex; gap: 8px; }
+/* ── Category tabs ────────────────────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  gap: var(--sp-2);
+  min-width: 0;              /* lets the row shrink instead of pushing the page */
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-block: 2px;        /* room for the focus ring */
+}
+
+.tabs::-webkit-scrollbar { display: none; }
 
 .tabs__item {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-muted);
-  padding: 8px 16px;
-  border-radius: 999px;
+  padding: 7px var(--sp-3) 7px var(--sp-4);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
-.tabs__item.is-active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+.tabs__item:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface);
 }
+
+/* Active state is contrast + a warm rim, not a red slab: a solid accent fill
+   under 14px white text only reaches 3.8:1, which fails AA. */
+.tabs__item.is-active {
+  color: var(--text);
+  background: var(--surface-hover);
+  border-color: rgba(233, 69, 96, 0.55);
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.09);
+}
+
+.tabs__item:focus-visible { outline-offset: 2px; border-radius: var(--radius-pill); }
+
+/* The count is the point of a backlog — give it a readout, not a suffix. */
+.tabs__count {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-micro);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.tabs__item.is-active .tabs__count {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────────────── */
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 16px 32px;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-5) var(--gutter) var(--sp-4);
 }
 
 .toolbar__search,
 .toolbar__select {
-  background: var(--surface);
+  /* background-color, never the shorthand: these controls carry an icon in
+     background-image and a shorthand elsewhere would silently erase it. */
+  background-color: var(--surface-sunken);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 14px;
+  height: 36px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
-.toolbar__checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: 14px;
+.toolbar__search:hover,
+.toolbar__select:hover { border-color: var(--border-strong); }
+
+.toolbar__search:focus-visible,
+.toolbar__select:focus-visible {
+  border-color: rgba(233, 69, 96, 0.6);
+  background-color: var(--surface);
 }
+
+/* Search: magnifier baked in, native cruft removed */
+.toolbar__search {
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 320px;
+  padding-left: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238a8f9c' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.5'/%3E%3Cpath d='M10.5 10.5 14 14'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 11px 50%;
+  background-size: 15px 15px;
+}
+
+.toolbar__search::placeholder { color: var(--text-muted); }
+
+.toolbar__search::-webkit-search-decoration,
+.toolbar__search::-webkit-search-results-button { display: none; }
+
+.toolbar__search::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%238a8f9c' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M3.5 3.5 10.5 10.5M10.5 3.5 3.5 10.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Selects: native chevron replaced so every control shares one silhouette */
+.toolbar__select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%238a8f9c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 11px 11px;
+  cursor: pointer;
+}
+
+.toolbar__select option { background: var(--surface); color: var(--text); }
+
+.toolbar__checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 36px;
+  padding: 0 var(--sp-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.toolbar__checkbox:hover { color: var(--text); }
+
+/* Drawn rather than native: the UA checkbox renders as a pale slab that is the
+   brightest object on the page — louder than any poster. */
+.toolbar__checkbox input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface-sunken);
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.toolbar__checkbox input::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  transform: scale(0);
+  transform-origin: center;
+  transition: transform var(--dur-fast) var(--ease-out);
+  background: #fff;
+  clip-path: polygon(14% 47%, 0 61%, 39% 100%, 100% 22%, 85% 8%, 37% 70%);
+}
+
+.toolbar__checkbox input:hover { border-color: var(--text-muted); }
+
+.toolbar__checkbox input:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toolbar__checkbox input:checked::before { transform: scale(1); }
+
+.toolbar__checkbox:has(input:checked) { color: var(--text); }
+
+/* ── Grid ─────────────────────────────────────────────────────────────── */
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 20px;
-  padding: 8px 32px 48px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
+  gap: var(--sp-5) var(--sp-4);
+  padding: var(--sp-2) var(--gutter) var(--sp-7);
+  /* Cards stretch to a shared height per row so their lower edges line up —
+     a poster wall reads as a wall only if the shelf is level. */
+  align-items: stretch;
 }
 
+/* A filtered-out shelf should say so and point the way back. */
+.grid:empty { display: block; padding-top: var(--sp-7); }
+
+.grid:empty::after {
+  content: "Ничего не найдено — снимите фильтры или очистите поиск.";
+  display: block;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.01em;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────── */
+
 .card {
+  position: relative;
   background: var(--surface);
   border-radius: var(--radius);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  position: relative;
+  box-shadow: var(--lift-rest);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+/* Scrim over the poster: unifies covers of wildly different brightness and
+   ties the artwork into the body below it. Lifts away under the light. */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 2 / 3;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(13, 15, 20, 0.18) 0%,
+    transparent 32%,
+    rgba(13, 15, 20, 0.42) 100%
+  );
+  transition: opacity var(--dur-base) var(--ease-out);
 }
 
 .card__cover {
@@ -103,29 +444,89 @@ body {
   aspect-ratio: 2 / 3;
   object-fit: cover;
   display: block;
-  background: var(--surface-hover);
+  background: var(--surface-sunken)
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 55%);
+  /* At rest the shelf is unlit. */
+  filter: saturate(0.92) brightness(0.9);
+  transform: scale(1);
+  transition:
+    filter var(--dur-base) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
 }
 
-.card__body { padding: 10px 12px; }
+.card:is(:hover, :focus-visible) {
+  transform: translateY(-6px);
+  box-shadow:
+    var(--lift-hover),
+    0 0 0 1px rgba(233, 69, 96, 0.28),
+    0 12px 40px -18px var(--accent-glow);
+  transition-duration: var(--dur-base);
+}
+
+.card:is(:hover, :focus-visible) .card__cover {
+  filter: none;
+  transform: scale(1.045);
+}
+
+.card:is(:hover, :focus-visible)::after { opacity: 0.45; }
+
+.card:active { transform: translateY(-2px); transition-duration: var(--dur-fast); }
+
+/* Block flow, not flex: badges are inline chips that should hug their text and
+   wrap as a group — as flex items they stretch to the full card width. */
+.card__body {
+  position: relative;
+  z-index: 1;
+  padding: var(--sp-3);
+}
 
 .card__title {
-  font-size: 14px;
+  font-size: var(--fs-base);
   font-weight: 600;
-  margin: 0 0 6px;
-  line-height: 1.3;
+  margin: 0 0 var(--sp-2);
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  /* Two lines, always — keeps the badge row on a shared baseline across the
+     grid so the wall of posters stays on a rhythm. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(2 * 1.35em);
 }
 
+/* ── Badges ───────────────────────────────────────────────────────────── */
+
+/* Every card carries a status, so the status chip must be quiet — spending
+   the accent here would spend it everywhere. */
 .badge {
   display: inline-block;
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  margin-right: 4px;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 5px 7px 4px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px var(--border);
+  color: var(--text-muted);
+  margin: 0 var(--sp-1) var(--sp-1) 0;
+  max-width: 100%;
+  vertical-align: middle;
 }
 
-.badge--returning { background: rgba(255, 191, 0, 0.15); color: #ffbf00; }
+/* The exception earns colour: this one is news, not state. */
+.badge--returning {
+  background: var(--signal-soft);
+  box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.28);
+  color: var(--signal);
+}
+
+/* ── Modal ────────────────────────────────────────────────────────────── */
 
 .modal {
   position: fixed;
@@ -133,6 +534,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--gutter);
   z-index: 10;
 }
 
@@ -141,71 +543,288 @@ body {
 .modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--scrim);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: veil-in var(--dur-base) var(--ease-out) both;
 }
 
 .modal__panel {
   position: relative;
-  background: var(--surface);
-  border-radius: var(--radius);
-  display: flex;
-  gap: 24px;
-  max-width: 720px;
-  width: 90%;
-  padding: 24px;
   z-index: 1;
+  display: flex;
+  gap: var(--sp-5);
+  width: min(100%, 760px);
+  max-height: min(88vh, 640px);
+  overflow-y: auto;
+  padding: var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  animation: panel-in var(--dur-slow) var(--ease-out) both;
+}
+
+@keyframes veil-in { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
 }
 
 .modal__cover {
-  width: 220px;
+  flex: none;
+  width: 210px;
   aspect-ratio: 2 / 3;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.9);
+  align-self: start;
 }
 
-.modal__body { flex: 1; }
+.modal__body {
+  flex: 1;
+  min-width: 0;
+  padding-right: var(--sp-5);   /* keeps text clear of the close button */
+}
 
-.modal__title { margin: 0 0 8px; }
+.modal__title {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
 
-.modal__meta { color: var(--text-muted); font-size: 13px; }
-
-.modal__synopsis { font-size: 14px; line-height: 1.5; }
-
-.modal__field {
-  display: block;
-  font-size: 13px;
+.modal__meta {
+  margin: 0 0 var(--sp-4);
   color: var(--text-muted);
-  margin: 12px 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.modal__synopsis {
+  margin: 0 0 var(--sp-5);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  color: var(--text);
+  max-width: 56ch;
+}
+
+/* Inline-block so status and rating sit as one control row, then the
+   destructive action drops below on its own line. */
+.modal__field {
+  display: inline-block;
+  vertical-align: top;
+  margin: 0 var(--sp-5) var(--sp-4) 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .modal__field select,
 .modal__field input {
   display: block;
-  margin-top: 4px;
-  background: var(--bg);
+  margin-top: var(--sp-2);
+  height: 36px;
+  min-width: 180px;
+  background-color: var(--surface-sunken);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  letter-spacing: normal;
+  text-transform: none;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
-.modal__delete {
-  background: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  padding: 8px 14px;
-  border-radius: 8px;
+.modal__field select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%238a8f9c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 11px 11px;
   cursor: pointer;
-  margin-top: 12px;
+}
+
+.modal__field input { width: 96px; min-width: 0; font-variant-numeric: tabular-nums; }
+
+.modal__field select:hover,
+.modal__field input:hover { border-color: var(--border-strong); }
+
+.modal__field select:focus-visible,
+.modal__field input:focus-visible { border-color: rgba(233, 69, 96, 0.6); }
+
+/* Destructive: outlined and cool until you touch it, then it commits. */
+.modal__delete {
+  display: block;
+  margin-top: var(--sp-2);
+  background: transparent;
+  border: 1px solid rgba(233, 69, 96, 0.4);
+  color: var(--accent-bright);
+  padding: 0 var(--sp-4);
+  height: 36px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.modal__delete:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .modal__close {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: var(--sp-3);
+  right: var(--sp-3);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   background: transparent;
   border: none;
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-size: 24px;
+  font-size: 22px;
+  line-height: 1;
   cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.modal__close:hover { background: var(--surface-hover); color: var(--text); }
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+
+/* Tablet: tighter poster wall, tabs get their own line. */
+@media (max-width: 860px) {
+  :root { --card-min: 150px; }
+
+  .topbar { gap: var(--sp-3) var(--sp-4); }
+  .topbar__title { flex: 1 1 100%; }
+
+  .modal__cover { width: 168px; }
+  .modal__panel { gap: var(--sp-4); }
+}
+
+/* Phone: the toolbar stops wrapping into ragged rows and becomes a grid —
+   search across the top, filters paired, the flag on its own line. */
+@media (max-width: 600px) {
+  :root {
+    --card-min: 140px;
+    --fs-xl: 21px;
+    /* Chips shrink with the card so "ЖДЁТ ПРОДОЛЖЕНИЯ" still sets on one line. */
+    --fs-micro: 10px;
+    --track-label: 0.06em;
+  }
+
+  .topbar {
+    padding-block: var(--sp-3);
+    gap: var(--sp-3);
+  }
+
+  .topbar__title { font-size: 16px; letter-spacing: 0.18em; }
+
+  /* Let the tab row bleed to the screen edges so it reads as scrollable. */
+  .tabs {
+    flex: 1 1 100%;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    scroll-snap-type: x proximity;
+  }
+
+  .tabs__item { scroll-snap-align: start; }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-2);
+    padding-top: var(--sp-4);
+  }
+
+  .toolbar__search {
+    grid-column: 1 / -1;
+    max-width: none;
+    height: 40px;
+  }
+
+  .toolbar__select { height: 40px; width: 100%; min-width: 0; }
+
+  #sort-select { grid-column: 1 / -1; }
+
+  /* Pull the flag below the selects: pickers first, then the one toggle. */
+  .toolbar__checkbox {
+    order: 1;
+    grid-column: 1 / -1;
+    height: auto;
+    min-height: 32px;
+    padding: 0;
+    font-size: var(--fs-base);
+  }
+
+  .grid { gap: var(--sp-4) var(--sp-3); }
+
+  .card__body { padding: var(--sp-3) var(--sp-2) var(--sp-2); }
+
+  /* Two controls side by side would not fit a 375px panel. */
+  .modal__field { display: block; margin-right: 0; }
+
+  .modal { padding: var(--sp-3); align-items: flex-end; }
+
+  .modal__panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-4);
+    padding: var(--sp-5) var(--sp-4) var(--sp-4);
+    max-height: 92vh;
+    width: 100%;
+  }
+
+  .modal__cover { width: 132px; }
+  .modal__body { padding-right: 0; width: 100%; }
+  .modal__synopsis { font-size: var(--fs-base); }
+  .modal__field select, .modal__field input { height: 40px; }
+  .modal__delete { width: 100%; height: 40px; }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────── */
+
+/* The shelf light stays (it is colour, not movement); the travel goes. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card:is(:hover, :focus-visible) { transform: none; }
+  .card:is(:hover, :focus-visible) .card__cover { transform: none; }
 }
