@@ -1,7 +1,7 @@
 // tests/storage.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { setOverride, getDeleted, deleteTitle, applyOverlay } = require('../lib/storage.js');
+const { setOverride, getDeleted, deleteTitle, applyOverlay, addTitle, getAdded, pruneAdded, combineWithAdded } = require('../lib/storage.js');
 
 function fakeStorage() {
   var data = {};
@@ -50,4 +50,34 @@ test('setOverride merges patches across multiple calls', () => {
   var titles = [{ id: 'ted-lasso-2020', status: 'queue', rating: null }];
   var result = applyOverlay(titles, storage);
   assert.deepEqual({ status: result[0].status, rating: result[0].rating }, { status: 'in_progress', rating: 8 });
+});
+
+test('addTitle appends to the added list', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
+  assert.deepEqual(getAdded(storage), [{ id: 'dune-3', title: 'Dune 3' }]);
+});
+
+test('combineWithAdded appends added titles after base titles', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
+  var base = [{ id: 'barbie-2023', title: 'Barbie' }];
+  var result = combineWithAdded(base, storage);
+  assert.deepEqual(result.map(function (t) { return t.id; }), ['barbie-2023', 'dune-3']);
+});
+
+test('combineWithAdded drops an added draft once the base catalog adopts its id', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3 (draft)' });
+  var base = [{ id: 'dune-3', title: 'Dune 3', synopsis: 'real synopsis' }];
+  var result = combineWithAdded(base, storage);
+  assert.deepEqual(result, base);
+  assert.deepEqual(getAdded(storage), []);
+});
+
+test('pruneAdded is a no-op when nothing to prune', () => {
+  var storage = fakeStorage();
+  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
+  pruneAdded(storage, ['barbie-2023']);
+  assert.equal(getAdded(storage).length, 1);
 });

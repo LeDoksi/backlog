@@ -40,6 +40,18 @@
     </select>
   </section>
 
+  <form id="quick-add-form" class="quick-add">
+    <input id="quick-add-title" class="quick-add__input" type="text" placeholder="Название нового тайтла…" required>
+    <select id="quick-add-category" class="quick-add__select" required>
+      <option value="" disabled selected>Категория…</option>
+      <option value="game">Игра</option>
+      <option value="series">Сериал</option>
+      <option value="movie">Кино</option>
+      <option value="anime">Аниме</option>
+    </select>
+    <button type="submit" class="quick-add__submit">+ Добавить</button>
+  </form>
+
   <main id="grid" class="grid"></main>
 
   <div id="title-modal" class="modal" hidden>

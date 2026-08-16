@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600">
+  <rect width="400" height="600" fill="#171a21"/>
+  <rect x="0.5" y="0.5" width="399" height="599" fill="none" stroke="#262a34"/>
+  <text x="200" y="290" text-anchor="middle" font-family="sans-serif" font-size="72" fill="#8a8f9c">?</text>
+  <text x="200" y="340" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#8a8f9c">нет постера</text>
+</svg>

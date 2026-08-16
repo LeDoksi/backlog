@@ -4,7 +4,8 @@
   var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Пройдено' };
 
   function baseTitles() {
-    return BacklogStorage.applyOverlay(TITLES, window.localStorage);
+    var combined = BacklogStorage.combineWithAdded(TITLES, window.localStorage);
+    return BacklogStorage.applyOverlay(combined, window.localStorage);
   }
 
   function titlesForCategory(category) {
@@ -25,11 +26,12 @@
     var returningBadge = BacklogQuery.isReturning(title)
       ? '<span class="badge badge--returning">Ждёт продолжения</span>'
       : '';
+    var draftBadge = title.draft ? '<span class="badge badge--draft">Черновик</span>' : '';
     return (
       '<img class="card__cover" src="' + title.cover + '" alt="' + title.title + '">' +
       '<div class="card__body">' +
       '<div class="card__title">' + title.title + '</div>' +
-      '<span class="badge">' + (STATUS_LABELS[title.status] || title.status) + '</span>' + returningBadge +
+      '<span class="badge">' + (STATUS_LABELS[title.status] || title.status) + '</span>' + returningBadge + draftBadge +
       '</div>'
     );
   }
@@ -119,7 +121,9 @@
     var meta = [title.year, title.genres.join(', ')].filter(Boolean).join(' · ');
     if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'выходит' : 'завершено');
     document.getElementById('modal-meta').textContent = meta;
-    document.getElementById('modal-synopsis').textContent = title.synopsis;
+    document.getElementById('modal-synopsis').textContent = title.draft
+      ? 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».'
+      : title.synopsis;
     document.getElementById('modal-status').value = title.status;
     document.getElementById('modal-rating').value = title.rating || '';
     var modal = document.getElementById('title-modal');
@@ -166,6 +170,33 @@
     if (!confirmed) return;
     BacklogStorage.deleteTitle(window.localStorage, id);
     closeTitleModal();
+    refresh();
+  });
+
+  document.getElementById('quick-add-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var titleInput = document.getElementById('quick-add-title');
+    var categorySelect = document.getElementById('quick-add-category');
+    var name = titleInput.value.trim();
+    var category = categorySelect.value;
+    if (!name || !category) return;
+    var existingIds = baseTitles().map(function (t) { return t.id; });
+    var id = BacklogSlug.uniqueId(name, existingIds);
+    BacklogStorage.addTitle(window.localStorage, {
+      id: id,
+      title: name,
+      category: category,
+      status: 'queue',
+      airingStatus: (category === 'series' || category === 'anime') ? 'ongoing' : null,
+      year: null,
+      genres: [],
+      rating: null,
+      synopsis: '',
+      cover: 'images/covers/_placeholder.svg',
+      draft: true
+    });
+    titleInput.value = '';
+    categorySelect.value = '';
     refresh();
   });
 
