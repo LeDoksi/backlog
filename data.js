@@ -2,7 +2,7 @@
 const TITLES = [
   {
     id: 'frieren-2023',
-    title: "Frieren: Beyond Journey's End",
+    title: 'Фрирен, провожающая в последний путь',
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -15,7 +15,7 @@ const TITLES = [
   },
   {
     id: 're-zero-starting-life-in-another-world-2016',
-    title: 'Re:Zero − Starting Life in Another World',
+    title: 'Re:ZERO — Жизнь с нуля в альтернативном мире',
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -28,7 +28,7 @@ const TITLES = [
   },
   {
     id: 'the-boys-2019',
-    title: 'The Boys',
+    title: 'Пацаны',
     category: 'series',
     status: 'done',
     airingStatus: 'ongoing',
@@ -41,7 +41,7 @@ const TITLES = [
   },
   {
     id: 'ted-lasso-2020',
-    title: 'Ted Lasso',
+    title: 'Тед Лассо',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -54,7 +54,7 @@ const TITLES = [
   },
   {
     id: 'barbie-2023',
-    title: 'Barbie',
+    title: 'Барби',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -66,7 +66,7 @@ const TITLES = [
   },
   {
     id: 'fight-club-1999',
-    title: 'Fight Club',
+    title: 'Бойцовский клуб',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -102,7 +102,7 @@ const TITLES = [
   },
   {
     id: 'tengen-toppa-gurren-lagann-2007',
-    title: 'Tengen Toppa Gurren Lagann',
+    title: 'Гуррен-Лаганн',
     category: 'anime',
     status: 'done',
     airingStatus: 'completed',
@@ -115,7 +115,7 @@ const TITLES = [
   },
   {
     id: 'demon-slayer-kimetsu-no-yaiba-2019',
-    title: 'Demon Slayer: Kimetsu no Yaiba',
+    title: 'Клинок, рассекающий демонов',
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -128,7 +128,7 @@ const TITLES = [
   },
   {
     id: 'ride-your-wave-2019',
-    title: 'Ride Your Wave',
+    title: 'На твоей волне',
     category: 'anime',
     status: 'done',
     airingStatus: 'completed',
@@ -141,7 +141,7 @@ const TITLES = [
   },
   {
     id: 'witch-hat-atelier-2026',
-    title: 'Witch Hat Atelier',
+    title: 'Ателье колдовских колпаков',
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -154,7 +154,7 @@ const TITLES = [
   },
   {
     id: 'cyberpunk-edgerunners-2022',
-    title: 'Cyberpunk: Edgerunners',
+    title: 'Киберпанк: Бегущие по краю',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -167,7 +167,7 @@ const TITLES = [
   },
   {
     id: 'a-silent-voice-2016',
-    title: 'A Silent Voice',
+    title: 'Форма голоса',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -180,7 +180,7 @@ const TITLES = [
   },
   {
     id: 'josee-the-tiger-and-the-fish-2020',
-    title: 'Josee, the Tiger and the Fish',
+    title: 'Её заветное желание',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -193,7 +193,7 @@ const TITLES = [
   },
   {
     id: 'your-name-2016',
-    title: 'Your Name.',
+    title: 'Твоё имя',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -206,7 +206,7 @@ const TITLES = [
   },
   {
     id: 'devil-may-cry-2025',
-    title: 'Devil May Cry',
+    title: 'Дьявол может плакать',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -219,7 +219,7 @@ const TITLES = [
   },
   {
     id: 'shaman-king-2021',
-    title: 'Shaman King',
+    title: 'Король шаманов',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -232,7 +232,7 @@ const TITLES = [
   },
   {
     id: "jojo-s-bizarre-adventure-2012",
-    title: "JoJo's Bizarre Adventure",
+    title: 'Невероятные приключения ДжоДжо',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -245,7 +245,7 @@ const TITLES = [
   },
   {
     id: 'noragami-2014',
-    title: 'Noragami',
+    title: 'Бездомный Бог',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -258,7 +258,7 @@ const TITLES = [
   },
   {
     id: 'violet-evergarden-2018',
-    title: 'Violet Evergarden',
+    title: 'Вайолет Эвергарден',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -271,7 +271,7 @@ const TITLES = [
   },
   {
     id: 'that-time-i-got-reincarnated-as-a-slime-2018',
-    title: 'That Time I Got Reincarnated as a Slime',
+    title: 'О моём перерождении в слизь',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -284,7 +284,7 @@ const TITLES = [
   },
   {
     id: "hell-s-paradise-jigokuraku-2023",
-    title: "Hell's Paradise: Jigokuraku",
+    title: 'Адский рай',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -297,7 +297,7 @@ const TITLES = [
   },
   {
     id: 'chainsmoker-cat-2026',
-    title: 'Chainsmoker Cat',
+    title: 'Табакошка',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -310,7 +310,7 @@ const TITLES = [
   },
   {
     id: 'a-new-dawn-2026',
-    title: 'A New Dawn',
+    title: 'И наступит рассвет',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -323,7 +323,7 @@ const TITLES = [
   },
   {
     id: 'suzume-2022',
-    title: 'Suzume',
+    title: 'Судзумэ, закрывающая двери',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
