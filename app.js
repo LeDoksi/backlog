@@ -1,6 +1,6 @@
 // app.js
 (function () {
-  var state = { category: 'all', status: 'all', genre: 'all', returning: false, search: '', sort: 'added' };
+  var state = { category: 'all', status: 'all', genre: 'all', returning: false, hideDone: false, search: '', sort: 'status' };
   var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Пройдено' };
 
   function baseTitles() {
@@ -76,6 +76,7 @@
 
   function getVisibleTitles() {
     var titles = titlesForCategory(state.category).filter(function (t) {
+      if (state.hideDone && t.status === 'done') return false;
       return BacklogQuery.matchesFilters(t, { status: state.status, genre: state.genre, returning: state.returning })
         && BacklogQuery.matchesSearch(t, state.search);
     });
@@ -110,6 +111,10 @@
     state.returning = e.target.checked;
     refresh();
   });
+  document.getElementById('hide-done-filter').addEventListener('change', function (e) {
+    state.hideDone = e.target.checked;
+    refresh();
+  });
   document.getElementById('sort-select').addEventListener('change', function (e) {
     state.sort = e.target.value;
     refresh();
@@ -132,6 +137,9 @@
     var meta = [title.year, title.genres.join(', ')].filter(Boolean).join(' · ');
     if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'выходит' : 'завершено');
     document.getElementById('modal-meta').textContent = meta;
+    var seasonsEl = document.getElementById('modal-seasons');
+    seasonsEl.textContent = title.seasonInfo ? 'Сезоны: ' + title.seasonInfo : '';
+    seasonsEl.hidden = !title.seasonInfo;
     document.getElementById('modal-synopsis').textContent = title.draft
       ? 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».'
       : title.synopsis;

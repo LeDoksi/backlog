@@ -61,3 +61,22 @@ test('countProgress counts done vs total', () => {
   var titles = [{ status: 'done' }, { status: 'queue' }, { status: 'done' }];
   assert.deepEqual(countProgress(titles), { done: 2, total: 3 });
 });
+
+test('sortTitles by status puts in_progress first, queue second, done last', () => {
+  var titles = [
+    { title: 'A', status: 'done' },
+    { title: 'B', status: 'queue' },
+    { title: 'C', status: 'in_progress' }
+  ];
+  var sorted = sortTitles(titles, 'status');
+  assert.deepEqual(sorted.map(function (t) { return t.title; }), ['C', 'B', 'A']);
+});
+
+test('sortTitles by status is stable for equal-priority items', () => {
+  var titles = [
+    { title: 'A', status: 'queue' },
+    { title: 'B', status: 'queue' }
+  ];
+  var sorted = sortTitles(titles, 'status');
+  assert.deepEqual(sorted.map(function (t) { return t.title; }), ['A', 'B']);
+});

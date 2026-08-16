@@ -32,7 +32,11 @@
     <label class="toolbar__checkbox">
       <input id="returning-filter" type="checkbox"> Ждут продолжения
     </label>
+    <label class="toolbar__checkbox">
+      <input id="hide-done-filter" type="checkbox"> Скрыть пройденное
+    </label>
     <select id="sort-select" class="toolbar__select">
+      <option value="status" selected>Актуальное сначала</option>
       <option value="added">По дате добавления</option>
       <option value="name">По названию</option>
       <option value="year">По году</option>
@@ -62,6 +66,7 @@
       <div class="modal__body">
         <h2 id="modal-title" class="modal__title"></h2>
         <p id="modal-meta" class="modal__meta"></p>
+        <p id="modal-seasons" class="modal__seasons" hidden></p>
         <p id="modal-synopsis" class="modal__synopsis"></p>
         <label class="modal__field">
           Статус

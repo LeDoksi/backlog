@@ -721,6 +721,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.modal__seasons {
+  margin: 0 0 var(--sp-4);
+  padding-top: var(--sp-1);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
 .modal__synopsis {
   margin: 0 0 var(--sp-5);
   padding-bottom: var(--sp-5);
