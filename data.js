@@ -1121,6 +1121,78 @@ const TITLES = [
     rating: null,
     synopsis: 'Наташа Романофф сталкивается с тёмным прошлым, когда всплывает опасная заговорщическая организация, связывающая её с семьёй шпионов, вырастившей её, и требующая закрыть счёты.',
     cover: 'images/covers/black-widow-2021.jpg'
+  },
+  {
+    id: 'shang-chi-and-the-legend-of-the-ten-rings-2021',
+    title: 'Шан-Чи и легенда десяти колец',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2021,
+    genres: ['супергероика', 'боевик', 'фэнтези'],
+    rating: null,
+    synopsis: 'Шан-Чи, мастер боевых искусств, скрывающийся от прошлого, вынужден противостоять своему отцу — лидеру тайной организации, владеющему десятью кольцами безграничной силы.',
+    cover: 'images/covers/shang-chi-and-the-legend-of-the-ten-rings-2021.jpg'
+  },
+  {
+    id: 'eternals-2021',
+    title: 'Вечные',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2021,
+    genres: ['супергероика', 'фантастика', 'фэнтези'],
+    rating: null,
+    synopsis: 'Раскрытые бессмертные существа, тысячелетиями тайно жившие среди людей, вынуждены вновь объединиться, чтобы защитить человечество от древних чудовищ Девиантов.',
+    cover: 'images/covers/eternals-2021.jpg'
+  },
+  {
+    id: 'spider-man-no-way-home-2021',
+    title: 'Человек-паук: Нет пути домой',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2021,
+    genres: ['супергероика', 'боевик', 'фэнтези'],
+    rating: null,
+    synopsis: 'После раскрытия личности Человека-паука Питер Паркер просит Доктора Стрэнджа стереть эту тайну из памяти людей, но неудачное заклинание открывает мультивселенную и впускает опасных врагов из других реальностей.',
+    cover: 'images/covers/spider-man-no-way-home-2021.jpg'
+  },
+  {
+    id: 'doctor-strange-in-the-multiverse-of-madness-2022',
+    title: 'Доктор Стрэндж: В мультивселенной безумия',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2022,
+    genres: ['фэнтези', 'супергероика', 'ужасы'],
+    rating: null,
+    synopsis: 'Доктор Стрэндж вместе с юной Америкой Чавес, способной путешествовать между вселенными, отправляется в опасное путешествие по мультивселенной, спасаясь от могущественного врага, охотящегося за её силой.',
+    cover: 'images/covers/doctor-strange-in-the-multiverse-of-madness-2022.jpg'
+  },
+  {
+    id: 'thor-love-and-thunder-2022',
+    title: 'Тор: Любовь и гром',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2022,
+    genres: ['фэнтези', 'супергероика', 'комедия'],
+    rating: null,
+    synopsis: 'Тор пытается обрести внутренний покой, но вынужден вернуться в бой, когда Голод Богов начинает истреблять богов по всей Вселенной, а его бывшая возлюбленная Джейн Фостер обретает силу Тора.',
+    cover: 'images/covers/thor-love-and-thunder-2022.jpg'
+  },
+  {
+    id: 'black-panther-wakanda-forever-2022',
+    title: 'Чёрная Пантера: Ваканда навсегда',
+    category: 'movie',
+    status: 'done',
+    airingStatus: null,
+    year: 2022,
+    genres: ['супергероика', 'боевик', 'драма'],
+    rating: null,
+    synopsis: 'После смерти короля Т’Чаллы королева Рамонда и защитники Ваканды должны отстоять независимость страны от новых угроз, включая подводное королевство Талокан во главе с Нэмором.',
+    cover: 'images/covers/black-panther-wakanda-forever-2022.jpg'
   }
 ];
 
