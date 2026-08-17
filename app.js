@@ -86,10 +86,17 @@
     var draftBadge = title.draft ? '<span class="badge badge--draft">Черновик</span>' : '';
     var safeTitle = escapeHtml(title.title);
     var safeCover = escapeHtml(title.cover);
+    // A parts-bearing title's status is derived from its checklist, not set by
+    // hand — see hasPartsChecklist in lib/storage.js. The quick-action strip
+    // writes a status override, which the derivation would immediately shadow
+    // on the next read, so for these titles the strip is not rendered at all
+    // rather than left to click and silently do nothing useful. The badge
+    // above it still shows the derived status; only the three buttons go.
+    var quickActions = hasPartsChecklist(title) ? '' : cardStatusHtml(title);
     return (
       '<div class="card__poster">' +
       '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '">' +
-      cardStatusHtml(title) +
+      quickActions +
       '</div>' +
       '<div class="card__body">' +
       '<div class="card__title">' + safeTitle + '</div>' +
