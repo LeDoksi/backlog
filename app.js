@@ -164,6 +164,7 @@
     populateGenreFilter();
     document.querySelectorAll('.tabs__item').forEach(function (b) { b.classList.remove('is-active'); });
     button.classList.add('is-active');
+    updateRandomAvailability();
     refresh();
   }
 
@@ -200,17 +201,52 @@
   // search term or a stray genre filter left on from an earlier session
   // should never be the reason the pool comes up empty. Done titles are
   // excluded; queue and in_progress both count as "worth watching next".
+  //
+  // Games are excluded unconditionally, regardless of which tab is active:
+  // you don't "watch" a game, so a game can never be a correct answer to
+  // this button. On "Всё" that just narrows the pool; on "Игры" it makes
+  // the pool permanently empty, which is handled as its own state below
+  // rather than the generic "nothing left to watch" message — the button is
+  // never a candidate-producer on that tab, not merely temporarily out of
+  // candidates.
   var randomBtn = document.getElementById('random-pick');
   var randomLabel = randomBtn.querySelector('.toolbar__random-label');
   var RANDOM_DEFAULT_LABEL = randomLabel.textContent;
+  var RANDOM_UNAVAILABLE_LABEL = 'В игры играют';
+  var RANDOM_UNAVAILABLE_TITLE = 'Кнопка недоступна на вкладке «Игры»: игра — не то, что смотрят.';
   var randomEmptyTimer = null;
 
+  // Called once at startup and again on every tab switch. Keeps the button's
+  // "this can never work here" state in sync with the active category *before*
+  // the user even clicks — discovering that on click, via the same message
+  // used for "everything here is done", would read as a bug rather than a
+  // deliberate rule.
+  function updateRandomAvailability() {
+    var unavailable = state.category === 'game';
+    randomBtn.classList.toggle('toolbar__random--unavailable', unavailable);
+    if (unavailable) {
+      // The per-tab "unavailable" state pre-empts any lingering "nothing left
+      // to pick" cooldown from a previous click on a different tab.
+      if (randomEmptyTimer) { clearTimeout(randomEmptyTimer); randomEmptyTimer = null; }
+      randomBtn.classList.remove('toolbar__random--empty');
+      randomBtn.setAttribute('aria-disabled', 'true');
+      randomBtn.title = RANDOM_UNAVAILABLE_TITLE;
+      randomLabel.textContent = RANDOM_UNAVAILABLE_LABEL;
+    } else {
+      randomBtn.removeAttribute('aria-disabled');
+      randomBtn.removeAttribute('title');
+      randomLabel.textContent = RANDOM_DEFAULT_LABEL;
+    }
+  }
+
   randomBtn.addEventListener('click', function () {
-    // A click during the "nothing to pick" cooldown is a no-op rather than a
-    // second message — the button stays focusable and in the tab order the
-    // whole time (no native `disabled`), it just ignores the extra click.
+    // A click during the "nothing to pick" cooldown, or while the button is
+    // sitting on the games-only tab, is a no-op rather than a second message
+    // — the button stays focusable and in the tab order the whole time (no
+    // native `disabled`), it just ignores the extra click.
     if (randomBtn.classList.contains('toolbar__random--empty')) return;
-    var pool = titlesForCategory(state.category).filter(function (t) { return t.status !== 'done'; });
+    if (randomBtn.classList.contains('toolbar__random--unavailable')) return;
+    var pool = titlesForCategory(state.category).filter(function (t) { return t.status !== 'done' && t.category !== 'game'; });
     var picked = BacklogQuery.pickRandom(pool);
     if (picked) {
       openTitleModal(picked.id);
@@ -593,6 +629,7 @@
   });
 
   populateGenreFilter();
+  updateRandomAvailability();
   refresh();
 
   window.BacklogApp = {

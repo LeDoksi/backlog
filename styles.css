@@ -451,10 +451,14 @@ body {
 
 .toolbar__random:active { transform: translateY(1px); }
 
-/* The pool for this tab is empty — said plainly rather than swallowed. Reuses
-   the same muted, bordered language as an unavailable control elsewhere in
-   the app rather than inventing a new "error" colour. */
-.toolbar__random.toolbar__random--empty {
+/* Two different reasons share one muted, bordered look — the same language an
+   unavailable control uses elsewhere in the app rather than inventing a new
+   "error" colour: `--empty` is transient (this tab's pool emptied out this
+   click, self-reverts) and `--unavailable` is a standing fact of the active
+   tab (games are never watchable, holds until the tab changes). Visually
+   identical on purpose — the label text is what tells them apart. */
+.toolbar__random.toolbar__random--empty,
+.toolbar__random.toolbar__random--unavailable {
   background: var(--surface-sunken);
   border-color: var(--border);
   color: var(--text-muted);
@@ -462,7 +466,8 @@ body {
   box-shadow: none;
 }
 
-.toolbar__random.toolbar__random--empty:hover .toolbar__random-icon { transform: none; }
+.toolbar__random.toolbar__random--empty:hover .toolbar__random-icon,
+.toolbar__random.toolbar__random--unavailable:hover .toolbar__random-icon { transform: none; }
 
 /* ── Quick add ────────────────────────────────────────────────────────── */
 
