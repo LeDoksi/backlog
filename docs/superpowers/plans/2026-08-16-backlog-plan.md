@@ -2723,6 +2723,54 @@ git commit -m "data: populate season/part tracking for remaining series and anim
 
 ---
 
+### Task 38: Original title in modal + rating indicator on grid card
+
+**Files:**
+- Modify: `lib/validate.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+- Modify: `data.js`
+
+**Why:** two owner requests: (1) the grid card should keep showing only the Russian title (unchanged), but the title-detail modal should also show the original (usually English/Japanese) title, since the owner wants to know the source name without it cluttering the grid; (2) the grid should show, at a glance, whether a title has been rated and what the rating is — a small indicator on the poster itself, not buried in the modal.
+
+**Part A — original title:**
+
+- [ ] **Step 1: Add the field**
+
+Add an optional `originalTitle: string` field to the schema (not validated/required by `lib/validate.js`, same treatment as `seasonInfo`/`platforms`). Relevant mainly for `movie`/`series`/`anime` — games already use their original (English) name as `title`, so `originalTitle` is generally not needed for games (leave absent).
+
+- [ ] **Step 2: Display it in the modal only**
+
+In the modal (`#modal-title` area in `index.html`/`app.js`), show `originalTitle` as a small subtitle under the Russian title when present (hidden when absent). Do NOT add it to the grid card — `cardHtml` in `app.js` stays showing only `title.title`, unchanged.
+
+- [ ] **Step 3: Populate `originalTitle` for the catalog**
+
+For every `movie`/`series`/`anime` entry currently missing it (essentially the whole non-game catalog, ~140 titles) — this is mostly a fast confirm-and-fill pass, not deep research: for most entries the original title is recoverable from the `id` (which was already slugified from the original/English title when each batch was populated) or from what you already know about the title. Spot-verify rather than exhaustively re-research each one; flag anything genuinely uncertain rather than guessing. Skip this step for the ~30 games (not needed) and for any title whose Russian `title` already IS the original (e.g. "Клаустрофобы" if there's truly no meaningfully different original name, or a Russian-made production).
+
+**Part B — rating indicator on the grid card:**
+
+- [ ] **Step 4: Design the indicator**
+
+Add a small rating indicator directly on each grid card's poster (e.g. top corner) showing the current rating (`"8"` + a star glyph, or similar) when rated, and a distinct "not yet rated" visual state when `rating` is `null` (the owner suggested `"8★"` / `"?★"` as a rough example but said explicitly the exact execution is your design call — invoke `frontend-design` and make it genuinely fit the established dark cinematic system: reuse the star/gold token already established for the rating widget in the modal, keep it small and unobtrusive against the poster, legible over any cover art, consistent hover/interaction behavior with the rest of the card). This is purely a display indicator on the card — it does not need to be clickable/editable there (rating is still set via the modal's star widget); if you find a clean way to make it interactive too, that's a bonus, not a requirement.
+
+- [ ] **Step 5: Wire it up**
+
+Add the indicator to `cardHtml` in `app.js`, styled in `styles.css`. Make sure it updates immediately when a rating changes (via the existing in-place card-patch mechanism used for status changes, or a full re-render — whichever fits the existing pattern better; check how `patchCardStatus`/`applyStatusChange` work and follow the same "patch in place, don't force a jarring full re-render" discipline if practical, though a rating change is rare enough that reusing the simpler full-`refresh()` path may also be acceptable — your call).
+
+- [ ] **Step 6: Verify**
+
+Confirm: modal shows the original title correctly for populated entries, hidden for games/unpopulated entries. Grid cards show the rating indicator correctly for rated and unrated titles, legible against light and dark poster art, doesn't clash with the existing status quick-actions/badges/draft badge on the same card. Run `node --test tests/*.test.js` and `node tools/validate-data.js`.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/validate.js index.html styles.css app.js data.js
+git commit -m "feat: show original title in modal, add rating indicator to grid cards"
+```
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
