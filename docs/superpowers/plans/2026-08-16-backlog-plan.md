@@ -2714,6 +2714,8 @@ Run `node tools/validate-data.js` periodically as you go (schema doesn't enforce
 
 Run the full test suite and validator. Spot-check several titles' modals in the browser to confirm the checklist renders correctly and derives sensible statuses given each title's actual current watch status (a title the user already marked "done" before this task ran should end up with all-released-parts checked after migration, not reset to unwatched — think through how to map an existing single `status` value onto initial checked-parts state sensibly per title, since this is a one-time migration of real user-relevant data, not just filling in blanks).
 
+**Seeding note (resolved during Task 36's review):** status for these titles is now purely *derived* from checked-parts state (see `lib/storage.js`'s `effectiveStatus`/`deriveStatus`, added in Task 36's fix round) — there is no separate "migrate the stored status" step, because `data.js`'s own `status` field on these titles is inert/decorative once `parts` is non-empty. What actually needs seeding is the **initial checked-parts state itself**, since nothing is checked until you (or the owner) tick something. For each title you migrate: if its current `status` (before you add `parts`) is `"done"`, seed `backlog-parts` with all currently-released part indices checked (via `lib/storage.js`'s `setCheckedParts`, not by hand-editing `data.js`) so the owner's existing watch history isn't reset to "не начато." If `status` was `"queue"`/`"in_progress"`, leave it unseeded (nothing to infer safely). The card's dead quick-action strip for parts-bearing titles was already hidden in a follow-up fix after Task 36 — no further sequencing blocker here.
+
 - [ ] **Step 5: Commit**
 
 ```bash
