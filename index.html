@@ -93,11 +93,21 @@
         <p id="modal-platforms" class="modal__platforms" hidden></p>
         <p id="modal-synopsis" class="modal__synopsis"></p>
         <div class="modal__field">
-          <span class="modal__field-label">Статус</span>
+          <span id="modal-status-label" class="modal__field-label">Статус</span>
           <div id="modal-status" class="status-buttons" role="group" aria-label="Статус">
             <button type="button" class="status-buttons__btn" data-status="queue" aria-pressed="false">В бэклоге</button>
             <button type="button" class="status-buttons__btn" data-status="in_progress" aria-pressed="false">В процессе</button>
             <button type="button" class="status-buttons__btn" data-status="done" aria-pressed="false">Завершено</button>
+          </div>
+          <!-- Shown instead of the three seats above when a series/anime title
+               carries a `parts` list: there the status is derived from what is
+               ticked, never set by hand. -->
+          <div id="modal-parts" class="parts" hidden>
+            <div class="parts__summary">
+              <span id="modal-parts-status" class="badge parts__badge"></span>
+              <span id="modal-parts-progress" class="parts__progress" aria-live="polite"></span>
+            </div>
+            <ul id="modal-parts-list" class="parts__list"></ul>
           </div>
         </div>
         <div class="modal__field">

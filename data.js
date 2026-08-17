@@ -17,27 +17,43 @@ const TITLES = [
     id: 're-zero-starting-life-in-another-world-2016',
     title: 'Re:ZERO — Жизнь с нуля в альтернативном мире',
     category: 'anime',
-    status: 'done',
+    status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '3 сезона (2016–2025); сюжет остановился в середине арки 7, продолжение официально не анонсировано.',
+    seasonInfo: '4 сезона (2016–2026) и 2 OVA-фильма (2018, 2019)\nСезон 4 выходит двумя частями: «Утрата» (апрель–июнь 2026) и «Возвращение» — с 12 августа 2026, ещё в эфире.',
     year: 2016,
     genres: ['фэнтези', 'триллер'],
     rating: null,
     synopsis: 'Субару переносится в фэнтезийный мир и обнаруживает, что может возвращаться в прошлое после смерти — но каждый раз платит за это дорогую цену.',
-    cover: 'images/covers/re-zero-starting-life-in-another-world-2016.jpg'
+    cover: 'images/covers/re-zero-starting-life-in-another-world-2016.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2016, released: true },
+      { name: 'OVA «Memory Snow»', year: 2018, released: true },
+      { name: 'OVA «Ледяные узы»', year: 2019, released: true },
+      { name: 'Сезон 2', year: 2020, released: true },
+      { name: 'Сезон 3', year: 2024, released: true },
+      { name: 'Сезон 4, часть 1 «Утрата»', year: 2026, released: true },
+      { name: 'Сезон 4, часть 2 «Возвращение»', year: 2026, released: false }
+    ]
   },
   {
     id: 'the-boys-2019',
     title: 'Пацаны',
     category: 'series',
-    status: 'done',
+    status: 'queue',
     airingStatus: 'completed',
-    seasonInfo: '5 сезонов (2019–2026), сериал завершён.',
+    seasonInfo: '5 сезонов (2019–2026), сериал завершён — финал вышел 20 мая 2026 года.',
     year: 2019,
     genres: ['сатира', 'боевик'],
     rating: null,
     synopsis: 'Группа мстителей без суперсил охотится на коррумпированных супергероев корпорации Vought.',
-    cover: 'images/covers/the-boys-2019.jpg'
+    cover: 'images/covers/the-boys-2019.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2019, released: true },
+      { name: 'Сезон 2', year: 2020, released: true },
+      { name: 'Сезон 3', year: 2022, released: true },
+      { name: 'Сезон 4', year: 2024, released: true },
+      { name: 'Сезон 5 (финальный)', year: 2026, released: true }
+    ]
   },
   {
     id: 'ted-lasso-2020',
@@ -106,27 +122,42 @@ const TITLES = [
     id: 'tengen-toppa-gurren-lagann-2007',
     title: 'Гуррен-Лаганн',
     category: 'anime',
-    status: 'done',
+    status: 'queue',
     airingStatus: 'completed',
     seasonInfo: '1 сезон (2007, 27 серий) и 2 полнометражных фильма (2008–2009); история полностью завершена, продолжение не планируется.',
     year: 2007,
     genres: ['меха', 'приключения', 'боевик'],
     rating: null,
     synopsis: 'Симон и Камина сбегают из подземной деревни на пилотируемом роботе Лагann и присоединяются к восстанию против таинственных врагов на поверхности — история взросления перерастает в эпическую сагу о человеческой воле.',
-    cover: 'images/covers/tengen-toppa-gurren-lagann-2007.png'
+    cover: 'images/covers/tengen-toppa-gurren-lagann-2007.png',
+    parts: [
+      { name: 'Сезон 1', year: 2007, released: true },
+      { name: 'Фильм 1 «Прорыв в небеса»', year: 2008, released: true },
+      { name: 'Фильм 2 «Огни в небе — это звёзды»', year: 2009, released: true }
+    ]
   },
   {
     id: 'demon-slayer-kimetsu-no-yaiba-2019',
     title: 'Клинок, рассекающий демонов',
     category: 'anime',
-    status: 'done',
+    status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '4 сезона (2019–2024) и фильм «Замок бесконечности», часть 1 (2025)\nЧасти 2 и 3 трилогии — в производстве, даты выхода пока не объявлены.',
+    seasonInfo: '4 сезона (2019–2024) и 2 фильма; трилогия «Замок Бесконечности» начата в 2025 году\nЧасть 2 ожидается в 2027 году, часть 3 — в 2029-м; точные даты не объявлены.',
     year: 2019,
     genres: ['боевик', 'фэнтези'],
     rating: null,
     synopsis: 'Тандзиро становится истребителем демонов, чтобы отомстить за погибшую семью и найти способ вернуть человеческий облик своей сестре Незуко, ставшей демоном.',
-    cover: 'images/covers/demon-slayer-kimetsu-no-yaiba-2019.jpg'
+    cover: 'images/covers/demon-slayer-kimetsu-no-yaiba-2019.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2019, released: true },
+      { name: 'Фильм «Бесконечный поезд»', year: 2020, released: true },
+      { name: 'Сезон 2 «Квартал красных фонарей»', year: 2021, released: true },
+      { name: 'Сезон 3 «Деревня кузнецов»', year: 2023, released: true },
+      { name: 'Сезон 4 «Тренировка столпов»', year: 2024, released: true },
+      { name: 'Фильм «Замок Бесконечности», часть 1', year: 2025, released: true },
+      { name: 'Фильм «Замок Бесконечности», часть 2', year: 2027, released: false },
+      { name: 'Фильм «Замок Бесконечности», часть 3', year: 2029, released: false }
+    ]
   },
   {
     id: 'ride-your-wave-2019',

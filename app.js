@@ -462,6 +462,95 @@
     });
   }
 
+  // ── Season/part checklist ─────────────────────────────────────────────
+  //
+  // For a series or anime that carries a `parts` list, the three-seat control
+  // is not the truth any more: the truth is which seasons/films/OVAs have been
+  // watched, and the status falls out of that. So the checklist takes the
+  // control's place in the same field, and the status is shown as a read-only
+  // badge above it.
+  //
+  // The point of the exercise is the unreleased row. A show whose every aired
+  // season is ticked but whose next season is still pending must read "в
+  // процессе", not "завершено" — otherwise the one thing the owner wanted to
+  // keep ("I am caught up, I am waiting") is spelled the same way as "this is
+  // over". BacklogStorage.deriveStatus is where that rule lives; everything
+  // here just renders it.
+  var statusLabel = document.getElementById('modal-status-label');
+  var partsWrap = document.getElementById('modal-parts');
+  var partsList = document.getElementById('modal-parts-list');
+  var partsBadge = document.getElementById('modal-parts-status');
+  var partsProgress = document.getElementById('modal-parts-progress');
+
+  function hasPartsChecklist(title) {
+    return (title.category === 'series' || title.category === 'anime')
+      && Array.isArray(title.parts) && title.parts.length > 0;
+  }
+
+  function isReleased(part) {
+    return !part || part.released !== false;
+  }
+
+  function partsHtml(parts, checked) {
+    return parts.map(function (part, index) {
+      var pending = !isReleased(part);
+      var name = escapeHtml(part.name || ('Часть ' + (index + 1)));
+      var year = part.year ? '<span class="part__year">' + escapeHtml(part.year) + '</span>' : '';
+      // Says why the box will not take a tick. A `disabled` input alone reads
+      // as "broken" — this one is not broken, it is simply not out yet.
+      var note = pending ? '<span class="part__pending">ещё не вышло</span>' : '';
+      // A tick on a part that has since been marked unreleased is dropped on
+      // the way in, exactly as deriveStatus drops it — the checkbox must not
+      // show a state the status is refusing to count.
+      var isOn = !pending && checked.indexOf(index) !== -1;
+      return '<li class="part' + (pending ? ' part--pending' : '') + '">' +
+        '<label class="part__row">' +
+        '<input type="checkbox" class="part__box" data-index="' + index + '"' +
+        (isOn ? ' checked' : '') + (pending ? ' disabled' : '') + '>' +
+        '<span class="part__name">' + name + '</span>' + year + note +
+        '</label></li>';
+    }).join('');
+  }
+
+  // Repaints only the badge and the counter, never the list — a change comes
+  // from a checkbox that currently holds focus, and rebuilding the rows under
+  // it would throw that focus to the body mid-run.
+  function renderPartsSummary(title, checked) {
+    var released = title.parts.filter(isReleased).length;
+    var pending = title.parts.length - released;
+    var watched = checked.filter(function (i) { return isReleased(title.parts[i]); }).length;
+    var derived = BacklogStorage.deriveStatus(title.parts, checked);
+    partsBadge.dataset.status = derived || '';
+    partsBadge.textContent = STATUS_LABELS[derived] || '';
+    var text = released
+      ? 'Просмотрено ' + watched + ' из ' + released
+      : 'Пока ничего не вышло';
+    if (pending) text += ' · впереди ещё ' + pending;
+    partsProgress.textContent = text;
+    return derived;
+  }
+
+  function renderPartsChecklist(title) {
+    var checked = BacklogStorage.getCheckedParts(window.localStorage, title.id);
+    partsList.innerHTML = partsHtml(title.parts, checked);
+    return renderPartsSummary(title, checked);
+  }
+
+  partsList.addEventListener('change', function (event) {
+    var box = event.target;
+    if (!box.classList || !box.classList.contains('part__box')) return;
+    var id = document.getElementById('title-modal').dataset.id;
+    if (!id) return;
+    var title = findTitleById(id);
+    if (!title || !hasPartsChecklist(title)) return;
+    var checked = BacklogStorage.setPartChecked(window.localStorage, id, parseInt(box.dataset.index, 10), box.checked);
+    var derived = renderPartsSummary(title, checked);
+    // Straight down the existing status path: one setOverride, the card behind
+    // the modal patched in place, counters redrawn, reorder deferred. Nothing
+    // in the grid, the filters or the sort had to learn what a part is.
+    if (derived) applyStatusChange(id, derived);
+  });
+
   function currentRating() {
     return parseInt(starStrip.dataset.rating || '0', 10);
   }
@@ -598,7 +687,22 @@
     document.getElementById('modal-synopsis').textContent = title.draft
       ? 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».'
       : title.synopsis;
-    renderStatusButtons(title.status);
+    if (hasPartsChecklist(title)) {
+      statusLabel.textContent = 'Сезоны и части';
+      statusGroup.hidden = true;
+      partsWrap.hidden = false;
+      var derived = renderPartsChecklist(title);
+      // For a title with a checklist the status is an output, so a stored one
+      // that disagrees with the list is stale, not a second opinion — reconcile
+      // it now rather than letting the card and the modal tell two stories
+      // until the next tick. The write only happens when they actually differ.
+      if (derived && derived !== title.status) applyStatusChange(id, derived);
+    } else {
+      statusLabel.textContent = 'Статус';
+      partsWrap.hidden = true;
+      statusGroup.hidden = false;
+      renderStatusButtons(title.status);
+    }
     clearPreview();
     renderRating(title.rating);
     var modal = document.getElementById('title-modal');

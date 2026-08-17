@@ -378,7 +378,8 @@ body {
    work of announcing the control (there is no icon here as there is on the search
    and the selects), so it is the one hairline in the room held to the 3:1 floor. */
 .toolbar__checkbox input,
-.genre-option input {
+.genre-option input,
+.part__box {
   -webkit-appearance: none;
   appearance: none;
   flex: none;
@@ -397,7 +398,8 @@ body {
 }
 
 .toolbar__checkbox input::before,
-.genre-option input::before {
+.genre-option input::before,
+.part__box::before {
   content: "";
   width: 9px;
   height: 9px;
@@ -409,16 +411,19 @@ body {
 }
 
 .toolbar__checkbox input:hover,
-.genre-option input:hover { border-color: var(--text-muted); }
+.genre-option input:hover,
+.part__box:not(:disabled):hover { border-color: var(--text-muted); }
 
 .toolbar__checkbox input:checked,
-.genre-option input:checked {
+.genre-option input:checked,
+.part__box:checked {
   background: var(--accent);
   border-color: var(--accent);
 }
 
 .toolbar__checkbox input:checked::before,
-.genre-option input:checked::before { transform: scale(1); }
+.genre-option input:checked::before,
+.part__box:checked::before { transform: scale(1); }
 
 .toolbar__checkbox:has(input:checked) { color: var(--text); }
 
@@ -1074,24 +1079,31 @@ body {
 
 /* ── Status colour ────────────────────────────────────────────────────── */
 
-/* A status is shown in three places — the card's badge, the card's quick-action
-   strip and the modal's segmented control — and all three resolve their hue
+/* A status is shown in four places — the card's badge, the card's quick-action
+   strip, the modal's segmented control and the derived badge over a season
+   checklist — and all four resolve their hue
    from this one map, so a title can never appear to be in two states at once
-   because one surface was updated and another forgotten.
+   because one surface was updated and another forgotten. The derived badge is
+   the newest member and the reason the map earns its keep: it is written by
+   BacklogStorage.deriveStatus rather than by a click, and it still has to look
+   identical to the chip on the card behind the modal.
    Each surface then picks its own strength off `--sc`: a badge is a chip, so it
    takes a soft tint and a soft rim; an active control seat takes the firmer rim
    that everything else in the app uses to say "you are here". */
 .card__status-badge[data-status="queue"],
 .card-status__btn[data-status="queue"],
-.status-buttons__btn[data-status="queue"] { --sc: var(--status-queue); }
+.status-buttons__btn[data-status="queue"],
+.parts__badge[data-status="queue"] { --sc: var(--status-queue); }
 
 .card__status-badge[data-status="in_progress"],
 .card-status__btn[data-status="in_progress"],
-.status-buttons__btn[data-status="in_progress"] { --sc: var(--status-progress); }
+.status-buttons__btn[data-status="in_progress"],
+.parts__badge[data-status="in_progress"] { --sc: var(--status-progress); }
 
 .card__status-badge[data-status="done"],
 .card-status__btn[data-status="done"],
-.status-buttons__btn[data-status="done"] { --sc: var(--status-done); }
+.status-buttons__btn[data-status="done"],
+.parts__badge[data-status="done"] { --sc: var(--status-done); }
 
 /* ── Badges ───────────────────────────────────────────────────────────── */
 
@@ -1116,12 +1128,16 @@ body {
   vertical-align: middle;
 }
 
-/* The status chip, tinted in its own hue. Still a chip and not a fill: the tint
+/* The status chip, tinted in its own hue — on the card, and over the season
+   checklist where it says what the ticks add up to. Still a chip and not a fill: the tint
    is 14% and the text carries the colour, which keeps the three of them legible
    (4.8:1 at the tightest, on their own tinted ground) without turning the card
    body into a colour field. The [data-status] guard means a chip rendered
    without one silently falls back to the neutral .badge above. */
-.card__status-badge[data-status] {
+.card__status-badge[data-status],
+.parts__badge[data-status="queue"],
+.parts__badge[data-status="in_progress"],
+.parts__badge[data-status="done"] {
   background: color-mix(in srgb, var(--sc) 14%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sc) 30%, transparent);
   color: var(--sc);
@@ -1342,6 +1358,137 @@ body {
 }
 
 .status-buttons__btn:focus-visible { outline-offset: 1px; }
+
+/* The segmented control and the season checklist are two answers to the same
+   field and exactly one is ever in the flow. Needed because `display: flex`
+   above would otherwise out-rank the hidden attribute's UA `display: none`. */
+.status-buttons[hidden] { display: none; }
+
+/* ── Seasons and parts: a checklist ───────────────────────────────────── */
+
+/* For a series or anime that knows what it is made of, the status stops being
+   something you set and becomes something you read: the input is the list of
+   seasons, films and OVAs, and the badge above it is the result. So the badge
+   sits where the segmented control's active seat used to — same field, same
+   place in the eye's path — and the list below is built out of the genre
+   panel's rows and the toolbar's drawn checkbox, because a checklist of things
+   you have seen and a checklist of genres you are filtering by are the same
+   gesture and should not be two different objects.
+
+   The one row type that is new is the unreleased one, and it is the whole
+   reason the feature exists. It is not merely disabled: a greyed box with no
+   explanation reads as broken. It keeps its place in the release order, dims,
+   trades the solid box for a dashed one, and says «ещё не вышло» — so the list
+   shows at a glance both what is left to watch and what is left to wait for. */
+
+.parts { margin-top: var(--sp-2); }
+.parts[hidden] { display: none; }
+
+/* Result first, list second — the badge is what the field is asked for. */
+.parts__summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.parts__badge { margin: 0; }
+
+.parts__progress {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The same sunken well every other control in the app sits in. Capped and
+   scrollable on its own so a franchise with twenty entries cannot push the
+   rating and the delete action off the panel. */
+.parts__list {
+  list-style: none;
+  margin: 0;
+  max-height: 264px;
+  overflow-y: auto;
+  padding: 3px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.part__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 7px var(--sp-2);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.part__row:hover,
+.part__row:focus-within { color: var(--text); background: rgba(255, 255, 255, 0.05); }
+
+.part__row:has(input:checked) { color: var(--text); }
+
+.part__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tabular so the years form a column down the right edge and the list reads as
+   a release order rather than a pile. */
+.part__year {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+/* Not out yet: still listed, still in order, but nothing here can be acted on.
+   The row keeps its hover off so the pointer is told the same thing the
+   disabled box tells it. */
+.part--pending .part__row { cursor: default; }
+.part--pending .part__row:hover { background: transparent; color: var(--text-muted); }
+/* The name stays at --text-muted, which is where an unticked released row sits
+   at rest anyway (4.9:1 on the well). Dimming it further to --star-off did look
+   more obviously "off", but it dropped the text to 2:1 — and the name of the
+   season you are waiting for is the single most useful string in the row. The
+   dashed box, the dead hover and the chip carry the state instead; only the
+   year, which the chip already makes redundant, is allowed to fade. */
+.part--pending .part__year { color: var(--star-off); }
+
+.part__box:disabled {
+  cursor: default;
+  border-style: dashed;
+  border-color: var(--border-strong);
+  background: transparent;
+}
+
+/* Borrowed from .badge--draft on purpose — a dashed outline already means
+   "not finished being written" in this app, and a season that has not aired
+   is the same kind of statement. */
+.part__pending {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 4px 6px 3px;
+  border: 1px dashed var(--border-control);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
 
 /* ── Rating: ten stars and a readout ──────────────────────────────────── */
 
