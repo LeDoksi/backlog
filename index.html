@@ -22,9 +22,9 @@
     <input id="search-input" class="toolbar__search" type="search" placeholder="Поиск по названию…">
     <select id="status-filter" class="toolbar__select">
       <option value="all">Любой статус</option>
-      <option value="queue">В очереди</option>
+      <option value="queue">В бэклоге</option>
       <option value="in_progress">В процессе</option>
-      <option value="done">Готово</option>
+      <option value="done">Завершено</option>
     </select>
     <div id="genre-filter" class="genre-filter">
       <button id="genre-trigger" class="genre-filter__trigger" type="button" aria-expanded="false" aria-controls="genre-panel">
@@ -42,10 +42,10 @@
       </div>
     </div>
     <label class="toolbar__checkbox">
-      <input id="returning-filter" type="checkbox"> Ждут продолжения
+      <input id="returning-filter" type="checkbox"> Всё ещё выходит
     </label>
     <label class="toolbar__checkbox">
-      <input id="hide-done-filter" type="checkbox"> Скрыть пройденное
+      <input id="hide-done-filter" type="checkbox"> Скрыть завершённое
     </label>
     <select id="sort-select" class="toolbar__select">
       <option value="status" selected>Актуальное сначала</option>
@@ -94,9 +94,9 @@
         <div class="modal__field">
           <span class="modal__field-label">Статус</span>
           <div id="modal-status" class="status-buttons" role="group" aria-label="Статус">
-            <button type="button" class="status-buttons__btn" data-status="queue" aria-pressed="false">В очереди</button>
+            <button type="button" class="status-buttons__btn" data-status="queue" aria-pressed="false">В бэклоге</button>
             <button type="button" class="status-buttons__btn" data-status="in_progress" aria-pressed="false">В процессе</button>
-            <button type="button" class="status-buttons__btn" data-status="done" aria-pressed="false">Готово</button>
+            <button type="button" class="status-buttons__btn" data-status="done" aria-pressed="false">Завершено</button>
           </div>
         </div>
         <div class="modal__field">

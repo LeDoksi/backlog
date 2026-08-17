@@ -1,7 +1,7 @@
 // app.js
 (function () {
   var state = { category: 'all', status: 'all', genre: [], returning: false, hideDone: false, search: '', sort: 'status' };
-  var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Готово' };
+  var STATUS_LABELS = { queue: 'В бэклоге', in_progress: 'В процессе', done: 'Завершено' };
 
   // Three silhouettes that stay legible at 15px and never need a label to be
   // told apart: ruled lines (a list of things not started), a half-turned dial
@@ -10,7 +10,7 @@
   var STATUS_ACTIONS = [
     {
       key: 'queue',
-      label: 'В очереди',
+      label: 'В бэклоге',
       icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3 4.5h10M3 8h10M3 11.5h6"/></svg>'
     },
     {
@@ -20,8 +20,9 @@
     },
     {
       key: 'done',
-      // "Готово" here and in the modal; Task 23 renames the badge to match.
-      label: 'Готово',
+      // Kept in step with STATUS_LABELS, the modal's segments and the status
+      // filter — one status, one word, everywhere it is spelled out.
+      label: 'Завершено',
       icon: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.2 8.4 6.4 11.6 12.8 4.8"/></svg>'
     }
   ];
@@ -79,8 +80,8 @@
   }
 
   function cardHtml(title) {
-    var returningBadge = BacklogQuery.isReturning(title)
-      ? '<span class="badge badge--returning">Ждёт продолжения</span>'
+    var airingBadge = BacklogQuery.isStillAiring(title)
+      ? '<span class="badge badge--returning">Всё ещё выходит</span>'
       : '';
     var draftBadge = title.draft ? '<span class="badge badge--draft">Черновик</span>' : '';
     var safeTitle = escapeHtml(title.title);
@@ -92,7 +93,11 @@
       '</div>' +
       '<div class="card__body">' +
       '<div class="card__title">' + safeTitle + '</div>' +
-      '<span class="badge card__status-badge">' + (STATUS_LABELS[title.status] || title.status) + '</span>' + returningBadge + draftBadge +
+      // data-status is what styles.css resolves the chip's hue from, so the
+      // badge is coloured by the same attribute the quick-action buttons and the
+      // modal's segments use — one map, three surfaces.
+      '<span class="badge card__status-badge" data-status="' + title.status + '">' +
+      (STATUS_LABELS[title.status] || title.status) + '</span>' + airingBadge + draftBadge +
       '</div>'
     );
   }
@@ -428,7 +433,7 @@
     if (randomEmptyTimer) clearTimeout(randomEmptyTimer);
     randomBtn.classList.add('toolbar__random--empty');
     randomBtn.setAttribute('aria-disabled', 'true');
-    randomLabel.textContent = 'Тут всё пройдено';
+    randomLabel.textContent = 'Тут всё завершено';
     randomEmptyTimer = setTimeout(function () {
       randomBtn.classList.remove('toolbar__random--empty');
       randomBtn.removeAttribute('aria-disabled');
@@ -632,20 +637,16 @@
       btn.setAttribute('aria-pressed', String(isActive));
     });
     var badge = card.querySelector('.card__status-badge');
-    if (badge) badge.textContent = STATUS_LABELS[title.status] || title.status;
-    // "Ждёт продолжения" is derived from status (done + still airing), so it
-    // has to follow the change rather than wait for the next full render.
-    var returning = card.querySelector('.badge--returning');
-    if (BacklogQuery.isReturning(title)) {
-      if (!returning && badge) {
-        returning = document.createElement('span');
-        returning.className = 'badge badge--returning';
-        returning.textContent = 'Ждёт продолжения';
-        badge.insertAdjacentElement('afterend', returning);
-      }
-    } else if (returning) {
-      returning.remove();
+    if (badge) {
+      badge.textContent = STATUS_LABELS[title.status] || title.status;
+      // The hue is resolved from the attribute, so the chip would keep the old
+      // status's colour under the new status's word without this line.
+      badge.dataset.status = title.status;
     }
+    // The "Всё ещё выходит" badge used to have to be added or removed here,
+    // because it depended on the status being changed. It no longer does — it is
+    // now a plain fact about the title (airingStatus === 'ongoing'), which a
+    // status write cannot touch. So there is nothing left to sync.
   }
 
   // The one path every status write goes through, from a card or from the

@@ -54,6 +54,22 @@
   --star: #f2c14e;                      /* the committed rating              */
   --star-lit: #ffd97a;                  /* the light running under the finger */
   --star-glow: rgba(242, 193, 78, 0.45);
+
+  /* Status hues — three states, three colours, so the wall is scannable without
+     reading a single chip. Held deliberately to about half the chroma of the red
+     and the gold (C*~30 against their C*~65) and placed nowhere near either hue
+     (gold h85, red h17): a status sits on EVERY card, and the two identity
+     colours have to keep out-ranking it where they share a badge row.
+     Read in pipeline order the hue walks the cool half of the wheel — blue on
+     the shelf, cyan in motion, green resolved — so the segmented control's
+     left-to-right order and its colour tell the same story. Lightness carries
+     the hierarchy the hue cannot: "в процессе" is the brightest because it is
+     the shortest list and the one worth spotting, "в бэклоге" the dimmest
+     because it is the resting state most cards sit in. */
+  --status-queue: #579cce;      /* в бэклоге  — cold, still on the shelf */
+  --status-progress: #6ccfdf;   /* в процессе — lit, in motion           */
+  --status-done: #93bb91;       /* завершено  — resolved, settled        */
+
   --scrim: rgba(8, 9, 12, 0.72);
   --bg-veil: rgba(13, 15, 20, 0.82);    /* sticky header backdrop            */
 
@@ -998,12 +1014,16 @@ body {
   background: rgba(255, 255, 255, 0.10);
 }
 
-/* The same warm rim the tabs use for "you are here" — the accent as an edge,
-   never as a fill. */
+/* The same rim geometry the tabs use for "you are here", but struck in the
+   status's own hue rather than the accent. The accent could only ever say "one
+   of these three is on"; the hue says WHICH, which is the actual question — and
+   it agrees with the badge on the card body two lines below, so the strip and
+   the chip are visibly the same statement. The accent keeps every other job it
+   had (focus ring, tabs, genre trigger, destructive, the random pill). */
 .card-status__btn.is-active {
-  color: var(--text);
-  background: rgba(233, 69, 96, 0.20);
-  box-shadow: inset 0 0 0 1px rgba(233, 69, 96, 0.5);
+  color: var(--sc);
+  background: color-mix(in srgb, var(--sc) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sc) 55%, transparent);
 }
 
 /* The strip lives inside a clipped, 3px-padded slab; the standard 3px offset
@@ -1052,10 +1072,32 @@ body {
   min-height: calc(2 * 1.35em);
 }
 
+/* ── Status colour ────────────────────────────────────────────────────── */
+
+/* A status is shown in three places — the card's badge, the card's quick-action
+   strip and the modal's segmented control — and all three resolve their hue
+   from this one map, so a title can never appear to be in two states at once
+   because one surface was updated and another forgotten.
+   Each surface then picks its own strength off `--sc`: a badge is a chip, so it
+   takes a soft tint and a soft rim; an active control seat takes the firmer rim
+   that everything else in the app uses to say "you are here". */
+.card__status-badge[data-status="queue"],
+.card-status__btn[data-status="queue"],
+.status-buttons__btn[data-status="queue"] { --sc: var(--status-queue); }
+
+.card__status-badge[data-status="in_progress"],
+.card-status__btn[data-status="in_progress"],
+.status-buttons__btn[data-status="in_progress"] { --sc: var(--status-progress); }
+
+.card__status-badge[data-status="done"],
+.card-status__btn[data-status="done"],
+.status-buttons__btn[data-status="done"] { --sc: var(--status-done); }
+
 /* ── Badges ───────────────────────────────────────────────────────────── */
 
-/* Every card carries a status, so the status chip must be quiet — spending
-   the accent here would spend it everywhere. */
+/* The neutral chip every other badge is cut from. The status chip overrides it
+   below with its own hue; the accent is still never spent here — a colour that
+   appears on all 143 cards would stop being an accent. */
 .badge {
   display: inline-block;
   font-family: var(--font-display);
@@ -1074,7 +1116,22 @@ body {
   vertical-align: middle;
 }
 
-/* The exception earns colour: this one is news, not state. */
+/* The status chip, tinted in its own hue. Still a chip and not a fill: the tint
+   is 14% and the text carries the colour, which keeps the three of them legible
+   (4.8:1 at the tightest, on their own tinted ground) without turning the card
+   body into a colour field. The [data-status] guard means a chip rendered
+   without one silently falls back to the neutral .badge above. */
+.card__status-badge[data-status] {
+  background: color-mix(in srgb, var(--sc) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sc) 30%, transparent);
+  color: var(--sc);
+}
+
+/* Now that all three statuses carry a hue, the gold has to out-rank every one
+   of them — and it can, because it is the only badge here at full identity
+   chroma (C*63 against the trio's ~30). It says something different in kind:
+   news about the title itself (the franchise has more coming), not the state
+   the viewer has put it in. */
 .badge--returning {
   background: var(--signal-soft);
   box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.28);
@@ -1260,13 +1317,17 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* Contrast plus a warm rim — the same "you are here" the tabs use. A solid
-   accent slab under 12px text would not clear AA, and would spend the red. */
+/* The seat still lifts to --surface-hover, because that raised-slab read is what
+   makes the track look like three seats with one taken. What changed is the rim
+   and the label: both now carry the status's own hue, matching the card strip
+   and the card badge exactly. A solid slab of that hue would not clear AA under
+   12px text and would make a state into a surface; as a rim plus coloured text
+   on the raised seat it clears 5.2:1 at the tightest. */
 .status-buttons__btn.is-active {
-  color: var(--text);
+  color: var(--sc);
   background: var(--surface-hover);
   box-shadow:
-    inset 0 0 0 1px rgba(233, 69, 96, 0.5),
+    inset 0 0 0 1px color-mix(in srgb, var(--sc) 55%, transparent),
     0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
@@ -1447,7 +1508,7 @@ body {
   :root {
     --card-min: 140px;
     --fs-xl: 21px;
-    /* Chips shrink with the card so "ЖДЁТ ПРОДОЛЖЕНИЯ" still sets on one line. */
+    /* Chips shrink with the card so "ВСЁ ЕЩЁ ВЫХОДИТ" still sets on one line. */
     --fs-micro: 10px;
     --track-label: 0.06em;
   }
@@ -1547,9 +1608,20 @@ body {
   .card__body { padding: var(--sp-3) var(--sp-2) var(--sp-2); }
 
   /* The segmented control takes the full width and its labels lose their side
-     padding rather than their letters — all three still set on one line. */
+     padding and some of their tracking rather than their letters — all three
+     still set on one line. "ЗАВЕРШЕНО" is ~30px wider than the "ГОТОВО" it
+     replaced, which left this row with zero slack at 375px and ellipsised all
+     three labels outright at 320px. Trimming 4px of padding per side and half
+     the tracking clears 320px (251px of text in 260px) and leaves ~10px spare at
+     375px, so the row also survives --font-display falling through to one of the
+     wider fallback faces. */
   .status-buttons { width: 100%; }
-  .status-buttons__btn { height: 32px; padding: 0 var(--sp-2); }
+
+  .status-buttons__btn {
+    height: 32px;
+    padding: 0 var(--sp-1);
+    letter-spacing: 0.03em;
+  }
 
   /* Ten stars plus a readout will not share a 296px line, so the readout drops
      under the row and the stars spread across the full width — a bigger,

@@ -1,12 +1,28 @@
 // tests/query.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isReturning, matchesFilters, matchesSearch, sortTitles, countProgress, pickRandom } = require('../lib/query.js');
+const { isStillAiring, matchesFilters, matchesSearch, sortTitles, countProgress, pickRandom } = require('../lib/query.js');
 
-test('isReturning is true only when done and airing ongoing', () => {
-  assert.equal(isReturning({ status: 'done', airingStatus: 'ongoing' }), true);
-  assert.equal(isReturning({ status: 'done', airingStatus: 'completed' }), false);
-  assert.equal(isReturning({ status: 'queue', airingStatus: 'ongoing' }), false);
+// The condition is now about the title alone. The three ongoing cases below are
+// the whole point of the change: the two that are NOT 'done' used to be false,
+// which hid the flag on exactly the titles you might be waiting on an episode of.
+test('isStillAiring is true for any ongoing title, whatever the watch status', () => {
+  assert.equal(isStillAiring({ status: 'done', airingStatus: 'ongoing' }), true);
+  assert.equal(isStillAiring({ status: 'queue', airingStatus: 'ongoing' }), true);
+  assert.equal(isStillAiring({ status: 'in_progress', airingStatus: 'ongoing' }), true);
+});
+
+test('isStillAiring is false for anything not ongoing, whatever the watch status', () => {
+  assert.equal(isStillAiring({ status: 'done', airingStatus: 'completed' }), false);
+  assert.equal(isStillAiring({ status: 'queue', airingStatus: 'completed' }), false);
+  assert.equal(isStillAiring({ status: 'in_progress', airingStatus: 'completed' }), false);
+});
+
+// Films and games carry no airingStatus at all, so the absent cases must be
+// false rather than throwing or coming back undefined-ish.
+test('isStillAiring is false when airingStatus is absent or null', () => {
+  assert.equal(isStillAiring({ status: 'queue', airingStatus: null }), false);
+  assert.equal(isStillAiring({ status: 'done' }), false);
 });
 
 test('matchesFilters filters by category', () => {
@@ -67,11 +83,26 @@ test('matchesFilters genre selection combines with the other filters', () => {
   assert.equal(matchesFilters(title, { status: 'done', genre: ['комедия'] }), false);
 });
 
-test('matchesFilters filters by returning flag', () => {
-  var returning = { category: 'anime', status: 'done', airingStatus: 'ongoing', genres: [] };
-  var notReturning = { category: 'anime', status: 'done', airingStatus: 'completed', genres: [] };
-  assert.equal(matchesFilters(returning, { returning: true }), true);
-  assert.equal(matchesFilters(notReturning, { returning: true }), false);
+// The toolbar checkbox keeps its `returning` state key; what it selects for is
+// now "still airing", so an ongoing title still in the backlog has to pass it.
+test('matchesFilters returning flag selects every ongoing title, not just finished ones', () => {
+  var doneOngoing = { category: 'anime', status: 'done', airingStatus: 'ongoing', genres: [] };
+  var queueOngoing = { category: 'anime', status: 'queue', airingStatus: 'ongoing', genres: [] };
+  var watchingOngoing = { category: 'anime', status: 'in_progress', airingStatus: 'ongoing', genres: [] };
+  var finished = { category: 'anime', status: 'done', airingStatus: 'completed', genres: [] };
+  assert.equal(matchesFilters(doneOngoing, { returning: true }), true);
+  assert.equal(matchesFilters(queueOngoing, { returning: true }), true);
+  assert.equal(matchesFilters(watchingOngoing, { returning: true }), true);
+  assert.equal(matchesFilters(finished, { returning: true }), false);
+});
+
+// The renamed labels are cosmetic, but the filter combination behind them is not:
+// an ongoing title in the backlog must survive status + genre + airing together.
+test('matchesFilters combines the returning flag with status and genre', () => {
+  var title = { category: 'anime', status: 'queue', airingStatus: 'ongoing', genres: ['драма'] };
+  assert.equal(matchesFilters(title, { returning: true, status: 'queue', genre: ['драма'] }), true);
+  assert.equal(matchesFilters(title, { returning: true, status: 'done', genre: ['драма'] }), false);
+  assert.equal(matchesFilters(title, { returning: true, status: 'queue', genre: ['комедия'] }), false);
 });
 
 test('matchesSearch is a case-insensitive substring match', () => {
