@@ -1,6 +1,6 @@
 // app.js
 (function () {
-  var state = { category: 'all', status: 'all', genre: 'all', returning: false, hideDone: false, search: '', sort: 'status' };
+  var state = { category: 'all', status: 'all', genre: [], returning: false, hideDone: false, search: '', sort: 'status' };
   var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Готово' };
 
   // Three silhouettes that stay legible at 15px and never need a label to be
@@ -54,6 +54,13 @@
       .replace(/'/g, '&#39;');
   }
 
+  // Genre names and ids both go into attribute selectors; neither is anything
+  // but letters today, but the escape costs nothing and the fallback keeps the
+  // lookup working on browsers without CSS.escape.
+  function cssEscape(value) {
+    return window.CSS && CSS.escape ? CSS.escape(value) : value;
+  }
+
   function cardStatusHtml(title) {
     var buttons = STATUS_ACTIONS.map(function (action) {
       var isActive = title.status === action.key;
@@ -105,19 +112,6 @@
     });
   }
 
-  function populateGenreFilter() {
-    var select = document.getElementById('genre-filter');
-    select.innerHTML = '<option value="all">Любой жанр</option>';
-    var genres = {};
-    titlesForCategory(state.category).forEach(function (t) { t.genres.forEach(function (g) { genres[g] = true; }); });
-    Object.keys(genres).sort().forEach(function (g) {
-      var option = document.createElement('option');
-      option.value = g;
-      option.textContent = g;
-      select.appendChild(option);
-    });
-  }
-
   function getVisibleTitles() {
     var titles = titlesForCategory(state.category).filter(function (t) {
       if (state.hideDone && t.status === 'done') return false;
@@ -160,7 +154,10 @@
     var button = event.target.closest('.tabs__item');
     if (!button) return;
     state.category = button.getAttribute('data-category');
-    state.genre = 'all';
+    // Task 23: the genre list is scoped to the active category, so a genre
+    // picked on one tab may not even exist on the next — the selection is
+    // dropped and the list rebuilt rather than carried across.
+    state.genre = [];
     populateGenreFilter();
     document.querySelectorAll('.tabs__item').forEach(function (b) { b.classList.remove('is-active'); });
     button.classList.add('is-active');
@@ -172,10 +169,6 @@
 
   document.getElementById('status-filter').addEventListener('change', function (e) {
     state.status = e.target.value;
-    refresh();
-  });
-  document.getElementById('genre-filter').addEventListener('change', function (e) {
-    state.genre = e.target.value;
     refresh();
   });
   document.getElementById('returning-filter').addEventListener('change', function (e) {
@@ -194,6 +187,180 @@
     state.search = e.target.value;
     refresh();
   });
+
+  // ── Genre filter: a multi-select popover ─────────────────────────────
+  //
+  // Thirty-one genres on «Всё» will not sit open in a toolbar whose whole job
+  // is to recede behind the poster wall, so they fold behind one trigger cut
+  // to the same 36px silhouette as the selects beside it.
+  //
+  // Every row carries the number of titles that genre holds on the active tab,
+  // and the list is ordered by that number. The distribution is nowhere near
+  // flat — боевик 77 against военный 1 — so weight-first ordering puts the
+  // genres that actually cut the wall at the top and sinks the one-title tail,
+  // and the count beside each name is what makes that order self-evident
+  // instead of arbitrary. Equal counts fall back to alphabetical so the order
+  // is stable between renders.
+  //
+  // Ticking a genre never re-sorts the list: it has to hold still while it is
+  // being worked, the same rule the grid follows for its quick-actions.
+  var genreWrap = document.getElementById('genre-filter');
+  var genreTrigger = document.getElementById('genre-trigger');
+  var genrePanel = document.getElementById('genre-panel');
+  var genreOptions = document.getElementById('genre-options');
+  var genreFooter = document.getElementById('genre-footer');
+  var genreCount = document.getElementById('genre-count');
+  var genreChips = document.getElementById('genre-chips');
+  var genreReset = document.getElementById('genre-reset');
+
+  function openGenrePanel() {
+    if (!genrePanel.hidden) return;
+    genrePanel.hidden = false;
+    genreTrigger.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeGenrePanel(returnFocus) {
+    if (genrePanel.hidden) return;
+    genrePanel.hidden = true;
+    genreTrigger.setAttribute('aria-expanded', 'false');
+    if (returnFocus) genreTrigger.focus();
+  }
+
+  // Everything that shows the current selection, redrawn from state.genre:
+  // the trigger's count, the reset action, and the chip row under the toolbar.
+  function renderGenreSummary() {
+    var n = state.genre.length;
+    genreCount.textContent = n ? String(n) : '';
+    genreCount.hidden = !n;
+    genreWrap.classList.toggle('is-filtering', n > 0);
+    // On screen the trigger reads "Жанры" next to a bare number, which spoken
+    // aloud would be "Жанры 3" — say what the number counts.
+    genreTrigger.setAttribute('aria-label', n ? 'Жанры, выбрано: ' + n : 'Жанры');
+    genreFooter.hidden = !n;
+
+    genreChips.innerHTML = state.genre.map(function (genre) {
+      var safe = escapeHtml(genre);
+      return '<span class="genre-chip">' + safe +
+        '<button type="button" class="genre-chip__remove" data-genre="' + safe +
+        '" aria-label="Убрать жанр «' + safe + '»">' +
+        '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3.4 3.4 8.6 8.6M8.6 3.4 3.4 8.6"/></svg>' +
+        '</button></span>';
+    }).join('');
+    genreChips.hidden = !n;
+  }
+
+  function populateGenreFilter() {
+    // A rebuild means the available genres just changed under the panel — it
+    // must never stay open over a list that is no longer the one being read.
+    closeGenrePanel(false);
+
+    var counts = {};
+    titlesForCategory(state.category).forEach(function (t) {
+      t.genres.forEach(function (genre) { counts[genre] = (counts[genre] || 0) + 1; });
+    });
+    var names = Object.keys(counts).sort(function (a, b) {
+      return counts[b] - counts[a] || a.localeCompare(b);
+    });
+
+    if (!names.length) {
+      // Reachable on a tab holding nothing but drafts, which carry no genres.
+      genreOptions.innerHTML = '<p class="genre-filter__empty">Здесь пока нет жанров</p>';
+    } else {
+      genreOptions.innerHTML = names.map(function (genre) {
+        var safe = escapeHtml(genre);
+        var checked = state.genre.indexOf(genre) !== -1 ? ' checked' : '';
+        return '<label class="genre-option">' +
+          '<input type="checkbox" value="' + safe + '"' + checked + '>' +
+          '<span class="genre-option__name">' + safe + '</span>' +
+          '<span class="genre-option__count">' + counts[genre] + '</span>' +
+          '</label>';
+      }).join('');
+    }
+    renderGenreSummary();
+  }
+
+  function clearGenres() {
+    state.genre = [];
+    genreOptions.querySelectorAll('input:checked').forEach(function (input) { input.checked = false; });
+    renderGenreSummary();
+    refresh();
+  }
+
+  genreTrigger.addEventListener('click', function () {
+    if (genrePanel.hidden) openGenrePanel(); else closeGenrePanel(false);
+  });
+
+  // Down from the trigger steps into the list, the way a menu behaves. The
+  // options are real checkboxes, so Tab walks them and Space toggles them for
+  // free — no roving tabindex here, unlike the card grid and the star strip,
+  // because a popover is entered on purpose and left with Escape rather than
+  // being tabbed through on the way to something else.
+  genreTrigger.addEventListener('keydown', function (event) {
+    if (event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    openGenrePanel();
+    var first = genreOptions.querySelector('input');
+    if (first) first.focus();
+  });
+
+  genreOptions.addEventListener('change', function (event) {
+    var input = event.target;
+    if (!input.matches || !input.matches('input[type="checkbox"]')) return;
+    var at = state.genre.indexOf(input.value);
+    if (input.checked && at === -1) state.genre.push(input.value);
+    else if (!input.checked && at !== -1) state.genre.splice(at, 1);
+    renderGenreSummary();
+    refresh();
+  });
+
+  genreReset.addEventListener('click', function () {
+    // The reset lives in a footer that is about to be hidden, so focus has to
+    // be handed back before it goes — otherwise it drops to the body and the
+    // still-open panel becomes unreachable from the keyboard.
+    genreTrigger.focus();
+    clearGenres();
+  });
+
+  genreChips.addEventListener('click', function (event) {
+    var btn = event.target.closest('.genre-chip__remove');
+    if (!btn) return;
+    var at = state.genre.indexOf(btn.dataset.genre);
+    if (at === -1) return;
+    var hadFocus = btn === document.activeElement;
+    state.genre.splice(at, 1);
+    var input = genreOptions.querySelector('input[value="' + cssEscape(btn.dataset.genre) + '"]');
+    if (input) input.checked = false;
+    renderGenreSummary();
+    refresh();
+    // The chip holding focus was just replaced along with the rest of the row;
+    // send focus to the next chip, or back to the trigger if that was the last.
+    if (hadFocus) (genreChips.querySelector('.genre-chip__remove') || genreTrigger).focus();
+  });
+
+  genreWrap.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape' && event.key !== 'Esc') return;
+    if (genrePanel.hidden) return;
+    // Keep the page-level Escape handler from reading this as "close the modal".
+    event.stopPropagation();
+    event.preventDefault();
+    closeGenrePanel(true);
+  });
+
+  // Tabbing out of the panel closes it; so does a pointer landing anywhere
+  // else on the page. Capture phase so it still fires when the press is
+  // swallowed by another handler.
+  genreWrap.addEventListener('focusout', function (event) {
+    // A null relatedTarget means focus left the document altogether — the
+    // window was blurred, not the panel abandoned. Alt-tabbing away and back
+    // must not throw away a half-made selection, so only a move to a real
+    // element somewhere else on the page counts as leaving.
+    if (!event.relatedTarget) return;
+    if (!genreWrap.contains(event.relatedTarget)) closeGenrePanel(false);
+  });
+
+  document.addEventListener('pointerdown', function (event) {
+    if (!genreWrap.contains(event.target)) closeGenrePanel(false);
+  }, true);
 
   // ── Random pick ──────────────────────────────────────────────────────
   //
@@ -452,7 +619,7 @@
   var grid = document.getElementById('grid');
 
   function cardById(id) {
-    return grid.querySelector('.card[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+    return grid.querySelector('.card[data-id="' + cssEscape(id) + '"]');
   }
 
   // Rewrite one card to match a new status without touching a single other

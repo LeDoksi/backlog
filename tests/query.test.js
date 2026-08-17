@@ -20,10 +20,51 @@ test('matchesFilters "all" category matches everything', () => {
   assert.equal(matchesFilters(title, { category: 'all' }), true);
 });
 
-test('matchesFilters filters by genre', () => {
+test('matchesFilters filters by a single selected genre', () => {
   var title = { category: 'movie', status: 'queue', genres: ['драма', 'триллер'] };
-  assert.equal(matchesFilters(title, { genre: 'триллер' }), true);
-  assert.equal(matchesFilters(title, { genre: 'комедия' }), false);
+  assert.equal(matchesFilters(title, { genre: ['триллер'] }), true);
+  assert.equal(matchesFilters(title, { genre: ['комедия'] }), false);
+});
+
+test('matchesFilters matches a title carrying ANY one of the selected genres', () => {
+  var drama = { category: 'movie', status: 'queue', genres: ['драма'] };
+  var comedy = { category: 'movie', status: 'queue', genres: ['комедия'] };
+  assert.equal(matchesFilters(drama, { genre: ['комедия', 'драма'] }), true);
+  assert.equal(matchesFilters(comedy, { genre: ['комедия', 'драма'] }), true);
+});
+
+// The whole point of OR semantics: two genres must widen the result set, never
+// narrow it to titles tagged with both.
+test('matchesFilters does not require a title to carry ALL selected genres', () => {
+  var title = { category: 'movie', status: 'queue', genres: ['драма'] };
+  assert.equal(matchesFilters(title, { genre: ['драма', 'комедия', 'ужасы'] }), true);
+});
+
+test('matchesFilters rejects a title carrying none of the selected genres', () => {
+  var title = { category: 'movie', status: 'queue', genres: ['драма', 'триллер'] };
+  assert.equal(matchesFilters(title, { genre: ['комедия', 'ужасы'] }), false);
+});
+
+// An empty selection is "no genre filter", not "match nothing" — the state the
+// app sits in on first load and after every category switch.
+test('matchesFilters with an empty genre array matches everything', () => {
+  var title = { category: 'movie', status: 'queue', genres: ['драма'] };
+  var untagged = { category: 'movie', status: 'queue', genres: [] };
+  assert.equal(matchesFilters(title, { genre: [] }), true);
+  assert.equal(matchesFilters(untagged, { genre: [] }), true);
+});
+
+test('matchesFilters with an absent genre filter matches everything', () => {
+  var title = { category: 'movie', status: 'queue', genres: ['драма'] };
+  assert.equal(matchesFilters(title, {}), true);
+  assert.equal(matchesFilters(title, { genre: undefined }), true);
+});
+
+test('matchesFilters genre selection combines with the other filters', () => {
+  var title = { category: 'movie', status: 'done', genres: ['драма'] };
+  assert.equal(matchesFilters(title, { status: 'done', genre: ['драма'] }), true);
+  assert.equal(matchesFilters(title, { status: 'queue', genre: ['драма'] }), false);
+  assert.equal(matchesFilters(title, { status: 'done', genre: ['комедия'] }), false);
 });
 
 test('matchesFilters filters by returning flag', () => {
