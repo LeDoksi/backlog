@@ -2272,6 +2272,263 @@ git commit -m "data: split Castlevania/MOTU into separate cards, add Леген�
 
 ---
 
+## Phase D — New features, cross-device sync, and going live
+
+Added at the user's request once the catalog was complete (143 titles) and the final whole-branch review passed. Four independent UI features (Tasks 27-30) can run in any order; Task 31 (Supabase sync) depends on the user having run the SQL schema in their own Supabase project; Task 32 (deploy) depends on 31.
+
+**Global addition to constraints for this phase:** Task 31 introduces the project's first external runtime dependency (the Supabase JS client, loaded via `<script>` tag) — a deliberate, user-approved exception to the "no external dependencies" rule, needed because real cross-device sync requires a backend and this project has none.
+
+### Task 27: "Что посмотреть?" random pick button
+
+**Files:**
+- Modify: `lib/query.js`
+- Modify: `tests/query.test.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+
+**Why:** the single most common backlog problem — "I don't know what to pick" — deserves a one-click answer.
+
+- [ ] **Step 1: Add `pickRandom` to `lib/query.js`**
+
+Add a small pure function and export it:
+```js
+  function pickRandom(titles) {
+    if (!titles.length) return null;
+    return titles[Math.floor(Math.random() * titles.length)];
+  }
+```
+Add to the returned object: `pickRandom: pickRandom`.
+
+- [ ] **Step 2: Tests**
+
+Append to `tests/query.test.js`:
+```js
+test('pickRandom returns null for an empty list', () => {
+  assert.equal(pickRandom([]), null);
+});
+
+test('pickRandom always returns an element from the list', () => {
+  var titles = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+  for (var i = 0; i < 20; i++) {
+    var picked = pickRandom(titles);
+    assert.ok(titles.indexOf(picked) !== -1);
+  }
+});
+```
+Update the `require` line to include `pickRandom`.
+
+- [ ] **Step 3: Add the button**
+
+Add a button to `index.html`'s toolbar area (placement/label your call — something like `<button id="random-pick" class="toolbar__random" type="button">Что посмотреть?</button>`).
+
+- [ ] **Step 4: Wire it up in `app.js`**
+
+On click: pick randomly from titles in the currently active category tab (`titlesForCategory(state.category)`) whose `status !== 'done'` (candidates worth watching — include both `queue` and `in_progress`, since "what should I watch" also covers "which of these half-finished things should I get back to"). If there are no candidates, do something sensible (e.g. a brief inline message — your call, don't just silently no-op). Otherwise call `openTitleModal(picked.id)` — reuses the existing modal, so the payoff is immediate. Ignore the currently active filters (search/genre/status/returning) so the pool is never accidentally empty because of an unrelated filter the user forgot was on — category tab is the only scope that applies.
+
+- [ ] **Step 5: Design pass + verify**
+
+Style the button to fit the established system (reuse tokens, don't clash — a `frontend-design`-guided pass is worth it since this is a headline feature, but keep it proportionate: a button, not a new visual subsystem). Verify: click on "Всё" picks from the whole non-done catalog; click on "Игры" only picks games; repeated clicks vary the result; a category with zero non-done titles is handled gracefully.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add lib/query.js tests/query.test.js index.html styles.css app.js
+git commit -m "feat: add random-pick 'what to watch' button"
+```
+
+---
+
+### Task 28: Multi-select genre filter
+
+**Files:**
+- Modify: `lib/query.js`
+- Modify: `tests/query.test.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+
+**Why:** the genre filter currently only allows picking one genre at a time; the user wants to filter by several at once (e.g. "комедия" OR "драма").
+
+- [ ] **Step 1: Change `matchesFilters`'s genre handling in `lib/query.js`**
+
+`filters.genre` becomes an array of selected genres (empty array or `undefined`/`'all'` means no filter). A title matches if it has AT LEAST ONE of the selected genres (OR semantics — the standard, expected behavior for a multi-select genre filter). Update the function body's genre branch accordingly, keeping backward compatibility unnecessary (this app has one caller — `app.js` — update it too in Step 4, don't maintain two code paths).
+
+- [ ] **Step 2: Tests**
+
+Update/add tests in `tests/query.test.js` for the new array-based genre filter: matches when the title has any one of several selected genres; does not match when it has none of them; empty/absent genre filter matches everything (unchanged behavior). Keep the existing single-genre test passing by adapting it to pass a one-element array, or add new tests alongside — your call, just make sure the suite reflects the real new contract.
+
+- [ ] **Step 3: Replace the genre `<select>` with a multi-select control in `index.html`**
+
+Replace `<select id="genre-filter">` with something that supports picking multiple genres — a checkbox dropdown/popover, a multi-select `<select multiple>`, or pill-style toggle buttons are all reasonable; this is a design call (see Step 5). Whatever markup you choose, `populateGenreFilter()` in `app.js` needs updating to match (it currently builds `<option>` elements for a single-select).
+
+- [ ] **Step 4: Update `app.js`**
+
+`state.genre` becomes an array (default `[]`). `getVisibleTitles()` passes it straight through to `matchesFilters`. The genre-filter change handler collects the current set of selected genres (however your Step 3 markup exposes that) instead of reading one `.value`. `onTabClick`'s reset-on-category-change logic (currently `state.genre = 'all'`) becomes `state.genre = []`.
+
+- [ ] **Step 5: Design pass + verify**
+
+Style to fit the system. Verify: selecting two genres shows titles matching either; deselecting all shows everything again; switching category tabs still resets the selection and repopulates available genres (Task 23's scoping behavior must keep working); the control is keyboard-operable.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add lib/query.js tests/query.test.js index.html styles.css app.js
+git commit -m "feat: multi-select genre filter"
+```
+
+---
+
+### Task 29: Stats dashboard
+
+**Files:**
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+
+**Why:** a personal-trophy-case view — how much you've actually gotten through, broken down by category and genre — is a satisfying, low-effort payoff for a backlog tracker.
+
+- [ ] **Step 1: Add an entry point**
+
+Add a button/nav item to open a stats view — a new modal (reuse the existing `.modal`/`.modal__backdrop` pattern from the title-detail modal, or a dedicated one, your call) or a dedicated section. Placement: somewhere in the header/toolbar area, clearly separate from the category tabs so it doesn't read as a 5th category.
+
+- [ ] **Step 2: Compute the stats**
+
+In `app.js`, compute from `baseTitles()`: per-category counts (done/in_progress/queue/total per game/series/movie/anime), a genre breakdown (count of `done` titles per genre, across the whole catalog or per-category — your call, whichever reads more useful), and an overall total-done count. No new `lib/` module is required for this — it's presentation logic, not reusable pure logic with edge cases worth unit-testing in isolation, so implement it directly in `app.js`.
+
+- [ ] **Step 3: Render it**
+
+No charting library (this project has zero external dependencies apart from Task 31's Supabase client — don't add one here). Simple CSS bar-lists (a labeled row with a proportionally-widthed `<div>` bar) or inline SVG are both fine and match the existing design system. Design freedom here — invoke `frontend-design` if useful, keep it consistent with the dark cinematic system (reuse tokens).
+
+- [ ] **Step 4: Verify**
+
+Confirm the numbers are actually correct against the real catalog (spot-check: does "Готово" count per category match what the tab counters already show?). Confirm it opens/closes cleanly and doesn't conflict with the title-detail modal if you reused that pattern. Mobile layout check.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html styles.css app.js
+git commit -m "feat: add stats dashboard"
+```
+
+---
+
+### Task 30: PWA (installable, offline-capable)
+
+**Files:**
+- Create: `manifest.webmanifest`
+- Create: `sw.js`
+- Create: `images/icon-192.png`, `images/icon-512.png` (or similar — app icons)
+- Modify: `index.html`
+
+**Why:** the app is already fully static — making it installable and offline-capable is nearly free and turns it into something that behaves like a native app on a phone.
+
+- [ ] **Step 1: Create app icons**
+
+Generate two simple square PNG icons (192×192 and 512×512) in the dark cinematic style established by the app (reuse the `--bg`/`--accent` palette — e.g. a simple monogram or abstract mark on the dark background; doesn't need to be elaborate, just on-brand and recognizable at small sizes). Save to `images/icon-192.png` and `images/icon-512.png`.
+
+- [ ] **Step 2: Write `manifest.webmanifest`**
+
+Standard web app manifest: `name`, `short_name`, `start_url: "."`, `display: "standalone"`, `background_color`/`theme_color` matching `--bg`, and the two icons with their sizes/types.
+
+- [ ] **Step 3: Write `sw.js`**
+
+A service worker that precaches the app shell (`index.html`, `styles.css`, `app.js`, `data.js`, `lib/*.js`, `manifest.webmanifest`) on install, and caches poster images (`images/covers/*`) opportunistically as they're fetched (cache-first for images — they don't change once added; a simple stale-while-revalidate or network-first strategy for the app shell files is more appropriate, since those DO change as the catalog is updated — your call on exact strategy, but don't cache-first the app shell so aggressively that the user never sees updates after a new deploy).
+
+- [ ] **Step 4: Wire it up in `index.html`**
+
+Add `<link rel="manifest" href="manifest.webmanifest">` and register the service worker (a small inline script or in `app.js`: `if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');`).
+
+- [ ] **Step 5: Verify**
+
+Use the browser's install prompt (or DevTools' Application panel) to confirm the manifest is valid and the app is installable. Test offline: load the app once online, then simulate offline mode and reload — confirm it still works (grid renders, images load from cache). Confirm a normal online reload still picks up changes (the caching strategy isn't accidentally permanent).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add manifest.webmanifest sw.js images/icon-192.png images/icon-512.png index.html
+git commit -m "feat: add PWA manifest and service worker"
+```
+
+---
+
+### Task 31: Supabase-backed cross-device sync
+
+**Files:**
+- Modify: `index.html`
+- Create: `lib/sync.js`
+- Modify: `app.js`
+- Modify: `README.md`
+
+**Prerequisite:** the user has already created a Supabase project and run the schema SQL (three tables: `overrides`, `deleted_titles`, `drafts`, with RLS policies allowing open read/write via the anon key, and realtime enabled on all three). The user will supply the Project URL and publishable/anon key — use exactly what they provide, don't fabricate placeholder credentials.
+
+**Why:** the user and their partner both use this app from separate devices; `localStorage` is per-browser, so today their status/rating/deletions/quick-adds never see each other. This task makes the "overrides/deleted/drafts" layer (everything Tasks 2/10/20 built on top of `localStorage`) shared, while `data.js` stays exactly as-is (still a static file, still only edited by Claude) — the base catalog was never the problem.
+
+**Design — keep `lib/storage.js` untouched.** Its pure `applyOverlay`/`combineWithAdded`/`isSupersededBy`/`pruneAdded`/`getOverrides`/`getDeleted`/`getAdded`/`setOverride`/`deleteTitle`/`addTitle` functions all operate against anything shaped like `localStorage` (`getItem`/`setItem`) — they don't need to know where the data ultimately comes from. So: keep `window.localStorage` as the thing `lib/storage.js` reads/writes (zero changes to that already-well-tested module), and add a new thin `lib/sync.js` layer that (a) on page load, fetches the current state from Supabase and writes it into `localStorage` as a local mirror before the first `refresh()`, (b) after every local write (status/rating/delete/quick-add), also pushes that change to Supabase, and (c) subscribes to Supabase realtime changes and, when a change arrives that didn't originate from this tab, updates `localStorage` and calls `refresh()`.
+
+- [ ] **Step 1: Add the Supabase client to `index.html`**
+
+Add a CDN script tag for the Supabase JS client (check the current stable version — e.g. `https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js` or similar, verify the exact URL works) before `app.js`'s script tag. This is the project's first and only external dependency — note it in `README.md`.
+
+- [ ] **Step 2: Write `lib/sync.js`**
+
+A UMD-style module (matching the pattern of `lib/slug.js`/`lib/storage.js`) exposing functions along these lines (exact names/shapes are your call, but the responsibilities are fixed):
+- `createClient(url, key)` — thin wrapper around `window.supabase.createClient(url, key)`, so this can be mocked in tests without a real network call.
+- `pullState(client)` — fetches all rows from `overrides`, `deleted_titles`, `drafts` and returns them shaped exactly like what `lib/storage.js` expects to read from `localStorage` (i.e. build the `backlog-overrides` object, `backlog-deleted` array, `backlog-added` array) — this is the piece that lets you just `localStorage.setItem` the results and let `lib/storage.js` do the rest unmodified.
+- `pushOverride(client, id, patch)`, `pushDelete(client, id, wasInDrafts)`, `pushDraft(client, title)`, `pushRemoveDraft(client, id)` — write-through functions mirroring `lib/storage.js`'s own function names/semantics, called right after (or instead of directly calling) the corresponding `lib/storage.js` write, so both the local mirror and the remote table stay in sync.
+- `subscribe(client, onChange)` — sets up realtime subscriptions on the three tables and calls `onChange()` whenever a remote change lands (debounce if the underlying library fires multiple events per write — you decide).
+
+Write unit tests for the parts of this that don't require a real network call (e.g. `pullState`'s reshaping logic, given a fake Supabase client object whose query methods return canned data) in a new `tests/sync.test.js`, following this project's existing pattern of testing against fakes rather than mocking a whole SDK.
+
+- [ ] **Step 3: Wire it into `app.js`**
+
+On load, before the first `refresh()`: create the Supabase client (embed the URL/anon key the user supplied — these are meant to be public, safe to commit), call `pullState`, write the result into `localStorage` via the same keys `lib/storage.js` already uses, then proceed with the existing `populateGenreFilter()`/`refresh()` startup sequence. After every existing `BacklogStorage.setOverride`/`deleteTitle`/`addTitle` call site in `app.js` (status change, rating change, delete, quick-add), also call the matching `lib/sync.js` push function so the change reaches Supabase. Subscribe to remote changes and re-pull + re-render on them (guard against reacting to your own just-made writes causing a redundant flicker — a simple approach is fine, this doesn't need to be perfect).
+
+- [ ] **Step 4: Handle the offline/no-network case gracefully**
+
+If Supabase is unreachable (network down, bad credentials, etc.), the app should still work locally against `localStorage` (don't let a failed fetch/push throw an uncaught error that breaks the page) — this also keeps Task 30's PWA offline mode meaningful. A console warning on failure is fine; no user-facing error UI is required unless you think it's warranted.
+
+- [ ] **Step 5: Verify**
+
+Test with two separate browser contexts (two tabs in a private/incognito pair, or two different browsers) pointed at the same served instance: change a status in one, confirm it appears in the other within a few seconds without a manual reload. Test the offline fallback (block the Supabase domain or use devtools network throttling → offline) still lets local status changes work. Run `node --test tests/*.test.js` and `node tools/validate-data.js` to confirm nothing in the existing suite broke.
+
+- [ ] **Step 6: Update `README.md`**
+
+Document that the app now syncs via Supabase, briefly explain the architecture (data.js is static/Claude-edited, the overrides/deleted/drafts layer is shared via Supabase), and note the credentials are intentionally public (protected by RLS + a private URL, not secrecy of the key).
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add index.html lib/sync.js tests/sync.test.js app.js README.md
+git commit -m "feat: sync status/rating/deletions/drafts via Supabase"
+```
+
+---
+
+### Task 32: Deploy to GitHub Pages
+
+**Files:** none pre-specified — this is a deployment/ops task, not a code task.
+
+**Prerequisite:** Tasks 27-31 complete and verified. A GitHub repository for this project (the user may need to create one, or already has one — ask if unclear rather than assuming).
+
+- [ ] **Step 1: Confirm/create the GitHub repository**
+
+If the local repo has no `origin` remote yet, this needs the user's input (they either already have a repo in mind, or need to create one on GitHub — this is not something Claude can do without the user's account access). Get the repo URL, add it as `origin`, push `master`/`main`.
+
+- [ ] **Step 2: Enable GitHub Pages**
+
+Via the repo's Settings → Pages, set the source to deploy from the branch (`master`/`main`), root directory (this is a static site with no build step, so "deploy from branch" is the simplest zero-config option — no GitHub Actions workflow needed unless a build step gets introduced later, which it hasn't).
+
+- [ ] **Step 3: Verify the live site**
+
+Once Pages finishes its first deploy (usually under a minute), open the published URL and run through the golden path: grid loads with all 143+ titles and real posters, filters/sort/search work, the modal opens, a status/rating change persists and (if two devices are tested) syncs via Supabase, the PWA install prompt appears, offline mode works after a first visit.
+
+- [ ] **Step 4: Report the live URL back to the user**
+
+No further action needed from Claude after this — future title additions go through the existing workflow (edit `data.js` locally, commit, push; GitHub Pages redeploys automatically on every push to the branch it's configured to serve from).
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
