@@ -338,7 +338,7 @@
     if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'выходит' : 'завершено');
     document.getElementById('modal-meta').textContent = meta;
     var seasonsEl = document.getElementById('modal-seasons');
-    seasonsEl.textContent = title.seasonInfo ? 'Сезоны: ' + title.seasonInfo : '';
+    seasonsEl.textContent = title.seasonInfo || '';
     seasonsEl.hidden = !title.seasonInfo;
     document.getElementById('modal-synopsis').textContent = title.draft
       ? 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».'
