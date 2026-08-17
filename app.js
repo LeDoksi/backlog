@@ -222,13 +222,19 @@
   // used for "everything here is done", would read as a bug rather than a
   // deliberate rule.
   function updateRandomAvailability() {
+    // Any tab switch — not just entering "Игры" — must fully reconcile the
+    // button's transient state before deciding what the new tab shows.
+    // Without this, a leftover "nothing left to pick" cooldown from the
+    // previously active tab survives the switch: the label/aria-disabled
+    // reset below make the button *look* live again, but the click handler
+    // still bails out on `toolbar__random--empty`, silently swallowing a
+    // valid click on a tab that has plenty of candidates.
+    if (randomEmptyTimer) { clearTimeout(randomEmptyTimer); randomEmptyTimer = null; }
+    randomBtn.classList.remove('toolbar__random--empty');
+
     var unavailable = state.category === 'game';
     randomBtn.classList.toggle('toolbar__random--unavailable', unavailable);
     if (unavailable) {
-      // The per-tab "unavailable" state pre-empts any lingering "nothing left
-      // to pick" cooldown from a previous click on a different tab.
-      if (randomEmptyTimer) { clearTimeout(randomEmptyTimer); randomEmptyTimer = null; }
-      randomBtn.classList.remove('toolbar__random--empty');
       randomBtn.setAttribute('aria-disabled', 'true');
       randomBtn.title = RANDOM_UNAVAILABLE_TITLE;
       randomLabel.textContent = RANDOM_UNAVAILABLE_LABEL;
