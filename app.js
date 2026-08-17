@@ -591,6 +591,10 @@
     var seasonsEl = document.getElementById('modal-seasons');
     seasonsEl.textContent = title.seasonInfo || '';
     seasonsEl.hidden = !title.seasonInfo;
+    var platformsEl = document.getElementById('modal-platforms');
+    var hasPlatforms = title.category === 'game' && Array.isArray(title.platforms) && title.platforms.length > 0;
+    platformsEl.textContent = hasPlatforms ? 'Платформы: ' + title.platforms.join(', ') : '';
+    platformsEl.hidden = !hasPlatforms;
     document.getElementById('modal-synopsis').textContent = title.draft
       ? 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».'
       : title.synopsis;

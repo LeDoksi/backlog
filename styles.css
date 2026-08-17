@@ -1239,6 +1239,16 @@ body {
   white-space: pre-line;
 }
 
+/* Same treatment as .modal__seasons — a free-form info line that only shows
+   up for the category it applies to (games, here) and is absent otherwise. */
+.modal__platforms {
+  margin: 0 0 var(--sp-4);
+  padding-top: var(--sp-1);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
 .modal__synopsis {
   margin: 0 0 var(--sp-5);
   padding-bottom: var(--sp-5);
