@@ -482,10 +482,10 @@
   var partsBadge = document.getElementById('modal-parts-status');
   var partsProgress = document.getElementById('modal-parts-progress');
 
-  function hasPartsChecklist(title) {
-    return (title.category === 'series' || title.category === 'anime')
-      && Array.isArray(title.parts) && title.parts.length > 0;
-  }
+  // One rule, defined next to the derivation that depends on it. `baseTitles`
+  // already hands back the derived status for exactly these titles, so the
+  // checklist branch below and the card behind it cannot disagree.
+  var hasPartsChecklist = BacklogStorage.hasPartsChecklist;
 
   function isReleased(part) {
     return !part || part.released !== false;
@@ -516,16 +516,17 @@
   // from a checkbox that currently holds focus, and rebuilding the rows under
   // it would throw that focus to the body mid-run.
   function renderPartsSummary(title, checked) {
-    var released = title.parts.filter(isReleased).length;
-    var pending = title.parts.length - released;
-    var watched = checked.filter(function (i) { return isReleased(title.parts[i]); }).length;
+    // Counter and badge come from the same walk of `parts`, so an index that is
+    // out of range or sitting on an unreleased part can no longer inflate
+    // «Просмотрено N из M» next to a badge that has (correctly) not moved.
+    var progress = BacklogStorage.partsProgress(title.parts, checked);
     var derived = BacklogStorage.deriveStatus(title.parts, checked);
     partsBadge.dataset.status = derived || '';
     partsBadge.textContent = STATUS_LABELS[derived] || '';
-    var text = released
-      ? 'Просмотрено ' + watched + ' из ' + released
+    var text = progress.released
+      ? 'Просмотрено ' + progress.watched + ' из ' + progress.released
       : 'Пока ничего не вышло';
-    if (pending) text += ' · впереди ещё ' + pending;
+    if (progress.pending) text += ' · впереди ещё ' + progress.pending;
     partsProgress.textContent = text;
     return derived;
   }
@@ -691,12 +692,13 @@
       statusLabel.textContent = 'Сезоны и части';
       statusGroup.hidden = true;
       partsWrap.hidden = false;
-      var derived = renderPartsChecklist(title);
-      // For a title with a checklist the status is an output, so a stored one
-      // that disagrees with the list is stale, not a second opinion — reconcile
-      // it now rather than letting the card and the modal tell two stories
-      // until the next tick. The write only happens when they actually differ.
-      if (derived && derived !== title.status) applyStatusChange(id, derived);
+      // Renders the derived badge and nothing else. Opening a modal is a pure
+      // view action and must never persist anything: `title.status` is already
+      // the derived value (applyOverlay computes it on read), so the card
+      // behind the modal is showing the same thing without a write. The only
+      // thing that writes is the checkbox handler above — that is the actual
+      // user-initiated event.
+      renderPartsChecklist(title);
     } else {
       statusLabel.textContent = 'Статус';
       partsWrap.hidden = true;
