@@ -2529,6 +2529,200 @@ No further action needed from Claude after this — future title additions go th
 
 ---
 
+## Phase E — Labels, platforms, new titles, and season tracking
+
+Added at the user's request while Phase D was in progress. Order matters: 33 before 35 (labels should be settled before more data uses them), 34 before 35 (platforms field should exist before new games are added), 36 before 37 (the season-tracking feature must exist before its data gets populated). 29-32 (stats/PWA/sync/deploy) remain queued after this phase.
+
+### Task 33: Label renames, colored status indicators, "still airing" badge
+
+**Files:**
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+
+**Why:** three small UX polish requests from the owner: (1) "Пройдено"/"Готово" reads better as **"Завершено"**, and the "Скрыть пройденное" checkbox should become **"Скрыть завершённое"**; (2) "В очереди" should become **"В бэклоге"**; (3) status badges/labels are currently all the same grey except the "Ждёт продолжения" badge — add distinct colors per status so they're scannable at a glance; (4) the "Ждёт продолжения" badge currently only shows when `status === 'done' && airingStatus === 'ongoing'` (i.e. only once the user has caught up) — broaden it to show on ANY title where `airingStatus === 'ongoing'`, regardless of the user's own watch status, and rename it to something like **"Всё ещё выходит"** (the franchise isn't over, independent of where the user personally is in it).
+
+- [ ] **Step 1: Rename labels**
+
+Grep for every occurrence of "Пройдено"/"Готово"/"пройдено" and "В очереди"/"queue" label text across `app.js`, `index.html` (status filter option, status buttons/segments, card status quick-actions, `STATUS_LABELS`, any status-related `aria-label`/`title` strings) and update to **"Завершено"** and **"В бэклоге"** respectively. Also rename the `#hide-done-filter` checkbox's visible label from "Скрыть пройденное" to **"Скрыть завершённое"** (the `id`/variable names can stay as-is internally — this is a copy change, not a schema change; don't rename the `status: "done"` enum value itself, only its Russian display text).
+
+- [ ] **Step 2: Give each status its own color**
+
+Add distinct accent-adjacent colors for the three statuses (в бэклоге / в процессе / завершено) to the badge/status-indicator styling in `styles.css`, reusing the existing token system's *hue* discipline (the app already has a warm gold `--signal`/`--star` token and the accent red/pink — pick colors that read as a coherent trio without clashing with the accent's "marker, never a fill" rule established in earlier tasks; muted/desaturated versions of a small palette work better here than saturated primaries, to stay consistent with the dark cinematic system). Apply consistently everywhere a status is shown: card status badge, card quick-action buttons (active state), modal status segments.
+
+- [ ] **Step 3: Broaden and rename the "still airing" badge**
+
+In `lib/query.js`, either repurpose `isReturning` or add a new function — your call, but the semantic changes from "user is done AND it's ongoing" to just "it's ongoing" (`airingStatus === 'ongoing'`), decoupled from the user's own `status`. Update its test(s) in `tests/query.test.js` to match the new (simpler) condition. Rename the badge text from "Ждёт продолжения" to **"Всё ещё выходит"** everywhere it's used (card badge in `cardHtml`, any filter checkbox label that references it — check `#returning-filter`'s label text too, since "Ждут продолжения" as a filter label should probably also update to match, e.g. "Всё ещё выходит").
+
+- [ ] **Step 4: Verify**
+
+Confirm all label text changes render correctly across the toolbar, cards, and modal. Confirm the "Всё ещё выходит" badge now appears on ongoing titles regardless of their status (e.g. a `queue` anime with `airingStatus: "ongoing"` should show it, which it didn't before). Confirm the three status colors are visually distinct and legible against the dark background (rough contrast sanity check, doesn't need a full audit). Run `node --test tests/*.test.js` and `node tools/validate-data.js`.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add app.js index.html styles.css lib/query.js tests/query.test.js
+git commit -m "feat: rename status labels, add colored status indicators, broaden 'still airing' badge"
+```
+
+---
+
+### Task 34: Game platforms field
+
+**Files:**
+- Modify: `lib/validate.js` (optional field, not required — same pattern as `seasonInfo`)
+- Modify: `index.html`
+- Modify: `app.js`
+- Modify: `data.js`
+
+**Why:** the owner wants to see which platforms a game released/will release on.
+
+- [ ] **Step 1: Add the field**
+
+Add `platforms: string[]` as an optional field on `category: "game"` entries (not validated/required by `lib/validate.js`, same treatment as `seasonInfo` for series/anime — free-form, absent is fine). Use short, recognizable Russian or standard platform names (e.g. `["PC", "PS5", "Xbox Series X/S", "Nintendo Switch"]` — platform names are typically left untranslated/as their standard brand names, not translated to Russian).
+
+- [ ] **Step 2: Display it**
+
+Add a line to the title-detail modal (near the genres/year meta line, or its own line — your call) showing the platform list for games, hidden/absent for non-games (mirror the `seasonInfo` show/hide pattern already used).
+
+- [ ] **Step 3: Populate for existing games**
+
+The catalog currently has 10 game entries (It Takes Two, Baldur's Gate 3, Split Fiction, Unravel Two, Divinity: Original Sin, Divinity: Original Sin II — check `data.js` for the exact current list via `grep "category: 'game'"`). Web-search each one's actual release platforms and add the `platforms` field to each entry.
+
+- [ ] **Step 4: Verify and commit**
+
+Run `node tools/validate-data.js` and `node --test tests/*.test.js`. Open a few game titles' modals and confirm the platform list displays correctly.
+
+```bash
+git add lib/validate.js index.html app.js data.js
+git commit -m "feat: add platforms field for games"
+```
+
+---
+
+### Task 35: New titles — Supergirl movie + 15 games
+
+**Files:**
+- Modify: `data.js`
+- Create: new cover images in `images/covers/`
+
+**Recipe:** follow the standard batch recipe (Russian title for the movie; games keep English names per the established exception, verify each is real via search; `platforms` field per Task 34 for every game added here; real downloaded posters; `id` as `slugify(title)-year`; validate/test after).
+
+- [ ] **Step 1: Add "Супергёрл" (Supergirl)**
+
+Web-search to confirm — this is the upcoming DC Studios film (James Gunn's DCU), likely 2026. Confirm year/status (don't mark `done` if unreleased), Russian title, real poster.
+
+- [ ] **Step 2: Add the 15 games**
+
+Orbital (verify exact title — "Orbitals" may be a working/mis-remembered name, search to confirm), Haven, Stardew Valley, A Way Out, Operation: Tango, We Were Here (the owner said "несколько частей" — add each released entry in the series as a separate card: We Were Here, We Were Here Too, We Were Here Together, We Were Here Forever, and any others confirmed real via search), Portal 2, Rayman Legends (verify whether "Rayman Legends Retold" is a real distinct release or the owner meant the original Rayman Legends — search to confirm, don't fabricate a title that doesn't exist), Escape Simulator 2, The Dark Pictures Anthology (owner said "несколько игр" — add each released entry as a separate card: Man of Medan, Little Hope, House of Ashes, The Devil in Me, and any newer ones confirmed via search — this is an anthology of separate games, not seasons of one game, so no `seasonInfo`/parts tracking applies here, just ordinary separate `category: "game"` cards), Trine 4, Trine 5 (verify this exists — if not yet released or not real, don't fabricate it), Nobody Saves the World, Spiritfarer: Farewell Edition, Bokura (verify exact title/existence via search).
+
+For each: verify it's a real, correctly-titled game via search before adding — the owner's list includes some names given from memory that may need correction (e.g. "Orbitals" vs the real title, "Rayman Legends Retold" vs "Rayman Legends", "Trine 5" existence). Flag anything you can't confirm rather than guessing.
+
+- [ ] **Step 3: Validate and commit**
+
+```bash
+node tools/validate-data.js
+node --test tests/*.test.js
+git add data.js images/covers
+git commit -m "data: add Supergirl and 15 games with platforms"
+```
+
+---
+
+### Task 36: Season/part tracking — feature build
+
+**Files:**
+- Modify: `lib/validate.js`
+- Modify: `lib/storage.js`
+- Modify: `tests/storage.test.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `app.js`
+- Modify: `data.js` (a handful of titles, to prove the feature end-to-end — full population is Task 37)
+
+**Why:** the owner wants, for series/anime specifically, a checklist of individual seasons/parts/films/OVAs (in release order) instead of a single done/in-progress/queue toggle — so they never lose the signal "I'm caught up on everything released, just waiting for more" by accidentally marking a whole ongoing franchise "завершено" before it actually is.
+
+**Design (decided with the owner):**
+- The checklist lives **inside the title detail modal** (not on the grid card).
+- For `category: "series" | "anime"` titles, the checklist **replaces** the 3-button status control — status becomes a *derived* value, not something set directly, for these two categories. Movies and games keep the existing 3-button control unchanged.
+- Applies to **every** series/anime title (not just currently-airing ones) — a fully concluded show still gets a checklist of all its seasons, just with every checkbox checkable and no locked/unreleased entries.
+- Each **released** part is checkable/uncheckable freely. Each **unreleased** part is rendered but disabled/unchecked, not checkable, and does not count toward "can this go to завершено."
+- Derived status: 0 checked → `queue`. Some (but not all released parts) checked → `in_progress`. **All released parts checked AND every part in the list is released** (nothing pending) → `done`. If all currently-released parts are checked but the list still has an unreleased entry, status stays `in_progress` — this is the core requirement: you can never reach `done` while something is still pending release, so the "waiting for more" signal is never lost.
+- Parts render in release order.
+
+- [ ] **Step 1: Extend the schema**
+
+Add an optional `parts` field for series/anime titles: an array of objects, e.g.
+```js
+parts: [
+  { name: "Сезон 1", year: 2016, released: true },
+  { name: "Сезон 2", year: 2020, released: true },
+  { name: "Сезон 3", year: 2026, released: false }
+]
+```
+`name` is free text (so it can say "Сезон 1", "Фильм", "OVA", "Часть 2" etc. — whatever fits the franchise), `year` is a number or `null`, `released` is a boolean. Not required by `lib/validate.js` (same optional-field treatment as `seasonInfo`) — a title without `parts` falls back to the existing single-status behavior (this matters for Task 35's freshly-added titles and any future quick-adds, which won't have `parts` populated yet).
+
+- [ ] **Step 2: Track watched parts in storage**
+
+Add a new `localStorage` concern (or extend the existing overrides shape — your call on the cleanest fit within `lib/storage.js`'s existing patterns) to track which part *indices* (or names — indices are simpler and stable enough here since `parts` order won't change once written) are checked, per title id. Add pure helper functions to `lib/storage.js` (with tests in `tests/storage.test.js`) to: get/set the checked-parts array for a title, and compute the derived status from `(parts, checkedIndices)` per the rules above. This derived-status function is a good candidate for real unit tests since the "all released parts checked but one is still pending" edge case is exactly the bug this feature exists to prevent — test it explicitly.
+
+- [ ] **Step 3: Build the UI**
+
+In the title modal, when the open title has `category` of series/anime AND a non-empty `parts` array, render a checklist instead of the 3-button status control: one row per part, in array order, showing its name/year, a checkbox (disabled + visually muted for `released: false` entries), and derive/display the resulting status (reuse the existing status badge/label styling from Task 33). When a series/anime title has NO `parts` array, fall back to showing the existing 3-button control (don't break titles that haven't been migrated yet).
+
+- [ ] **Step 4: Wire it up**
+
+Checking/unchecking a part persists via your Step 2 storage functions, recomputes the derived status, persists that derived status through the existing `setOverride`/status-write path (so the card grid, badges, filters, and everything else built on `status` keeps working unchanged), and updates the checklist UI and the modal/card in place.
+
+- [ ] **Step 5: Populate a handful of titles to prove it end-to-end**
+
+Pick 3-4 titles already in the catalog that cover the interesting cases (a fully concluded show, a currently-airing show with a confirmed-but-unreleased next season, a show with mixed seasons+films) and add real `parts` data for them, verified via web search — Re:Zero is a good candidate here since the owner specifically flagged it as currently showing stale info (they believe it now has 4 seasons with the 4th in progress — verify this via a fresh search, don't trust prior memory, and build its `parts` array accordingly).
+
+- [ ] **Step 6: Verify**
+
+Open the modal for a populated title and confirm: parts render in order, unreleased parts are visibly disabled, checking all released parts (with nothing pending) reaches "Завершено", checking all released parts while one remains pending caps at "В процессе" and does NOT reach "Завершено", unchecking back down recomputes correctly, the change reflects in the card grid/badges immediately. Confirm an un-migrated series/anime title (no `parts`) still shows the normal 3-button control. Run `node --test tests/*.test.js` and `node tools/validate-data.js`.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/validate.js lib/storage.js tests/storage.test.js index.html styles.css app.js data.js
+git commit -m "feat: per-season/part tracking for series and anime"
+```
+
+---
+
+### Task 37: Season/part tracking — full data population + ongoing-shows audit
+
+**Files:**
+- Modify: `data.js`
+
+**Why:** Task 36 built the feature and proved it on a handful of titles; this task populates `parts` for the remaining series/anime catalog (~45-50 titles), and folds in the owner's explicit request to re-verify — via live web search, not memory — the current airing status of every not-yet-concluded multi-season show, since some existing `seasonInfo`/`airingStatus` data has gone stale (Re:Zero was specifically flagged as wrong before Task 36's Step 5 fixed it).
+
+- [ ] **Step 1: Enumerate every series/anime title without `parts`**
+
+`grep "category: 'series'\|category: 'anime'"` in `data.js`, cross-reference against which ones Task 36 already populated, and work through the rest.
+
+- [ ] **Step 2: For each title, research and build its `parts` array**
+
+Web-search current, up-to-date information for each — season/part counts, individual release years, and whether anything confirmed-but-unreleased is coming (which becomes a `released: false` entry). Update the title's `airingStatus`/`status`/`seasonInfo` fields too if the research turns up something that's changed since they were last written (this task doubles as the "audit all ongoing shows" pass the owner asked for) — don't just add `parts` on top of stale surrounding data.
+
+- [ ] **Step 3: Validate and verify incrementally**
+
+Run `node tools/validate-data.js` periodically as you go (schema doesn't enforce `parts`' shape strictly, but sanity-check it yourself: `released: true` entries should have a real year, the array should be in chronological order). Commit incrementally (e.g. every 8-10 titles) given the batch size.
+
+- [ ] **Step 4: Final verification**
+
+Run the full test suite and validator. Spot-check several titles' modals in the browser to confirm the checklist renders correctly and derives sensible statuses given each title's actual current watch status (a title the user already marked "done" before this task ran should end up with all-released-parts checked after migration, not reset to unwatched — think through how to map an existing single `status` value onto initial checked-parts state sensibly per title, since this is a one-time migration of real user-relevant data, not just filling in blanks).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add data.js
+git commit -m "data: populate season/part tracking for remaining series and anime, refresh airing-status audit"
+```
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
