@@ -586,7 +586,7 @@
     document.getElementById('modal-cover').alt = title.title;
     document.getElementById('modal-title').textContent = title.title;
     var meta = [title.year, title.genres.join(', ')].filter(Boolean).join(' · ');
-    if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'ещё выходит' : 'больше не выходит');
+    if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'ещё выходит' : 'закончен');
     document.getElementById('modal-meta').textContent = meta;
     var seasonsEl = document.getElementById('modal-seasons');
     seasonsEl.textContent = title.seasonInfo || '';
