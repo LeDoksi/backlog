@@ -60,7 +60,11 @@
       // The label doubles as the native tooltip and the accessible name, so the
       // icon never has to carry meaning on its own.
       var name = escapeHtml(action.label);
-      return '<button type="button" class="card-status__btn' + (isActive ? ' is-active' : '') +
+      // tabindex -1 on all three: the card is already a tab stop, and 129 cards
+      // × 3 buttons would add 387 more. The group is entered with Left/Right
+      // from the card and walked with Left/Right/Home/End — the same roving
+      // scheme the modal's ten stars use to cost one tab stop instead of ten.
+      return '<button type="button" tabindex="-1" class="card-status__btn' + (isActive ? ' is-active' : '') +
         '" data-status="' + action.key + '" aria-pressed="' + isActive +
         '" title="' + name + '" aria-label="' + name + '">' + action.icon + '</button>';
     }).join('');
@@ -81,7 +85,7 @@
       '</div>' +
       '<div class="card__body">' +
       '<div class="card__title">' + safeTitle + '</div>' +
-      '<span class="badge">' + (STATUS_LABELS[title.status] || title.status) + '</span>' + returningBadge + draftBadge +
+      '<span class="badge card__status-badge">' + (STATUS_LABELS[title.status] || title.status) + '</span>' + returningBadge + draftBadge +
       '</div>'
     );
   }
@@ -122,9 +126,33 @@
     return BacklogQuery.sortTitles(titles, state.sort);
   }
 
+  // ── Deferred grid reorder ─────────────────────────────────────────────
+  //
+  // The grid's default sort is status-based, so changing a card's status can
+  // move that card — and every card after it — to a different slot. Doing that
+  // under a stationary pointer is how a second click lands on a title the user
+  // never aimed at: with a mouse the reveal strip's `pointer-events` has not
+  // recomputed (no intervening mousemove) so the click falls through to the
+  // card body and opens the wrong modal; on touch the strip is always live and
+  // the second tap silently writes the wrong status. Rapid triage down a row
+  // is the whole point of these buttons, so the row must hold still while it
+  // is being triaged.
+  //
+  // So a quick-action patches only its own card, and the reorder is held until
+  // the user is demonstrably done working inside the grid: the mouse leaves it,
+  // focus leaves it, or a pointer goes down anywhere outside it.
+  var gridStale = false;
+
   function refresh() {
+    gridStale = false;
     renderGrid(getVisibleTitles());
     renderCounters();
+  }
+
+  function flushGrid() {
+    if (!gridStale) return;
+    gridStale = false;
+    renderGrid(getVisibleTitles());
   }
 
   function onTabClick(event) {
@@ -282,7 +310,9 @@
     // The pointer has not moved, so re-run the preview against the new rating —
     // otherwise the readout would still be offering to clear what just went.
     if (previewValue !== null) setPreview(value);
-    refresh();
+    // Rating only changes the grid when it is the sort key, and the grid is
+    // behind a modal right now — defer it with everything else.
+    gridStale = true;
   });
 
   statusGroup.addEventListener('click', function (event) {
@@ -290,9 +320,9 @@
     if (!btn) return;
     var id = document.getElementById('title-modal').dataset.id;
     if (!id) return;
-    BacklogStorage.setOverride(window.localStorage, id, { status: btn.dataset.status });
-    renderStatusButtons(btn.dataset.status);
-    refresh();
+    // Same in-place path as the card strip, so the grid behind the modal is
+    // never rebuilt mid-interaction either. It repaints these segments too.
+    applyStatusChange(id, btn.dataset.status);
   });
 
   function openTitleModal(id) {
@@ -320,32 +350,80 @@
 
   function closeTitleModal() {
     document.getElementById('title-modal').hidden = true;
+    // The grid is about to be looked at again — let it catch up now.
+    flushGrid();
   }
 
   var grid = document.getElementById('grid');
 
-  function applyCardStatus(btn) {
-    var card = btn.closest('.card');
-    if (!card) return;
-    var id = card.dataset.id;
-    var status = btn.dataset.status;
-    var keepFocus = document.activeElement === btn;
-    BacklogStorage.setOverride(window.localStorage, id, { status: status });
-    refresh();
-    // refresh() rebuilds the grid, so a keyboard user's focus would drop to
-    // <body>. Put it back on the same control of the same card — unless the
-    // card has just been filtered out by the change that was made.
-    if (keepFocus) {
-      var again = Array.prototype.slice.call(grid.querySelectorAll('.card'))
-        .filter(function (c) { return c.dataset.id === id; })[0];
-      var target = again && again.querySelector('.card-status__btn[data-status="' + status + '"]');
-      if (target) target.focus();
+  function cardById(id) {
+    return grid.querySelector('.card[data-id="' + (window.CSS && CSS.escape ? CSS.escape(id) : id) + '"]');
+  }
+
+  // Rewrite one card to match a new status without touching a single other
+  // node in the grid: no innerHTML on #grid, no reordering, no re-created
+  // <img>, and the focused button survives because it is never replaced.
+  function patchCardStatus(card, title) {
+    card.querySelectorAll('.card-status__btn').forEach(function (btn) {
+      var isActive = btn.dataset.status === title.status;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-pressed', String(isActive));
+    });
+    var badge = card.querySelector('.card__status-badge');
+    if (badge) badge.textContent = STATUS_LABELS[title.status] || title.status;
+    // "Ждёт продолжения" is derived from status (done + still airing), so it
+    // has to follow the change rather than wait for the next full render.
+    var returning = card.querySelector('.badge--returning');
+    if (BacklogQuery.isReturning(title)) {
+      if (!returning && badge) {
+        returning = document.createElement('span');
+        returning.className = 'badge badge--returning';
+        returning.textContent = 'Ждёт продолжения';
+        badge.insertAdjacentElement('afterend', returning);
+      }
+    } else if (returning) {
+      returning.remove();
     }
+  }
+
+  // The one path every status write goes through, from a card or from the
+  // modal: persist, repaint what is on screen in place, and note that the
+  // grid's order is now out of date.
+  function applyStatusChange(id, status) {
+    BacklogStorage.setOverride(window.localStorage, id, { status: status });
+    var title = findTitleById(id);
+    var card = cardById(id);
+    if (card && title) patchCardStatus(card, title);
+    gridStale = true;
+    renderCounters();
     // If this title's modal happens to be open behind the change, keep the two
     // views telling the same story.
     var modal = document.getElementById('title-modal');
     if (!modal.hidden && modal.dataset.id === id) renderStatusButtons(status);
   }
+
+  function applyCardStatus(btn) {
+    var card = btn.closest('.card');
+    if (!card) return;
+    applyStatusChange(card.dataset.id, btn.dataset.status);
+  }
+
+  // The grid catches up the moment the user stops working inside it.
+  grid.addEventListener('pointerleave', function (event) {
+    // Touch fires pointerleave the instant the finger lifts, which would put
+    // the reorder right back under the next tap. Only a real pointer that has
+    // travelled out of the grid proves nothing is aimed at a card any more.
+    if (event.pointerType && event.pointerType !== 'mouse') return;
+    flushGrid();
+  });
+  grid.addEventListener('focusout', function (event) {
+    if (!grid.contains(event.relatedTarget)) flushGrid();
+  });
+  // Covers touch, where there is no leave to wait for: a tap on the toolbar,
+  // the tabs or the modal means the triage run is over.
+  document.addEventListener('pointerdown', function (event) {
+    if (!grid.contains(event.target)) flushGrid();
+  }, true);
 
   grid.addEventListener('click', function (event) {
     var quick = event.target.closest('.card-status__btn');
@@ -362,14 +440,50 @@
     if (card) openTitleModal(card.dataset.id);
   });
 
+  function cardButtons(card) {
+    return Array.prototype.slice.call(card.querySelectorAll('.card-status__btn'));
+  }
+
   grid.addEventListener('keydown', function (event) {
-    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar') return;
-    // A quick-action button turns Enter/Space into its own click; without this
-    // the modal would open on top of the status change.
-    if (event.target.closest('.card-status__btn')) return;
     var card = event.target.closest('.card');
     if (!card) return;
-    if (event.key === ' ' || event.key === 'Spacebar') event.preventDefault();
+    var key = event.key;
+    var btn = event.target.closest('.card-status__btn');
+
+    if (btn) {
+      // Inside the group: walk it, or step back out. Enter/Space fall through
+      // to the button's own click, which is why they are not listed here —
+      // without that the modal would open on top of the status change.
+      var group = cardButtons(card);
+      var index = group.indexOf(btn);
+      var next;
+      if (key === 'ArrowRight') next = index + 1;
+      else if (key === 'ArrowLeft') next = index - 1;
+      else if (key === 'Home') next = 0;
+      else if (key === 'End') next = group.length - 1;
+      else if (key === 'Escape') { event.preventDefault(); card.focus(); return; }
+      else return;
+      event.preventDefault();
+      group[Math.max(0, Math.min(group.length - 1, next))].focus();
+      return;
+    }
+
+    // On the card itself: Left/Right step into the status group. Only the
+    // horizontal pair is claimed — Up/Down stay with the page, since this grid
+    // has no row-to-row keyboard model to justify taking them.
+    if (key === 'ArrowRight' || key === 'ArrowLeft') {
+      var buttons = cardButtons(card);
+      if (!buttons.length) return;
+      event.preventDefault();
+      // Enter where the answer already is: the current status.
+      var active = buttons.filter(function (b) { return b.classList.contains('is-active'); })[0];
+      var entry = active || (key === 'ArrowRight' ? buttons[0] : buttons[buttons.length - 1]);
+      entry.focus();
+      return;
+    }
+
+    if (key !== 'Enter' && key !== ' ' && key !== 'Spacebar') return;
+    if (key === ' ' || key === 'Spacebar') event.preventDefault();
     openTitleModal(card.dataset.id);
   });
   document.getElementById('modal-close').addEventListener('click', closeTitleModal);
