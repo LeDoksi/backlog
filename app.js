@@ -1,7 +1,7 @@
 // app.js
 (function () {
   var state = { category: 'all', status: 'all', genre: 'all', returning: false, hideDone: false, search: '', sort: 'status' };
-  var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Пройдено' };
+  var STATUS_LABELS = { queue: 'В очереди', in_progress: 'В процессе', done: 'Готово' };
 
   // Three silhouettes that stay legible at 15px and never need a label to be
   // told apart: ruled lines (a list of things not started), a half-turned dial
@@ -107,8 +107,9 @@
 
   function populateGenreFilter() {
     var select = document.getElementById('genre-filter');
+    select.innerHTML = '<option value="all">Любой жанр</option>';
     var genres = {};
-    baseTitles().forEach(function (t) { t.genres.forEach(function (g) { genres[g] = true; }); });
+    titlesForCategory(state.category).forEach(function (t) { t.genres.forEach(function (g) { genres[g] = true; }); });
     Object.keys(genres).sort().forEach(function (g) {
       var option = document.createElement('option');
       option.value = g;
@@ -159,6 +160,8 @@
     var button = event.target.closest('.tabs__item');
     if (!button) return;
     state.category = button.getAttribute('data-category');
+    state.genre = 'all';
+    populateGenreFilter();
     document.querySelectorAll('.tabs__item').forEach(function (b) { b.classList.remove('is-active'); });
     button.classList.add('is-active');
     refresh();
