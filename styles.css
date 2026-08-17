@@ -401,6 +401,69 @@ body {
 
 .toolbar__checkbox:has(input:checked) { color: var(--text); }
 
+/* ── Random pick ──────────────────────────────────────────────────────── */
+
+/* The one action in the toolbar, not a filter — pill-shaped like the category
+   tabs rather than the rectangular controls beside it, pushed to the far end
+   of the row so it reads as its own gesture. Unlike every other outline-accent
+   control in the app (quick-add__submit, modal__delete), which stay cool until
+   touched, this one carries its accent-soft fill at rest: it is the button
+   meant to be noticed first, an invitation rather than a confirmation. */
+.toolbar__random {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+  height: 36px;
+  margin-left: auto;
+  padding: 0 var(--sp-4) 0 var(--sp-3);
+  background: var(--accent-soft);
+  border: 1px solid rgba(233, 69, 96, 0.45);
+  border-radius: var(--radius-pill);
+  color: var(--accent-bright);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.toolbar__random-icon { width: 15px; height: 15px; flex: none; transition: transform var(--dur-base) var(--ease-out); }
+
+.toolbar__random:hover {
+  background: rgba(233, 69, 96, 0.28);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.09);
+}
+
+/* A small dice-roll wink on the icon alone — the one bit of playfulness the
+   button is allowed, and it costs nothing at rest. */
+.toolbar__random:hover .toolbar__random-icon { transform: rotate(18deg); }
+
+.toolbar__random:active { transform: translateY(1px); }
+
+/* The pool for this tab is empty — said plainly rather than swallowed. Reuses
+   the same muted, bordered language as an unavailable control elsewhere in
+   the app rather than inventing a new "error" colour. */
+.toolbar__random.toolbar__random--empty {
+  background: var(--surface-sunken);
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: default;
+  box-shadow: none;
+}
+
+.toolbar__random.toolbar__random--empty:hover .toolbar__random-icon { transform: none; }
+
 /* ── Quick add ────────────────────────────────────────────────────────── */
 
 /* A small utility row, not a second toolbar: same controls, same height,
@@ -1160,6 +1223,16 @@ body {
     min-height: 32px;
     padding: 0;
     font-size: var(--fs-base);
+  }
+
+  /* The headline action leads the toolbar on a thumb-driven screen, sized like
+     the other 40px touch targets here rather than the 36px desktop pill. */
+  .toolbar__random {
+    order: -1;
+    grid-column: 1 / -1;
+    justify-content: center;
+    height: 40px;
+    margin-left: 0;
   }
 
   .quick-add {

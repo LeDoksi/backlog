@@ -194,6 +194,40 @@
     refresh();
   });
 
+  // ── Random pick ──────────────────────────────────────────────────────
+  //
+  // "What should I watch?" ignores every filter but the category tab — a
+  // search term or a stray genre filter left on from an earlier session
+  // should never be the reason the pool comes up empty. Done titles are
+  // excluded; queue and in_progress both count as "worth watching next".
+  var randomBtn = document.getElementById('random-pick');
+  var randomLabel = randomBtn.querySelector('.toolbar__random-label');
+  var RANDOM_DEFAULT_LABEL = randomLabel.textContent;
+  var randomEmptyTimer = null;
+
+  randomBtn.addEventListener('click', function () {
+    // A click during the "nothing to pick" cooldown is a no-op rather than a
+    // second message — the button stays focusable and in the tab order the
+    // whole time (no native `disabled`), it just ignores the extra click.
+    if (randomBtn.classList.contains('toolbar__random--empty')) return;
+    var pool = titlesForCategory(state.category).filter(function (t) { return t.status !== 'done'; });
+    var picked = BacklogQuery.pickRandom(pool);
+    if (picked) {
+      openTitleModal(picked.id);
+      return;
+    }
+    if (randomEmptyTimer) clearTimeout(randomEmptyTimer);
+    randomBtn.classList.add('toolbar__random--empty');
+    randomBtn.setAttribute('aria-disabled', 'true');
+    randomLabel.textContent = 'Тут всё пройдено';
+    randomEmptyTimer = setTimeout(function () {
+      randomBtn.classList.remove('toolbar__random--empty');
+      randomBtn.removeAttribute('aria-disabled');
+      randomLabel.textContent = RANDOM_DEFAULT_LABEL;
+      randomEmptyTimer = null;
+    }, 1800);
+  });
+
   function findTitleById(id) {
     return baseTitles().filter(function (t) { return t.id === id; })[0];
   }

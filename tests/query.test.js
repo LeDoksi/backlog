@@ -1,7 +1,7 @@
 // tests/query.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isReturning, matchesFilters, matchesSearch, sortTitles, countProgress } = require('../lib/query.js');
+const { isReturning, matchesFilters, matchesSearch, sortTitles, countProgress, pickRandom } = require('../lib/query.js');
 
 test('isReturning is true only when done and airing ongoing', () => {
   assert.equal(isReturning({ status: 'done', airingStatus: 'ongoing' }), true);
@@ -79,4 +79,16 @@ test('sortTitles by status is stable for equal-priority items', () => {
   ];
   var sorted = sortTitles(titles, 'status');
   assert.deepEqual(sorted.map(function (t) { return t.title; }), ['A', 'B']);
+});
+
+test('pickRandom returns null for an empty list', () => {
+  assert.equal(pickRandom([]), null);
+});
+
+test('pickRandom always returns an element from the list', () => {
+  var titles = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+  for (var i = 0; i < 20; i++) {
+    var picked = pickRandom(titles);
+    assert.ok(titles.indexOf(picked) !== -1);
+  }
 });
