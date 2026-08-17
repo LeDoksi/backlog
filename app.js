@@ -328,6 +328,9 @@
     applyStatusChange(id, btn.dataset.status);
   });
 
+  // The element the modal was opened from, so it can be given focus back.
+  var lastFocused = null;
+
   function openTitleModal(id) {
     var title = findTitleById(id);
     if (!title) return;
@@ -348,11 +351,24 @@
     renderRating(title.rating);
     var modal = document.getElementById('title-modal');
     modal.dataset.id = id;
+    // Remember where the modal was opened from so Escape/× can hand focus back
+    // to that exact card instead of dumping the keyboard user at the top of the
+    // page. Nothing is stored if focus was already inside the modal.
+    if (!modal.contains(document.activeElement)) lastFocused = document.activeElement;
     modal.hidden = false;
+    // Focus has to cross into the dialog, otherwise a card opened with Enter
+    // keeps focus behind the overlay and the next Tab walks the hidden grid.
+    document.getElementById('modal-close').focus();
   }
 
   function closeTitleModal() {
     document.getElementById('title-modal').hidden = true;
+    var target = lastFocused;
+    lastFocused = null;
+    // The card may have been dropped by a grid refresh (delete, filter change)
+    // while the modal was open — then there is nothing to return to and focus
+    // falls back to the body on its own.
+    if (target && document.contains(target) && typeof target.focus === 'function') target.focus();
     // The grid is about to be looked at again — let it catch up now.
     flushGrid();
   }
@@ -492,6 +508,15 @@
   document.getElementById('modal-close').addEventListener('click', closeTitleModal);
   document.querySelector('.modal__backdrop').addEventListener('click', closeTitleModal);
 
+  // Escape is the only dismissal a keyboard-only user can reach without hunting
+  // for the × — the backdrop is unclickable to them.
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape' && event.key !== 'Esc') return;
+    if (document.getElementById('title-modal').hidden) return;
+    event.preventDefault();
+    closeTitleModal();
+  });
+
   document.getElementById('modal-delete').addEventListener('click', function () {
     var id = document.getElementById('title-modal').dataset.id;
     var title = findTitleById(id);
@@ -511,6 +536,9 @@
     var category = categorySelect.value;
     if (!name || !category) return;
     var existingIds = baseTitles().map(function (t) { return t.id; });
+    // A bare slug with no year — the form has no year field. data.js entries are
+    // `slug-year`, and BacklogStorage.isSupersededBy is what bridges the two so
+    // this draft disappears once the real entry lands. See README, "Как устроены id".
     var id = BacklogSlug.uniqueId(name, existingIds);
     BacklogStorage.addTitle(window.localStorage, {
       id: id,
