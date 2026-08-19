@@ -1397,6 +1397,9 @@
   }
 
   function startSync() {
+    // Registered before the client exists, so an edit made on a page that never
+    // managed to reach Supabase at all is still remembered for next time.
+    BacklogSync.useOutbox(window.localStorage);
     syncClient = BacklogSync.createClient(SUPABASE_URL, SUPABASE_KEY);
     if (!syncClient) return;
 
@@ -1424,6 +1427,14 @@
         // is exactly what should happen for `parts` on a project where that
         // table has not been created yet.
         if (done.length) writeSeeded(seeded.concat(done));
+        // Before the pull, never after. Edits made offline live only in
+        // localStorage and in the outbox; if the remote became the authority
+        // first, applyState would overwrite them with a state that has never
+        // heard of them and the work would be gone. Flushing first is what
+        // makes "the app works offline" survive coming back online.
+        return BacklogSync.flushOutbox(syncClient);
+      })
+      .then(function () {
         return pullIntoMirror();
       })
       .then(function (result) {
@@ -1434,6 +1445,14 @@
         // for a table that does not exist takes the whole channel down with it,
         // and `parts` is the one an older project may not have yet.
         BacklogSync.subscribe(syncClient, onRemoteChange, { tables: result.tables });
+      })
+      .then(function () {
+        // Coming back online without a reload — the common shape of it on a
+        // phone. Same order as startup: send what was queued, then catch up on
+        // whatever the other device did in the meantime.
+        window.addEventListener('online', function () {
+          BacklogSync.flushOutbox(syncClient).then(onRemoteChange);
+        });
       })
       .catch(function (e) {
         // Belt and braces. Nothing above is supposed to be able to reject —

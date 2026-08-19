@@ -435,6 +435,120 @@ test('seedLocal leaves a table unmarked when its rows could not be sent', async 
   assert.deepEqual(seeded.slice().sort(), ['deleted_titles', 'drafts']);
 });
 
+// ── The outbox ─────────────────────────────────────────────────────────
+//
+// Task 30 made this app usable offline, so edits made with no network are a
+// normal event, not an edge case. They land in localStorage and their push
+// fails. Without somewhere to remember them, the next online load pulls the
+// remote — which never heard about them — and applyState writes that straight
+// over the top, destroying work the owner watched succeed. The outbox is what
+// makes "works offline" survive coming back online.
+
+test('a failed push is remembered in the outbox', async () => {
+  var store = fakeStorage();
+  sync.useOutbox(store);
+  await sync.pushOverride({ from: function () { throw new Error('offline'); } }, 'a', { status: 'done' });
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.equal(queued.length, 1);
+  assert.equal(queued[0].id, 'a');
+  assert.deepEqual(queued[0].patch, { status: 'done' });
+  sync.useOutbox(null);
+});
+
+test('a push that succeeds queues nothing', async () => {
+  var store = fakeStorage();
+  sync.useOutbox(store);
+  await sync.pushOverride(fullClient(), 'a', { status: 'done' });
+  assert.equal(store.getItem('backlog-sync-outbox'), null);
+  sync.useOutbox(null);
+});
+
+// Two offline edits to the same title are one intention, not two: the second
+// status supersedes the first. But a status and a rating are different fields
+// and both have to survive, so same-title override entries merge rather than
+// replace wholesale.
+test('repeated offline overrides on one title collapse into a merged patch', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'a', { status: 'queue' });
+  await sync.pushOverride(dead, 'a', { rating: 5 });
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.equal(queued.length, 1);
+  assert.deepEqual(queued[0].patch, { status: 'done', rating: 5 });
+  sync.useOutbox(null);
+});
+
+test('offline edits of different kinds are all remembered', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+  await sync.pushDelete(dead, 'b', false);
+  await sync.pushDraft(dead, { id: 'c', title: 'C', category: 'movie', status: 'queue', genres: [], synopsis: '', cover: 'x', draft: true });
+  await sync.pushParts(dead, 'd', [0, 1]);
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.deepEqual(queued.map(function (e) { return e.t; }), ['override', 'delete', 'draft', 'parts']);
+  sync.useOutbox(null);
+});
+
+test('flushOutbox replays queued writes and empties the queue', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+  await sync.pushParts(dead, 'd', [0]);
+
+  var client = fullClient();
+  var sent = await sync.flushOutbox(client);
+
+  assert.equal(sent, 2);
+  assert.deepEqual(JSON.parse(store.getItem('backlog-sync-outbox')), []);
+  assert.deepEqual(client.log.map(function (e) { return e.table; }), ['overrides', 'parts']);
+  sync.useOutbox(null);
+});
+
+// Still offline at replay time: the queue must survive intact rather than
+// being consumed by the attempt.
+test('flushOutbox keeps entries that still fail', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+
+  var sent = await sync.flushOutbox(dead);
+
+  assert.equal(sent, 0);
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.equal(queued.length, 1);
+  assert.deepEqual(queued[0].patch, { status: 'done' });
+  sync.useOutbox(null);
+});
+
+test('flushOutbox is a no-op with an empty queue or no client', async () => {
+  var store = fakeStorage();
+  sync.useOutbox(store);
+  assert.equal(await sync.flushOutbox(fullClient()), 0);
+  assert.equal(await sync.flushOutbox(null), 0);
+  sync.useOutbox(null);
+});
+
+test('a draft deleted offline replays as a removal, not a tombstone', async () => {
+  var store = fakeStorage();
+  sync.useOutbox(store);
+  await sync.pushDelete({ from: function () { throw new Error('offline'); } }, 'dune-3', true);
+  var client = fullClient();
+  await sync.flushOutbox(client);
+  assert.deepEqual(client.log, [{ op: 'delete', table: 'drafts', column: 'id', value: 'dune-3' }]);
+  sync.useOutbox(null);
+});
+
+test('nothing is queued when no outbox storage has been supplied', async () => {
+  sync.useOutbox(null);
+  assert.equal(await sync.pushOverride({ from: function () { throw new Error('x'); } }, 'a', { status: 'done' }), false);
+});
+
 // ── echo suppression ───────────────────────────────────────────────────
 //
 // A push comes back as a realtime event on the pushing tab too. Re-pulling and
