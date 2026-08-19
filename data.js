@@ -1691,7 +1691,11 @@ const TITLES = [
     genres: ['супергероика', 'фантастика', 'приключения'],
     rating: null,
     synopsis: 'Похищенный после кражи Тессеракта бог обмана попадает в Управление временными изменениями, где вынужден помогать в охоте на опасный вариант самого себя, распутывая заговор вокруг Священной временной линии.',
-    cover: 'images/covers/loki-2021.webp'
+    cover: 'images/covers/loki-2021.webp',
+    parts: [
+      { name: 'Сезон 1', year: 2021, released: true },
+      { name: 'Сезон 2', year: 2023, released: true }
+    ]
   },
   {
     id: 'what-if-2021',
@@ -1704,7 +1708,12 @@ const TITLES = [
     genres: ['супергероика', 'фантастика', 'приключения'],
     rating: null,
     synopsis: 'Анимационная антология альтернативных вселенных Marvel: всевидящий Наблюдатель проводит зрителя через сценарии, в которых знаковые события киновселенной пошли по другому пути.',
-    cover: 'images/covers/what-if-2021.webp'
+    cover: 'images/covers/what-if-2021.webp',
+    parts: [
+      { name: 'Сезон 1', year: 2021, released: true },
+      { name: 'Сезон 2', year: 2023, released: true },
+      { name: 'Сезон 3', year: 2024, released: true }
+    ]
   },
   {
     id: 'hawkeye-2021',
@@ -1769,7 +1778,11 @@ const TITLES = [
     genres: ['приключения', 'комедия', 'семейный'],
     rating: null,
     synopsis: 'Серия короткометражек о взрослении малыша Грута в галактике: маленький герой постоянно попадает в забавные передряги вместе со странными существами, которых встречает по пути.',
-    cover: 'images/covers/i-am-groot-2022.webp'
+    cover: 'images/covers/i-am-groot-2022.webp',
+    parts: [
+      { name: 'Сезон 1', year: 2022, released: true },
+      { name: 'Сезон 2', year: 2023, released: true }
+    ]
   },
   {
     id: 'secret-invasion-2023',
@@ -1816,12 +1829,16 @@ const TITLES = [
     category: 'series',
     status: 'done',
     airingStatus: 'ongoing',
-    seasonInfo: '1 сезон (январь 2025)\nСезон 2 — перенесён на январь 2027 года (шоу продлено минимум на три сезона).',
+    seasonInfo: '1 сезон (январь 2025)\nСезон 2 — перенесён с осени 2026 на январь 2027 года, анонс подтверждён на D23 15 августа 2026 (шоу продлено минимум на три сезона).',
     year: 2025,
     genres: ['супергероика', 'приключения', 'комедия'],
     rating: null,
     synopsis: 'Молодой Питер Паркер делает первые шаги в роли Человека-паука в альтернативной реальности, где его наставником становится не Тони Старк, а Норман Озборн.',
-    cover: 'images/covers/your-friendly-neighborhood-spider-man-2025.webp'
+    cover: 'images/covers/your-friendly-neighborhood-spider-man-2025.webp',
+    parts: [
+      { name: 'Сезон 1', year: 2025, released: true },
+      { name: 'Сезон 2', year: 2027, released: false }
+    ]
   },
   {
     id: 'daredevil-born-again-2025',
@@ -1829,12 +1846,17 @@ const TITLES = [
     category: 'series',
     status: 'done',
     airingStatus: 'ongoing',
-    seasonInfo: '2 сезона (2025; 2026, финал в мае)\nСезон 3 — премьера ожидается в марте 2027 года.',
+    seasonInfo: '2 сезона (2025; 2026, финал в мае)\nСезон 3 — подтверждён (анонсирован в сентябре 2025), съёмки идут; премьера ожидается в марте 2027 года, точная дата пока не объявлена.',
     year: 2025,
     genres: ['криминал', 'драма', 'боевик'],
     rating: null,
     synopsis: 'Мэтт Мёрдок пытается оставить прошлое супергероя позади и вернуться к юридической практике, но возвращение Уилсона Фиска — на этот раз в кресле мэра Нью-Йорка — заставляет его снова надеть маску Сорвиголовы.',
-    cover: 'images/covers/daredevil-born-again-2025.webp'
+    cover: 'images/covers/daredevil-born-again-2025.webp',
+    parts: [
+      { name: 'Сезон 1', year: 2025, released: true },
+      { name: 'Сезон 2', year: 2026, released: true },
+      { name: 'Сезон 3', year: 2027, released: false }
+    ]
   },
   {
     id: 'ironheart-2025',
@@ -1868,12 +1890,16 @@ const TITLES = [
     category: 'series',
     status: 'done',
     airingStatus: 'ongoing',
-    seasonInfo: '1 сезон (октябрь 2025, 4 серии)\nСезон 2 — премьера ожидается не раньше 2027–2028 года.',
+    seasonInfo: '1 сезон (октябрь 2025, 4 серии)\nСезон 2 — официально подтверждён 6 апреля 2026, ранняя стадия анимации; дата премьеры не объявлена, до конца 2026 маловероятна.',
     year: 2025,
     genres: ['ужасы', 'боевик', 'фантастика'],
     rating: null,
     synopsis: 'В мире, охваченном зомби-эпидемией, уцелевшие герои — Камала Хан, Рири Уильямс, Кейт Бишоп и другие — объединяются в отряд, чтобы выжить среди бывших союзников, утративших человечность.',
-    cover: 'images/covers/marvel-zombies-2025.webp'
+    cover: 'images/covers/marvel-zombies-2025.webp',
+    parts: [
+      { name: 'Сезон 1', year: 2025, released: true },
+      { name: 'Сезон 2', year: null, released: false }
+    ]
   },
   {
     id: 'wonder-man-2026',
