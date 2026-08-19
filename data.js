@@ -435,7 +435,12 @@ const TITLES = [
     genres: ['приключения', 'фэнтези', 'боевик'],
     rating: null,
     synopsis: 'Классический мультсериал Nickelodeon об Аанге — последнем аватаре, способном покорять все четыре стихии, который должен освоить магию воды, земли и огня, чтобы остановить Народ Огня и восстановить баланс в мире.',
-    cover: 'images/covers/avatar-the-last-airbender-2005.jpg'
+    cover: 'images/covers/avatar-the-last-airbender-2005.jpg',
+    parts: [
+      { name: 'Книга 1: Вода', year: 2005, released: true },
+      { name: 'Книга 2: Земля', year: 2006, released: true },
+      { name: 'Книга 3: Огонь', year: 2007, released: true }
+    ]
   },
   {
     id: 'avatar-the-last-airbender-2024',
@@ -443,12 +448,17 @@ const TITLES = [
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '2 сезона (2024, 2026)\nСезон 3 — заключительный, уже отснят и в постпродакшене; дата премьеры пока не объявлена.',
+    seasonInfo: '2 сезона (2024, 2026)\nСезон 3 — заключительный, съёмки завершены в ноябре 2025 года, идёт постпродакшен; премьера ожидается летом 2027 года (ближе к концу второго квартала), точная дата пока не объявлена.',
     year: 2024,
     genres: ['приключения', 'фэнтези', 'боевик'],
     rating: null,
     synopsis: 'Игровой ремейк культового мультсериала о мальчике-аватаре Аанге, который пробуждается спустя сто лет после начала войны Народа Огня и должен научиться покорять все стихии, чтобы спасти мир.',
-    cover: 'images/covers/avatar-the-last-airbender-2024.jpg'
+    cover: 'images/covers/avatar-the-last-airbender-2024.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2024, released: true },
+      { name: 'Сезон 2', year: 2026, released: true },
+      { name: 'Сезон 3', year: 2027, released: false }
+    ]
   },
   {
     id: 'avatar-aang-the-last-airbender-2026',
@@ -473,7 +483,13 @@ const TITLES = [
     genres: ['тёмное фэнтези', 'боевик', 'ужасы'],
     rating: null,
     synopsis: 'Мрачная анимационная адаптация видеоигр Castlevania: Тревор Бельмонт, последний из проклятого рода охотников на чудовищ, сражается с вампиром Дракулой, объявившим войну человечеству после гибели своей жены-целительницы.',
-    cover: 'images/covers/castlevania-2017.jpg'
+    cover: 'images/covers/castlevania-2017.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2017, released: true },
+      { name: 'Сезон 2', year: 2018, released: true },
+      { name: 'Сезон 3', year: 2020, released: true },
+      { name: 'Сезон 4', year: 2021, released: true }
+    ]
   },
   {
     id: 'castlevania-nocturne-2023',
@@ -481,12 +497,16 @@ const TITLES = [
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '2 сезона (2023, 2025)\nСудьба сериала неясна: больше полутора лет Netflix не продлевает и не закрывает его.',
+    seasonInfo: '2 сезона (2023, 2025)\nСудьба сериала неясна: Netflix больше полутора лет не продлевает и официально не закрывает его; источники по состоянию на июнь 2026 считают продолжение маловероятным.',
     year: 2023,
     genres: ['тёмное фэнтези', 'боевик', 'ужасы'],
     rating: null,
     synopsis: 'Прямое продолжение «Кастлвании»: во Франции конца XVIII века, спустя триста лет после первых событий, потерявший магию Рихтер Бельмонт вместе с Марией Ренар и Аннет должен остановить Эрзебет Батори — вампиршу, стремящуюся стать «мессией» и погрузить мир во тьму.',
-    cover: 'images/covers/castlevania-nocturne-2023.jpg'
+    cover: 'images/covers/castlevania-nocturne-2023.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2023, released: true },
+      { name: 'Сезон 2', year: 2025, released: true }
+    ]
   },
   {
     id: 'the-legend-of-vox-machina-2022',
@@ -494,12 +514,19 @@ const TITLES = [
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '4 сезона (2022–2026)\nСезон 5 — заключительный, премьера ожидается в 2027–2028 годах.',
+    seasonInfo: '4 сезона (2022–2024, 2026)\nСезон 5 — заключительный, подтверждён; премьера 16 июня 2027 года.',
     year: 2022,
     genres: ['фэнтези', 'приключения', 'комедия'],
     rating: null,
     synopsis: 'Анимационная адаптация первой кампании настольного шоу Critical Role: банда из восьми неидеальных наёмников-героев Vox Machina защищает мир Экзандрии от тёмных магических сил.',
-    cover: 'images/covers/the-legend-of-vox-machina-2022.jpg'
+    cover: 'images/covers/the-legend-of-vox-machina-2022.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2022, released: true },
+      { name: 'Сезон 2', year: 2023, released: true },
+      { name: 'Сезон 3', year: 2024, released: true },
+      { name: 'Сезон 4', year: 2026, released: true },
+      { name: 'Сезон 5 (финальный)', year: 2027, released: false }
+    ]
   },
   {
     id: 'the-mighty-nein-2025',
@@ -507,12 +534,16 @@ const TITLES = [
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '1 сезон (ноябрь 2025, 8 серий)\nСезон 2 — утверждён и почти готов, точная дата премьеры на Prime Video пока не объявлена.',
+    seasonInfo: '1 сезон (ноябрь 2025, 8 серий)\nСезон 2 — утверждён (снимался одновременно с первым) и почти готов, целевое окно — конец 2026 года, точная дата премьеры на Prime Video пока не объявлена.',
     year: 2025,
     genres: ['фэнтези', 'приключения', 'драма'],
     rating: null,
     synopsis: 'Анимационная экранизация второй кампании Critical Role: группа беглецов и изгоев из Волшебных Земель случайно завладевает могущественным артефактом и вынуждена объединиться, чтобы спасти реальность от катастрофы.',
-    cover: 'images/covers/the-mighty-nein-2025.jpg'
+    cover: 'images/covers/the-mighty-nein-2025.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2025, released: true },
+      { name: 'Сезон 2', year: null, released: false }
+    ]
   },
   {
     id: 'money-heist-2017',
@@ -525,7 +556,15 @@ const TITLES = [
     genres: ['криминал', 'драма', 'триллер'],
     rating: null,
     synopsis: 'Загадочный человек по прозвищу Профессор собирает банду из восьми грабителей в масках Дали для беспрецедентного ограбления Королевского монетного двора Испании, которое перерастает в затяжное противостояние с полицией.',
-    cover: 'images/covers/money-heist-2017.jpg'
+    cover: 'images/covers/money-heist-2017.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2017, released: true },
+      { name: 'Сезон 2', year: 2018, released: true },
+      { name: 'Сезон 3', year: 2019, released: true },
+      { name: 'Сезон 4', year: 2020, released: true },
+      { name: 'Сезон 5, часть 1', year: 2021, released: true },
+      { name: 'Сезон 5, часть 2', year: 2021, released: true }
+    ]
   },
   {
     id: 'gen-v-2023',
@@ -538,7 +577,11 @@ const TITLES = [
     genres: ['супергерои', 'сатира', 'драма'],
     rating: null,
     synopsis: 'Спин-офф «Пацанов» о студентах Готолкинского университета — единственного колледжа для супергероев, — которые борются за популярность и оценки, пока не сталкиваются с чем-то куда более зловещим, творящимся за стенами кампуса.',
-    cover: 'images/covers/gen-v-2023.jpg'
+    cover: 'images/covers/gen-v-2023.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2023, released: true },
+      { name: 'Сезон 2', year: 2025, released: true }
+    ]
   },
   {
     id: 'masters-of-the-universe-revelation-2021',
@@ -551,7 +594,11 @@ const TITLES = [
     genres: ['фэнтези', 'приключения', 'боевик'],
     rating: null,
     synopsis: 'После катастрофической битвы Хи-Мэна со Скелетором Этерния расколота, а Хранители Серого Черепа рассеяны. Тила должна собрать разрозненных героев и найти пропавший Меч Силы, пока мир не погрузился в хаос, — и раскрыть тайну, которую от неё скрывали.',
-    cover: 'images/covers/masters-of-the-universe-revelation-2021.jpg'
+    cover: 'images/covers/masters-of-the-universe-revelation-2021.jpg',
+    parts: [
+      { name: 'Часть 1', year: 2021, released: true },
+      { name: 'Часть 2', year: 2021, released: true }
+    ]
   },
   {
     id: 'masters-of-the-universe-revolution-2024',
@@ -980,12 +1027,16 @@ const TITLES = [
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '1 сезон (2025, 8 серий)\nСезон 2 — подтверждён, съёмки стартуют в Лондоне в 2026 году; точная дата премьеры пока не объявлена.',
+    seasonInfo: '1 сезон (2025, 8 серий)\nСезон 2 — подтверждён, съёмки идут в Лондоне (Pinewood Studios) с 2026 года; премьера ожидается не раньше 2027 года, точная дата пока не объявлена.',
     year: 2025,
     genres: ['фантастика', 'ужасы', 'триллер'],
     rating: null,
     synopsis: 'За несколько лет до событий оригинального «Чужого» на Земле терпит крушение исследовательский корабль с ксеноморфом и другими смертоносными формами жизни на борту — остановить их пытается отряд солдат корпорации «Продиджи» вместе с девушкой Венди, чьё сознание перенесено в тело синтетика.',
-    cover: 'images/covers/alien-earth-2025.jpg'
+    cover: 'images/covers/alien-earth-2025.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2025, released: true },
+      { name: 'Сезон 2', year: 2027, released: false }
+    ]
   },
   {
     id: 'major-payne-1995',
