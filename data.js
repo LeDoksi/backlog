@@ -6,12 +6,17 @@ const TITLES = [
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
-    seasonInfo: '2 сезона (2023, 2026); ранние арки манги охвачены, продолжение пока не анонсировано.',
+    seasonInfo: '2 сезона (2023, 2026)\nСезон 3 «Золотые земли» — анонсирован, премьера в октябре 2027 года.',
     year: 2023,
     genres: ['драма', 'фэнтези'],
     rating: null,
     synopsis: 'Эльфийка-магиня Фрирен, пережившая своих спутников по приключениям, заново открывает для себя, что значит ценить недолгую человеческую жизнь.',
-    cover: 'images/covers/frieren-2023.jpg'
+    cover: 'images/covers/frieren-2023.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2023, released: true },
+      { name: 'Сезон 2', year: 2026, released: true },
+      { name: 'Сезон 3 «Золотые земли»', year: 2027, released: false }
+    ]
   },
   {
     id: 're-zero-starting-life-in-another-world-2016',
@@ -61,12 +66,18 @@ const TITLES = [
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '3 сезона (2020–2023)\nСезон 4 — официально анонсирован Apple TV+, дата премьеры пока не объявлена.',
+    seasonInfo: '4 сезона (2020–2023, 2026)\nСезон 4 выходит еженедельно с 5 августа по 7 октября 2026 года.',
     year: 2020,
     genres: ['комедия', 'спорт'],
     rating: null,
     synopsis: 'Американский тренер по американскому футболу без опыта в футболе возглавляет английский клуб и меняет отношение команды друг к другу.',
-    cover: 'images/covers/ted-lasso-2020.jpg'
+    cover: 'images/covers/ted-lasso-2020.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2020, released: true },
+      { name: 'Сезон 2', year: 2021, released: true },
+      { name: 'Сезон 3', year: 2023, released: true },
+      { name: 'Сезон 4', year: 2026, released: true }
+    ]
   },
   {
     id: 'barbie-2023',
@@ -178,25 +189,33 @@ const TITLES = [
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
-    seasonInfo: '1 сезон (апрель–июнь 2026)\nСезон 2 — официально анонсирован и в производстве, дата премьеры ещё не названа.',
+    seasonInfo: '1 сезон (апрель–июнь 2026)\nСезон 2 — официально анонсирован и в производстве (после серии 13, 29 июня 2026); дата премьеры ещё не названа, ожидается не раньше 2027–2028 года.',
     year: 2026,
     genres: ['фэнтези', 'драма', 'приключения'],
     rating: null,
     synopsis: 'Девочка Коко мечтает стать волшебницей в мире, где магии учат лишь избранных по рождению, — пока не встречает ведьму, владеющую тайным искусством рисованных заклинаний.',
-    cover: 'images/covers/witch-hat-atelier-2026.jpg'
+    cover: 'images/covers/witch-hat-atelier-2026.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2026, released: true },
+      { name: 'Сезон 2', year: null, released: false }
+    ]
   },
   {
     id: 'cyberpunk-edgerunners-2022',
     title: 'Киберпанк: Бегущие по краю',
     category: 'anime',
     status: 'queue',
-    airingStatus: 'completed',
-    seasonInfo: '1 сезон (2022, 10 серий), история завершена\nСиквел «Edgerunners 2» — анонсирован на осень 2026 года.',
+    airingStatus: 'ongoing',
+    seasonInfo: '1 сезон (2022, 10 серий), история завершена\n«Edgerunners 2» — самостоятельная история с новым составом персонажей, премьера на Netflix осенью 2026 года.',
     year: 2022,
     genres: ['боевик', 'драма', 'фантастика'],
     rating: null,
     synopsis: 'Уличный парень Дэвид Мартинес становится кибер-модифицированным наёмником-эджраннером, чтобы выжить в жестоком мире Найт-Сити, но каждая аугментация приближает его к безумию киберпсихоза.',
-    cover: 'images/covers/cyberpunk-edgerunners-2022.jpg'
+    cover: 'images/covers/cyberpunk-edgerunners-2022.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2022, released: true },
+      { name: '«Edgerunners 2»', year: 2026, released: false }
+    ]
   },
   {
     id: 'a-silent-voice-2016',
@@ -243,12 +262,17 @@ const TITLES = [
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '2 сезона (2025, 2026)\nСезон 3 «Paradiso» — заключительный, дата премьеры пока не объявлена.',
+    seasonInfo: '2 сезона (2025, 2026)\nСезон 3 «Paradiso» — заключительный, официально подтверждён; дата премьеры пока не объявлена (ориентировочно не раньше весны 2027 года).',
     year: 2025,
     genres: ['боевик', 'фэнтези'],
     rating: null,
     synopsis: 'Получеловек-полудемон Данте сражается с силами ада, пытаясь остановить открытие врат в мир людей и разгадать тайну своего происхождения — взрослая экранизация культовой игровой серии от Netflix.',
-    cover: 'images/covers/devil-may-cry-2025.jpg'
+    cover: 'images/covers/devil-may-cry-2025.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2025, released: true },
+      { name: 'Сезон 2', year: 2026, released: true },
+      { name: 'Сезон 3 «Paradiso»', year: null, released: false }
+    ]
   },
   {
     id: 'shaman-king-2021',
@@ -261,7 +285,11 @@ const TITLES = [
     genres: ['боевик', 'приключения', 'сверхъестественное'],
     rating: null,
     synopsis: 'Ремейк классического аниме о мальчике-шамане Йо Асакуре, который готовится к турниру шаманов, чтобы стать королём духов и изменить мир.',
-    cover: 'images/covers/shaman-king-2021.png'
+    cover: 'images/covers/shaman-king-2021.png',
+    parts: [
+      { name: 'Сезон 1 (ремейк)', year: 2021, released: true },
+      { name: 'Сезон 2 «Flowers»', year: 2024, released: true }
+    ]
   },
   {
     id: "jojo-s-bizarre-adventure-2012",
@@ -269,12 +297,20 @@ const TITLES = [
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
-    seasonInfo: '7 из 9 частей манги экранизировано (2012–2026)\nПродолжение «Steel Ball Run» выходит с осени 2026 года; часть 8 «JoJolion» пока не анонсирована.',
+    seasonInfo: '7 из 9 частей манги экранизировано (2012–2026)\n«Steel Ball Run» стартовал спецэпизодом в марте 2026, еженедельный показ 2–3 глав — с 25 сентября 2026; часть 8 «JoJolion» пока не анонсирована.',
     year: 2012,
     genres: ['боевик', 'приключения', 'сверхъестественное'],
     rating: null,
     synopsis: 'Многопоколенная сага о семье Джостар, чьи представители сражаются со сверхъестественными врагами при помощи уникальных способностей — Стендов.',
-    cover: 'images/covers/jojo-s-bizarre-adventure-2012.jpg'
+    cover: 'images/covers/jojo-s-bizarre-adventure-2012.jpg',
+    parts: [
+      { name: 'Сезон 1 «Phantom Blood» / «Battle Tendency»', year: 2012, released: true },
+      { name: 'Сезон 2 «Stardust Crusaders»', year: 2014, released: true },
+      { name: 'Сезон 3 «Diamond is Unbreakable»', year: 2016, released: true },
+      { name: 'Сезон 4 «Golden Wind»', year: 2018, released: true },
+      { name: 'Сезон 5 «Stone Ocean»', year: 2021, released: true },
+      { name: 'Сезон 6 «Steel Ball Run»', year: 2026, released: true }
+    ]
   },
   {
     id: 'noragami-2014',
@@ -287,7 +323,12 @@ const TITLES = [
     genres: ['боевик', 'сверхъестественное', 'комедия'],
     rating: null,
     synopsis: 'Мелкий бог Ято мечтает о собственном святилище и толпах почитателей, а пока подрабатывает, выполняя случайные просьбы людей за пять йен, — пока не встречает школьницу Хиёри, застрявшую между миром людей и духов.',
-    cover: 'images/covers/noragami-2014.jpg'
+    cover: 'images/covers/noragami-2014.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2014, released: true },
+      { name: 'OVA', year: 2014, released: true },
+      { name: 'Сезон 2 «Aragoto»', year: 2015, released: true }
+    ]
   },
   {
     id: 'violet-evergarden-2018',
@@ -300,7 +341,11 @@ const TITLES = [
     genres: ['драма', 'фэнтези'],
     rating: null,
     synopsis: 'Бывшая девочка-солдат Виолетта Эвергарден устраивается автором писем на заказ и учится понимать человеческие чувства, включая смысл слов «я люблю тебя», сказанных ей человеком, которого она потеряла на войне.',
-    cover: 'images/covers/violet-evergarden-2018.png'
+    cover: 'images/covers/violet-evergarden-2018.png',
+    parts: [
+      { name: 'Сезон 1', year: 2018, released: true },
+      { name: 'Фильм-продолжение', year: 2020, released: true }
+    ]
   },
   {
     id: 'that-time-i-got-reincarnated-as-a-slime-2018',
@@ -313,7 +358,15 @@ const TITLES = [
     genres: ['фэнтези', 'приключения', 'комедия'],
     rating: null,
     synopsis: 'Погибший японский офисный работник перерождается в фэнтезийном мире слизью и, получив уникальные способности, строит собственное государство монстров, где разные виды могут жить в мире.',
-    cover: 'images/covers/that-time-i-got-reincarnated-as-a-slime-2018.jpg'
+    cover: 'images/covers/that-time-i-got-reincarnated-as-a-slime-2018.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2018, released: true },
+      { name: 'Сезон 2', year: 2021, released: true },
+      { name: 'Фильм «Scarlet Bond»', year: 2022, released: true },
+      { name: 'Сезон 3', year: 2024, released: true },
+      { name: 'Фильм 2 «Tears of the Azure Sea»', year: 2026, released: true },
+      { name: 'Сезон 4', year: 2026, released: true }
+    ]
   },
   {
     id: "hell-s-paradise-jigokuraku-2023",
@@ -326,7 +379,11 @@ const TITLES = [
     genres: ['боевик', 'приключения', 'сверхъестественное'],
     rating: null,
     synopsis: 'Приговорённый к смерти ниндзя Габимару получает шанс на помилование, если найдёт эликсир бессмертия на таинственном острове, кишащем чудовищами.',
-    cover: 'images/covers/hell-s-paradise-jigokuraku-2023.jpg'
+    cover: 'images/covers/hell-s-paradise-jigokuraku-2023.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2023, released: true },
+      { name: 'Сезон 2', year: 2026, released: true }
+    ]
   },
   {
     id: 'chainsmoker-cat-2026',
