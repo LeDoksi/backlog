@@ -3,6 +3,7 @@ const TITLES = [
   {
     id: 'frieren-2023',
     title: 'Фрирен, провожающая в последний путь',
+    originalTitle: "Frieren: Beyond Journey's End",
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -21,6 +22,7 @@ const TITLES = [
   {
     id: 're-zero-starting-life-in-another-world-2016',
     title: 'Re:ZERO — Жизнь с нуля в альтернативном мире',
+    originalTitle: 'Re:ZERO -Starting Life in Another World-',
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -43,6 +45,7 @@ const TITLES = [
   {
     id: 'the-boys-2019',
     title: 'Пацаны',
+    originalTitle: 'The Boys',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -63,6 +66,7 @@ const TITLES = [
   {
     id: 'ted-lasso-2020',
     title: 'Тед Лассо',
+    originalTitle: 'Ted Lasso',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -82,6 +86,7 @@ const TITLES = [
   {
     id: 'barbie-2023',
     title: 'Барби',
+    originalTitle: 'Barbie',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -94,6 +99,7 @@ const TITLES = [
   {
     id: 'fight-club-1999',
     title: 'Бойцовский клуб',
+    originalTitle: 'Fight Club',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -132,6 +138,7 @@ const TITLES = [
   {
     id: 'tengen-toppa-gurren-lagann-2007',
     title: 'Гуррен-Лаганн',
+    originalTitle: 'Tengen Toppa Gurren Lagann',
     category: 'anime',
     status: 'done',
     airingStatus: 'completed',
@@ -150,6 +157,7 @@ const TITLES = [
   {
     id: 'demon-slayer-kimetsu-no-yaiba-2019',
     title: 'Клинок, рассекающий демонов',
+    originalTitle: 'Demon Slayer: Kimetsu no Yaiba',
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -173,6 +181,7 @@ const TITLES = [
   {
     id: 'ride-your-wave-2019',
     title: 'На твоей волне',
+    originalTitle: 'Ride Your Wave',
     category: 'anime',
     status: 'done',
     airingStatus: 'completed',
@@ -186,6 +195,7 @@ const TITLES = [
   {
     id: 'witch-hat-atelier-2026',
     title: 'Ателье колдовских колпаков',
+    originalTitle: 'Witch Hat Atelier',
     category: 'anime',
     status: 'done',
     airingStatus: 'ongoing',
@@ -203,6 +213,7 @@ const TITLES = [
   {
     id: 'cyberpunk-edgerunners-2022',
     title: 'Киберпанк: Бегущие по краю',
+    originalTitle: 'Cyberpunk: Edgerunners',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -220,6 +231,7 @@ const TITLES = [
   {
     id: 'a-silent-voice-2016',
     title: 'Форма голоса',
+    originalTitle: 'A Silent Voice',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -233,6 +245,7 @@ const TITLES = [
   {
     id: 'josee-the-tiger-and-the-fish-2020',
     title: 'Её заветное желание',
+    originalTitle: 'Josee, the Tiger and the Fish',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -246,6 +259,7 @@ const TITLES = [
   {
     id: 'your-name-2016',
     title: 'Твоё имя',
+    originalTitle: 'Your Name.',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -259,6 +273,7 @@ const TITLES = [
   {
     id: 'devil-may-cry-2025',
     title: 'Дьявол может плакать',
+    originalTitle: 'Devil May Cry',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -277,6 +292,7 @@ const TITLES = [
   {
     id: 'shaman-king-2021',
     title: 'Король шаманов',
+    originalTitle: 'Shaman King',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -294,6 +310,7 @@ const TITLES = [
   {
     id: "jojo-s-bizarre-adventure-2012",
     title: 'Невероятные приключения ДжоДжо',
+    originalTitle: "JoJo's Bizarre Adventure",
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -315,6 +332,7 @@ const TITLES = [
   {
     id: 'noragami-2014',
     title: 'Бездомный Бог',
+    originalTitle: 'Noragami',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -333,6 +351,7 @@ const TITLES = [
   {
     id: 'violet-evergarden-2018',
     title: 'Вайолет Эвергарден',
+    originalTitle: 'Violet Evergarden',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -350,6 +369,7 @@ const TITLES = [
   {
     id: 'that-time-i-got-reincarnated-as-a-slime-2018',
     title: 'О моём перерождении в слизь',
+    originalTitle: 'That Time I Got Reincarnated as a Slime',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -371,6 +391,7 @@ const TITLES = [
   {
     id: "hell-s-paradise-jigokuraku-2023",
     title: 'Адский рай',
+    originalTitle: "Hell's Paradise: Jigokuraku",
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -388,6 +409,7 @@ const TITLES = [
   {
     id: 'chainsmoker-cat-2026',
     title: 'Табакошка',
+    originalTitle: 'Chainsmoker Cat',
     category: 'anime',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -401,6 +423,7 @@ const TITLES = [
   {
     id: 'a-new-dawn-2026',
     title: 'И наступит рассвет',
+    originalTitle: 'A New Dawn',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -414,6 +437,7 @@ const TITLES = [
   {
     id: 'suzume-2022',
     title: 'Судзумэ, закрывающая двери',
+    originalTitle: 'Suzume',
     category: 'anime',
     status: 'queue',
     airingStatus: 'completed',
@@ -427,6 +451,7 @@ const TITLES = [
   {
     id: 'avatar-the-last-airbender-2005',
     title: 'Аватар: Легенда об Аанге (2005)',
+    originalTitle: 'Avatar: The Last Airbender',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -445,6 +470,7 @@ const TITLES = [
   {
     id: 'avatar-the-last-airbender-2024',
     title: 'Аватар: Легенда об Аанге (2024)',
+    originalTitle: 'Avatar: The Last Airbender',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -463,6 +489,7 @@ const TITLES = [
   {
     id: 'avatar-aang-the-last-airbender-2026',
     title: 'Легенда об Аанге: Последний маг воздуха',
+    originalTitle: 'Aang: The Last Airbender',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -475,6 +502,7 @@ const TITLES = [
   {
     id: 'castlevania-2017',
     title: 'Кастлвания',
+    originalTitle: 'Castlevania',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -494,6 +522,7 @@ const TITLES = [
   {
     id: 'castlevania-nocturne-2023',
     title: 'Кастлвания: Ноктюрн',
+    originalTitle: 'Castlevania: Nocturne',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -511,6 +540,7 @@ const TITLES = [
   {
     id: 'the-legend-of-vox-machina-2022',
     title: 'Легенда о Vox Machina',
+    originalTitle: 'The Legend of Vox Machina',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -531,6 +561,7 @@ const TITLES = [
   {
     id: 'the-mighty-nein-2025',
     title: 'Могучая девятка',
+    originalTitle: 'The Mighty Nein',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -548,6 +579,7 @@ const TITLES = [
   {
     id: 'money-heist-2017',
     title: 'Бумажный дом',
+    originalTitle: 'La casa de papel',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -569,6 +601,7 @@ const TITLES = [
   {
     id: 'gen-v-2023',
     title: 'Поколение «Ви»',
+    originalTitle: 'Gen V',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -586,6 +619,7 @@ const TITLES = [
   {
     id: 'masters-of-the-universe-revelation-2021',
     title: 'Властелины вселенной: Откровение',
+    originalTitle: 'Masters of the Universe: Revelation',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -603,6 +637,7 @@ const TITLES = [
   {
     id: 'masters-of-the-universe-revolution-2024',
     title: 'Властелины вселенной: Революция',
+    originalTitle: 'Masters of the Universe: Revolution',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -616,6 +651,7 @@ const TITLES = [
   {
     id: 'the-amazing-spider-man-2012',
     title: 'Новый Человек-паук',
+    originalTitle: 'The Amazing Spider-Man',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -628,6 +664,7 @@ const TITLES = [
   {
     id: 'the-amazing-spider-man-2-2014',
     title: 'Новый Человек-паук: Высокое напряжение',
+    originalTitle: 'The Amazing Spider-Man 2',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -640,6 +677,7 @@ const TITLES = [
   {
     id: 'superman-2025',
     title: 'Супермен',
+    originalTitle: 'Superman',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -652,6 +690,7 @@ const TITLES = [
   {
     id: 'the-gentlemen-2019',
     title: 'Джентльмены',
+    originalTitle: 'The Gentlemen',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -664,6 +703,7 @@ const TITLES = [
   {
     id: 'the-man-from-u-n-c-l-e-2015',
     title: 'Агенты А.Н.К.Л.',
+    originalTitle: 'The Man from U.N.C.L.E.',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -676,6 +716,7 @@ const TITLES = [
   {
     id: 'eurotrip-2004',
     title: 'Евротур',
+    originalTitle: 'EuroTrip',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -688,6 +729,7 @@ const TITLES = [
   {
     id: 'the-hobbit-an-unexpected-journey-2012',
     title: 'Хоббит: Нежданное путешествие',
+    originalTitle: 'The Hobbit: An Unexpected Journey',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -700,6 +742,7 @@ const TITLES = [
   {
     id: 'the-hobbit-the-desolation-of-smaug-2013',
     title: 'Хоббит: Пустошь Смауга',
+    originalTitle: 'The Hobbit: The Desolation of Smaug',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -712,6 +755,7 @@ const TITLES = [
   {
     id: 'the-hobbit-the-battle-of-the-five-armies-2014',
     title: 'Хоббит: Битва пяти воинств',
+    originalTitle: 'The Hobbit: The Battle of the Five Armies',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -724,6 +768,7 @@ const TITLES = [
   {
     id: 'drive-2011',
     title: 'Драйв',
+    originalTitle: 'Drive',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -736,6 +781,7 @@ const TITLES = [
   {
     id: 'the-batman-2022',
     title: 'Бэтмен',
+    originalTitle: 'The Batman',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -748,6 +794,7 @@ const TITLES = [
   {
     id: 'bullet-train-2022',
     title: 'Быстрее пули',
+    originalTitle: 'Bullet Train',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -760,6 +807,7 @@ const TITLES = [
   {
     id: 'snatch-2000',
     title: 'Большой куш',
+    originalTitle: 'Snatch',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -772,6 +820,7 @@ const TITLES = [
   {
     id: 'the-fountain-of-youth-2025',
     title: 'Источник вечной молодости',
+    originalTitle: 'Fountain of Youth',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -784,6 +833,7 @@ const TITLES = [
   {
     id: 'jay-and-silent-bob-strike-back-2001',
     title: 'Джей и Молчаливый Боб наносят ответный удар',
+    originalTitle: 'Jay and Silent Bob Strike Back',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -796,6 +846,7 @@ const TITLES = [
   {
     id: 'jay-and-silent-bob-reboot-2019',
     title: 'Джей и Молчаливый Боб: Перезагрузка',
+    originalTitle: 'Jay and Silent Bob Reboot',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -808,6 +859,7 @@ const TITLES = [
   {
     id: 'masters-of-the-universe-2026',
     title: 'Властелины Вселенной',
+    originalTitle: 'Masters of the Universe',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -820,6 +872,7 @@ const TITLES = [
   {
     id: 'the-village-2004',
     title: 'Таинственный лес',
+    originalTitle: 'The Village',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -832,6 +885,7 @@ const TITLES = [
   {
     id: 'orphan-2009',
     title: 'Дитя тьмы',
+    originalTitle: 'Orphan',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -844,6 +898,7 @@ const TITLES = [
   {
     id: 'case-39-2009',
     title: 'Дело №39',
+    originalTitle: 'Case 39',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -856,6 +911,7 @@ const TITLES = [
   {
     id: 'house-at-the-end-of-the-street-2012',
     title: 'Дом в конце улицы',
+    originalTitle: 'House at the End of the Street',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -868,6 +924,7 @@ const TITLES = [
   {
     id: 'the-skeleton-key-2005',
     title: 'Ключ от всех дверей',
+    originalTitle: 'The Skeleton Key',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -880,6 +937,7 @@ const TITLES = [
   {
     id: 'klaustrofoby-2019',
     title: 'Клаустрофобы',
+    originalTitle: 'Escape Room',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -892,6 +950,7 @@ const TITLES = [
   {
     id: 'red-dragon-2002',
     title: 'Красный дракон',
+    originalTitle: 'Red Dragon',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -904,6 +963,7 @@ const TITLES = [
   {
     id: 'hannibal-2001',
     title: 'Ганнибал',
+    originalTitle: 'Hannibal',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -916,6 +976,7 @@ const TITLES = [
   {
     id: 'hannibal-rising-2007',
     title: 'Ганнибал: Восхождение',
+    originalTitle: 'Hannibal Rising',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -928,6 +989,7 @@ const TITLES = [
   {
     id: 'the-big-lebowski-1998',
     title: 'Большой Лебовски',
+    originalTitle: 'The Big Lebowski',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -940,6 +1002,7 @@ const TITLES = [
   {
     id: 'alien-1979',
     title: 'Чужой',
+    originalTitle: 'Alien',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -952,6 +1015,7 @@ const TITLES = [
   {
     id: 'aliens-1986',
     title: 'Чужие',
+    originalTitle: 'Aliens',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -964,6 +1028,7 @@ const TITLES = [
   {
     id: 'alien-3-1992',
     title: 'Чужой 3',
+    originalTitle: 'Alien³',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -976,6 +1041,7 @@ const TITLES = [
   {
     id: 'alien-resurrection-1997',
     title: 'Чужой 4: Воскрешение',
+    originalTitle: 'Alien Resurrection',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -988,6 +1054,7 @@ const TITLES = [
   {
     id: 'prometheus-2012',
     title: 'Прометей',
+    originalTitle: 'Prometheus',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1000,6 +1067,7 @@ const TITLES = [
   {
     id: 'alien-covenant-2017',
     title: 'Чужой: Завет',
+    originalTitle: 'Alien: Covenant',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1012,6 +1080,7 @@ const TITLES = [
   {
     id: 'alien-romulus-2024',
     title: 'Чужой: Ромул',
+    originalTitle: 'Alien: Romulus',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1024,6 +1093,7 @@ const TITLES = [
   {
     id: 'alien-earth-2025',
     title: 'Чужой: Земля',
+    originalTitle: 'Alien: Earth',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -1041,6 +1111,7 @@ const TITLES = [
   {
     id: 'major-payne-1995',
     title: 'Майор Пэйн',
+    originalTitle: 'Major Payne',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1053,6 +1124,7 @@ const TITLES = [
   {
     id: 'tucker-dale-vs-evil-2010',
     title: 'Убойные каникулы',
+    originalTitle: 'Tucker & Dale vs. Evil',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1065,6 +1137,7 @@ const TITLES = [
   {
     id: 'lilo-stitch-2025',
     title: 'Лило и Стич',
+    originalTitle: 'Lilo & Stitch',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1077,6 +1150,7 @@ const TITLES = [
   {
     id: 'baby-driver-2017',
     title: 'Малыш на драйве',
+    originalTitle: 'Baby Driver',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1141,6 +1215,7 @@ const TITLES = [
   {
     id: 'iron-man-2008',
     title: 'Железный человек',
+    originalTitle: 'Iron Man',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1153,6 +1228,7 @@ const TITLES = [
   {
     id: 'the-incredible-hulk-2008',
     title: 'Невероятный Халк',
+    originalTitle: 'The Incredible Hulk',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1165,6 +1241,7 @@ const TITLES = [
   {
     id: 'iron-man-2-2010',
     title: 'Железный человек 2',
+    originalTitle: 'Iron Man 2',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1177,6 +1254,7 @@ const TITLES = [
   {
     id: 'thor-2011',
     title: 'Тор',
+    originalTitle: 'Thor',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1189,6 +1267,7 @@ const TITLES = [
   {
     id: 'captain-america-the-first-avenger-2011',
     title: 'Первый мститель',
+    originalTitle: 'Captain America: The First Avenger',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1201,6 +1280,7 @@ const TITLES = [
   {
     id: 'the-avengers-2012',
     title: 'Мстители',
+    originalTitle: 'The Avengers',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1213,6 +1293,7 @@ const TITLES = [
   {
     id: 'iron-man-3-2013',
     title: 'Железный человек 3',
+    originalTitle: 'Iron Man 3',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1225,6 +1306,7 @@ const TITLES = [
   {
     id: 'thor-the-dark-world-2013',
     title: 'Тор 2: Царство тьмы',
+    originalTitle: 'Thor: The Dark World',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1237,6 +1319,7 @@ const TITLES = [
   {
     id: 'captain-america-the-winter-soldier-2014',
     title: 'Первый мститель: Другая война',
+    originalTitle: 'Captain America: The Winter Soldier',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1249,6 +1332,7 @@ const TITLES = [
   {
     id: 'guardians-of-the-galaxy-2014',
     title: 'Стражи Галактики',
+    originalTitle: 'Guardians of the Galaxy',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1261,6 +1345,7 @@ const TITLES = [
   {
     id: 'avengers-age-of-ultron-2015',
     title: 'Мстители: Эра Альтрона',
+    originalTitle: 'Avengers: Age of Ultron',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1273,6 +1358,7 @@ const TITLES = [
   {
     id: 'ant-man-2015',
     title: 'Человек-муравей',
+    originalTitle: 'Ant-Man',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1285,6 +1371,7 @@ const TITLES = [
   {
     id: 'captain-america-civil-war-2016',
     title: 'Первый мститель: Противостояние',
+    originalTitle: 'Captain America: Civil War',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1297,6 +1384,7 @@ const TITLES = [
   {
     id: 'doctor-strange-2016',
     title: 'Доктор Стрэндж',
+    originalTitle: 'Doctor Strange',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1309,6 +1397,7 @@ const TITLES = [
   {
     id: 'guardians-of-the-galaxy-vol-2-2017',
     title: 'Стражи Галактики. Часть 2',
+    originalTitle: 'Guardians of the Galaxy Vol. 2',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1321,6 +1410,7 @@ const TITLES = [
   {
     id: 'spider-man-homecoming-2017',
     title: 'Человек-паук: Возвращение домой',
+    originalTitle: 'Spider-Man: Homecoming',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1333,6 +1423,7 @@ const TITLES = [
   {
     id: 'thor-ragnarok-2017',
     title: 'Тор: Рагнарёк',
+    originalTitle: 'Thor: Ragnarok',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1345,6 +1436,7 @@ const TITLES = [
   {
     id: 'black-panther-2018',
     title: 'Чёрная пантера',
+    originalTitle: 'Black Panther',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1357,6 +1449,7 @@ const TITLES = [
   {
     id: 'avengers-infinity-war-2018',
     title: 'Мстители: Война бесконечности',
+    originalTitle: 'Avengers: Infinity War',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1369,6 +1462,7 @@ const TITLES = [
   {
     id: 'ant-man-and-the-wasp-2018',
     title: 'Человек-муравей и Оса',
+    originalTitle: 'Ant-Man and the Wasp',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1381,6 +1475,7 @@ const TITLES = [
   {
     id: 'captain-marvel-2019',
     title: 'Капитан Марвел',
+    originalTitle: 'Captain Marvel',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1393,6 +1488,7 @@ const TITLES = [
   {
     id: 'avengers-endgame-2019',
     title: 'Мстители: Финал',
+    originalTitle: 'Avengers: Endgame',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1405,6 +1501,7 @@ const TITLES = [
   {
     id: 'spider-man-far-from-home-2019',
     title: 'Человек-паук: Вдали от дома',
+    originalTitle: 'Spider-Man: Far From Home',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1417,6 +1514,7 @@ const TITLES = [
   {
     id: 'black-widow-2021',
     title: 'Чёрная вдова',
+    originalTitle: 'Black Widow',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1429,6 +1527,7 @@ const TITLES = [
   {
     id: 'shang-chi-and-the-legend-of-the-ten-rings-2021',
     title: 'Шан-Чи и легенда десяти колец',
+    originalTitle: 'Shang-Chi and the Legend of the Ten Rings',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1441,6 +1540,7 @@ const TITLES = [
   {
     id: 'eternals-2021',
     title: 'Вечные',
+    originalTitle: 'Eternals',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1453,6 +1553,7 @@ const TITLES = [
   {
     id: 'spider-man-no-way-home-2021',
     title: 'Человек-паук: Нет пути домой',
+    originalTitle: 'Spider-Man: No Way Home',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1465,6 +1566,7 @@ const TITLES = [
   {
     id: 'doctor-strange-in-the-multiverse-of-madness-2022',
     title: 'Доктор Стрэндж: В мультивселенной безумия',
+    originalTitle: 'Doctor Strange in the Multiverse of Madness',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1477,6 +1579,7 @@ const TITLES = [
   {
     id: 'thor-love-and-thunder-2022',
     title: 'Тор: Любовь и гром',
+    originalTitle: 'Thor: Love and Thunder',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1489,6 +1592,7 @@ const TITLES = [
   {
     id: 'black-panther-wakanda-forever-2022',
     title: 'Чёрная Пантера: Ваканда навсегда',
+    originalTitle: 'Black Panther: Wakanda Forever',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1501,6 +1605,7 @@ const TITLES = [
   {
     id: 'ant-man-and-the-wasp-quantumania-2023',
     title: 'Человек-муравей и Оса: Квантомания',
+    originalTitle: 'Ant-Man and the Wasp: Quantumania',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1513,6 +1618,7 @@ const TITLES = [
   {
     id: 'guardians-of-the-galaxy-vol-3-2023',
     title: 'Стражи Галактики. Часть 3',
+    originalTitle: 'Guardians of the Galaxy Vol. 3',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1525,6 +1631,7 @@ const TITLES = [
   {
     id: 'the-marvels-2023',
     title: 'Марвелы',
+    originalTitle: 'The Marvels',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1537,6 +1644,7 @@ const TITLES = [
   {
     id: 'deadpool-wolverine-2024',
     title: 'Дэдпул и Росомаха',
+    originalTitle: 'Deadpool & Wolverine',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1549,6 +1657,7 @@ const TITLES = [
   {
     id: 'captain-america-brave-new-world-2025',
     title: 'Капитан Америка: Новый мир',
+    originalTitle: 'Captain America: Brave New World',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1561,6 +1670,7 @@ const TITLES = [
   {
     id: 'thunderbolts-2025',
     title: 'Громовержцы*',
+    originalTitle: 'Thunderbolts*',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1573,6 +1683,7 @@ const TITLES = [
   {
     id: 'the-fantastic-four-first-steps-2025',
     title: 'Фантастическая четвёрка: Первые шаги',
+    originalTitle: 'The Fantastic Four: First Steps',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1585,6 +1696,7 @@ const TITLES = [
   {
     id: 'spider-man-brand-new-day-2026',
     title: 'Человек-паук: Новый день',
+    originalTitle: 'Spider-Man: Brand New Day',
     category: 'movie',
     status: 'done',
     airingStatus: null,
@@ -1597,6 +1709,7 @@ const TITLES = [
   {
     id: 'avengers-doomsday-2026',
     title: 'Мстители: Судный день',
+    originalTitle: 'Avengers: Doomsday',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1609,6 +1722,7 @@ const TITLES = [
   {
     id: 'avengers-secret-wars-2027',
     title: 'Мстители: Секретные войны',
+    originalTitle: 'Avengers: Secret Wars',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1621,6 +1735,7 @@ const TITLES = [
   {
     id: 'x-men-2028',
     title: 'Люди Икс',
+    originalTitle: 'X-Men',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1633,6 +1748,7 @@ const TITLES = [
   {
     id: 'ghost-rider-2028',
     title: 'Призрачный гонщик',
+    originalTitle: 'Ghost Rider',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1645,6 +1761,7 @@ const TITLES = [
   {
     id: 'black-panther-iii-2028',
     title: 'Чёрная пантера 3',
+    originalTitle: 'Black Panther III',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
@@ -1657,6 +1774,7 @@ const TITLES = [
   {
     id: 'wandavision-2021',
     title: 'Ванда/Вижн',
+    originalTitle: 'WandaVision',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1670,6 +1788,7 @@ const TITLES = [
   {
     id: 'the-falcon-and-the-winter-soldier-2021',
     title: 'Сокол и Зимний солдат',
+    originalTitle: 'The Falcon and the Winter Soldier',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1683,6 +1802,7 @@ const TITLES = [
   {
     id: 'loki-2021',
     title: 'Локи',
+    originalTitle: 'Loki',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1700,6 +1820,7 @@ const TITLES = [
   {
     id: 'what-if-2021',
     title: 'Что, если...?',
+    originalTitle: 'What If...?',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1718,6 +1839,7 @@ const TITLES = [
   {
     id: 'hawkeye-2021',
     title: 'Соколиный глаз',
+    originalTitle: 'Hawkeye',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1731,6 +1853,7 @@ const TITLES = [
   {
     id: 'moon-knight-2022',
     title: 'Лунный рыцарь',
+    originalTitle: 'Moon Knight',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1744,6 +1867,7 @@ const TITLES = [
   {
     id: 'ms-marvel-2022',
     title: 'Мисс Марвел',
+    originalTitle: 'Ms. Marvel',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1757,6 +1881,7 @@ const TITLES = [
   {
     id: 'she-hulk-attorney-at-law-2022',
     title: 'Женщина-Халк: Адвокат',
+    originalTitle: 'She-Hulk: Attorney at Law',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1770,6 +1895,7 @@ const TITLES = [
   {
     id: 'i-am-groot-2022',
     title: 'Я есть Грут',
+    originalTitle: 'I Am Groot',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1787,6 +1913,7 @@ const TITLES = [
   {
     id: 'secret-invasion-2023',
     title: 'Секретное вторжение',
+    originalTitle: 'Secret Invasion',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1800,6 +1927,7 @@ const TITLES = [
   {
     id: 'echo-2024',
     title: 'Эхо',
+    originalTitle: 'Echo',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1813,6 +1941,7 @@ const TITLES = [
   {
     id: 'agatha-all-along-2024',
     title: 'Это всё Агата',
+    originalTitle: 'Agatha All Along',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1826,6 +1955,7 @@ const TITLES = [
   {
     id: 'your-friendly-neighborhood-spider-man-2025',
     title: 'Ваш дружелюбный сосед Человек-паук',
+    originalTitle: 'Your Friendly Neighborhood Spider-Man',
     category: 'series',
     status: 'done',
     airingStatus: 'ongoing',
@@ -1843,6 +1973,7 @@ const TITLES = [
   {
     id: 'daredevil-born-again-2025',
     title: 'Сорвиголова: Рождённый заново',
+    originalTitle: 'Daredevil: Born Again',
     category: 'series',
     status: 'done',
     airingStatus: 'ongoing',
@@ -1861,6 +1992,7 @@ const TITLES = [
   {
     id: 'ironheart-2025',
     title: 'Железное сердце',
+    originalTitle: 'Ironheart',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1874,6 +2006,7 @@ const TITLES = [
   {
     id: 'eyes-of-wakanda-2025',
     title: 'Очи Ваканды',
+    originalTitle: 'Eyes of Wakanda',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1887,6 +2020,7 @@ const TITLES = [
   {
     id: 'marvel-zombies-2025',
     title: 'Зомби Marvel',
+    originalTitle: 'Marvel Zombies',
     category: 'series',
     status: 'done',
     airingStatus: 'ongoing',
@@ -1904,6 +2038,7 @@ const TITLES = [
   {
     id: 'wonder-man-2026',
     title: 'Чудо-человек',
+    originalTitle: 'Wonder Man',
     category: 'series',
     status: 'done',
     airingStatus: 'completed',
@@ -1917,6 +2052,7 @@ const TITLES = [
   {
     id: 'visionquest-2026',
     title: 'Квест Вижна',
+    originalTitle: 'VisionQuest',
     category: 'series',
     status: 'queue',
     airingStatus: 'completed',
@@ -1930,6 +2066,7 @@ const TITLES = [
   {
     id: 'lanterns-2026',
     title: 'Фонари',
+    originalTitle: 'Lanterns',
     category: 'series',
     status: 'queue',
     airingStatus: 'ongoing',
@@ -1943,6 +2080,7 @@ const TITLES = [
   {
     id: 'supergerl-2026',
     title: 'Супергёрл',
+    originalTitle: 'Supergirl',
     category: 'movie',
     status: 'queue',
     airingStatus: null,
