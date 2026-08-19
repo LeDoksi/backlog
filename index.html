@@ -63,6 +63,15 @@
       </svg>
       <span class="toolbar__random-label">Что посмотреть?</span>
     </button>
+    <!-- The icon is a miniature of what the panel contains: a track with a fill
+         running from its left end — the same meter the stats rows are built from. -->
+    <button id="stats-open" class="toolbar__stats" type="button" aria-haspopup="dialog">
+      <svg class="toolbar__stats-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+        <rect x="1.55" y="5.15" width="12.9" height="5.7" rx="2.85" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="3.4" y="7" width="4.6" height="2" rx="1" fill="currentColor"/>
+      </svg>
+      <span>Итоги</span>
+    </button>
   </section>
 
   <div id="genre-chips" class="genre-chips" role="group" aria-label="Выбранные жанры" hidden></div>
@@ -131,6 +140,19 @@
         </div>
         <button id="modal-delete" class="modal__delete">Удалить тайтл</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Итоги. A peer of the title panel, not a child of it: same .modal shell,
+       same backdrop, same close button, its own body rendered from scratch on
+       every open so the numbers can never be stale. Placed after #title-modal
+       so the two never fight over DOM order. -->
+  <div id="stats-modal" class="modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel modal__panel--stats" role="dialog" aria-modal="true" aria-labelledby="stats-title">
+      <button id="stats-close" class="modal__close" aria-label="Закрыть">×</button>
+      <h2 id="stats-title" class="stats__heading">Итоги</h2>
+      <div id="stats-body" class="stats"></div>
     </div>
   </div>
 

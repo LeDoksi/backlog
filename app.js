@@ -486,6 +486,260 @@
     }, 1800);
   });
 
+  // ── Итоги: the trophy case ───────────────────────────────────────────
+  //
+  // One question, asked three ways: how much of the shelf has actually been
+  // got through. The whole catalog at the top, then the four categories, then
+  // the genres the finished titles belong to.
+  //
+  // Every number here comes off `baseTitles()` — the same source, and for the
+  // per-category done/total the same `BacklogQuery.countProgress` call, that
+  // `renderCounters` writes into the tab chips. That is deliberate: the panel
+  // and the tabs must be incapable of disagreeing, and the cheapest way to
+  // guarantee that is for both to be the same computation rather than two that
+  // happen to agree today. It also means the derived status of a parts-bearing
+  // series (see BacklogStorage.effectiveStatus) is respected here exactly as it
+  // is on the card — a show you are caught up on but still waiting for counts
+  // as "в процессе" in these totals, not as finished.
+  //
+  // Recomputed from scratch on every open. Nothing is cached: statuses change
+  // constantly from the grid and the modal, and a trophy case showing last
+  // week's numbers is worse than no trophy case.
+
+  // Same four categories, in the same order, as the tab row in index.html.
+  var STATS_CATEGORIES = [
+    { key: 'game', label: 'Игры' },
+    { key: 'series', label: 'Сериалы' },
+    { key: 'movie', label: 'Кино' },
+    { key: 'anime', label: 'Аниме' }
+  ];
+
+  function tally(titles) {
+    // done/total come from the exact call the tab counters make; the other two
+    // are counted off the same array, so the four figures always sum.
+    var progress = BacklogQuery.countProgress(titles);
+    var inProgress = titles.filter(function (t) { return t.status === 'in_progress'; }).length;
+    return {
+      done: progress.done,
+      in_progress: inProgress,
+      queue: progress.total - progress.done - inProgress,
+      total: progress.total
+    };
+  }
+
+  function computeStats() {
+    var all = baseTitles();
+
+    // Genres are counted catalog-wide rather than per category. Per-category
+    // would split 55 finished titles across four lists, three of which are too
+    // thin to say anything (one finished anime contributes two genres, and the
+    // bar chart of a single title is not a chart). Catalog-wide there is one
+    // ranked list with real shape to it — and the category axis is already
+    // fully covered by the block directly above it.
+    //
+    // A finished title with no genres (a quick-added draft) contributes to the
+    // totals and to nothing here, which is correct: it has no genre to credit.
+    var genreCounts = {};
+    all.forEach(function (t) {
+      if (t.status !== 'done') return;
+      (t.genres || []).forEach(function (genre) {
+        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+      });
+    });
+    var genres = Object.keys(genreCounts)
+      .sort(function (a, b) { return genreCounts[b] - genreCounts[a] || a.localeCompare(b); })
+      .map(function (name) { return { name: name, done: genreCounts[name] }; });
+
+    return {
+      overall: tally(titlesForCategory('all')),
+      categories: STATS_CATEGORIES.map(function (cat) {
+        var t = tally(titlesForCategory(cat.key));
+        t.key = cat.key;
+        t.label = cat.label;
+        return t;
+      }),
+      genres: genres,
+      // What the genre bars are scaled against: the leader fills the track and
+      // everything else is read against it. Length means volume of finished
+      // titles, not completion ratio — in a trophy case the tall bar should be
+      // the genre you have actually got through most of, not a two-title genre
+      // that happens to be exhausted.
+      genreMax: genres.length ? genres[0].done : 0
+    };
+  }
+
+  function pct(part, whole) {
+    return whole > 0 ? (part / whole) * 100 : 0;
+  }
+
+  // One span per title, in status order: everything finished, then everything
+  // under way, then the dark remainder. A meter would give the proportion; a
+  // row of spines gives the proportion *and* keeps the collection countable —
+  // 168 discrete objects rather than a percentage. The spans flex, so the row
+  // is exactly the panel's width at every size and simply gets finer as the
+  // catalog grows.
+  function combHtml(overall) {
+    var runs = [
+      { n: overall.done, cls: ' stats__tick--done' },
+      { n: overall.in_progress, cls: ' stats__tick--wip' },
+      { n: overall.queue, cls: '' }
+    ];
+    var out = '';
+    runs.forEach(function (run) {
+      for (var i = 0; i < run.n; i++) out += '<span class="stats__tick' + run.cls + '"></span>';
+    });
+    return out;
+  }
+
+  // A zero-length segment is not rendered at all rather than rendered at 0% —
+  // the segments carry a min-width so a single title is still visible, and that
+  // min-width would otherwise draw a phantom sliver for a count of nothing.
+  function segmentHtml(kind, value, total, delay) {
+    if (!value) return '';
+    return '<span class="stats-meter__seg stats-meter__seg--' + kind +
+      '" style="width:' + pct(value, total).toFixed(3) + '%;--d:' + delay + 'ms"></span>';
+  }
+
+  function categoryRowHtml(cat, index) {
+    var delay = 120 + index * 70;
+    var breakdown = 'завершено ' + cat.done + ', в процессе ' + cat.in_progress +
+      ', в бэклоге ' + cat.queue + ', всего ' + cat.total;
+    // The cyan token only exists when there is something under way. Hovering
+    // the row spells the whole breakdown out, the way the card's rating mark
+    // and quick-actions do.
+    var wip = cat.in_progress
+      ? '<span class="stats__wip" title="В процессе: ' + cat.in_progress + '" aria-hidden="true">+' + cat.in_progress + '</span>'
+      : '';
+    return '<li class="stats__cat" title="' + escapeHtml(cat.label + ' — ' + breakdown) + '">' +
+      '<span class="stats__cat-name">' + escapeHtml(cat.label) + '</span>' +
+      '<span class="stats-meter" aria-hidden="true">' +
+        segmentHtml('done', cat.done, cat.total, delay) +
+        segmentHtml('wip', cat.in_progress, cat.total, delay) +
+      '</span>' +
+      '<span class="stats__figures">' + wip +
+        '<span class="stats__count" aria-hidden="true">' + cat.done + '/' + cat.total + '</span>' +
+      '</span>' +
+      '<span class="sr-only">' + escapeHtml(breakdown) + '</span>' +
+      '</li>';
+  }
+
+  function genreRowHtml(genre, max, index) {
+    var delay = 340 + index * 34;
+    return '<li class="stats__genre">' +
+      '<span class="stats__genre-name">' + escapeHtml(genre.name) + '</span>' +
+      '<span class="stats-bar" aria-hidden="true">' +
+        '<span class="stats-bar__fill" style="width:' + pct(genre.done, max).toFixed(3) + '%;--d:' + delay + 'ms"></span>' +
+      '</span>' +
+      '<span class="stats__count" aria-hidden="true">' + genre.done + '</span>' +
+      '<span class="sr-only">завершено ' + genre.done + '</span>' +
+      '</li>';
+  }
+
+  function statsHtml(stats) {
+    var o = stats.overall;
+    var genreList = stats.genres.length
+      ? '<ul class="stats__genres" role="list">' +
+          stats.genres.map(function (g, i) { return genreRowHtml(g, stats.genreMax, i); }).join('') +
+        '</ul>'
+      : '<p class="stats__empty">Пока ничего не завершено. Отметьте первый тайтл — он появится здесь.</p>';
+
+    return (
+      '<section class="stats__hero">' +
+        '<span class="stats__eyebrow">Завершено</span>' +
+        '<p class="stats__score" aria-hidden="true">' +
+          '<span class="stats__score-done">' + o.done + '</span>' +
+          '<span class="stats__score-rest">/' + o.total + '</span>' +
+        '</p>' +
+        '<span class="sr-only">Завершено ' + o.done + ' из ' + o.total + '</span>' +
+        '<div class="stats__comb" aria-hidden="true">' + combHtml(o) + '</div>' +
+      '</section>' +
+      '<section class="stats__section">' +
+        '<h3 class="stats__section-title">По категориям</h3>' +
+        '<ul class="stats__cats" role="list">' +
+          stats.categories.map(categoryRowHtml).join('') +
+        '</ul>' +
+      '</section>' +
+      '<section class="stats__section">' +
+        '<h3 class="stats__section-title">Жанры завершённого</h3>' +
+        genreList +
+      '</section>'
+    );
+  }
+
+  var statsModal = document.getElementById('stats-modal');
+  var statsBody = document.getElementById('stats-body');
+  var statsClose = document.getElementById('stats-close');
+  // Its own opener-memory, separate from the title panel's `lastFocused`: the
+  // two panels are opened from different places and neither may hand focus back
+  // to the other's origin.
+  var statsLastFocused = null;
+
+  // Where Escape/× should hand focus back to. Anything inside either panel is
+  // refused: this panel can be opened while the title panel is still up (the
+  // handoff below hides it), and remembering an element in the panel that is on
+  // its way out would store something that is about to be display:none. Focusing
+  // such an element is a silent no-op — it is still `document.contains`-true, so
+  // the usual guard waves it through — and the keyboard user is dropped on the
+  // body instead of anywhere they can navigate from.
+  function statsFocusTarget(el) {
+    if (!el || el === document.body) return null;
+    if (statsModal.contains(el)) return null;
+    if (document.getElementById('title-modal').contains(el)) return null;
+    return el;
+  }
+
+  function openStatsModal() {
+    if (!statsModal.hidden) return;
+    hideTitleModalForStats();
+    statsBody.innerHTML = statsHtml(computeStats());
+    statsLastFocused = statsFocusTarget(document.activeElement);
+    statsModal.hidden = false;
+    statsClose.focus();
+  }
+
+  function closeStatsModal() {
+    if (statsModal.hidden) return;
+    statsModal.hidden = true;
+    var target = statsLastFocused;
+    statsLastFocused = null;
+    // Unlike the title panel — whose card can genuinely be gone by now, deleted
+    // or filtered away, leaving nothing to return to — this panel always has a
+    // home to go back to: the button that opens it is a fixture of the toolbar.
+    // So the fallback is that button rather than the body.
+    if (!(target && document.contains(target) && typeof target.focus === 'function')) {
+      target = document.getElementById('stats-open');
+    }
+    target.focus();
+    // The grid is about to be looked at again — same handoff the title panel makes.
+    flushGrid();
+  }
+
+  // ── Keeping the two panels mutually exclusive ─────────────────────────
+  //
+  // Neither panel traps focus (the title panel never has), so a keyboard user
+  // can Tab out of an open panel and reach the grid or the toolbar behind the
+  // backdrop — and from there open the other panel on top of this one. Two
+  // stacked dialogs, both aria-modal, is a state neither was built for. So
+  // whichever is opened last simply takes the screen: the outgoing panel is
+  // hidden without restoring its opener's focus, because focus is on its way
+  // into the incoming panel and pulling it backwards would fight that.
+  function hideStatsForTitleModal() {
+    if (statsModal.hidden) return;
+    statsModal.hidden = true;
+    statsLastFocused = null;
+  }
+
+  function hideTitleModalForStats() {
+    var modal = document.getElementById('title-modal');
+    if (modal.hidden) return;
+    modal.hidden = true;
+    lastFocused = null;
+  }
+
+  document.getElementById('stats-open').addEventListener('click', openStatsModal);
+  statsClose.addEventListener('click', closeStatsModal);
+  statsModal.querySelector('.modal__backdrop').addEventListener('click', closeStatsModal);
+
   function findTitleById(id) {
     return baseTitles().filter(function (t) { return t.id === id; })[0];
   }
@@ -764,6 +1018,11 @@
     renderRating(title.rating);
     var modal = document.getElementById('title-modal');
     modal.dataset.id = id;
+    // The stats panel is a peer, never a floor to stack on — see
+    // hideStatsForTitleModal. Done before `lastFocused` is captured so the
+    // element remembered here is the card, not something inside a panel that
+    // is on its way out.
+    hideStatsForTitleModal();
     // Remember where the modal was opened from so Escape/× can hand focus back
     // to that exact card instead of dumping the keyboard user at the top of the
     // page. Nothing is stored if focus was already inside the modal.
@@ -939,12 +1198,21 @@
     openTitleModal(card.dataset.id);
   });
   document.getElementById('modal-close').addEventListener('click', closeTitleModal);
-  document.querySelector('.modal__backdrop').addEventListener('click', closeTitleModal);
+  // Scoped to this panel by id. There is more than one .modal__backdrop in the
+  // document now, and a bare document.querySelector would silently bind
+  // whichever happened to come first in the markup.
+  document.querySelector('#title-modal .modal__backdrop').addEventListener('click', closeTitleModal);
 
   // Escape is the only dismissal a keyboard-only user can reach without hunting
-  // for the × — the backdrop is unclickable to them.
+  // for the × — the backdrop is unclickable to them. Both panels answer to it;
+  // opening one closes the other, so at most one branch can ever fire.
   document.addEventListener('keydown', function (event) {
     if (event.key !== 'Escape' && event.key !== 'Esc') return;
+    if (!statsModal.hidden) {
+      event.preventDefault();
+      closeStatsModal();
+      return;
+    }
     if (document.getElementById('title-modal').hidden) return;
     event.preventDefault();
     closeTitleModal();
@@ -1001,6 +1269,9 @@
     refresh: refresh,
     openTitleModal: openTitleModal,
     closeTitleModal: closeTitleModal,
+    computeStats: computeStats,
+    openStatsModal: openStatsModal,
+    closeStatsModal: closeStatsModal,
     state: state
   };
 }());
