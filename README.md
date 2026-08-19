@@ -5,12 +5,97 @@
 ## Как это устроено
 
 - `data.js` — базовый каталог тайтлов (редактируется вручную/через Claude).
-- Статус просмотра, личная оценка, удаление и быстро добавленные черновики редактируются прямо в интерфейсе и хранятся в `localStorage` вашего браузера поверх `data.js` — три ключа:
+- Статус просмотра, личная оценка, удаление и быстро добавленные черновики редактируются прямо в интерфейсе и хранятся в `localStorage` вашего браузера поверх `data.js` — четыре ключа:
   - `backlog-overrides` — правки полей тайтла (статус, оценка) по id;
   - `backlog-deleted` — id удалённых тайтлов из `data.js` (черновики сюда не попадают — они просто удаляются из `backlog-added`);
   - `backlog-added` — черновики, добавленные через форму быстрого добавления;
   - `backlog-parts` — отмеченные сезоны/части по id тайтла (`{ "the-boys-2019": [0, 1, 2] }` — индексы в массиве `parts`).
-- Чтобы сбросить все локальные правки и вернуться к состоянию `data.js` "as is", очистите все три ключа в localStorage (DevTools → Application → Local Storage), либо в консоли браузера: `localStorage.removeItem('backlog-overrides'); localStorage.removeItem('backlog-deleted'); localStorage.removeItem('backlog-added'); localStorage.removeItem('backlog-parts');`.
+- Эти четыре ключа синхронизируются между устройствами через Supabase — см. «Синхронизация» ниже.
+- Чтобы сбросить все локальные правки и вернуться к состоянию `data.js` "as is", очистите все ключи в localStorage (DevTools → Application → Local Storage), либо в консоли браузера: `localStorage.removeItem('backlog-overrides'); localStorage.removeItem('backlog-deleted'); localStorage.removeItem('backlog-added'); localStorage.removeItem('backlog-parts'); localStorage.removeItem('backlog-sync-seeded');`. Учтите: при следующей загрузке они наполнятся заново из Supabase — чтобы сбросить по-настоящему, чистите и таблицы в Supabase.
+
+## Синхронизация
+
+Каталог (`data.js`) — статика, он одинаков у всех и правится только через Claude. А вот слой правок поверх него (статусы, оценки, удаления, черновики, отмеченные сезоны) — личный и общий на двоих, поэтому он живёт в Supabase и приезжает на все устройства.
+
+**Как это устроено.** `lib/storage.js` не тронут и ничего не знает про сеть: он по-прежнему читает и пишет те же четыре ключа `localStorage`. Всё остальное делает `lib/sync.js`, который относится к `localStorage` как к локальному зеркалу общего состояния:
+
+- **при загрузке** — `pullState()` тянет четыре таблицы и раскладывает их ровно в те же четыре ключа, после чего обычный старт приложения работает как раньше;
+- **при каждой правке** — сначала пишется `localStorage` (интерфейс обновляется мгновенно и работает офлайн), следом та же правка уходит в Supabase;
+- **при чужой правке** — realtime-подписка будит вкладку, она перечитывает состояние и перерисовывается сама, без перезагрузки.
+
+Одна таблица на один ключ:
+
+| Таблица | Ключ | Что внутри |
+| --- | --- | --- |
+| `overrides` | `backlog-overrides` | статус и оценка по id |
+| `deleted_titles` | `backlog-deleted` | id удалённых каталожных тайтлов |
+| `drafts` | `backlog-added` | черновики быстрого добавления |
+| `parts` | `backlog-parts` | отмеченные сезоны/части |
+
+**Сначала рисуем, потом синхронизируем.** Клиент Supabase (единственная внешняя зависимость проекта, подключается через CDN с `defer`) грузится уже после первой отрисовки. Если он не загрузился, если сеть отвалилась или Supabase недоступен — приложение работает целиком на `localStorage`, ровно как до появления синхронизации: в консоли будет предупреждение, на экране ничего не сломается. Это же держит офлайн-режим PWA (`sw.js`) осмысленным.
+
+**Чужая правка никогда не перебивает вашу работу.** Если открыта модалка, панель жанров или курсор/фокус в сетке — новые данные молча уезжают в `localStorage`, а перерисовка откладывается до момента, когда вы выйдете из сетки или закроете панель (тот же механизм отложенного пересорта, что и у быстрых кнопок статуса).
+
+**Ключ намеренно лежит в исходниках.** `anon`/publishable-ключ — это не секрет, а публичный идентификатор проекта: его обязан предъявить любой браузер, чтобы вообще достучаться до базы. Данные защищены RLS-политиками на таблицах и тем, что адрес проекта никто посторонний не знает. Прятать его в статическом сайте всё равно негде.
+
+**Первый запуск.** Браузер, который до этого копил правки только у себя, при первом запуске сначала отправляет своё состояние наверх и только потом тянет общее — иначе пустая база ответила бы «у тебя ничего нет» и стёрла бы всю историю. Отметка о том, что это уже сделано, лежит в `backlog-sync-seeded` (по таблицам).
+
+### SQL схемы
+
+```sql
+create table if not exists overrides (
+  id text primary key,
+  status text,
+  rating int,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists deleted_titles (
+  id text primary key,
+  deleted_at timestamptz not null default now()
+);
+
+create table if not exists drafts (
+  id text primary key,
+  title text not null,
+  category text not null,
+  status text not null default 'queue',
+  airing_status text,
+  year int,
+  genres jsonb not null default '[]'::jsonb,
+  rating int,
+  synopsis text not null default '',
+  cover text not null,
+  draft boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+-- Отмеченные сезоны/части. Добавлена позже трёх остальных: без неё
+-- статусы сериалов и аниме с чеклистом не синхронизируются (на втором
+-- устройстве пустой чеклист вычислит «В бэклоге» и перебьёт приехавший статус).
+create table if not exists parts (
+  id text primary key,
+  indices jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table overrides enable row level security;
+alter table deleted_titles enable row level security;
+alter table drafts enable row level security;
+alter table parts enable row level security;
+
+create policy "allow all - overrides" on overrides for all using (true) with check (true);
+create policy "allow all - deleted_titles" on deleted_titles for all using (true) with check (true);
+create policy "allow all - drafts" on drafts for all using (true) with check (true);
+create policy "allow all - parts" on parts for all using (true) with check (true);
+
+alter publication supabase_realtime add table overrides;
+alter publication supabase_realtime add table deleted_titles;
+alter publication supabase_realtime add table drafts;
+alter publication supabase_realtime add table parts;
+```
+
+Если таблицы `parts` ещё нет, приложение работает и без неё: чеклист сезонов остаётся локальным, в консоли появляется предупреждение, остальные три таблицы синхронизируются как обычно. Как только таблицу создадите — накопленный локально `backlog-parts` уедет наверх при следующей загрузке сам.
 
 ## Как добавить новый тайтл
 
@@ -69,7 +154,7 @@
 
 ## Тесты
 
-`lib/` — чистая логика (слаги, фильтры/сортировка, localStorage-оверлей, валидация) — покрыта тестами на встроенном тест-раннере Node (без установки зависимостей):
+`lib/` — чистая логика (слаги, фильтры/сортировка, localStorage-оверлей, валидация, синхронизация) — покрыта тестами на встроенном тест-раннере Node (без установки зависимостей). `lib/sync.js` тестируется против поддельного клиента Supabase — обычного объекта с методами `from().select()/.upsert()/.delete()` — так же, как оверлей тестируется против поддельного `localStorage`: ни сети, ни моков SDK.
 
 ```bash
 node --test tests/*.test.js

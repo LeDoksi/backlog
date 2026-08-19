@@ -35,6 +35,7 @@ var SHELL_FILES = [
   'lib/slug.js',
   'lib/storage.js',
   'lib/query.js',
+  'lib/sync.js',
   'manifest.webmanifest'
 ];
 

@@ -160,9 +160,20 @@
     </div>
   </div>
 
+  <!-- The app's one and only external dependency: the Supabase client, which
+       carries the realtime websocket that lets two devices see each other's
+       edits. Deferred on purpose — it is 200KB from a third-party CDN and
+       nothing on screen depends on it, so it must never sit in front of the
+       first paint. app.js renders from localStorage immediately and picks this
+       up afterwards (see "Синхронизация" in README); if the tag fails outright,
+       offline or with the CDN blocked, `window.supabase` is simply undefined
+       and BacklogSync.createClient hands back null, which every function in
+       lib/sync.js already treats as "local-only today". -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="lib/slug.js"></script>
   <script src="lib/storage.js"></script>
   <script src="lib/query.js"></script>
+  <script src="lib/sync.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script>

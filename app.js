@@ -843,6 +843,12 @@
     var title = findTitleById(id);
     if (!title || !hasPartsChecklist(title)) return;
     var checked = BacklogStorage.setPartChecked(window.localStorage, id, parseInt(box.dataset.index, 10), box.checked);
+    // The checklist is the input and the status is the output, so both travel:
+    // the indices here, and the derived status through applyStatusChange below.
+    // Sending only the status would leave the other device deriving `queue`
+    // from its own empty checklist and shadowing the value it had just been
+    // sent — see the note on effectiveStatus in lib/storage.js.
+    BacklogSync.pushParts(syncClient, id, checked);
     var derived = renderPartsSummary(title, checked);
     // Straight down the existing status path: one setOverride, the card behind
     // the modal patched in place, counters redrawn, reorder deferred. Nothing
@@ -1092,6 +1098,11 @@
 
   function applyRatingChange(id, rating) {
     BacklogStorage.setOverride(window.localStorage, id, { rating: rating });
+    // Write-through: localStorage first (so the UI below is already correct and
+    // stays correct offline), then the same change to Supabase. The push is
+    // fire-and-forget by design — it can only ever fail into a console warning,
+    // never into a broken click. See lib/sync.js.
+    BacklogSync.pushOverride(syncClient, id, { rating: rating });
     var card = cardById(id);
     var title = findTitleById(id);
     if (card && title) patchCardRating(card, title);
@@ -1102,6 +1113,7 @@
   // grid's order is now out of date.
   function applyStatusChange(id, status) {
     BacklogStorage.setOverride(window.localStorage, id, { status: status });
+    BacklogSync.pushOverride(syncClient, id, { status: status });
     var title = findTitleById(id);
     var card = cardById(id);
     if (card && title) patchCardStatus(card, title);
@@ -1224,7 +1236,15 @@
     if (!title) return;
     var confirmed = window.confirm('Удалить «' + title.title + '» из бэклога? Это действие нельзя отменить.');
     if (!confirmed) return;
+    // Asked before the delete, because deleteTitle is what makes the answer
+    // stop being true: a draft is removed from `backlog-added` outright, so
+    // afterwards there is no way left to tell it apart from a catalog title.
+    // The remote has to make the same choice — drop the row vs. tombstone it —
+    // and getting it backwards would plant a permanent shared tombstone on a
+    // slug the quick-add form can mint again.
+    var wasDraft = BacklogStorage.getAdded(window.localStorage).some(function (t) { return t.id === id; });
     BacklogStorage.deleteTitle(window.localStorage, id);
+    BacklogSync.pushDelete(syncClient, id, wasDraft);
     closeTitleModal();
     refresh();
   });
@@ -1241,7 +1261,7 @@
     // `slug-year`, and BacklogStorage.isSupersededBy is what bridges the two so
     // this draft disappears once the real entry lands. See README, "Как устроены id".
     var id = BacklogSlug.uniqueId(name, existingIds);
-    BacklogStorage.addTitle(window.localStorage, {
+    var draft = {
       id: id,
       title: name,
       category: category,
@@ -1253,15 +1273,189 @@
       synopsis: '',
       cover: 'images/covers/_placeholder.svg',
       draft: true
-    });
+    };
+    BacklogStorage.addTitle(window.localStorage, draft);
+    BacklogSync.pushDraft(syncClient, draft);
     titleInput.value = '';
     categorySelect.value = '';
     refresh();
   });
 
+  // ── Cross-device sync ────────────────────────────────────────────────
+  //
+  // The grid is painted from localStorage first and Supabase catches up
+  // afterwards. That order is the whole offline story: the first screen never
+  // waits on a network round trip, an unreachable Supabase costs nothing but a
+  // console warning, and the PWA's cached shell keeps working exactly as it did
+  // before this file learned the word "sync".
+  //
+  // These two strings are meant to be in the source. The anon key is a public
+  // identifier, not a secret — it is what every browser must present to reach
+  // the project at all, and what actually guards the data is the row-level
+  // security policy on the three tables plus the fact that nobody else knows
+  // the project URL. See README, "Синхронизация".
+  var SUPABASE_URL = 'https://rjdnpwamcxvhryiigbvt.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_omYttbkLjxA-DDxQAXU9Mw_AguNLqto';
+  var SEEDED_KEY = 'backlog-sync-seeded';
+
+  // Null until the SDK has loaded and a client has been built, and null forever
+  // if that never happens. Every BacklogSync function takes null as "local-only
+  // today" and resolves false, which is why the push calls above need no guard
+  // of their own.
+  var syncClient = null;
+
+  // A draft that the catalog has since absorbed is dropped from `backlog-added`
+  // by pruneAdded, silently, as a side effect of reading. The remote row would
+  // otherwise outlive it and be handed back on every pull — harmless on screen,
+  // since every device prunes on read too, but it accumulates forever. Reaped
+  // here instead, once per pull.
+  function reapSupersededDrafts() {
+    var before = BacklogStorage.getAdded(window.localStorage);
+    if (!before.length) return;
+    var keptIds = BacklogStorage.pruneAdded(window.localStorage, TITLES.map(function (t) { return t.id; }))
+      .map(function (t) { return t.id; });
+    if (keptIds.length === before.length) return;
+    before.forEach(function (t) {
+      if (keptIds.indexOf(t.id) === -1) BacklogSync.pushRemoveDraft(syncClient, t.id);
+    });
+  }
+
+  // The list of tables this browser has already reconciled with the remote.
+  // A malformed or missing value reads as "none", which costs one extra seed
+  // rather than skipping one that was needed.
+  function readSeeded() {
+    try {
+      var parsed = JSON.parse(window.localStorage.getItem(SEEDED_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writeSeeded(tables) {
+    try {
+      window.localStorage.setItem(SEEDED_KEY, JSON.stringify(tables));
+    } catch (e) {
+      console.warn('[sync] could not record seed state', e && e.message);
+    }
+  }
+
+  function pullIntoMirror() {
+    return BacklogSync.pullState(syncClient).then(function (result) {
+      // `result.state` holds only the tables that actually answered, so a
+      // failed or missing table leaves its localStorage key untouched rather
+      // than blanking it. Nothing at all is written when the whole pull failed.
+      if (result.ok) {
+        BacklogSync.applyState(window.localStorage, result.state);
+        reapSupersededDrafts();
+      }
+      return result;
+    });
+  }
+
+  // Is the user in the middle of something a repaint would wreck?
+  //
+  // A remote change is never urgent — it is somebody else's click on another
+  // device — so it always loses to work in progress here. An open panel would
+  // be redrawn or closed under the reader; a rebuilt grid moves cards out from
+  // under a pointer or the keyboard focus, which is the exact hazard the
+  // deferred-reorder machinery above already exists to prevent. So a busy tab
+  // takes the data (localStorage is updated either way) and defers the paint
+  // through that same machinery: `gridStale` is set, and the existing
+  // flushGrid hooks catch up the moment the user leaves the grid or closes the
+  // panel.
+  //
+  // The search box is deliberately not on this list: typing already re-renders
+  // the grid on every keystroke and the input itself is never rebuilt.
+  function userIsBusy() {
+    if (!document.getElementById('title-modal').hidden) return true;
+    if (!statsModal.hidden) return true;
+    if (!genrePanel.hidden) return true;
+    if (genreWrap.contains(document.activeElement)) return true;
+    if (grid.contains(document.activeElement)) return true;
+    // A pointer resting on the wall means a click is probably on its way.
+    if (grid.matches && grid.matches(':hover')) return true;
+    return false;
+  }
+
+  function onRemoteChange() {
+    pullIntoMirror().then(function (result) {
+      if (!result.ok) return;
+      if (userIsBusy()) {
+        gridStale = true;
+        // Cheap and safe: the counters are their own nodes and nothing is
+        // focused inside them, so the tab chips can stay honest even while the
+        // wall itself waits.
+        renderCounters();
+        return;
+      }
+      // A remote delete or quick-add changes which genres exist on this tab, so
+      // the list is rebuilt, not just the grid.
+      populateGenreFilter();
+      refresh();
+    });
+  }
+
+  function startSync() {
+    syncClient = BacklogSync.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (!syncClient) return;
+
+    // First run on a browser that has been keeping its edits to itself: push
+    // what is here before pulling anything down, or the empty remote would
+    // answer "you have nothing" and applyState would faithfully write that over
+    // months of statuses, ratings and ticked seasons. Upserts, so this merges
+    // with whatever the other device has already put there rather than
+    // replacing it.
+    //
+    // Tracked per table, and it must stay that way. Seeding a table a second
+    // time is not a harmless repeat: it pushes this browser's local rows up
+    // *ahead of the pull*, so anything the other device changed or deleted in
+    // the meantime is resurrected from a stale mirror. The flag is what makes
+    // "seed" a one-time reconciliation rather than a recurring upload.
+    var seeded = readSeeded();
+    var todo = BacklogSync.TABLES.filter(function (t) { return seeded.indexOf(t) === -1; });
+    var ready = todo.length
+      ? BacklogSync.seedLocal(syncClient, window.localStorage, { tables: todo })
+      : Promise.resolve([]);
+
+    ready
+      .then(function (done) {
+        // A table that failed stays unmarked and is retried next load — which
+        // is exactly what should happen for `parts` on a project where that
+        // table has not been created yet.
+        if (done.length) writeSeeded(seeded.concat(done));
+        return pullIntoMirror();
+      })
+      .then(function (result) {
+        if (!result.ok) return;
+        populateGenreFilter();
+        refresh();
+        // Subscribed only to the tables that answered the pull: asking realtime
+        // for a table that does not exist takes the whole channel down with it,
+        // and `parts` is the one an older project may not have yet.
+        BacklogSync.subscribe(syncClient, onRemoteChange, { tables: result.tables });
+      })
+      .catch(function (e) {
+        // Belt and braces. Nothing above is supposed to be able to reject —
+        // lib/sync.js swallows its own failures — but a bug here must not take
+        // the page down with it, because the page works fine without any of it.
+        console.warn('[sync] startup failed — running local-only', e && e.message);
+      });
+  }
+
   populateGenreFilter();
   updateRandomAvailability();
   refresh();
+
+  // Deferred to DOMContentLoaded because the Supabase tag in index.html is
+  // `defer`red: this file runs during parsing, the SDK executes after it, and
+  // this event is the first moment `window.supabase` is guaranteed to exist.
+  // It also keeps the whole of sync strictly behind the first paint.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startSync);
+  } else {
+    startSync();
+  }
 
   window.BacklogApp = {
     getVisibleTitles: getVisibleTitles,
@@ -1272,6 +1466,10 @@
     computeStats: computeStats,
     openStatsModal: openStatsModal,
     closeStatsModal: closeStatsModal,
-    state: state
+    state: state,
+    // Exposed for the console: `BacklogApp.syncClient()` returning null is the
+    // one-line answer to "is this tab syncing at all?".
+    syncClient: function () { return syncClient; },
+    pullIntoMirror: pullIntoMirror
   };
 }());
