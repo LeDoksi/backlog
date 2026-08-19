@@ -27,6 +27,47 @@
     }
   ];
 
+  // Sync is the one layer of this app that is allowed to be absent.
+  //
+  // lib/storage.js, lib/query.js and data.js are what the page *is* — without
+  // them there is nothing to render and a hard failure is the honest outcome.
+  // lib/sync.js is an addition on top of an app that worked for months without
+  // it, and it is also the one script served from a CDN-adjacent shape (see the
+  // deferred tag in index.html), so "it did not load" is a real state: a blocked
+  // request, a corporate proxy, a stale service worker, a syntax error on an
+  // older browser.
+  //
+  // A bare `BacklogSync.pushOverride(...)` in that state throws a ReferenceError
+  // rather than doing nothing, and the throw lands in the worst possible place.
+  // applyStatusChange writes to localStorage first and repaints the card second,
+  // so the exception fires *between* them: the edit is saved, the card silently
+  // keeps showing the old status, and the owner clicks again on what looks like
+  // a dead button. Same shape in applyRatingChange, the delete handler and the
+  // quick-add form.
+  //
+  // So the module is resolved once, here, and a stand-in takes its place if it
+  // is not there. Every call site then reads exactly as it did before, and each
+  // no-op returns what the real function returns for "no sync today" — the same
+  // value a null client already produces on a page where the SDK never loaded,
+  // which is a path the rest of this file has always handled.
+  var Sync = (typeof BacklogSync !== 'undefined' && BacklogSync) ? BacklogSync : {
+    TABLES: [],
+    createClient: function () { return null; },
+    pullState: function () {
+      return Promise.resolve({ ok: false, state: {}, tables: [], errors: [] });
+    },
+    applyState: function () { return []; },
+    pushOverride: function () { return Promise.resolve(false); },
+    pushDelete: function () { return Promise.resolve(false); },
+    pushDraft: function () { return Promise.resolve(false); },
+    pushRemoveDraft: function () { return Promise.resolve(false); },
+    pushParts: function () { return Promise.resolve(false); },
+    seedLocal: function () { return Promise.resolve([]); },
+    useOutbox: function () {},
+    flushOutbox: function () { return Promise.resolve(0); },
+    subscribe: function () { return null; }
+  };
+
   function baseTitles() {
     var combined = BacklogStorage.combineWithAdded(TITLES, window.localStorage);
     return BacklogStorage.applyOverlay(combined, window.localStorage);
@@ -848,7 +889,7 @@
     // Sending only the status would leave the other device deriving `queue`
     // from its own empty checklist and shadowing the value it had just been
     // sent — see the note on effectiveStatus in lib/storage.js.
-    BacklogSync.pushParts(syncClient, id, checked);
+    Sync.pushParts(syncClient, id, checked);
     var derived = renderPartsSummary(title, checked);
     // Straight down the existing status path: one setOverride, the card behind
     // the modal patched in place, counters redrawn, reorder deferred. Nothing
@@ -1102,7 +1143,7 @@
     // stays correct offline), then the same change to Supabase. The push is
     // fire-and-forget by design — it can only ever fail into a console warning,
     // never into a broken click. See lib/sync.js.
-    BacklogSync.pushOverride(syncClient, id, { rating: rating });
+    Sync.pushOverride(syncClient, id, { rating: rating });
     var card = cardById(id);
     var title = findTitleById(id);
     if (card && title) patchCardRating(card, title);
@@ -1113,7 +1154,7 @@
   // grid's order is now out of date.
   function applyStatusChange(id, status) {
     BacklogStorage.setOverride(window.localStorage, id, { status: status });
-    BacklogSync.pushOverride(syncClient, id, { status: status });
+    Sync.pushOverride(syncClient, id, { status: status });
     var title = findTitleById(id);
     var card = cardById(id);
     if (card && title) patchCardStatus(card, title);
@@ -1244,7 +1285,7 @@
     // slug the quick-add form can mint again.
     var wasDraft = BacklogStorage.getAdded(window.localStorage).some(function (t) { return t.id === id; });
     BacklogStorage.deleteTitle(window.localStorage, id);
-    BacklogSync.pushDelete(syncClient, id, wasDraft);
+    Sync.pushDelete(syncClient, id, wasDraft);
     closeTitleModal();
     refresh();
   });
@@ -1275,7 +1316,7 @@
       draft: true
     };
     BacklogStorage.addTitle(window.localStorage, draft);
-    BacklogSync.pushDraft(syncClient, draft);
+    Sync.pushDraft(syncClient, draft);
     titleInput.value = '';
     categorySelect.value = '';
     refresh();
@@ -1316,7 +1357,7 @@
       .map(function (t) { return t.id; });
     if (keptIds.length === before.length) return;
     before.forEach(function (t) {
-      if (keptIds.indexOf(t.id) === -1) BacklogSync.pushRemoveDraft(syncClient, t.id);
+      if (keptIds.indexOf(t.id) === -1) Sync.pushRemoveDraft(syncClient, t.id);
     });
   }
 
@@ -1341,12 +1382,25 @@
   }
 
   function pullIntoMirror() {
-    return BacklogSync.pullState(syncClient).then(function (result) {
+    return Sync.pullState(syncClient).then(function (result) {
       // `result.state` holds only the tables that actually answered, so a
       // failed or missing table leaves its localStorage key untouched rather
       // than blanking it. Nothing at all is written when the whole pull failed.
+      //
+      // `readSeeded()` is the second guard, and it closes a gap the first one
+      // cannot see. A table's *read* can succeed while its *write* fails — an
+      // RLS policy granting select but not insert, a column mismatch on the
+      // batched upsert, a transient 429 on the one request that matters most —
+      // and then the pull comes back with real, well-formed rows that have
+      // simply never heard of this browser's months of local history. Applying
+      // them would destroy exactly what the seed step exists to protect. So a
+      // key is only ever written once its table is *confirmed* seeded; an
+      // unseeded table keeps its local data untouched and is retried on the
+      // next load, because a failed seed leaves it unmarked in
+      // `backlog-sync-seeded`. This is the same list startSync writes, so it
+      // stays right for every later pull too, not just the one at startup.
       if (result.ok) {
-        BacklogSync.applyState(window.localStorage, result.state);
+        Sync.applyState(window.localStorage, result.state, { tables: readSeeded() });
         reapSupersededDrafts();
       }
       return result;
@@ -1399,8 +1453,8 @@
   function startSync() {
     // Registered before the client exists, so an edit made on a page that never
     // managed to reach Supabase at all is still remembered for next time.
-    BacklogSync.useOutbox(window.localStorage);
-    syncClient = BacklogSync.createClient(SUPABASE_URL, SUPABASE_KEY);
+    Sync.useOutbox(window.localStorage);
+    syncClient = Sync.createClient(SUPABASE_URL, SUPABASE_KEY);
     if (!syncClient) return;
 
     // First run on a browser that has been keeping its edits to itself: push
@@ -1416,9 +1470,9 @@
     // the meantime is resurrected from a stale mirror. The flag is what makes
     // "seed" a one-time reconciliation rather than a recurring upload.
     var seeded = readSeeded();
-    var todo = BacklogSync.TABLES.filter(function (t) { return seeded.indexOf(t) === -1; });
+    var todo = Sync.TABLES.filter(function (t) { return seeded.indexOf(t) === -1; });
     var ready = todo.length
-      ? BacklogSync.seedLocal(syncClient, window.localStorage, { tables: todo })
+      ? Sync.seedLocal(syncClient, window.localStorage, { tables: todo })
       : Promise.resolve([]);
 
     ready
@@ -1426,13 +1480,20 @@
         // A table that failed stays unmarked and is retried next load — which
         // is exactly what should happen for `parts` on a project where that
         // table has not been created yet.
+        //
+        // This has to land *before* the pull below, and not merely as
+        // bookkeeping for the next load: `pullIntoMirror` reads this same list
+        // back to decide which keys it is allowed to overwrite. An unmarked
+        // table means "the remote has not been told about this browser's local
+        // rows yet", and applying a pull to it would erase them. Writing the
+        // list here is what makes that list true by the time the pull reads it.
         if (done.length) writeSeeded(seeded.concat(done));
         // Before the pull, never after. Edits made offline live only in
         // localStorage and in the outbox; if the remote became the authority
         // first, applyState would overwrite them with a state that has never
         // heard of them and the work would be gone. Flushing first is what
         // makes "the app works offline" survive coming back online.
-        return BacklogSync.flushOutbox(syncClient);
+        return Sync.flushOutbox(syncClient);
       })
       .then(function () {
         return pullIntoMirror();
@@ -1444,14 +1505,14 @@
         // Subscribed only to the tables that answered the pull: asking realtime
         // for a table that does not exist takes the whole channel down with it,
         // and `parts` is the one an older project may not have yet.
-        BacklogSync.subscribe(syncClient, onRemoteChange, { tables: result.tables });
+        Sync.subscribe(syncClient, onRemoteChange, { tables: result.tables });
       })
       .then(function () {
         // Coming back online without a reload — the common shape of it on a
         // phone. Same order as startup: send what was queued, then catch up on
         // whatever the other device did in the meantime.
         window.addEventListener('online', function () {
-          BacklogSync.flushOutbox(syncClient).then(onRemoteChange);
+          Sync.flushOutbox(syncClient).then(onRemoteChange);
         });
       })
       .catch(function (e) {

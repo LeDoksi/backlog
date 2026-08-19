@@ -221,6 +221,95 @@ test('applyState ignores an unknown key rather than writing it', () => {
   assert.equal(store.getItem('something-else'), null);
 });
 
+// ── applyState: the seed gate ──────────────────────────────────────────
+//
+// `state` holding only the tables that answered protects against a failed
+// *read*. This is the other half: a failed *write*. A table's select can
+// succeed while its upsert fails — an RLS policy granting select but not
+// insert, a column mismatch on the batched seed, a transient 429 — and then
+// the pull comes back with real, well-formed rows that have simply never heard
+// of this browser's months of local history. Without the gate, applying them
+// destroys exactly what the seed step exists to protect.
+
+test('applyState skips a key whose table has not been confirmed seeded', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'frieren-2023', { status: 'done', rating: 10 });
+  storage.setCheckedParts(store, 'the-boys-2019', [0, 1]);
+
+  // The remote answered for everything, but only `parts` was seeded.
+  sync.applyState(store, {
+    'backlog-overrides': {},
+    'backlog-parts': { 'the-boys-2019': [0, 1] }
+  }, { tables: ['parts'] });
+
+  assert.deepEqual(storage.getOverrides(store), { 'frieren-2023': { status: 'done', rating: 10 } });
+  assert.deepEqual(storage.getCheckedParts(store, 'the-boys-2019'), [0, 1]);
+});
+
+test('applyState applies every present key when every table is seeded', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'local-only', { status: 'done' });
+  var written = sync.applyState(store, {
+    'backlog-overrides': { 'remote': { status: 'queue' } }
+  }, { tables: sync.TABLES });
+  assert.deepEqual(written, ['backlog-overrides']);
+  assert.deepEqual(storage.getOverrides(store), { 'remote': { status: 'queue' } });
+});
+
+// Nothing confirmed seeded yet — the safe answer is to write nothing at all
+// and let the next load retry the seed.
+test('applyState writes nothing when no table is confirmed seeded', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'a', { status: 'done' });
+  var written = sync.applyState(store, { 'backlog-overrides': {} }, { tables: [] });
+  assert.deepEqual(written, []);
+  assert.deepEqual(storage.getOverrides(store), { 'a': { status: 'done' } });
+});
+
+// A caller that does no seeding at all (there isn't one in app.js today, but
+// the option is optional) keeps the old unconditional behaviour.
+test('applyState without the tables option applies everything present', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'a', { status: 'done' });
+  sync.applyState(store, { 'backlog-overrides': {} });
+  assert.deepEqual(storage.getOverrides(store), {});
+});
+
+// The end-to-end shape of the bug, in the order app.js runs it: seed, then
+// pull, then apply. `overrides` refuses the write and answers the read.
+test('a pull cannot wipe local data for a table whose seed failed', async () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'frieren-2023', { status: 'done', rating: 10 });
+  storage.setOverride(store, 'dune-2021', { rating: 8 });
+
+  var client = fullClient();
+  client.from = (function (inner) {
+    return function (name) {
+      var builder = inner(name);
+      if (name === 'overrides') {
+        builder.upsert = function () {
+          return Promise.resolve({ data: null, error: { message: 'permission denied' } });
+        };
+      }
+      return builder;
+    };
+  }(client.from));
+
+  var seeded = await sync.seedLocal(client, store);
+  assert.equal(seeded.indexOf('overrides'), -1, 'a refused write must leave the table unseeded');
+
+  var pull = await sync.pullState(client);
+  assert.equal(pull.ok, true);
+  assert.equal(pull.tables.indexOf('overrides') !== -1, true, 'the read still succeeds — that is the trap');
+
+  sync.applyState(store, pull.state, { tables: seeded });
+
+  assert.deepEqual(storage.getOverrides(store), {
+    'frieren-2023': { status: 'done', rating: 10 },
+    'dune-2021': { rating: 8 }
+  });
+});
+
 // ── push functions ─────────────────────────────────────────────────────
 
 test('pushOverride upserts the patch under the title id', async () => {
@@ -547,6 +636,184 @@ test('a draft deleted offline replays as a removal, not a tombstone', async () =
 test('nothing is queued when no outbox storage has been supplied', async () => {
   sync.useOutbox(null);
   assert.equal(await sync.pushOverride({ from: function () { throw new Error('x'); } }, 'a', { status: 'done' }), false);
+});
+
+// ── The outbox stays durable during its own replay ─────────────────────
+//
+// A replay is exactly the moment the queue is most at risk, because it is the
+// moment something is being taken off it. Two ways that used to go wrong, and
+// both cost real edits:
+//
+//   the queue was emptied up front, so it lived only in memory for the length
+//   of the replay — close the tab mid-flush and every queued edit was gone from
+//   localStorage for good, with nothing left to retry;
+//
+//   and a module-level `replaying` flag made `enqueue` a no-op for the length
+//   of the flush, which stops the replay double-queueing its own retries but
+//   cannot tell those apart from the owner clicking a status on another title
+//   while the flush is under way. That edit's push failed into nothing.
+
+// The concurrent edit: queued offline work replays successfully, and during
+// that very request the owner edits a different title whose own push fails.
+// The new edit must be on disk when the dust settles — the pull that follows
+// the flush in app.js is about to make the remote the authority.
+test('an edit made during a replay is queued rather than swallowed', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'old-offline-edit', { status: 'done' });
+
+  // Lands the queued op; the network is still down for anything else.
+  var flaky = {
+    from: function () {
+      return {
+        upsert: function (row) {
+          if (row && row.id === 'old-offline-edit') {
+            // Mid-flight, the owner clicks a status on another card.
+            return sync.pushOverride(dead, 'new-edit', { status: 'queue' })
+              .then(function () { return { data: null, error: null }; });
+          }
+          return Promise.resolve({ data: null, error: { message: 'offline' } });
+        }
+      };
+    }
+  };
+
+  var sent = await sync.flushOutbox(flaky);
+
+  assert.equal(sent, 1);
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.deepEqual(queued.map(function (e) { return e.id; }), ['new-edit']);
+  assert.deepEqual(queued[0].patch, { status: 'queue' });
+  sync.useOutbox(null);
+});
+
+// An edit to a title that is itself mid-replay merges into the entry being
+// retried, so the entry no longer describes work the remote has seen. It has to
+// stay queued even though the request it was merged into succeeded.
+test('an edit merged into the entry being replayed is not dropped by its success', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+
+  var client = {
+    from: function () {
+      return {
+        upsert: function () {
+          // The owner rates the same title while the status write is in flight.
+          return sync.pushOverride(dead, 'a', { rating: 9 })
+            .then(function () { return { data: null, error: null }; });
+        }
+      };
+    }
+  };
+
+  await sync.flushOutbox(client);
+
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.equal(queued.length, 1);
+  assert.deepEqual(queued[0].patch, { status: 'done', rating: 9 });
+  sync.useOutbox(null);
+});
+
+// The tab is closed partway through. Everything the remote has not confirmed
+// must still be in localStorage, because localStorage is all that is left.
+test('an interrupted replay leaves every unconfirmed op in the queue', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'first', { status: 'done' });
+  await sync.pushOverride(dead, 'second', { status: 'queue' });
+  await sync.pushOverride(dead, 'third', { rating: 7 });
+
+  // The second request never settles — this is the process going away.
+  var hanging = {
+    from: function () {
+      return {
+        upsert: function (row) {
+          if (row && row.id === 'second') return new Promise(function () {});
+          return Promise.resolve({ data: null, error: null });
+        }
+      };
+    }
+  };
+
+  sync.flushOutbox(hanging); // deliberately not awaited
+  for (var i = 0; i < 50; i++) await Promise.resolve();
+
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.deepEqual(queued.map(function (e) { return e.id; }), ['second', 'third']);
+  assert.deepEqual(queued[1].patch, { rating: 7 });
+  sync.useOutbox(null);
+});
+
+// The queue shrinks one confirmed entry at a time, never in a batch at the end.
+test('flushOutbox removes each entry as it is confirmed, not all at the end', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+  await sync.pushOverride(dead, 'b', { status: 'done' });
+
+  var seen = [];
+  var client = {
+    from: function () {
+      return {
+        upsert: function () {
+          seen.push(JSON.parse(store.getItem('backlog-sync-outbox')).map(function (e) { return e.id; }));
+          return Promise.resolve({ data: null, error: null });
+        }
+      };
+    }
+  };
+
+  await sync.flushOutbox(client);
+
+  assert.deepEqual(seen, [['a', 'b'], ['b']]);
+  assert.deepEqual(JSON.parse(store.getItem('backlog-sync-outbox')), []);
+  sync.useOutbox(null);
+});
+
+// The replay must not re-queue its own failure on top of the entry it is
+// retrying — that was the job the `replaying` flag used to do badly.
+test('a replay that fails again leaves exactly one entry, not two', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+  await sync.pushParts(dead, 'd', [0]);
+
+  var stillDead = {
+    from: function () {
+      return {
+        upsert: function () { return Promise.resolve({ data: null, error: { message: 'offline' } }); }
+      };
+    }
+  };
+  assert.equal(await sync.flushOutbox(stillDead), 0);
+
+  var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
+  assert.deepEqual(queued.map(function (e) { return e.t + ':' + e.id; }), ['override:a', 'parts:d']);
+  sync.useOutbox(null);
+});
+
+// The flag used to leak: a replay that never finished left `replaying === true`
+// for the rest of the page's life, and from then on *every* failed push was
+// silently dropped instead of queued. Nothing is left set now.
+test('a replay left in flight does not stop later edits from queueing', async () => {
+  var store = fakeStorage();
+  var dead = { from: function () { throw new Error('offline'); } };
+  sync.useOutbox(store);
+  await sync.pushOverride(dead, 'stuck', { status: 'done' });
+
+  sync.flushOutbox({ from: function () { return { upsert: function () { return new Promise(function () {}); } }; } });
+  for (var i = 0; i < 20; i++) await Promise.resolve();
+
+  await sync.pushOverride(dead, 'later', { status: 'queue' });
+  var ids = JSON.parse(store.getItem('backlog-sync-outbox')).map(function (e) { return e.id; });
+  assert.equal(ids.indexOf('later') !== -1, true);
+  sync.useOutbox(null);
 });
 
 // ── echo suppression ───────────────────────────────────────────────────
