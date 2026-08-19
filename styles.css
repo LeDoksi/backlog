@@ -950,9 +950,10 @@ body {
   .card__poster::after { opacity: 0.45; }
 
   /* Same rule for the rating mark: with no pointer to summon the light, the lit
-     star is the resting star. */
+     star is the resting star. The rim's gold override lives further down,
+     after the desktop hover rule it must beat — @media blocks gain no
+     specificity, so it has to win on source order instead. */
   .card-rating.is-rated .card-rating__star { filter: drop-shadow(0 0 5px var(--star-glow)); }
-  .card-rating.is-rated { border-color: rgba(242, 193, 78, 0.34); }
 }
 
 /* ── Card quick-actions ───────────────────────────────────────────────── */
@@ -1156,6 +1157,16 @@ body {
 
 .card:is(:hover, :focus-visible, :focus-within) .card-rating.is-rated {
   border-color: rgba(242, 193, 78, 0.34);
+}
+
+/* Touch has no hover to trigger the rule above, so the same gold rim is the
+   resting state there — mirroring the star's own (hover: none) treatment
+   further up. This has to sit here, after the plain `.card-rating.is-rated`
+   solid-rim rule near the top of this block: that rule and this one tie on
+   specificity (@media adds none), so whichever comes later in the source
+   wins, and gold is the one that has to win. */
+@media (hover: none) {
+  .card-rating.is-rated { border-color: rgba(242, 193, 78, 0.34); }
 }
 
 /* Block flow, not flex: badges are inline chips that should hug their text and
