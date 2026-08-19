@@ -79,6 +79,42 @@
     return '<div class="card-status" role="group" aria-label="Статус">' + buttons + '</div>';
   }
 
+  // ── The rating mark ───────────────────────────────────────────────────
+  //
+  // One star from the modal's strip, plus the modal's readout value: that is
+  // the whole composition. It is the same statement the modal makes, compressed
+  // to the two glyphs that survive at 168px — the gold star says "this is a
+  // rating", the numeral says which. Rated and unrated differ in material, not
+  // only in colour: a rated title's plate is mounted with a solid hairline and
+  // its star lights under the shelf light; an unrated one keeps the dashed rim
+  // this app already uses for "not filled in yet" (the draft badge, an unaired
+  // season's box) and shows the readout's own «—». So a scan of the wall reads
+  // as which shelves have been graded, and that read survives greyscale.
+  //
+  // Purely a display mark — aria-hidden, with the same fact folded into the
+  // card's own aria-label, since the rating is set on the modal's star strip
+  // and a second, half-sized control on the poster would be one too many.
+  function cardRatingHtml(title) {
+    var rated = typeof title.rating === 'number';
+    var tip = rated ? 'Моя оценка: ' + title.rating + ' из 10' : 'Оценка ещё не выставлена';
+    return '<span class="card-rating' + (rated ? ' is-rated' : '') +
+      '" title="' + escapeHtml(tip) + '" aria-hidden="true">' +
+      '<span class="card-rating__star"></span>' +
+      '<span class="card-rating__value">' + (rated ? title.rating : '—') + '</span>' +
+      '</span>';
+  }
+
+  function ratingLabel(title) {
+    return typeof title.rating === 'number' ? 'оценка ' + title.rating + ' из 10' : 'без оценки';
+  }
+
+  // The card's accessible name carries what the poster shows: the title, and
+  // whether it has been graded. Kept in one place because renderGrid writes it
+  // once and patchCardRating rewrites it on every change.
+  function cardLabel(title) {
+    return title.title + ' — ' + ratingLabel(title);
+  }
+
   function cardHtml(title) {
     var airingBadge = BacklogQuery.isStillAiring(title)
       ? '<span class="badge badge--returning">Всё ещё выходит</span>'
@@ -96,6 +132,7 @@
     return (
       '<div class="card__poster">' +
       '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '">' +
+      cardRatingHtml(title) +
       quickActions +
       '</div>' +
       '<div class="card__body">' +
@@ -118,7 +155,7 @@
       card.dataset.id = title.id;
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
-      card.setAttribute('aria-label', title.title);
+      card.setAttribute('aria-label', cardLabel(title));
       card.innerHTML = cardHtml(title);
       grid.appendChild(card);
     });
@@ -653,7 +690,8 @@
     if (!id) return;
     var value = parseInt(star.dataset.value, 10);
     var next = value === currentRating() ? null : value;
-    BacklogStorage.setOverride(window.localStorage, id, { rating: next });
+    // Persists, and repaints the mark on the card behind the modal in place.
+    applyRatingChange(id, next);
     renderRating(next);
     // The pointer has not moved, so re-run the preview against the new rating —
     // otherwise the readout would still be offering to clear what just went.
@@ -682,6 +720,16 @@
     document.getElementById('modal-cover').src = title.cover;
     document.getElementById('modal-cover').alt = title.title;
     document.getElementById('modal-title').textContent = title.title;
+    // The source-language name, under the Russian one. Absent for games (their
+    // `title` already is the original) and for anything released here under its
+    // own name — and suppressed outright when the two strings match, so the
+    // panel never prints the same words twice.
+    var originalEl = document.getElementById('modal-original');
+    var hasOriginal = typeof title.originalTitle === 'string'
+      && title.originalTitle.trim() !== ''
+      && title.originalTitle !== title.title;
+    originalEl.textContent = hasOriginal ? title.originalTitle : '';
+    originalEl.hidden = !hasOriginal;
     var meta = [title.year, title.genres.join(', ')].filter(Boolean).join(' · ');
     if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'ещё выходит' : 'закончен');
     document.getElementById('modal-meta').textContent = meta;
@@ -764,6 +812,30 @@
     // because it depended on the status being changed. It no longer does — it is
     // now a plain fact about the title (airingStatus === 'ongoing'), which a
     // status write cannot touch. So there is nothing left to sync.
+  }
+
+  // Same discipline as patchCardStatus, for the poster's rating mark: rewrite
+  // the two glyphs and the card's accessible name, touch nothing else. A rating
+  // is only ever set from the modal, so the card being patched is the one
+  // behind the open panel — a full renderGrid would rebuild every <img> in the
+  // grid under it, and re-sort the wall out from under the card the user is
+  // about to be handed focus back to.
+  function patchCardRating(card, title) {
+    var mark = card.querySelector('.card-rating');
+    if (!mark) return;
+    var rated = typeof title.rating === 'number';
+    mark.classList.toggle('is-rated', rated);
+    mark.title = rated ? 'Моя оценка: ' + title.rating + ' из 10' : 'Оценка ещё не выставлена';
+    var value = mark.querySelector('.card-rating__value');
+    if (value) value.textContent = rated ? String(title.rating) : '—';
+    card.setAttribute('aria-label', cardLabel(title));
+  }
+
+  function applyRatingChange(id, rating) {
+    BacklogStorage.setOverride(window.localStorage, id, { rating: rating });
+    var card = cardById(id);
+    var title = findTitleById(id);
+    if (card && title) patchCardRating(card, title);
   }
 
   // The one path every status write goes through, from a card or from the

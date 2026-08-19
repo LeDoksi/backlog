@@ -948,6 +948,11 @@ body {
 @media (hover: none) {
   .card__cover { filter: none; }
   .card__poster::after { opacity: 0.45; }
+
+  /* Same rule for the rating mark: with no pointer to summon the light, the lit
+     star is the resting star. */
+  .card-rating.is-rated .card-rating__star { filter: drop-shadow(0 0 5px var(--star-glow)); }
+  .card-rating.is-rated { border-color: rgba(242, 193, 78, 0.34); }
 }
 
 /* ── Card quick-actions ───────────────────────────────────────────────── */
@@ -1050,6 +1055,107 @@ body {
 
   .card-status__btn { height: 24px; }
   .card-status__btn svg { width: 14px; height: 14px; }
+}
+
+/* ── The rating mark ──────────────────────────────────────────────────── */
+
+/* One star from the modal's strip and one number from its readout, pinned to
+   the poster's free corner. That is the whole idea: the card does not invent a
+   second way of spelling a rating, it shows a compressed copy of the one the
+   modal already uses — same drawn star silhouette (the clip-path below is the
+   strip's, verbatim), same gold, same «—» the readout prints when nothing has
+   been given yet.
+
+   Its left edge sits on --sp-2, the same inset the quick-action strip keeps at
+   the poster's foot, so the two objects on the artwork share one margin and
+   read as a column rather than as two floating widgets. Top-left also puts it
+   directly above the card title and the status chip: down the left edge a card
+   reads «8 / Пацаны / Завершено» — the rating, the name, the state.
+
+   The two states differ in material, not only in colour, so the read survives
+   both a bright poster and greyscale: a graded title is mounted with a solid
+   hairline and its star lights up under the shelf light exactly as the modal's
+   filled star does; an ungraded one keeps the dashed rim this app already
+   spends on "not filled in yet" — the draft badge, an unaired season's box.
+   Across the wall that makes the gold a tally of what has been judged.
+
+   No backdrop-filter, unlike the strip below it: this mark is on all 168 cards
+   at once and always visible, and 168 permanently composited blur layers is a
+   scroll cost the strip never pays (it only exists under the pointer). A flat
+   dark plate at the strip's own 0.78 does the same job here. */
+.card-rating {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-sm);
+  /* Denser than the quick-action strip's 0.78 for one reason: this plate is on
+     screen at rest, over cover art the app does not control, and it has to hold
+     its floor on a poster that is white in the top-left corner. Composited over
+     pure white it lands near #22232a, which keeps the gold at ~7.5:1 and the
+     muted «—» at ~4.4:1 — the same footing --text-muted has everywhere else. */
+  background: rgba(9, 10, 14, 0.88);
+  box-shadow: 0 4px 14px -8px rgba(0, 0, 0, 0.9);
+  /* The mark is a readout, never a control — clicks fall straight through to
+     the card and open the modal, which is where a rating is actually set. */
+  cursor: inherit;
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+
+.card-rating.is-rated { border-style: solid; border-color: rgba(255, 255, 255, 0.10); }
+
+/* Cut with the star-rating strip's polygon so the card and the modal are
+   drawing the same star, not two stars that happen to look alike. */
+.card-rating__star {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--text-muted);
+  clip-path: polygon(
+    50% 0%, 62.3% 33%, 97.6% 34.5%, 70% 56.5%, 79.4% 90.5%,
+    50% 71%, 20.6% 90.5%, 30% 56.5%, 2.4% 34.5%, 37.7% 33%
+  );
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    filter var(--dur-base) var(--ease-out);
+}
+
+.card-rating.is-rated .card-rating__star { background: var(--star); }
+
+/* Fixed slot, tabular figures: «10», «8» and «—» all occupy the same width, so
+   the plate is one size everywhere and the poster wall keeps its rhythm. */
+.card-rating__value {
+  min-width: 15px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+/* White, not gold — the same split the modal readout uses, where the value is
+   --text and the star beside it carries the colour. It also keeps the gold
+   spend on a card down to a 10px glyph, so the «Всё ещё выходит» chip in the
+   body below still out-ranks it. */
+.card-rating.is-rated .card-rating__value { color: var(--text); }
+
+/* The shelf light reaches the mark too: the star picks up the exact glow the
+   modal gives a filled star. Nothing moves, nothing resizes — only the light. */
+.card:is(:hover, :focus-visible, :focus-within) .card-rating.is-rated .card-rating__star {
+  filter: drop-shadow(0 0 5px var(--star-glow));
+}
+
+.card:is(:hover, :focus-visible, :focus-within) .card-rating.is-rated {
+  border-color: rgba(242, 193, 78, 0.34);
 }
 
 /* Block flow, not flex: badges are inline chips that should hug their text and
@@ -1235,6 +1341,23 @@ body {
   letter-spacing: -0.015em;
   text-wrap: balance;
 }
+
+/* The name the title was released under at home, under the name it was
+   released under here. Set in the display grotesk but left in its own
+   capitalisation — an original title is a name, not a label, so it does not get
+   the uppercase-and-track treatment .modal__meta wears one line below. That
+   also keeps the two lines from reading as one block: a name, then its data. */
+.modal__original {
+  margin: -2px 0 var(--sp-3);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.modal__original[hidden] { display: none; }
 
 .modal__meta {
   margin: 0 0 var(--sp-4);
@@ -1763,6 +1886,12 @@ body {
   .grid { gap: var(--sp-4) var(--sp-3); }
 
   .card__body { padding: var(--sp-3) var(--sp-2) var(--sp-2); }
+
+  /* A 140px poster gives the mark proportionally more of the artwork, so it
+     steps down with the card rather than holding its desktop size. */
+  .card-rating { top: 6px; left: 6px; gap: 3px; padding: 2px 5px; }
+  .card-rating__star { width: 9px; height: 9px; }
+  .card-rating__value { min-width: 13px; font-size: var(--fs-xs); }
 
   /* The segmented control takes the full width and its labels lose their side
      padding and some of their tracking rather than their letters — all three
