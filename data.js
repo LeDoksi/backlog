@@ -43,6 +43,26 @@ const TITLES = [
     ]
   },
   {
+    id: 'the-apothecary-diaries-2023',
+    title: 'Монолог фармацевта',
+    originalTitle: 'The Apothecary Diaries',
+    category: 'anime',
+    status: 'queue',
+    airingStatus: 'ongoing',
+    seasonInfo: '2 сезона (2023, 2025)\nСезон 3 выходит двумя частями — премьера первой 2 октября 2026 года, вторая ожидается в апреле 2027.',
+    year: 2023,
+    genres: ['драма', 'детектив', 'история'],
+    rating: null,
+    synopsis: 'Аптекарша Мао Мао поневоле становится служанкой в императорском дворце и с помощью знаний о травах и ядах распутывает придворные интриги и загадочные происшествия.',
+    cover: 'images/covers/the-apothecary-diaries-2023.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2023, released: true },
+      { name: 'Сезон 2', year: 2025, released: true },
+      { name: 'Сезон 3, часть 1', year: 2026, released: false },
+      { name: 'Сезон 3, часть 2', year: 2027, released: false }
+    ]
+  },
+  {
     id: 'the-boys-2019',
     title: 'Пацаны',
     originalTitle: 'The Boys',
