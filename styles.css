@@ -1928,6 +1928,39 @@ body {
 
 .edit-form__textarea { height: auto; padding: var(--sp-2) var(--sp-3); resize: vertical; }
 
+/* Task 41: URL input + file input side by side with a live thumbnail, same
+   2/3 poster ratio as .modal__cover just at edit-form scale. */
+.edit-form__cover { display: flex; gap: var(--sp-3); align-items: flex-start; margin-top: var(--sp-1); }
+
+.edit-form__cover-preview {
+  flex: none;
+  width: 84px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border);
+}
+
+.edit-form__cover-inputs { flex: 1 1 auto; min-width: 0; }
+
+.edit-form__cover-label {
+  display: block;
+  margin: 0 0 var(--sp-2);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.edit-form__cover-label .edit-form__input { margin-top: var(--sp-1); }
+
+.edit-form__file {
+  display: block;
+  width: 100%;
+  margin-top: var(--sp-1);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
 .edit-form__input:hover,
 .edit-form__select:hover,
 .edit-form__textarea:hover { border-color: var(--border-strong); }

@@ -183,10 +183,25 @@
             <span class="modal__field-label">Жанры (через запятую)</span>
             <input id="edit-genres" class="edit-form__input" type="text">
           </label>
-          <label class="edit-form__field">
-            <span class="modal__field-label">Обложка (URL или путь)</span>
-            <input id="edit-cover" class="edit-form__input" type="text">
-          </label>
+          <div class="edit-form__field">
+            <span class="modal__field-label">Обложка</span>
+            <div class="edit-form__cover">
+              <img id="edit-cover-preview" class="edit-form__cover-preview" alt="">
+              <div class="edit-form__cover-inputs">
+                <label class="edit-form__cover-label">Ссылка на картинку (URL или путь)
+                  <input id="edit-cover" class="edit-form__input" type="text">
+                </label>
+                <!-- Task 41: reads the file client-side, downscales it on a canvas
+                     (max 900px longest edge) and writes the resulting JPEG data URI
+                     straight into #edit-cover above — same field Сохранить already
+                     diffs/saves, no new storage mechanism. -->
+                <label class="edit-form__cover-label">или загрузить файл
+                  <input id="edit-cover-file" class="edit-form__file" type="file" accept="image/*">
+                </label>
+                <p id="edit-cover-error" class="edit-form__error" hidden></p>
+              </div>
+            </div>
+          </div>
           <label id="edit-platforms-field" class="edit-form__field">
             <span class="modal__field-label">Платформы (через запятую)</span>
             <input id="edit-platforms" class="edit-form__input" type="text">

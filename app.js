@@ -1127,6 +1127,9 @@
   var editYearInput = document.getElementById('edit-year');
   var editGenresInput = document.getElementById('edit-genres');
   var editCoverInput = document.getElementById('edit-cover');
+  var editCoverPreview = document.getElementById('edit-cover-preview');
+  var editCoverFileInput = document.getElementById('edit-cover-file');
+  var editCoverError = document.getElementById('edit-cover-error');
   var editPlatformsField = document.getElementById('edit-platforms-field');
   var editPlatformsInput = document.getElementById('edit-platforms');
   var editSeasonInfoField = document.getElementById('edit-season-info-field');
@@ -1155,6 +1158,76 @@
 
   editCategorySelect.addEventListener('change', function () {
     updateEditFieldVisibility(editCategorySelect.value);
+  });
+
+  // ── Task 41: upload a cover image from device ─────────────────────────
+  //
+  // No new storage field: a picked/downscaled file just overwrites
+  // #edit-cover's value, exactly as if the owner had typed a URL — Сохранить
+  // above already reads `editCoverInput.value.trim()` as `cover` and diffs it
+  // against the snapshot, so this rides that path unchanged. Last-touched
+  // wins between the two inputs, kept deliberately simple per the plan.
+  function updateEditCoverPreview() {
+    var src = editCoverInput.value.trim();
+    editCoverPreview.hidden = !src;
+    editCoverPreview.src = src;
+  }
+
+  editCoverInput.addEventListener('input', updateEditCoverPreview);
+
+  function readFileAsDataUri(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(reader.result); };
+      reader.onerror = function () { reject(new Error('file read failed')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function loadImage(src) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { reject(new Error('image decode failed')); };
+      img.src = src;
+    });
+  }
+
+  var COVER_MAX_DIM = 900;
+  var COVER_JPEG_QUALITY = 0.82;
+
+  // Downscale never upscales — a source already smaller than 900px on its
+  // longest edge passes through at its own size (scale caps at 1).
+  function downscaleCoverFile(file) {
+    return readFileAsDataUri(file).then(loadImage).then(function (img) {
+      var scale = Math.min(1, COVER_MAX_DIM / Math.max(img.width, img.height));
+      var w = Math.round(img.width * scale);
+      var h = Math.round(img.height * scale);
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      return canvas.toDataURL('image/jpeg', COVER_JPEG_QUALITY);
+    });
+  }
+
+  editCoverFileInput.addEventListener('change', function () {
+    var file = editCoverFileInput.files[0];
+    editCoverFileInput.value = ''; // lets the same file be picked again later
+    if (!file) return;
+    editCoverError.hidden = true;
+    if (file.type.indexOf('image/') !== 0) {
+      editCoverError.textContent = 'Выберите файл изображения';
+      editCoverError.hidden = false;
+      return;
+    }
+    downscaleCoverFile(file).then(function (dataUri) {
+      editCoverInput.value = dataUri;
+      updateEditCoverPreview();
+    }).catch(function () {
+      editCoverError.textContent = 'Не удалось загрузить изображение';
+      editCoverError.hidden = false;
+    });
   });
 
   function parseList(value) {
@@ -1225,6 +1298,9 @@
     editYearInput.value = editSnapshot.year != null ? editSnapshot.year : '';
     editGenresInput.value = editSnapshot.genres.join(', ');
     editCoverInput.value = editSnapshot.cover;
+    editCoverFileInput.value = '';
+    editCoverError.hidden = true;
+    updateEditCoverPreview();
     editPlatformsInput.value = editSnapshot.platforms.join(', ');
     editSeasonInfoInput.value = editSnapshot.seasonInfo;
     editSynopsisInput.value = editSnapshot.synopsis;
