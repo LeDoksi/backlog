@@ -142,6 +142,66 @@
             <span id="modal-rating-readout" class="rating__readout" aria-live="polite"></span>
           </div>
         </div>
+
+        <!-- Task 39: full in-UI card editing. "Редактировать" swaps for the
+             Сохранить/Отмена pair while the form below is open; every other
+             control in the panel (status, rating, delete) keeps working
+             underneath it exactly as before. -->
+        <button id="modal-edit" class="modal__edit" type="button">Редактировать</button>
+        <div id="modal-edit-form" class="edit-form" hidden>
+          <label class="edit-form__field">
+            <span class="modal__field-label">Название</span>
+            <input id="edit-title" class="edit-form__input" type="text">
+          </label>
+          <label class="edit-form__field">
+            <span class="modal__field-label">Оригинальное название</span>
+            <input id="edit-original-title" class="edit-form__input" type="text">
+          </label>
+          <label class="edit-form__field">
+            <span class="modal__field-label">Категория</span>
+            <select id="edit-category" class="edit-form__select">
+              <option value="game">Игра</option>
+              <option value="series">Сериал</option>
+              <option value="movie">Кино</option>
+              <option value="anime">Аниме</option>
+            </select>
+          </label>
+          <label class="edit-form__field">
+            <span class="modal__field-label">Год</span>
+            <input id="edit-year" class="edit-form__input" type="number">
+          </label>
+          <label class="edit-form__field">
+            <span class="modal__field-label">Жанры (через запятую)</span>
+            <input id="edit-genres" class="edit-form__input" type="text">
+          </label>
+          <label class="edit-form__field">
+            <span class="modal__field-label">Обложка (URL или путь)</span>
+            <input id="edit-cover" class="edit-form__input" type="text">
+          </label>
+          <label id="edit-platforms-field" class="edit-form__field">
+            <span class="modal__field-label">Платформы (через запятую)</span>
+            <input id="edit-platforms" class="edit-form__input" type="text">
+          </label>
+          <label id="edit-season-info-field" class="edit-form__field">
+            <span class="modal__field-label">Сезоны (описание)</span>
+            <textarea id="edit-season-info" class="edit-form__textarea" rows="2"></textarea>
+          </label>
+          <label class="edit-form__field">
+            <span class="modal__field-label">Синопсис</span>
+            <textarea id="edit-synopsis" class="edit-form__textarea" rows="4"></textarea>
+          </label>
+          <div id="edit-parts-field" class="edit-form__field">
+            <span class="modal__field-label">Сезоны и части</span>
+            <ul id="edit-parts-list" class="edit-parts"></ul>
+            <button id="edit-parts-add" class="edit-parts__add" type="button">+ Добавить часть</button>
+          </div>
+          <p id="edit-error" class="edit-form__error" hidden></p>
+          <div class="edit-form__actions">
+            <button id="edit-save" class="edit-form__save" type="button">Сохранить</button>
+            <button id="edit-cancel" class="edit-form__cancel" type="button">Отмена</button>
+          </div>
+        </div>
+
         <button id="modal-delete" class="modal__delete">Удалить тайтл</button>
       </div>
     </div>
@@ -174,6 +234,7 @@
   <script src="lib/storage.js"></script>
   <script src="lib/query.js"></script>
   <script src="lib/sync.js"></script>
+  <script src="lib/validate.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script>

@@ -100,6 +100,76 @@ test('pullState keeps a null rating so un-rating propagates', async () => {
   assert.deepEqual(result.state['backlog-overrides'], { 'dune-2021': { status: 'done', rating: null } });
 });
 
+// ── Task 39: shapeOverrides forwards every editable card field ─────────
+
+test('pullState forwards the newly-editable override fields as-is', async () => {
+  var client = fullClient({
+    overrides: rows([{
+      id: 'the-boys-2019',
+      status: 'in_progress',
+      rating: 8,
+      title: 'Пацаны',
+      category: 'series',
+      year: 2019,
+      genres: ['сатира', 'боевик'],
+      synopsis: 'Обновлённый синопсис.',
+      cover: 'images/covers/the-boys-2019.jpg',
+      platforms: ['PC'],
+      parts: [{ name: 'Сезон 1', year: 2019, released: true }],
+      updated_at: 'x'
+    }])
+  });
+  var result = await sync.pullState(client);
+  assert.deepEqual(result.state['backlog-overrides']['the-boys-2019'], {
+    status: 'in_progress',
+    rating: 8,
+    title: 'Пацаны',
+    category: 'series',
+    year: 2019,
+    genres: ['сатира', 'боевик'],
+    synopsis: 'Обновлённый синопсис.',
+    cover: 'images/covers/the-boys-2019.jpg',
+    platforms: ['PC'],
+    parts: [{ name: 'Сезон 1', year: 2019, released: true }]
+  });
+});
+
+// `originalTitle`/`seasonInfo` are the two override columns whose SQL name
+// differs from the JS field name, same convention as `airing_status` for
+// drafts — this is the one place that mapping could get flipped unnoticed.
+test('pullState maps original_title/season_info onto their camelCase fields', async () => {
+  var client = fullClient({
+    overrides: rows([{
+      id: 'frieren-2023',
+      original_title: 'Sousou no Frieren',
+      season_info: 'Сезон 2 анонсирован.'
+    }])
+  });
+  var result = await sync.pullState(client);
+  assert.deepEqual(result.state['backlog-overrides']['frieren-2023'], {
+    originalTitle: 'Sousou no Frieren',
+    seasonInfo: 'Сезон 2 анонсирован.'
+  });
+});
+
+// A field the owner explicitly cleared is a real edit and has to travel, the
+// same reasoning that already applied to an un-rating (rating: null).
+test('pullState keeps a null value for a cleared editable field', async () => {
+  var client = fullClient({ overrides: rows([{ id: 'barbie-2023', original_title: null }]) });
+  var result = await sync.pullState(client);
+  assert.deepEqual(result.state['backlog-overrides']['barbie-2023'], { originalTitle: null });
+});
+
+// A column this row simply never set (undefined, not null) must not appear in
+// the patch at all — applyOverlay would otherwise merge an explicit
+// `undefined` onto the title, which JSON round-trips into the field vanishing
+// outright rather than being left alone.
+test('pullState omits an override field the row never set', async () => {
+  var client = fullClient({ overrides: rows([{ id: 'fight-club-1999', status: 'done' }]) });
+  var result = await sync.pullState(client);
+  assert.deepEqual(result.state['backlog-overrides']['fight-club-1999'], { status: 'done' });
+});
+
 test('pullState reshapes deleted_titles into a flat id array', async () => {
   var client = fullClient({
     deleted_titles: rows([{ id: 'a', deleted_at: 'x' }, { id: 'b', deleted_at: 'x' }])

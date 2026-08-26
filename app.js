@@ -1018,6 +1018,11 @@
   function openTitleModal(id) {
     var title = findTitleById(id);
     if (!title) return;
+    // Whatever the edit form was doing for a previous card — or an earlier
+    // open of this same card — it must not survive into this one; a stale
+    // snapshot compared against a different title's inputs is how a save
+    // would write the wrong diff.
+    exitEditMode();
     document.getElementById('modal-cover').src = title.cover;
     document.getElementById('modal-cover').alt = title.title;
     document.getElementById('modal-title').textContent = title.title;
@@ -1091,6 +1096,211 @@
     // The grid is about to be looked at again — let it catch up now.
     flushGrid();
   }
+
+  // ── Task 39: full in-UI card editing ──────────────────────────────────
+  //
+  // Everything below turns "Редактировать" into a form pre-filled with the
+  // title's *current effective* values (data.js merged with any existing
+  // override — the same object the rest of the modal is already rendering
+  // from, never a raw re-read of data.js). Saving diffs the parsed form
+  // against a snapshot taken the moment the form opened and writes only the
+  // fields that actually changed, through the exact same
+  // BacklogStorage.setOverride / Sync.pushOverride pair every other edit in
+  // this file already goes through — no new write path, no new guard.
+  var modalEditBtn = document.getElementById('modal-edit');
+  var editForm = document.getElementById('modal-edit-form');
+  var editTitleInput = document.getElementById('edit-title');
+  var editOriginalTitleInput = document.getElementById('edit-original-title');
+  var editCategorySelect = document.getElementById('edit-category');
+  var editYearInput = document.getElementById('edit-year');
+  var editGenresInput = document.getElementById('edit-genres');
+  var editCoverInput = document.getElementById('edit-cover');
+  var editPlatformsField = document.getElementById('edit-platforms-field');
+  var editPlatformsInput = document.getElementById('edit-platforms');
+  var editSeasonInfoField = document.getElementById('edit-season-info-field');
+  var editSeasonInfoInput = document.getElementById('edit-season-info');
+  var editSynopsisInput = document.getElementById('edit-synopsis');
+  var editPartsField = document.getElementById('edit-parts-field');
+  var editPartsList = document.getElementById('edit-parts-list');
+  var editError = document.getElementById('edit-error');
+
+  // The fields this form can produce a diff for, in no particular order —
+  // `status`/`rating` stay off this list, they are still set from the status
+  // buttons and the star strip a few lines of markup above this form.
+  var EDIT_FIELDS = ['title', 'originalTitle', 'category', 'year', 'genres', 'cover', 'platforms', 'seasonInfo', 'synopsis', 'parts'];
+
+  // Only the fields that make sense for the (possibly just-picked) category
+  // are shown — `platforms` for games, `seasonInfo`/`parts` for series/anime.
+  // A hidden field's input is simply never touched by the owner, so it stays
+  // equal to its snapshot and produces no diff on save; no extra gating is
+  // needed anywhere else for that.
+  function updateEditFieldVisibility(category) {
+    editPlatformsField.hidden = category !== 'game';
+    var isSeasonal = category === 'series' || category === 'anime';
+    editSeasonInfoField.hidden = !isSeasonal;
+    editPartsField.hidden = !isSeasonal;
+  }
+
+  editCategorySelect.addEventListener('change', function () {
+    updateEditFieldVisibility(editCategorySelect.value);
+  });
+
+  function parseList(value) {
+    return value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function editPartRowHtml(part) {
+    var name = escapeHtml(part && part.name || '');
+    var year = part && part.year != null ? escapeHtml(part.year) : '';
+    var released = !part || part.released !== false;
+    return '<li class="edit-parts__row">' +
+      '<input type="text" class="edit-parts__name" placeholder="Название части" value="' + name + '">' +
+      '<input type="number" class="edit-parts__year" placeholder="Год" value="' + year + '">' +
+      '<label class="edit-parts__released"><input type="checkbox" class="edit-parts__released-box"' + (released ? ' checked' : '') + '> вышло</label>' +
+      '<button type="button" class="edit-parts__remove" aria-label="Удалить часть">×</button>' +
+      '</li>';
+  }
+
+  editPartsList.addEventListener('click', function (event) {
+    var btn = event.target.closest('.edit-parts__remove');
+    if (!btn) return;
+    var row = btn.closest('.edit-parts__row');
+    if (row) row.remove();
+  });
+
+  document.getElementById('edit-parts-add').addEventListener('click', function () {
+    editPartsList.insertAdjacentHTML('beforeend', editPartRowHtml(null));
+  });
+
+  // A row nobody typed anything into (added by "+ Добавить часть" and left
+  // alone) is dropped rather than saved as a blank part.
+  function readEditParts() {
+    return Array.prototype.slice.call(editPartsList.querySelectorAll('.edit-parts__row')).map(function (row) {
+      var name = row.querySelector('.edit-parts__name').value.trim();
+      var yearRaw = row.querySelector('.edit-parts__year').value.trim();
+      return {
+        name: name,
+        year: yearRaw ? parseInt(yearRaw, 10) : null,
+        released: row.querySelector('.edit-parts__released-box').checked
+      };
+    }).filter(function (p) { return p.name || p.year; });
+  }
+
+  // The pre-fill snapshot the diff on save is compared against. Normalized to
+  // the exact shape the parsed form will produce, so "nothing changed"
+  // compares equal even when the source title left a field undefined
+  // (data.js titles have no `originalTitle` at all, for instance).
+  var editSnapshot = null;
+
+  function enterEditMode(title) {
+    editSnapshot = {
+      title: title.title || '',
+      originalTitle: title.originalTitle || '',
+      category: title.category,
+      year: title.year != null ? title.year : null,
+      genres: (title.genres || []).slice(),
+      cover: title.cover || '',
+      platforms: (title.platforms || []).slice(),
+      seasonInfo: title.seasonInfo || '',
+      synopsis: title.synopsis || '',
+      parts: (title.parts || []).map(function (p) {
+        return { name: p.name || '', year: p.year != null ? p.year : null, released: p.released !== false };
+      })
+    };
+    editTitleInput.value = editSnapshot.title;
+    editOriginalTitleInput.value = editSnapshot.originalTitle;
+    editCategorySelect.value = editSnapshot.category;
+    editYearInput.value = editSnapshot.year != null ? editSnapshot.year : '';
+    editGenresInput.value = editSnapshot.genres.join(', ');
+    editCoverInput.value = editSnapshot.cover;
+    editPlatformsInput.value = editSnapshot.platforms.join(', ');
+    editSeasonInfoInput.value = editSnapshot.seasonInfo;
+    editSynopsisInput.value = editSnapshot.synopsis;
+    editPartsList.innerHTML = editSnapshot.parts.map(editPartRowHtml).join('');
+    updateEditFieldVisibility(editSnapshot.category);
+    editError.hidden = true;
+    editError.textContent = '';
+    modalEditBtn.hidden = true;
+    editForm.hidden = false;
+  }
+
+  function exitEditMode() {
+    editSnapshot = null;
+    editForm.hidden = true;
+    modalEditBtn.hidden = false;
+  }
+
+  modalEditBtn.addEventListener('click', function () {
+    var id = document.getElementById('title-modal').dataset.id;
+    var title = findTitleById(id);
+    if (title) enterEditMode(title);
+  });
+
+  document.getElementById('edit-cancel').addEventListener('click', exitEditMode);
+
+  document.getElementById('edit-save').addEventListener('click', function () {
+    var id = document.getElementById('title-modal').dataset.id;
+    var title = findTitleById(id);
+    if (!id || !title || !editSnapshot) return;
+
+    var next = {
+      title: editTitleInput.value.trim(),
+      originalTitle: editOriginalTitleInput.value.trim(),
+      category: editCategorySelect.value,
+      year: editYearInput.value.trim() ? parseInt(editYearInput.value, 10) : null,
+      genres: parseList(editGenresInput.value),
+      cover: editCoverInput.value.trim(),
+      platforms: parseList(editPlatformsInput.value),
+      seasonInfo: editSeasonInfoInput.value.trim(),
+      synopsis: editSynopsisInput.value,
+      parts: readEditParts()
+    };
+
+    var changedFields = EDIT_FIELDS.filter(function (field) {
+      return JSON.stringify(next[field]) !== JSON.stringify(editSnapshot[field]);
+    });
+
+    if (!changedFields.length) { exitEditMode(); return; }
+
+    // Shape-checked against the same rules a catalog entry has to pass —
+    // status/airingStatus are untouched by this form and are carried through
+    // from the current title as-is, so only errors that actually mention a
+    // field the owner just edited can block the save. That keeps a
+    // pre-existing, unrelated shape issue (or a category change this form
+    // does not attempt to reconcile airingStatus for — see README) from
+    // silently blocking an edit to a different field.
+    var candidate = Object.assign({}, title, {
+      title: next.title,
+      category: next.category,
+      year: next.year,
+      genres: next.genres,
+      cover: next.cover,
+      synopsis: next.synopsis
+    });
+    var errors = BacklogValidate.validateTitle(candidate).filter(function (e) {
+      return changedFields.some(function (f) { return e.indexOf(f) !== -1; });
+    });
+    if (errors.length) {
+      editError.textContent = errors.join('; ');
+      editError.hidden = false;
+      return;
+    }
+
+    var patch = {};
+    changedFields.forEach(function (field) { patch[field] = next[field]; });
+
+    BacklogStorage.setOverride(window.localStorage, id, patch);
+    Sync.pushOverride(syncClient, id, patch);
+
+    exitEditMode();
+    // Full rebuild rather than the in-place patch the quick status/rating
+    // actions use: an edit can touch the title's category, genres, sort keys
+    // and cover all at once, and it is a deliberate, discrete action from
+    // inside an already-open modal rather than a rapid click in the grid, so
+    // there is no hover/focus state in the wall worth preserving through it.
+    refresh();
+    openTitleModal(id);
+  });
 
   var grid = document.getElementById('grid');
 
