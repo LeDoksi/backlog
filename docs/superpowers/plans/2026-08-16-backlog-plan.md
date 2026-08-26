@@ -2773,6 +2773,185 @@ git commit -m "feat: show original title in modal, add rating indicator to grid 
 
 ---
 
+---
+
+## Phase F: in-UI editing + auto-fill from external APIs
+
+Two owner requests, delivered together because they share a mechanism: (1) full manual editing of any card's metadata directly in the UI, not just status/rating (currently editing anything beyond status/rating/delete requires asking Claude to hand-edit `data.js`); (2) auto-filling that metadata from external APIs (TMDb for movies/series, RAWG for games, Jikan for anime) so a quick-add draft — or an edit of any existing card — can be prefilled from a real source instead of typed by hand.
+
+Key existing-codebase fact that shapes both tasks: `lib/storage.js`'s `setOverride`/`applyOverlay` are **already field-agnostic** — `Object.assign({}, overrides[t.id])` merges whatever keys a patch contains onto the title, with no whitelist. `lib/sync.js`'s write paths (`sendOverride`, `seedLocal`) are *also* already field-agnostic — both do `Object.keys(patch).forEach(function (k) { row[k] = patch[k]; })`, forwarding any field present. The **only** place currently hardcoded to `status`/`rating` is the read/pull side: `shapeOverrides` in `lib/sync.js` only copies `row.status`/`row.rating` out of a fetched row, and the `overrides` Supabase table only has `id, status, rating, updated_at` columns. So the sync-layer change needed is genuinely small: add columns, extend `shapeOverrides` to copy them through (mirroring the existing `DRAFT_FIELDS` pattern already used for the `drafts` table) — no change needed to `setOverride`, `applyOverlay`, `sendOverride`, or `seedLocal`, and no new architecture.
+
+### Task 39: Full in-UI card editing
+
+**Files:**
+- Modify: `lib/sync.js`
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `README.md`
+
+**Why:** the owner wants to edit every field currently shown on a card — title, category, year, genres, synopsis, cover, `originalTitle`, `seasonInfo`, `platforms`, `parts` — directly in the UI, the same way status/rating are already editable, instead of asking Claude to hand-edit `data.js` for every change.
+
+- [ ] **Step 1: Extend the sync layer's read side**
+
+In `lib/sync.js`, add an `EDITABLE_OVERRIDE_FIELDS` list (mirroring `DRAFT_FIELDS`'s pattern): `['title', 'category', 'year', 'genres', 'rating', 'synopsis', 'cover', 'originalTitle', 'seasonInfo', 'platforms', 'parts']` (`status`/`rating` already handled — fold them into the same generic loop rather than keeping the special-cased `if` block, to avoid maintaining the field list in two places). Update `shapeOverrides` to copy through any of these fields that are present (not `undefined`) on the row, using the same "present, not merely non-null" rule already documented for `rating`. Map `originalTitle`↔`original_title` and `seasonInfo`↔`season_info` (snake_case columns, same convention as `airing_status` in `DRAFT_FIELDS`/`shapeDrafts`); the rest are 1:1 names.
+
+- [ ] **Step 2: Supabase schema**
+
+Add to `README.md`'s SQL section a migration block (new columns on the existing `overrides` table, additive only — do not touch existing `id/status/rating/updated_at` columns or any RLS policy):
+
+```sql
+alter table overrides
+  add column if not exists title text,
+  add column if not exists category text,
+  add column if not exists year int,
+  add column if not exists genres jsonb,
+  add column if not exists synopsis text,
+  add column if not exists cover text,
+  add column if not exists original_title text,
+  add column if not exists season_info text,
+  add column if not exists platforms jsonb,
+  add column if not exists parts jsonb;
+```
+
+This is a migration the owner runs themselves in the Supabase SQL editor (same pattern as the earlier `parts` table addition) — note in the task report that it's needed before edits sync cross-device, but the feature must degrade gracefully without it (an edit still saves locally via the existing override path; only the *sync* of edited fields is affected, exactly like the existing "`parts` table missing" degradation already documented in `README.md`).
+
+- [ ] **Step 3: Edit UI in the modal**
+
+Add an "Редактировать" (Edit) affordance to the title-detail modal (`index.html`/`app.js`). On activation, the modal's static display fields become editable inputs, pre-filled with the title's *current effective* values (i.e. `data.js` merged with any existing override — read the already-merged title object the modal already has, don't re-read `data.js` raw):
+
+- `title`, `originalTitle`, `synopsis` — text inputs/textarea
+- `category` — select (`game`/`series`/`movie`/`anime`)
+- `year` — number input
+- `genres` — a simple comma-separated text input parsed into an array on save (reuse whatever minimal parsing keeps this a one-line transform — do not build a tag-picker UI, that is out of scope)
+- `cover` — text input for an image URL (external hotlink or an existing `images/covers/...` path); no file upload (this is a static site with no upload endpoint — see Task 40 for how auto-fill sources a real URL here instead)
+- `platforms` (games only) — comma-separated text input parsed into an array, same treatment as genres
+- `seasonInfo` — textarea (series/anime only)
+- `parts` — series/anime only; keep this simple: a repeatable row of (name text input, year number input, released checkbox) with add/remove-row controls — do not over-build this, it mirrors the existing three fields per part 1:1
+
+A "Сохранить"/"Отмена" pair replaces Edit while editing. Saving calls `BacklogStorage.setOverride(storage, id, patch)` with only the fields that actually changed (compare against the pre-fill snapshot — an unchanged field should not be written, so a title nobody ever edited keeps producing an empty/absent override object, unchanged from today), then the matching `BacklogSync.pushOverride` call (guarded the same way every other sync call site already is in `app.js`), then a re-render of the card/modal from the freshly-applied overlay so the UI reflects the save immediately without a full page reload.
+
+- [ ] **Step 4: Validation on the way in**
+
+Before saving, run the edited object through the same shape `lib/validate.js` checks for a catalog entry where practical (valid `category`, `status` untouched by this form, `year` is a number or empty, `genres` is an array) — reject obviously malformed input with an inline message rather than silently saving garbage. Do not require every field to be filled (this mirrors quick-add drafts, which are intentionally sparse) — validate shape/type, not completeness.
+
+- [ ] **Step 5: Style it**
+
+Style the edit-mode inputs to fit the existing dark-cinematic system (reuse existing input/button styles already established for the quick-add form and rating stars rather than inventing a new visual language — invoke `frontend-design` only if the existing form styles genuinely don't extend cleanly to this many fields at once).
+
+- [ ] **Step 6: Verify**
+
+Edit a plain movie (title/year/genres/synopsis/cover), a series with `parts` (add/remove a part row, toggle `released`), and a game (`platforms`). Confirm: only changed fields land in `backlog-overrides`; the card and modal reflect the edit immediately; deleting the override key from localStorage reverts to the `data.js` original (proves this is a real overlay, not a mutation of the base catalog); `node --test tests/*.test.js` and `node tools/validate-data.js` still pass (this task adds no new automated tests beyond whatever `lib/sync.js`'s `shapeOverrides` change needs — extend `tests/sync.test.js` with cases for the newly-forwarded fields, following the existing test style in that file).
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/sync.js app.js index.html styles.css README.md tests/sync.test.js
+git commit -m "feat: full in-UI card editing via extended overrides overlay"
+```
+
+---
+
+### Task 40: Auto-fill metadata from external APIs
+
+**Files:**
+- Add: `lib/enrich.js`
+- Add: `tests/enrich.test.js`
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `README.md`
+
+**Why:** researching each quick-add draft by hand (year/genres/synopsis/poster) is the exact manual step this feature removes for the common case — search a title against a real API, show candidate matches, let the owner pick one, prefill the fields (still editable afterward via Task 39, and still subject to the owner's own judgment for franchise-scope/edition calls the way Claude has been making them all along).
+
+**Sources** (all support direct client-side `fetch`, no proxy/backend needed — consistent with this being a static, buildless site):
+- **Movies/series** → TMDb `search/movie` / `search/tv` + `movie/{id}` / `tv/{id}`, `language=ru-RU` for Russian title/overview where available (falls back to English if TMDb has no Russian translation for that title — do not fabricate a Russian string when TMDb doesn't have one, surface the English result and let the owner adjust via Task 39's edit UI instead).
+- **Games** → RAWG `games?search=` + `games/{id}`, for `genres`/`platforms`/`year`/`synopsis`/poster (RAWG has no Russian localization — English is fine here, this catalog already keeps games in English per its own convention).
+- **Anime** → Jikan (`api.jikan.moe/v4/anime?q=`), no API key required. Its titles/synopses are English/romaji — do not write these into `title` (this catalog's hard rule is Russian titles for everything except games); use Jikan only for `year`/`genres`/poster/season-count-hinting, and leave `title`/`synopsis` for the owner to fill via Task 39 or a follow-up Claude pass, exactly like today.
+
+**Keys:** TMDb and RAWG both require a free API key. The owner will provide `TMDB_KEY` and `RAWG_KEY` values (same "checked-in public key" treatment as the existing Supabase key — see `README.md`'s existing note on why that key is safely public; these two are the same kind of client-facing key, not a server secret). Wire them the same way `SUPABASE_URL`/`SUPABASE_KEY` are declared as constants near the top of `app.js`.
+
+- [ ] **Step 1: `lib/enrich.js`**
+
+New UMD module (same `module.exports`/`root.BacklogEnrich` pattern as every other `lib/` file), pure-ish functions that take a `fetch`-like function as a parameter (so tests can hand in a fake, exactly like `lib/sync.js` takes an injected SDK) rather than reaching for the global `fetch` directly:
+
+- `searchTmdb(fetchFn, key, category, query)` → `category` is `'movie'`/`'series'` mapped to TMDb's `movie`/`tv` endpoints; returns a normalized list of `{ id, title, year, poster }` candidates.
+- `fetchTmdbDetails(fetchFn, key, category, tmdbId)` → normalized `{ title, year, genres, synopsis, cover }` (map TMDb's genre-id list to name strings via the response's own `genres` array, no separate genre-id lookup call needed).
+- `searchRawg(fetchFn, key, query)` / `fetchRawgDetails(fetchFn, key, rawgId)` → normalized `{ title, year, genres, platforms, synopsis, cover }`.
+- `searchJikan(fetchFn, query)` / `fetchJikanDetails(fetchFn, malId)` → normalized `{ year, genres, cover }` only (no `title`/`synopsis`, per the Russian-title rule above).
+
+Keep the normalization thin — map each API's actual response shape to this catalog's field names, do not build a generic multi-provider abstraction layer for 3 providers that will not gain a 4th.
+
+- [ ] **Step 2: Search-and-pick UI — quick-add ONLY**
+
+**Amended per owner feedback:** auto-fill must fire exactly once, at the moment a new title is created, and must never be reachable from the edit form of an already-existing card. The reasoning: a title's data is expected to be curated (by the owner or Claude) and then stable — offering a "re-fetch from API" path on an existing, possibly hand-edited or Claude-verified card risks silently overwriting a correct/curated value with a fresh API guess. So this control lives **only** in the quick-add form, never in Task 39's edit-mode UI. If Task 39's edit form currently has (or a prior implementation attempt added) a "Найти"/enrich button or picker inside edit mode, remove it — edit mode's only job is hand-editing already-known fields, full stop.
+
+In the quick-add form (which today only has a title input + category select + submit — no other fields), add a "Найти" (Find) button next to the title field. Clicking it searches the matching source for the current category + typed title, and shows up to ~5 candidate results (poster thumbnail + title + year) to pick from. Picking one calls the matching `fetchXDetails` and creates the draft immediately via `BacklogStorage.addTitle` with the full normalized object (title/year/genres/synopsis/cover, `platforms` for games) instead of the bare placeholder stub a plain submit produces — the draft still lands as a `draft:true` item the owner reviews and can edit via Task 39 afterward (that IS the review step; there is no separate "confirm before create" screen, matching how a plain quick-add submit already creates its draft immediately today). Once the draft is created, that's it — no lingering "find" affordance follows it into edit mode later, and picking a candidate is the terminal action for that Find click (it does not also require pressing the plain "+ Добавить" submit button afterward).
+
+- [ ] **Step 3: Network failure handling**
+
+No key configured, no network, or an API error → show a brief inline message ("не удалось найти", "добавь ключ TMDB_KEY/RAWG_KEY в app.js") and leave the form exactly as if Find was never clicked. This must never throw or block manual entry — auto-fill is strictly an optional accelerant over the existing manual/Claude-driven path, never a replacement requirement.
+
+- [ ] **Step 4: Tests**
+
+`tests/enrich.test.js` against a fake `fetchFn` (a function returning canned `{ ok, json: () => Promise.resolve(...) }` responses) for each of the 6 functions in Step 1: a successful search, a successful details fetch, and an error/empty-result case per provider. No real network calls in tests.
+
+- [ ] **Step 5: README**
+
+Document the two keys (`TMDB_KEY`/`RAWG_KEY`) next to the existing Supabase key note, and the Jikan/keyless case, and that auto-fill is a starting point the owner (or Claude) still reviews — not an unattended data source.
+
+- [ ] **Step 6: Verify**
+
+With real keys wired in: search-and-pick for one movie, one series, one game, one anime; confirm fields prefill correctly and are still editable before saving; confirm the no-key / network-error path degrades cleanly. `node --test tests/*.test.js` and `node tools/validate-data.js` pass.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/enrich.js tests/enrich.test.js app.js index.html styles.css README.md
+git commit -m "feat: auto-fill title metadata from TMDb/RAWG/Jikan"
+```
+
+---
+
+### Task 41: Upload a cover image from device in the edit form
+
+**Files:**
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `README.md`
+
+**Why:** Task 39's edit form only lets the owner type an image URL/path for `cover`. In practice they have a picture on their device (a screenshot, a saved poster) and no URL for it — pasting a URL is friction they explicitly flagged as unworkable. This adds a real file picker.
+
+**Design, chosen for this being a static site with no upload endpoint:** read the chosen file client-side, downscale it on a `<canvas>` to a sane max dimension, re-encode as a JPEG data URI, and store that string directly in the existing `cover` override field — `cover` is already free-form text (a `data.js` path today, a `data:image/jpeg;base64,...` string works identically anywhere it's used as an `<img src>`). No new storage mechanism, no new sync plumbing: this rides the exact same `backlog-overrides.cover` path Task 39 already built and Task 39's `shapeOverrides`/Supabase column already carry.
+
+- [ ] **Step 1: File input**
+
+In the edit form's cover field (`index.html`, inside the block Task 39 added), add `<input type="file" accept="image/*">` next to the existing URL text input (keep the text input — a URL is still valid input, e.g. reusing an existing `images/covers/...` path). Label them clearly as alternatives ("Ссылка на картинку" / "или загрузить файл"). Add a small `<img>` thumbnail preview next to them showing the current effective cover (from the pre-fill snapshot) and updating live when either input changes.
+
+- [ ] **Step 2: Read, downscale, encode**
+
+On file selection: read via `FileReader`, draw onto an offscreen `<canvas>` sized to cap the longest edge at 900px (upscale never, only downscale — a smaller source image stays as-is), export via `canvas.toDataURL('image/jpeg', 0.82)`. Set the resulting data URI as the form's effective `cover` value (this is what gets diffed/saved on Сохранить, same as if the owner had typed a URL) and update the preview thumbnail. Reject non-image files and anything that fails to decode with a brief inline message, without throwing.
+
+`ponytail:` this stores full-size-ish images as base64 text in `backlog-overrides`/Supabase's `overrides.cover` column with no dedicated object storage or CDN — fine at this app's scale (2 people, occasional manual edits), but if data-URI covers become common enough to bloat sync payloads or Postgres row size noticeably, the upgrade path is a Supabase Storage bucket (upload the file, store the resulting public URL string in `cover` instead of the data URI itself — no schema change needed since `cover` is already just text).
+
+- [ ] **Step 3: Style it**
+
+Reuse existing edit-form input/label styles from Task 39. The preview thumbnail should match the modal's existing poster sizing conventions (check `styles.css` for how `.modal` already displays a title's cover) at a smaller scale.
+
+- [ ] **Step 4: Verify**
+
+Upload a real photo/screenshot from disk to an existing title's cover via the edit form, confirm: the preview updates immediately, saving stores a `data:image/jpeg;...` string in `backlog-overrides` for that id, the grid card and modal both render it correctly afterward, and typing a plain URL into the text input still works as an alternative (the two inputs don't fight each other — last-touched wins, keep this simple). Confirm a very large source image (e.g. a multi-MB photo) still downscales to a reasonably small data URI rather than hanging the tab. `node --test tests/*.test.js` and `node tools/validate-data.js` pass (this task needs no new automated tests — canvas/FileReader are DOM APIs with no meaningful pure-logic surface to unit test in Node; verify by hand in the browser instead).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add app.js index.html styles.css README.md
+git commit -m "feat: upload cover image from device in the edit form"
+```
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.

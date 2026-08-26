@@ -89,8 +89,17 @@
       <option value="movie">Кино</option>
       <option value="anime">Аниме</option>
     </select>
+    <!-- Task 40: searches TMDb/RAWG/Jikan (by category) for the typed title and
+         opens #quick-add-picker below with candidates to choose from — see the
+         shared enrich-picker wiring in app.js. -->
+    <button id="quick-add-find" type="button" class="quick-add__find">Найти</button>
     <button type="submit" class="quick-add__submit">+ Добавить</button>
   </form>
+  <div id="quick-add-picker" class="enrich-picker" hidden>
+    <button type="button" class="enrich-picker__close" aria-label="Закрыть результаты поиска">×</button>
+    <p class="enrich-picker__message" hidden></p>
+    <ul class="enrich-picker__list"></ul>
+  </div>
 
   <main id="grid" class="grid"></main>
 
@@ -235,6 +244,7 @@
   <script src="lib/query.js"></script>
   <script src="lib/sync.js"></script>
   <script src="lib/validate.js"></script>
+  <script src="lib/enrich.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script>

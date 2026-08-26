@@ -50,6 +50,18 @@
   // no-op returns what the real function returns for "no sync today" — the same
   // value a null client already produces on a page where the SDK never loaded,
   // which is a path the rest of this file has always handled.
+  // Task 40: same absent-module discipline as Sync above, for lib/enrich.js —
+  // a Find click must degrade to "не удалось найти" rather than a
+  // ReferenceError if the script failed to load.
+  var Enrich = (typeof BacklogEnrich !== 'undefined' && BacklogEnrich) ? BacklogEnrich : {
+    searchTmdb: function () { return Promise.resolve([]); },
+    fetchTmdbDetails: function () { return Promise.resolve(null); },
+    searchRawg: function () { return Promise.resolve([]); },
+    fetchRawgDetails: function () { return Promise.resolve(null); },
+    searchJikan: function () { return Promise.resolve([]); },
+    fetchJikanDetails: function () { return Promise.resolve(null); }
+  };
+
   var Sync = (typeof BacklogSync !== 'undefined' && BacklogSync) ? BacklogSync : {
     TABLES: [],
     createClient: function () { return null; },
@@ -1532,6 +1544,196 @@
     refresh();
   });
 
+  // ── Task 40: auto-fill from TMDb/RAWG/Jikan ───────────────────────────
+  //
+  // Quick-add only, by design: a title's data is expected to be curated and
+  // then stable, so re-fetching from an API is never offered from Task 39's
+  // edit form for an already-existing card (risk of silently overwriting a
+  // correct/curated value with a fresh API guess). Wired exactly once, onto
+  // #quick-add-find/#quick-add-picker.
+  //
+  // category → provider is fixed by this catalog's own rules: movies/series
+  // go to TMDb, games to RAWG, anime to Jikan (see lib/enrich.js's header for
+  // why Jikan's normalized details never carry title/synopsis).
+  function providerFor(category) {
+    if (category === 'movie') return 'tmdb-movie';
+    if (category === 'series') return 'tmdb-series';
+    if (category === 'game') return 'rawg';
+    if (category === 'anime') return 'jikan';
+    return null;
+  }
+
+  // Every fetchXDetails/searchX call in lib/enrich.js already resolves rather
+  // than rejects for a bad key, an offline tab or a non-200 response (see its
+  // header comment) — the one thing it cannot protect against is `fetch`
+  // itself not existing (very old browsers), so that is guarded here, once,
+  // rather than in every call site below.
+  function nativeFetch() {
+    return (typeof window !== 'undefined' && typeof window.fetch === 'function')
+      ? window.fetch.bind(window)
+      : null;
+  }
+
+  // Resolves to `{ ok, candidates }` or `{ ok: false, reason }` — never
+  // rejects, never throws. `reason` is what turns into the inline message.
+  function searchByCategory(category, query) {
+    var fetchFn = nativeFetch();
+    if (!fetchFn) return Promise.resolve({ ok: false, reason: 'no-fetch' });
+    var provider = providerFor(category);
+    if (provider === 'tmdb-movie' || provider === 'tmdb-series') {
+      if (!TMDB_KEY) return Promise.resolve({ ok: false, reason: 'no-key' });
+      return Enrich.searchTmdb(fetchFn, TMDB_KEY, provider === 'tmdb-series' ? 'series' : 'movie', query)
+        .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
+    }
+    if (provider === 'rawg') {
+      if (!RAWG_KEY) return Promise.resolve({ ok: false, reason: 'no-key' });
+      return Enrich.searchRawg(fetchFn, RAWG_KEY, query)
+        .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
+    }
+    if (provider === 'jikan') {
+      return Enrich.searchJikan(fetchFn, query)
+        .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
+    }
+    return Promise.resolve({ ok: false, reason: 'no-category' });
+  }
+
+  function detailsByProvider(provider, id) {
+    var fetchFn = nativeFetch();
+    if (!fetchFn) return Promise.resolve(null);
+    if (provider === 'tmdb-movie') return Enrich.fetchTmdbDetails(fetchFn, TMDB_KEY, 'movie', id);
+    if (provider === 'tmdb-series') return Enrich.fetchTmdbDetails(fetchFn, TMDB_KEY, 'series', id);
+    if (provider === 'rawg') return Enrich.fetchRawgDetails(fetchFn, RAWG_KEY, id);
+    if (provider === 'jikan') return Enrich.fetchJikanDetails(fetchFn, id);
+    return Promise.resolve(null);
+  }
+
+  function candidateHtml(c) {
+    var name = escapeHtml(c.title || 'Без названия');
+    var year = c.year ? String(c.year) : '—';
+    var poster = c.poster ? '<img class="enrich-picker__poster" src="' + escapeHtml(c.poster) + '" alt="">'
+      : '<span class="enrich-picker__poster enrich-picker__poster--empty"></span>';
+    return '<li class="enrich-picker__item" data-id="' + escapeHtml(String(c.id)) + '" tabindex="0">' +
+      poster +
+      '<span class="enrich-picker__info"><span class="enrich-picker__name">' + name +
+      '</span><span class="enrich-picker__year">' + year + '</span></span>' +
+      '</li>';
+  }
+
+  // Wires one "Найти" button to one results container. `getCategory`/`getQuery`
+  // read whatever the surrounding form currently holds (evaluated on click, not
+  // captured once, so a category picked after the button was wired still
+  // works); `onPick(details)` is handed the normalized fetchXDetails result for
+  // whichever candidate was clicked.
+  function wireEnrichPicker(triggerBtn, container, getCategory, getQuery, onPick) {
+    var list = container.querySelector('.enrich-picker__list');
+    var msg = container.querySelector('.enrich-picker__message');
+
+    function showMessage(text) {
+      list.innerHTML = '';
+      msg.textContent = text;
+      msg.hidden = false;
+      container.hidden = false;
+    }
+
+    function close() {
+      container.hidden = true;
+      list.innerHTML = '';
+      msg.hidden = true;
+    }
+
+    triggerBtn.addEventListener('click', function () {
+      var category = getCategory();
+      var query = (getQuery() || '').trim();
+      if (!query || !category) {
+        showMessage('Укажите название и категорию, чтобы искать');
+        return;
+      }
+      showMessage('Ищу…');
+      searchByCategory(category, query).then(function (result) {
+        if (!result.ok) {
+          showMessage(result.reason === 'no-key'
+            ? 'Добавь ключ TMDB_KEY/RAWG_KEY в app.js'
+            : 'Не удалось найти');
+          return;
+        }
+        if (!result.candidates.length) {
+          showMessage('Ничего не нашлось');
+          return;
+        }
+        msg.hidden = true;
+        container.dataset.provider = result.provider;
+        list.innerHTML = result.candidates.map(candidateHtml).join('');
+        container.hidden = false;
+      });
+      // searchByCategory never rejects (see lib/enrich.js), so there is
+      // deliberately no .catch() chained above — the form's own state is
+      // never at risk from this call either way.
+    });
+
+    list.addEventListener('click', function (event) {
+      var item = event.target.closest('.enrich-picker__item');
+      if (!item) return;
+      var provider = container.dataset.provider;
+      showMessage('Загружаю…');
+      detailsByProvider(provider, item.dataset.id).then(function (details) {
+        if (!details) { showMessage('Не удалось загрузить'); return; }
+        onPick(details);
+        close();
+      });
+    });
+
+    container.querySelector('.enrich-picker__close').addEventListener('click', close);
+  }
+
+  // Quick-add has no year/genre/synopsis fields to stage a pick in, so a
+  // candidate is applied straight into a fresh draft via BacklogStorage.addTitle
+  // — the exact same object shape (and the same Sync.pushDraft call) the plain
+  // submit handler above builds, just with the fetched fields folded in instead
+  // of left blank.
+  function applyQuickAddPick(details) {
+    var titleInput = document.getElementById('quick-add-title');
+    var categorySelect = document.getElementById('quick-add-category');
+    var typed = titleInput.value.trim();
+    var category = categorySelect.value;
+    if (!typed || !category) return;
+    var name = (details.title && 'title' in details) ? details.title : typed;
+    var existingIds = baseTitles().map(function (t) { return t.id; });
+    var id = BacklogSlug.uniqueId(name, existingIds);
+    var draft = {
+      id: id,
+      title: name,
+      category: category,
+      status: 'queue',
+      airingStatus: (category === 'series' || category === 'anime') ? 'ongoing' : null,
+      year: details.year != null ? details.year : null,
+      genres: details.genres || [],
+      rating: null,
+      synopsis: ('synopsis' in details) ? details.synopsis : '',
+      cover: details.cover || 'images/covers/_placeholder.svg',
+      // Jikan (anime) never supplies a synopsis — see lib/enrich.js — so a
+      // title enriched from it still needs the owner/Claude to fill title
+      // nuance and synopsis by hand, same as an un-enriched draft, and the
+      // modal's placeholder message (openTitleModal) should keep showing.
+      // Movie/series/game details always carry `synopsis` once fetched
+      // successfully, so those are complete enough to drop the draft flag.
+      draft: !('synopsis' in details)
+    };
+    if (category === 'game' && details.platforms && details.platforms.length) draft.platforms = details.platforms;
+    BacklogStorage.addTitle(window.localStorage, draft);
+    Sync.pushDraft(syncClient, draft);
+    titleInput.value = '';
+    categorySelect.value = '';
+    refresh();
+  }
+
+  wireEnrichPicker(
+    document.getElementById('quick-add-find'),
+    document.getElementById('quick-add-picker'),
+    function () { return document.getElementById('quick-add-category').value; },
+    function () { return document.getElementById('quick-add-title').value; },
+    applyQuickAddPick
+  );
+
   // ── Cross-device sync ────────────────────────────────────────────────
   //
   // The grid is painted from localStorage first and Supabase catches up
@@ -1548,6 +1750,13 @@
   var SUPABASE_URL = 'https://rjdnpwamcxvhryiigbvt.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_omYttbkLjxA-DDxQAXU9Mw_AguNLqto';
   var SEEDED_KEY = 'backlog-sync-seeded';
+
+  // Task 40: TMDb and RAWG v3-style client keys — the same "checked-in public
+  // key" treatment as SUPABASE_KEY above (see README, "Синхронизация"). Both
+  // are client-facing keys these APIs expect to be called with directly from
+  // the browser, not server secrets.
+  var TMDB_KEY = '9affbfce7554a8309e8ea9933431b1ff';
+  var RAWG_KEY = 'bde5b0fbbc9242d0b0aeec940d845ac3';
 
   // Null until the SDK has loaded and a client has been built, and null forever
   // if that never happens. Every BacklogSync function takes null as "local-only
