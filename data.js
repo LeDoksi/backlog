@@ -2515,6 +2515,140 @@ const TITLES = [
     rating: null,
     synopsis: 'Селену объявляют вне закона и вампиры, и ликаны, охотящиеся за её кровью ради создания гибридных воинов, но Северный клан возрождает её и наделяет новыми силами для решающей битвы.',
     cover: 'images/covers/underworld-blood-wars-2016.jpg'
+  },
+  {
+    id: 'smoking-behind-the-supermarket-with-you-2026',
+    title: 'Перекур за супермаркетом',
+    originalTitle: 'Smoking Behind the Supermarket with You',
+    category: 'anime',
+    status: 'queue',
+    airingStatus: 'ongoing',
+    seasonInfo: '1 сезон, выходит с 9 июля по 24 сентября 2026 года (12 серий, премьеры по четвергам).',
+    year: 2026,
+    genres: ['романтика', 'повседневность', 'комедия'],
+    rating: null,
+    synopsis: 'Уставший офисный работник Сасаки находит единственную отдушину в перекурах у круглосуточного супермаркета, где работает приветливая кассирша Ямада. Когда её смена однажды заканчивается раньше, он неожиданно сближается за компанию с курящей рядом резкой на язык Таямой — и эти короткие разговоры становятся местом, где можно быть откровенным.',
+    cover: 'images/covers/smoking-behind-the-supermarket-with-you-2026.jpg'
+  },
+  {
+    id: 'blue-eye-samurai-2023',
+    title: 'Голубоглазый самурай',
+    originalTitle: 'Blue Eye Samurai',
+    category: 'anime',
+    status: 'queue',
+    airingStatus: 'ongoing',
+    seasonInfo: '1 сезон (2023). Сезон 2 выйдет в январе 2027 года, сериал также продлён на финальный 3-й сезон — премьера в 2028 году.',
+    year: 2023,
+    genres: ['боевик', 'драма', 'приключения'],
+    rating: null,
+    synopsis: 'Мастер меча-полукровка Мидзу разыскивает четверых европейцев, незаконно оставшихся в Японии эпохи Эдо, чтобы отомстить одному из них — своему отцу.',
+    cover: 'images/covers/blue-eye-samurai-2023.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2023, released: true },
+      { name: 'Сезон 2', year: 2027, released: false },
+      { name: 'Сезон 3', year: 2028, released: false }
+    ]
+  },
+  {
+    id: 'clair-obscur-expedition-33-2025',
+    title: "Clair Obscur: Expedition 33",
+    category: 'game',
+    status: 'queue',
+    airingStatus: null,
+    platforms: ['PC', 'PS5', 'Xbox Series X/S'],
+    year: 2025,
+    genres: ['ролевая игра', 'фэнтези'],
+    rating: null,
+    synopsis: 'Каждый год таинственная Художница рисует на монолите новое число, и все жители континента старше него бесследно исчезают. Экспедиция 33 отправляется в последний поход, чтобы остановить её и раз и навсегда покончить с этим кошмаром.',
+    cover: 'images/covers/clair-obscur-expedition-33-2025.webp'
+  },
+  {
+    id: 'reacher-2022',
+    title: 'Ричер',
+    originalTitle: 'Reacher',
+    category: 'series',
+    status: 'queue',
+    airingStatus: 'ongoing',
+    seasonInfo: '4 сезона (2022, 2023, 2025, 2026). Сезон 4 выходит еженедельно с 12 августа по 16 сентября 2026 года. Сезон 5 подтверждён и уже снимается — премьера ожидается в 2027 году.',
+    year: 2022,
+    genres: ['боевик', 'триллер', 'детектив'],
+    rating: null,
+    synopsis: 'Бывший военный полицейский Джек Ричер путешествует по Америке налегке — и почти в каждом городе оказывается втянут в расследование, которое доводит до кровавого конца в одиночку.',
+    cover: 'images/covers/reacher-2022.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2022, released: true },
+      { name: 'Сезон 2', year: 2023, released: true },
+      { name: 'Сезон 3', year: 2025, released: true },
+      { name: 'Сезон 4', year: 2026, released: false },
+      { name: 'Сезон 5', year: null, released: false }
+    ]
+  },
+  {
+    id: 'spider-man-into-the-spider-verse-2018',
+    title: 'Человек-паук: Через вселенные',
+    originalTitle: 'Spider-Man: Into the Spider-Verse',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2018,
+    genres: ['супергероика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'Майлз Моралес получает поразительные способности паука и знакомится с Спайдер-Людьми из параллельных вселенных, вместе с которыми должен остановить угрозу, нависшую над всем мультиверсумом.',
+    cover: 'images/covers/spider-man-into-the-spider-verse-2018.png'
+  },
+  {
+    id: 'spider-man-across-the-spider-verse-2023',
+    title: 'Человек-паук: Паутина вселенных',
+    originalTitle: 'Spider-Man: Across the Spider-Verse',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2023,
+    genres: ['супергероика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'Майлз Моралес присоединяется к Гвен Стейси и отправляется в путешествие по мультивселенной, где встречает целое сообщество Спайдер-Людей — и сталкивается с новыми представлениями о том, что значит быть героем.',
+    cover: 'images/covers/spider-man-across-the-spider-verse-2023.jpg'
+  },
+  {
+    id: 'stranger-things-2016',
+    title: 'Очень странные дела',
+    originalTitle: 'Stranger Things',
+    category: 'series',
+    status: 'queue',
+    airingStatus: 'completed',
+    seasonInfo: '5 сезонов (2016–2025), сериал завершён — финал вышел 31 декабря 2025 года.',
+    year: 2016,
+    genres: ['фантастика', 'ужасы', 'приключения'],
+    rating: null,
+    synopsis: 'В городке Хоукинс пропадает мальчик, а вслед за этим начинают происходить сверхъестественные события, связанные с секретной лабораторией и девочкой со сверхспособностями.',
+    cover: 'images/covers/stranger-things-2016.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2016, released: true },
+      { name: 'Сезон 2', year: 2017, released: true },
+      { name: 'Сезон 3', year: 2019, released: true },
+      { name: 'Сезон 4', year: 2022, released: true },
+      { name: 'Сезон 5 (финальный)', year: 2025, released: true }
+    ]
+  },
+  {
+    id: 'record-of-ragnarok-2021',
+    title: 'Повесть о конце света',
+    originalTitle: 'Record of Ragnarok',
+    category: 'anime',
+    status: 'queue',
+    airingStatus: 'ongoing',
+    seasonInfo: '3 сезона (2021, 2023, 2025), сериал продолжается. Сезон 4 анонсирован в июне 2026 года, премьера ожидается в 2027 году.',
+    year: 2021,
+    genres: ['боевик', 'фэнтези', 'драма'],
+    rating: null,
+    synopsis: 'Раз в тысячу лет боги собираются, чтобы решить судьбу человечества — и в этот раз выносят вердикт: людей пора уничтожить. Валькирия Брюнхильда даёт человечеству последний шанс: Рагнарёк, тринадцать поединков один на один между богами и величайшими воинами в истории человечества.',
+    cover: 'images/covers/record-of-ragnarok-2021.jpg',
+    parts: [
+      { name: 'Сезон 1', year: 2021, released: true },
+      { name: 'Сезон 2', year: 2023, released: true },
+      { name: 'Сезон 3', year: 2025, released: true },
+      { name: 'Сезон 4', year: null, released: false }
+    ]
   }
 ];
 
