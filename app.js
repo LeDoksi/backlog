@@ -1058,9 +1058,9 @@
     var hasPlatforms = title.category === 'game' && Array.isArray(title.platforms) && title.platforms.length > 0;
     platformsEl.textContent = hasPlatforms ? 'Платформы: ' + title.platforms.join(', ') : '';
     platformsEl.hidden = !hasPlatforms;
-    document.getElementById('modal-synopsis').textContent = title.draft
-      ? 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».'
-      : title.synopsis;
+    document.getElementById('modal-synopsis').textContent = title.synopsis
+      ? title.synopsis
+      : 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».';
     if (hasPartsChecklist(title)) {
       statusLabel.textContent = 'Сезоны и части';
       statusGroup.hidden = true;
@@ -1786,13 +1786,14 @@
       rating: null,
       synopsis: ('synopsis' in details) ? details.synopsis : '',
       cover: details.cover || 'images/covers/_placeholder.svg',
-      // Jikan (anime) never supplies a synopsis — see lib/enrich.js — so a
-      // title enriched from it still needs the owner/Claude to fill title
-      // nuance and synopsis by hand, same as an un-enriched draft, and the
-      // modal's placeholder message (openTitleModal) should keep showing.
-      // Movie/series/game details always carry `synopsis` once fetched
-      // successfully, so those are complete enough to drop the draft flag.
-      draft: !('synopsis' in details)
+      // Always a draft, same as a plain quick-add: `draft` is the review
+      // signal ("owner/Claude should still sanity-check this"), not a
+      // completeness flag — an API pick can be factually wrong (wrong
+      // edition, wrong franchise entry) even with every field filled in.
+      // The modal's placeholder-synopsis message is gated on actual content
+      // (see openTitleModal), not on this flag, so a fetched synopsis still
+      // displays correctly for a draft.
+      draft: true
     };
     if (category === 'game' && details.platforms && details.platforms.length) draft.platforms = details.platforms;
     BacklogStorage.addTitle(window.localStorage, draft);
