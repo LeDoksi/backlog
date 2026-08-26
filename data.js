@@ -2610,6 +2610,19 @@ const TITLES = [
     cover: 'images/covers/spider-man-across-the-spider-verse-2023.jpg'
   },
   {
+    id: 'spider-man-beyond-the-spider-verse-2027',
+    title: 'Человек-паук: Сквозь вселенные',
+    originalTitle: 'Spider-Man: Beyond the Spider-Verse',
+    category: 'movie',
+    status: 'queue',
+    airingStatus: null,
+    year: 2027,
+    genres: ['супергероика', 'боевик', 'приключения'],
+    rating: null,
+    synopsis: 'Заключительная часть трилогии о Майлзе Моралесе: развязка истории, начатой в «Через вселенные» и «Паутине вселенных».',
+    cover: 'images/covers/_placeholder.svg'
+  },
+  {
     id: 'stranger-things-2016',
     title: 'Очень странные дела',
     originalTitle: 'Stranger Things',
