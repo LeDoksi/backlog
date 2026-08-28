@@ -1970,6 +1970,14 @@
 
     titleInput.addEventListener('input', function () {
       clearTimeout(debounceTimer);
+      // Otherwise stale results from the previous keystroke's query sit on
+      // screen, still labeled under whatever text is now typed, for the
+      // whole 350ms debounce window — long enough to screenshot and mistake
+      // for a real (wrong) response to the new text.
+      searchToken += 1;
+      container.hidden = true;
+      list.innerHTML = '';
+      msg.hidden = true;
       debounceTimer = setTimeout(runSearch, 350);
     });
 

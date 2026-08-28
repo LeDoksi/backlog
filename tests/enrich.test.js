@@ -224,11 +224,15 @@ test('fetchShikimoriDetails resolves to null on a network failure', async () => 
 // ── Steam ────────────────────────────────────────────────────────────────
 //
 // Shapes below are trimmed copies of real responses from
-// `https://proxy.cors.sh/https://store.steampowered.com/api/storesearch/?term=portal&l=russian&cc=RU`
-// and `.../api/appdetails?appids=620&l=russian&cc=RU`, confirmed live during
+// `https://proxy.cors.sh/https://store.steampowered.com/api/storesearch/?term=portal&l=russian&cc=US`
+// and `.../api/appdetails?appids=620&l=russian&cc=US`, confirmed live during
 // Task 45 (proxy.cors.sh still works with no API key; a direct browser fetch
 // to store.steampowered.com fails, no CORS headers there at all — see
-// lib/enrich.js's header comment). `proxyBase` here is just `''` since the
+// lib/enrich.js's header comment). `cc=US` rather than `cc=RU` — see the
+// cc=US comment in lib/enrich.js: the Russian store region is missing a real
+// slice of Western titles and filters them out of search results entirely,
+// not just purchasability, which is what caused a real "witcher 3" search to
+// return only an unrelated modding tool. `proxyBase` here is just `''` since the
 // fake fetchFn doesn't care what's prepended to the URL.
 
 test('searchSteam normalizes a store search result (no year on a search hit)', async () => {
