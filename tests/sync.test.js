@@ -956,6 +956,23 @@ test('offline edits of different kinds are all remembered', async () => {
   sync.useOutbox(null);
 });
 
+// Task 49: the topbar readout counts unsent edits, and this is the only way it
+// is allowed to learn the number — the queue's key and shape stay in here.
+test('outboxLength counts what is queued, and reads 0 with no outbox wired up', async () => {
+  var store = fakeStorage();
+  sync.useOutbox(null);
+  assert.equal(sync.outboxLength(), 0);
+  sync.useOutbox(store);
+  assert.equal(sync.outboxLength(), 0);
+  var dead = { from: function () { throw new Error('offline'); } };
+  await sync.pushOverride(dead, 'a', { status: 'done' });
+  await sync.pushDelete(dead, 'b', false);
+  assert.equal(sync.outboxLength(), 2);
+  await sync.flushOutbox(fullClient());
+  assert.equal(sync.outboxLength(), 0);
+  sync.useOutbox(null);
+});
+
 test('flushOutbox replays queued writes and empties the queue', async () => {
   var store = fakeStorage();
   var dead = { from: function () { throw new Error('offline'); } };

@@ -202,6 +202,20 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+/* Task 49: the wordmark and the sync readout are one unit — the readout is an
+   annotation on this app's own state, so it belongs beside the name and has to
+   travel with it when the header wraps. Baseline-aligned rather than centred:
+   the two are set in the same display face and their baselines are the line
+   the eye already follows. `gap` costs nothing while the readout is `hidden`,
+   which is the case almost all of the time. */
+.topbar__brand {
+  display: flex;
+  align-items: baseline;
+  flex: none;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
 .topbar__title {
   margin: 0;
   flex: none;
@@ -213,6 +227,41 @@ body {
   line-height: 1;
   color: var(--text);
 }
+
+/* ── Task 49: the sync readout ──────────────────────────────────────────
+   Assembled entirely out of the header's existing grammar — a tab's tracked
+   uppercase micro label, and .tabs__count's tabular figures for the number —
+   so it registers as a caption on the wordmark rather than as a new control
+   that has appeared in the chrome. No dot, no pill, no border: at this size
+   the word is smaller than any badge that could hold it. */
+.sync-status {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  /* The resting visible state: a fact, not a warning. Grey says "your edits
+     are on this device and safe, they just are not shared yet". */
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+/* The one state that is about the owner's own unsent work, and the only place
+   this element takes any colour. --signal is the warm this app already means
+   "waiting for more" with (an unaired season, a returning series) — the same
+   idea one level up, so it needs no new hue. Deliberately not the accent red:
+   nothing is broken and nothing is lost, the queue is doing its job. */
+.sync-status.is-pending { color: var(--signal); }
+
+/* Same reason as .status-buttons[hidden] further down: the `display` above
+   would otherwise out-rank the hidden attribute's UA `display: none`, and the
+   quiet state — the one that is true almost always — is the whole point. */
+.sync-status[hidden] { display: none; }
 
 /* ── Category tabs ────────────────────────────────────────────────────── */
 
@@ -2552,7 +2601,11 @@ body {
   :root { --card-min: 150px; }
 
   .topbar { gap: var(--sp-3) var(--sp-4); }
-  .topbar__title { flex: 1 1 100%; }
+  /* The brand group, not the title alone — Task 49 put the sync readout in it,
+     and the readout has to stay on the wordmark's line rather than being
+     pushed down to lead the tab row. Identical geometry to before while the
+     readout is hidden, which is the ordinary case. */
+  .topbar__brand { flex: 1 1 100%; }
 
   .modal__cover { width: 168px; }
   /* Tracks the rule above rather than inheriting the desktop is-parts width —

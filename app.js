@@ -80,6 +80,7 @@
     pushParts: function () { return Promise.resolve(false); },
     seedLocal: function () { return Promise.resolve([]); },
     useOutbox: function () {},
+    outboxLength: function () { return 0; },
     flushOutbox: function () { return Promise.resolve(0); },
     subscribe: function () { return null; }
   };
@@ -1141,7 +1142,12 @@
     // Sending only the status would leave the other device deriving `queue`
     // from its own empty checklist and shadowing the value it had just been
     // sent — see the note on effectiveStatus in lib/storage.js.
-    Sync.pushParts(syncClient, title.id, after);
+    // Task 49: every push in this file is chained the same way. A push that
+    // fails lands in the outbox, and the readout is the only thing that will
+    // ever tell the owner so — waiting for the next reload or the next `online`
+    // event to show it would leave a whole offline session looking healthy.
+    // `.then` and not `.catch`: lib/sync.js never rejects, it resolves false.
+    Sync.pushParts(syncClient, title.id, after).then(renderSyncStatus);
     // renderPartsSummary already returns deriveStatus(parts, after) — the edge
     // test below reads that value rather than deriving it a second time.
     var derived = renderPartsSummary(title, after);
@@ -1636,7 +1642,7 @@
     });
 
     BacklogStorage.setOverride(window.localStorage, id, patch);
-    Sync.pushOverride(syncClient, id, patch);
+    Sync.pushOverride(syncClient, id, patch).then(renderSyncStatus);
 
     exitEditMode();
     // Full rebuild rather than the in-place patch the quick status actions
@@ -1691,7 +1697,7 @@
   // never into a broken click. See lib/sync.js.
   function applyStatusChange(id, status) {
     BacklogStorage.setOverride(window.localStorage, id, { status: status });
-    Sync.pushOverride(syncClient, id, { status: status });
+    Sync.pushOverride(syncClient, id, { status: status }).then(renderSyncStatus);
     var title = findTitleById(id);
     var card = cardById(id);
     if (card && title) patchCardStatus(card, title);
@@ -1822,7 +1828,7 @@
     // slug the quick-add form can mint again.
     var wasDraft = BacklogStorage.getAdded(window.localStorage).some(function (t) { return t.id === id; });
     BacklogStorage.deleteTitle(window.localStorage, id);
-    Sync.pushDelete(syncClient, id, wasDraft);
+    Sync.pushDelete(syncClient, id, wasDraft).then(renderSyncStatus);
     closeTitleModal();
     refresh();
   });
@@ -1870,7 +1876,7 @@
       draft: true
     };
     BacklogStorage.addTitle(window.localStorage, draft);
-    Sync.pushDraft(syncClient, draft);
+    Sync.pushDraft(syncClient, draft).then(renderSyncStatus);
     titleInput.value = '';
     categorySelect.value = '';
     refresh();
@@ -2150,7 +2156,7 @@
     };
     if (category === 'game' && details.platforms && details.platforms.length) draft.platforms = details.platforms;
     BacklogStorage.addTitle(window.localStorage, draft);
-    Sync.pushDraft(syncClient, draft);
+    Sync.pushDraft(syncClient, draft).then(renderSyncStatus);
     titleInput.value = '';
     categorySelect.value = '';
     refresh();
@@ -2201,6 +2207,47 @@
   // of their own.
   var syncClient = null;
 
+  // ── Task 49: telling the owner where their edits are ─────────────────
+  //
+  // Strictly an observer. It reads `syncClient`, `navigator.onLine` and the
+  // outbox's length and writes one span; it never pushes, pulls, flushes or
+  // decides anything, so the sync layer below behaves exactly as it did
+  // before this existed.
+  //
+  // Silence is the healthy state. With a client up, the network there and
+  // nothing queued there is nothing the owner needs to know, so the element
+  // goes back to `hidden` and the header is unchanged. It is called at each
+  // point where one of those three facts can actually have changed — the end
+  // of startSync, each flush, the online/offline events, and each push
+  // settling — rather than on a timer, so a quiet tab does no work at all.
+  var syncStatus = document.getElementById('sync-status');
+
+  function renderSyncStatus() {
+    var queued = Sync.outboxLength();
+    // A client that never came up is the same fact as a dropped network, from
+    // the only point of view that matters here: nothing is reaching the other
+    // device. `navigator.onLine` is a hint and a famously optimistic one, but
+    // a wrong answer from it costs one wrong word, never a wrong count — the
+    // count comes from the queue itself.
+    var reachable = !!syncClient && window.navigator.onLine !== false;
+    if (reachable && !queued) {
+      syncStatus.hidden = true;
+      return;
+    }
+    // Two distinguishable things, deliberately: "nothing of mine is waiting,
+    // there is just no link right now" is grey and countless; "N of my edits
+    // have not gone out" is warm and numbered. The word follows the link, the
+    // number follows the queue, so an edit that failed to push while the tab
+    // is demonstrably online is not mislabelled as being offline.
+    syncStatus.textContent = (reachable ? 'не отправлено' : 'офлайн')
+      + (queued ? ' · ' + queued : '');
+    syncStatus.title = queued
+      ? 'Ждут отправки в общий список: ' + queued
+      : 'Нет связи с общим списком — изменения сохраняются на этом устройстве';
+    syncStatus.classList.toggle('is-pending', queued > 0);
+    syncStatus.hidden = false;
+  }
+
   // A draft that the catalog has since absorbed is dropped from `backlog-added`
   // by pruneAdded, silently, as a side effect of reading. The remote row would
   // otherwise outlive it and be handed back on every pull — harmless on screen,
@@ -2213,7 +2260,7 @@
       .map(function (t) { return t.id; });
     if (keptIds.length === before.length) return;
     before.forEach(function (t) {
-      if (keptIds.indexOf(t.id) === -1) Sync.pushRemoveDraft(syncClient, t.id);
+      if (keptIds.indexOf(t.id) === -1) Sync.pushRemoveDraft(syncClient, t.id).then(renderSyncStatus);
     });
   }
 
@@ -2314,6 +2361,10 @@
     // managed to reach Supabase at all is still remembered for next time.
     Sync.useOutbox(window.localStorage);
     syncClient = Sync.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // First honest reading of the session, and the only one this tab will ever
+    // get if the client failed to build: no client means local-only forever,
+    // and the readout has to say so instead of staying quiet.
+    renderSyncStatus();
     if (!syncClient) return;
 
     // First run on a browser that has been keeping its edits to itself: push
@@ -2355,6 +2406,8 @@
         return Sync.flushOutbox(syncClient);
       })
       .then(function () {
+        // The flush above either drained the queue or left some of it behind.
+        renderSyncStatus();
         return pullIntoMirror();
       })
       .then(function (result) {
@@ -2371,8 +2424,16 @@
         // phone. Same order as startup: send what was queued, then catch up on
         // whatever the other device did in the meantime.
         window.addEventListener('online', function () {
-          Sync.flushOutbox(syncClient).then(onRemoteChange);
+          Sync.flushOutbox(syncClient).then(function () {
+            renderSyncStatus();
+            onRemoteChange();
+          });
         });
+        // Task 49's own listener, and the only reason it exists: the readout
+        // has to go grey the moment the link drops, not on the next edit.
+        // Nothing else hangs off it — there is no work to do when going
+        // offline, which is exactly what the outbox is for.
+        window.addEventListener('offline', renderSyncStatus);
       })
       .catch(function (e) {
         // Belt and braces. Nothing above is supposed to be able to reject —

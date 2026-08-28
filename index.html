@@ -12,7 +12,17 @@
 </head>
 <body>
   <header class="topbar">
-    <h1 class="topbar__title">Бэклог</h1>
+    <div class="topbar__brand">
+      <h1 class="topbar__title">Бэклог</h1>
+      <!-- Task 49: the sync readout. Ships `hidden` and stays that way for as
+           long as everything the owner did has reached the shared list, which
+           is nearly always — a healthy tab shows no indicator at all and the
+           header is exactly what it was before this task. It speaks up only
+           when the answer to "did my edit actually save to the shared state?"
+           is anything other than yes. `role="status"` because that is what
+           this is: a polite readout that changes on its own, never a control. -->
+      <span id="sync-status" class="sync-status" role="status" hidden></span>
+    </div>
     <nav id="tabs" class="tabs">
       <button class="tabs__item is-active" data-category="all">Всё <span class="tabs__count" data-count="all"></span></button>
       <button class="tabs__item" data-category="game">Игры <span class="tabs__count" data-count="game"></span></button>
