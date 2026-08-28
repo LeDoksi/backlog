@@ -378,6 +378,7 @@ body {
    work of announcing the control (there is no icon here as there is on the search
    and the selects), so it is the one hairline in the room held to the 3:1 floor. */
 .toolbar__checkbox input,
+.edit-form__checkbox input,
 .genre-option input,
 .part__box {
   -webkit-appearance: none;
@@ -398,6 +399,7 @@ body {
 }
 
 .toolbar__checkbox input::before,
+.edit-form__checkbox input::before,
 .genre-option input::before,
 .part__box::before {
   content: "";
@@ -411,10 +413,12 @@ body {
 }
 
 .toolbar__checkbox input:hover,
+.edit-form__checkbox input:hover,
 .genre-option input:hover,
 .part__box:not(:disabled):hover { border-color: var(--text-muted); }
 
 .toolbar__checkbox input:checked,
+.edit-form__checkbox input:checked,
 .genre-option input:checked,
 .part__box:checked {
   background: var(--accent);
@@ -422,6 +426,7 @@ body {
 }
 
 .toolbar__checkbox input:checked::before,
+.edit-form__checkbox input:checked::before,
 .genre-option input:checked::before,
 .part__box:checked::before { transform: scale(1); }
 
@@ -1882,6 +1887,19 @@ body {
 .edit-form[hidden] { display: none; }
 
 .edit-form__field { display: block; margin: 0 0 var(--sp-3); }
+
+/* Task 43: a checkbox field reuses .edit-form__field's spacing but needs the
+   same inline layout as .toolbar__checkbox (label text beside the box, not
+   below it) — the drawn-checkbox look itself is shared via the selector
+   lists above, only this flex override is new. */
+.edit-form__checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.edit-form__checkbox:hover { color: var(--text); }
 
 .edit-form__input,
 .edit-form__select,

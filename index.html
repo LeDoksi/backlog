@@ -51,6 +51,9 @@
     <label class="toolbar__checkbox">
       <input id="hide-done-filter" type="checkbox"> Скрыть завершённое
     </label>
+    <label class="toolbar__checkbox">
+      <input id="drafts-only-filter" type="checkbox"> Только черновики
+    </label>
     <select id="sort-select" class="toolbar__select">
       <option value="status" selected>Актуальное сначала</option>
       <option value="added">По дате добавления</option>
@@ -218,6 +221,9 @@
             <ul id="edit-parts-list" class="edit-parts"></ul>
             <button id="edit-parts-add" class="edit-parts__add" type="button">+ Добавить часть</button>
           </div>
+          <label class="edit-form__field edit-form__checkbox">
+            <input id="edit-draft" type="checkbox"> Черновик (требует проверки)
+          </label>
           <p id="edit-error" class="edit-form__error" hidden></p>
           <div class="edit-form__actions">
             <button id="edit-save" class="edit-form__save" type="button">Сохранить</button>

@@ -1,6 +1,6 @@
 // app.js
 (function () {
-  var state = { category: 'all', status: 'all', genre: [], returning: false, hideDone: false, search: '', sort: 'status' };
+  var state = { category: 'all', status: 'all', genre: [], returning: false, hideDone: false, draftsOnly: false, search: '', sort: 'status' };
   var STATUS_LABELS = { queue: 'В бэклоге', in_progress: 'В процессе', done: 'Завершено' };
 
   // Three silhouettes that stay legible at 15px and never need a label to be
@@ -219,6 +219,7 @@
   function getVisibleTitles() {
     var titles = titlesForCategory(state.category).filter(function (t) {
       if (state.hideDone && t.status === 'done') return false;
+      if (state.draftsOnly && !t.draft) return false;
       return BacklogQuery.matchesFilters(t, { status: state.status, genre: state.genre, returning: state.returning })
         && BacklogQuery.matchesSearch(t, state.search);
     });
@@ -281,6 +282,10 @@
   });
   document.getElementById('hide-done-filter').addEventListener('change', function (e) {
     state.hideDone = e.target.checked;
+    refresh();
+  });
+  document.getElementById('drafts-only-filter').addEventListener('change', function (e) {
+    state.draftsOnly = e.target.checked;
     refresh();
   });
   document.getElementById('sort-select').addEventListener('change', function (e) {
@@ -1062,7 +1067,7 @@
     platformsEl.hidden = !hasPlatforms;
     document.getElementById('modal-synopsis').textContent = title.synopsis
       ? title.synopsis
-      : 'Черновик — жанры, год, постер и описание ещё не заполнены. Просто попросите Claude дополнить «' + title.title + '».';
+      : 'Описание пока не заполнено. Попросите Claude дополнить «' + title.title + '».';
     if (hasPartsChecklist(title)) {
       statusLabel.textContent = 'Сезоны и части';
       statusGroup.hidden = true;
@@ -1139,12 +1144,13 @@
   var editSynopsisInput = document.getElementById('edit-synopsis');
   var editPartsField = document.getElementById('edit-parts-field');
   var editPartsList = document.getElementById('edit-parts-list');
+  var editDraftInput = document.getElementById('edit-draft');
   var editError = document.getElementById('edit-error');
 
   // The fields this form can produce a diff for, in no particular order —
   // `status`/`rating` stay off this list, they are still set from the status
   // buttons and the star strip a few lines of markup above this form.
-  var EDIT_FIELDS = ['title', 'originalTitle', 'category', 'year', 'genres', 'cover', 'platforms', 'seasonInfo', 'synopsis', 'parts'];
+  var EDIT_FIELDS = ['title', 'originalTitle', 'category', 'year', 'genres', 'cover', 'platforms', 'seasonInfo', 'synopsis', 'parts', 'draft'];
 
   // Only the fields that make sense for the (possibly just-picked) category
   // are shown — `platforms` for games, `seasonInfo`/`parts` for series/anime.
@@ -1292,7 +1298,11 @@
       synopsis: title.synopsis || '',
       parts: (title.parts || []).map(function (p) {
         return { name: p.name || '', year: p.year != null ? p.year : null, released: p.released !== false };
-      })
+      }),
+      // Task 43: missing/falsy `draft` (every ordinary catalog entry) reads
+      // as unchecked, exactly like every other optional field's `|| ''`
+      // fallback above.
+      draft: !!title.draft
     };
     editTitleInput.value = editSnapshot.title;
     editOriginalTitleInput.value = editSnapshot.originalTitle;
@@ -1307,6 +1317,7 @@
     editSeasonInfoInput.value = editSnapshot.seasonInfo;
     editSynopsisInput.value = editSnapshot.synopsis;
     editPartsList.innerHTML = editSnapshot.parts.map(editPartRowHtml).join('');
+    editDraftInput.checked = editSnapshot.draft;
     updateEditFieldVisibility(editSnapshot.category);
     editError.hidden = true;
     editError.textContent = '';
@@ -1343,7 +1354,8 @@
       platforms: parseList(editPlatformsInput.value),
       seasonInfo: editSeasonInfoInput.value.trim(),
       synopsis: editSynopsisInput.value,
-      parts: readEditParts()
+      parts: readEditParts(),
+      draft: editDraftInput.checked
     };
 
     var changedFields = EDIT_FIELDS.filter(function (field) {
