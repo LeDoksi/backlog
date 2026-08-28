@@ -152,12 +152,66 @@ test('pullState maps original_title/season_info onto their camelCase fields', as
   });
 });
 
-// A field the owner explicitly cleared is a real edit and has to travel, the
-// same reasoning that already applied to an un-rating (rating: null).
-test('pullState keeps a null value for a cleared editable field', async () => {
-  var client = fullClient({ overrides: rows([{ id: 'barbie-2023', original_title: null }]) });
+// ── Task 45: a NULL in a newly-added column is not an override ─────────
+//
+// `add column if not exists` fills every existing row with a real SQL NULL, and
+// PostgREST returns it — an untouched new column is indistinguishable from one
+// somebody cleared. Shipping those as overrides is what put the literal string
+// "null" on a dozen live cards: applyOverlay Object.assigns the patch onto the
+// catalog title and escapeHtml(null) is "null", with `<img src="null">` beside
+// it. Nothing in app.js's save handler writes null to these columns ('' for
+// text, [] for lists, a real boolean for draft), so null can only be the
+// migration artefact.
+
+test('pullState drops a null in a migration-added column so it cannot clobber the catalog', async () => {
+  var client = fullClient({
+    overrides: rows([{
+      id: 'barbie-2023',
+      status: 'done',
+      rating: 7,
+      title: null,
+      category: null,
+      year: null,
+      genres: null,
+      synopsis: null,
+      cover: null,
+      original_title: null,
+      season_info: null,
+      platforms: null,
+      parts: null,
+      updated_at: 'x'
+    }])
+  });
   var result = await sync.pullState(client);
-  assert.deepEqual(result.state['backlog-overrides']['barbie-2023'], { originalTitle: null });
+  assert.deepEqual(result.state['backlog-overrides']['barbie-2023'], { status: 'done', rating: 7 });
+});
+
+// The `draft` column from Task 43 is the same story, and `draft: false` is a
+// real value that must still survive — only null is dropped.
+test('pullState drops a null draft but keeps an explicit false', async () => {
+  var client = fullClient({
+    overrides: rows([
+      { id: 'old-row', status: 'done', draft: null },
+      { id: 'unmarked', status: 'done', draft: false }
+    ])
+  });
+  var result = await sync.pullState(client);
+  assert.deepEqual(result.state['backlog-overrides']['old-row'], { status: 'done' });
+  assert.deepEqual(result.state['backlog-overrides']['unmarked'], { status: 'done', draft: false });
+});
+
+// Only null is excluded, never the field: a genuinely edited value still lands.
+test('pullState still forwards a real value in a migration-added column', async () => {
+  var client = fullClient({
+    overrides: rows([{ id: 'barbie-2023', title: 'Барби', original_title: 'Barbie', genres: [], cover: '' }])
+  });
+  var result = await sync.pullState(client);
+  assert.deepEqual(result.state['backlog-overrides']['barbie-2023'], {
+    title: 'Барби',
+    originalTitle: 'Barbie',
+    genres: [],
+    cover: ''
+  });
 });
 
 // A column this row simply never set (undefined, not null) must not appear in
@@ -461,6 +515,43 @@ test('applyState still replaces deleted/added/parts wholesale', () => {
   assert.deepEqual(storage.getCheckedParts(store, 'the-boys-2019'), []);
   assert.deepEqual(storage.getCheckedParts(store, 'frieren-2023'), [2]);
   assert.deepEqual(storage.getAdded(store).map(function (t) { return t.id; }), ['remote-draft']);
+});
+
+// The reported incident, end to end and in the order the app runs it: a row
+// written before the migration, pulled after it, applied to the mirror, then
+// overlaid onto the catalog. `title` has to still be the catalog's own string —
+// a null here is what the grid rendered as the literal text "null".
+test('a pre-migration override row no longer overwrites the catalog title with null (Task 45)', async () => {
+  var store = fakeStorage();
+  var client = fullClient({
+    overrides: rows([{
+      id: 'barbie-2023',
+      status: 'done', rating: 7,
+      title: null, category: null, year: null, genres: null, synopsis: null,
+      cover: null, original_title: null, season_info: null, platforms: null,
+      parts: null, draft: null, updated_at: 'x'
+    }])
+  });
+
+  var pull = await sync.pullState(client);
+  sync.applyState(store, pull.state, { tables: pull.tables });
+
+  var catalog = [{
+    id: 'barbie-2023', title: 'Барби', category: 'movie', status: 'queue',
+    year: 2023, genres: ['комедия'], rating: null, synopsis: 'Синопсис.',
+    cover: 'images/covers/barbie-2023.jpg', airingStatus: null
+  }];
+  var shown = storage.applyOverlay(catalog, store)[0];
+
+  assert.equal(shown.title, 'Барби');
+  assert.equal(shown.cover, 'images/covers/barbie-2023.jpg');
+  assert.equal(shown.category, 'movie');
+  assert.equal(shown.year, 2023);
+  assert.deepEqual(shown.genres, ['комедия']);
+  assert.equal(shown.draft, undefined);
+  // …while the two fields that row really does assert still come through.
+  assert.equal(shown.status, 'done');
+  assert.equal(shown.rating, 7);
 });
 
 // The end-to-end shape of the bug, in the order app.js runs it: seed, then
