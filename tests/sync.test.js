@@ -323,7 +323,12 @@ test('applyState applies every present key when every table is seeded', () => {
     'backlog-overrides': { 'remote': { status: 'queue' } }
   }, { tables: sync.TABLES });
   assert.deepEqual(written, ['backlog-overrides']);
-  assert.deepEqual(storage.getOverrides(store), { 'remote': { status: 'queue' } });
+  // The remote id lands; the local-only one is kept rather than dropped — see
+  // the merge tests below for why an id absent from a pull is never a deletion.
+  assert.deepEqual(storage.getOverrides(store), {
+    'local-only': { status: 'done' },
+    'remote': { status: 'queue' }
+  });
 });
 
 // Nothing confirmed seeded yet — the safe answer is to write nothing at all
@@ -341,8 +346,121 @@ test('applyState writes nothing when no table is confirmed seeded', () => {
 test('applyState without the tables option applies everything present', () => {
   var store = fakeStorage();
   storage.setOverride(store, 'a', { status: 'done' });
-  sync.applyState(store, { 'backlog-overrides': {} });
-  assert.deepEqual(storage.getOverrides(store), {});
+  sync.applyState(store, {
+    'backlog-overrides': { 'b': { status: 'queue' } },
+    'backlog-deleted': ['gone']
+  });
+  assert.deepEqual(storage.getOverrides(store)['b'], { status: 'queue' });
+  assert.deepEqual(storage.getDeleted(store), ['gone']);
+});
+
+// ── applyState: overrides merge, the other three keys replace ──────────
+//
+// Task 45. `shapeOverrides` omits a field whose column the row came back
+// without, so before the Task 39/43 migration ran every pulled patch was
+// narrower than the local one — and applyState's whole-key write turned that
+// narrowness into data loss on the *same* device: untick «Черновик», reload,
+// and the badge was back. These pin the fix down field by field.
+
+test('applyState keeps a local override field the pulled patch never mentions (Task 45: the draft-reverts-on-refresh bug)', () => {
+  var store = fakeStorage();
+  // What the app had just written locally, before the `draft` column existed.
+  storage.setOverride(store, 'the-boys-2019', { status: 'done', draft: false });
+
+  // What the pull answers with when `overrides` has no `draft` column at all.
+  sync.applyState(store, {
+    'backlog-overrides': { 'the-boys-2019': { status: 'queue' } }
+  }, { tables: sync.TABLES });
+
+  assert.deepEqual(storage.getOverrides(store), {
+    'the-boys-2019': { status: 'queue', draft: false }
+  });
+});
+
+// The same thing end to end, through pullState, against a table whose rows
+// simply do not carry the column — which is exactly what PostgREST returns
+// before an `add column if not exists` migration is run.
+test('a pull from an un-migrated overrides table no longer erases the local draft flag (Task 45)', async () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'the-boys-2019', { status: 'done', draft: false });
+
+  var client = fullClient({
+    overrides: rows([{ id: 'the-boys-2019', status: 'done', rating: 8, updated_at: 'x' }])
+  });
+  var pull = await sync.pullState(client);
+  sync.applyState(store, pull.state, { tables: pull.tables });
+
+  assert.deepEqual(storage.getOverrides(store), {
+    'the-boys-2019': { status: 'done', rating: 8, draft: false }
+  });
+});
+
+// The other half of the contract: a field the remote genuinely carries is a
+// real edit from the other device and still wins outright.
+test('applyState lets a pulled field overwrite the local one', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'dune-2021', { status: 'queue', rating: 9 });
+  sync.applyState(store, {
+    'backlog-overrides': { 'dune-2021': { status: 'done', rating: 7 } }
+  }, { tables: sync.TABLES });
+  assert.deepEqual(storage.getOverrides(store), { 'dune-2021': { status: 'done', rating: 7 } });
+});
+
+// A null rating is this app's real "un-rated", not a missing value, so it has
+// to beat the local number rather than be treated as nothing to say.
+test('applyState lets a pulled null overwrite the local value', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'dune-2021', { rating: 9 });
+  sync.applyState(store, {
+    'backlog-overrides': { 'dune-2021': { rating: null } }
+  }, { tables: sync.TABLES });
+  assert.deepEqual(storage.getOverrides(store), { 'dune-2021': { rating: null } });
+});
+
+test('applyState adds an override id that exists only in the pull', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'local', { status: 'done' });
+  sync.applyState(store, {
+    'backlog-overrides': { 'remote': { rating: 5 } }
+  }, { tables: sync.TABLES });
+  assert.deepEqual(storage.getOverrides(store), {
+    'local': { status: 'done' },
+    'remote': { rating: 5 }
+  });
+});
+
+// Two devices editing different fields of the same title is the ordinary case
+// the merge has to survive: the remote's field lands, the local-only one stays.
+test('applyState merges concurrent edits to different fields of one title', () => {
+  var store = fakeStorage();
+  storage.setOverride(store, 'frieren-2023', { seasonInfo: 'Сезон 2 анонсирован.' });
+  sync.applyState(store, {
+    'backlog-overrides': { 'frieren-2023': { rating: 10 } }
+  }, { tables: sync.TABLES });
+  assert.deepEqual(storage.getOverrides(store), {
+    'frieren-2023': { seasonInfo: 'Сезон 2 анонсирован.', rating: 10 }
+  });
+});
+
+// Scope guard. The merge is a property of `backlog-overrides`'s patch shape
+// alone — the other three keys are whole values and a pull still replaces them,
+// which is how a title deleted elsewhere ever becomes un-deleted here.
+test('applyState still replaces deleted/added/parts wholesale', () => {
+  var store = fakeStorage();
+  storage.deleteTitle(store, 'gone');
+  storage.setCheckedParts(store, 'the-boys-2019', [0, 1]);
+  storage.addTitle(store, { id: 'local-draft', title: 'Local', category: 'movie' });
+
+  sync.applyState(store, {
+    'backlog-deleted': ['other'],
+    'backlog-parts': { 'frieren-2023': [2] },
+    'backlog-added': [{ id: 'remote-draft', title: 'Remote' }]
+  }, { tables: sync.TABLES });
+
+  assert.deepEqual(storage.getDeleted(store), ['other']);
+  assert.deepEqual(storage.getCheckedParts(store, 'the-boys-2019'), []);
+  assert.deepEqual(storage.getCheckedParts(store, 'frieren-2023'), [2]);
+  assert.deepEqual(storage.getAdded(store).map(function (t) { return t.id; }), ['remote-draft']);
 });
 
 // The end-to-end shape of the bug, in the order app.js runs it: seed, then
