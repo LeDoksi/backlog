@@ -60,7 +60,6 @@
       <option value="added">По дате добавления</option>
       <option value="name">По названию</option>
       <option value="year">По году</option>
-      <option value="rating">По оценке</option>
     </select>
     <button id="random-pick" class="toolbar__random" type="button" aria-live="polite">
       <svg class="toolbar__random-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
@@ -136,29 +135,11 @@
             <ul id="modal-parts-list" class="parts__list"></ul>
           </div>
         </div>
-        <div class="modal__field">
-          <span class="modal__field-label">Моя оценка</span>
-          <div class="rating">
-            <div id="modal-rating" class="star-rating" role="group" aria-label="Оценка от 1 до 10">
-              <button type="button" class="star-rating__star" data-value="1" aria-label="Оценка 1 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="2" aria-label="Оценка 2 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="3" aria-label="Оценка 3 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="4" aria-label="Оценка 4 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="5" aria-label="Оценка 5 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="6" aria-label="Оценка 6 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="7" aria-label="Оценка 7 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="8" aria-label="Оценка 8 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="9" aria-label="Оценка 9 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-              <button type="button" class="star-rating__star" data-value="10" aria-label="Оценка 10 из 10" aria-pressed="false" tabindex="-1"><span class="star-rating__mark"></span></button>
-            </div>
-            <span id="modal-rating-readout" class="rating__readout" aria-live="polite"></span>
-          </div>
-        </div>
 
         <!-- Task 39: full in-UI card editing. "Редактировать" swaps for the
              Сохранить/Отмена pair while the form below is open; every other
-             control in the panel (status, rating, delete) keeps working
-             underneath it exactly as before. -->
+             control in the panel (status, delete) keeps working underneath it
+             exactly as before. -->
         <button id="modal-edit" class="modal__edit" type="button">Редактировать</button>
         <div id="modal-edit-form" class="edit-form" hidden>
           <label class="edit-form__field">

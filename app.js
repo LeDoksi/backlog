@@ -45,8 +45,7 @@
   // applyStatusChange writes to localStorage first and repaints the card second,
   // so the exception fires *between* them: the edit is saved, the card silently
   // keeps showing the old status, and the owner clicks again on what looks like
-  // a dead button. Same shape in applyRatingChange, the delete handler and the
-  // quick-add form.
+  // a dead button. Same shape in the delete handler and the quick-add form.
   //
   // So the module is resolved once, here, and a stand-in takes its place if it
   // is not there. Every call site then reads exactly as it did before, and each
@@ -159,8 +158,7 @@
       var name = escapeHtml(action.label);
       // tabindex -1 on all three: the card is already a tab stop, and 129 cards
       // × 3 buttons would add 387 more. The group is entered with Left/Right
-      // from the card and walked with Left/Right/Home/End — the same roving
-      // scheme the modal's ten stars use to cost one tab stop instead of ten.
+      // from the card and walked with Left/Right/Home/End.
       return '<button type="button" tabindex="-1" class="card-status__btn' + (isActive ? ' is-active' : '') +
         '" data-status="' + action.key + '" aria-pressed="' + isActive +
         '" title="' + name + '" aria-label="' + name + '">' + action.icon + '</button>';
@@ -168,42 +166,12 @@
     return '<div class="card-status" role="group" aria-label="Статус">' + buttons + '</div>';
   }
 
-  // ── The rating mark ───────────────────────────────────────────────────
-  //
-  // One star from the modal's strip, plus the modal's readout value: that is
-  // the whole composition. It is the same statement the modal makes, compressed
-  // to the two glyphs that survive at 168px — the gold star says "this is a
-  // rating", the numeral says which. Rated and unrated differ in material, not
-  // only in colour: a rated title's plate is mounted with a solid hairline and
-  // its star lights under the shelf light; an unrated one keeps the dashed rim
-  // this app already uses for "not filled in yet" (the draft badge, an unaired
-  // season's box) and shows the readout's own «—». So a scan of the wall reads
-  // as which shelves have been graded, and that read survives greyscale.
-  //
-  // Purely a display mark — aria-hidden, with the same fact folded into the
-  // card's own aria-label, since the rating is set on the modal's star strip
-  // and a second, half-sized control on the poster would be one too many.
-  function cardRatingHtml(title) {
-    var rated = typeof title.rating === 'number';
-    var tip = rated ? 'Моя оценка: ' + title.rating + ' из 10' : 'Оценка ещё не выставлена';
-    return '<span class="card-rating' + (rated ? ' is-rated' : '') +
-      '" title="' + escapeHtml(tip) + '" aria-hidden="true">' +
-      '<span class="card-rating__star"></span>' +
-      '<span class="card-rating__value">' + (rated ? title.rating : '—') + '</span>' +
-      '</span>';
-  }
-
-  function ratingLabel(title) {
-    return typeof title.rating === 'number' ? 'оценка ' + title.rating + ' из 10' : 'без оценки';
-  }
-
   // The card's accessible name carries everything the poster shows, because
   // `role="button"` makes the card's children presentational — the status chip
   // and the two badges are read out from nowhere else. Kept in one place because
-  // renderGrid writes it once and patchCardStatus/patchCardRating rewrite it on
-  // every change.
+  // renderGrid writes it once and patchCardStatus rewrites it on every change.
   function cardLabel(title) {
-    var parts = [title.title, STATUS_LABELS[title.status] || title.status, ratingLabel(title)];
+    var parts = [title.title, STATUS_LABELS[title.status] || title.status];
     if (BacklogQuery.isStillAiring(title)) parts.push('всё ещё выходит');
     if (title.draft) parts.push('черновик');
     return parts.join(' — ');
@@ -229,7 +197,6 @@
     return (
       '<div class="card__poster">' +
       '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '"' + COVER_ONERROR + '>' +
-      cardRatingHtml(title) +
       quickActions +
       '</div>' +
       '<div class="card__body">' +
@@ -443,7 +410,7 @@
 
   // Down from the trigger steps into the list, the way a menu behaves. The
   // options are real checkboxes, so Tab walks them and Space toggles them for
-  // free — no roving tabindex here, unlike the card grid and the star strip,
+  // free — no roving tabindex here, unlike the card grid,
   // because a popover is entered on purpose and left with Escape rather than
   // being tabbed through on the way to something else.
   genreTrigger.addEventListener('keydown', function (event) {
@@ -717,8 +684,8 @@
     var breakdown = 'завершено ' + cat.done + ', в процессе ' + cat.in_progress +
       ', в бэклоге ' + cat.queue + ', всего ' + cat.total;
     // The cyan token only exists when there is something under way. Hovering
-    // the row spells the whole breakdown out, the way the card's rating mark
-    // and quick-actions do.
+    // the row spells the whole breakdown out, the way the card's quick-actions
+    // do.
     var wip = cat.in_progress
       ? '<span class="stats__wip" title="В процессе: ' + cat.in_progress + '" aria-hidden="true">+' + cat.in_progress + '</span>'
       : '';
@@ -897,13 +864,9 @@
     return baseTitles().filter(function (t) { return t.id === id; })[0];
   }
 
-  // ── Modal controls: status segments and the star strip ─────────────────
+  // ── Modal controls: status segments ────────────────────────────────────
 
   var statusGroup = document.getElementById('modal-status');
-  var starStrip = document.getElementById('modal-rating');
-  var ratingReadout = document.getElementById('modal-rating-readout');
-  var stars = Array.prototype.slice.call(starStrip.querySelectorAll('.star-rating__star'));
-  var previewValue = null;
 
   function renderStatusButtons(status) {
     statusGroup.querySelectorAll('.status-buttons__btn').forEach(function (btn) {
@@ -1009,111 +972,6 @@
     if (derived) applyStatusChange(id, derived);
   });
 
-  function currentRating() {
-    return parseInt(starStrip.dataset.rating || '0', 10);
-  }
-
-  function drawReadout() {
-    var rating = currentRating();
-    // Hovering the star you already gave is the way to un-rate a title, so the
-    // readout says what the click will do instead of leaving it to be guessed.
-    if (previewValue !== null && previewValue === rating) {
-      ratingReadout.className = 'rating__readout rating__readout--clear';
-      ratingReadout.textContent = 'Убрать';
-      return;
-    }
-    var shown = previewValue !== null ? previewValue : rating;
-    ratingReadout.className = 'rating__readout';
-    ratingReadout.innerHTML = '<span class="rating__value">' + (shown || '—') + '</span>/10';
-  }
-
-  function renderRating(rating) {
-    var value = rating || 0;
-    starStrip.dataset.rating = String(value);
-    starStrip.setAttribute('aria-label', value ? 'Оценка ' + value + ' из 10' : 'Оценка от 1 до 10');
-    stars.forEach(function (star) {
-      var starValue = parseInt(star.dataset.value, 10);
-      star.classList.toggle('is-filled', starValue <= value);
-      star.setAttribute('aria-pressed', String(starValue === value));
-      // Roving tabindex: ten stars should cost one tab stop, not ten. Arrow
-      // keys walk the row from whichever star currently holds the rating.
-      star.tabIndex = starValue === (value || 1) ? 0 : -1;
-    });
-    drawReadout();
-  }
-
-  function setPreview(value) {
-    previewValue = value;
-    starStrip.classList.add('is-previewing');
-    stars.forEach(function (star) {
-      star.classList.toggle('is-preview', parseInt(star.dataset.value, 10) <= value);
-    });
-    drawReadout();
-  }
-
-  function clearPreview() {
-    previewValue = null;
-    starStrip.classList.remove('is-previewing');
-    stars.forEach(function (star) { star.classList.remove('is-preview'); });
-    drawReadout();
-  }
-
-  starStrip.addEventListener('pointerover', function (event) {
-    // A touch tap fires pointerover with no matching leave, which would strand
-    // the preview lit over the real rating. Only a real pointer previews.
-    if (event.pointerType !== 'mouse') return;
-    var star = event.target.closest('.star-rating__star');
-    if (star) setPreview(parseInt(star.dataset.value, 10));
-  });
-
-  starStrip.addEventListener('pointerleave', clearPreview);
-
-  // The keyboard gets the same preview as the pointer: arrowing along the row
-  // lights the strip to the focused star before anything is committed.
-  starStrip.addEventListener('focusin', function (event) {
-    var star = event.target.closest('.star-rating__star');
-    if (star) setPreview(parseInt(star.dataset.value, 10));
-  });
-
-  starStrip.addEventListener('focusout', function (event) {
-    if (!starStrip.contains(event.relatedTarget)) clearPreview();
-  });
-
-  starStrip.addEventListener('keydown', function (event) {
-    var star = event.target.closest('.star-rating__star');
-    if (!star) return;
-    var index = stars.indexOf(star);
-    var next;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next = index + 1;
-    else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next = index - 1;
-    else if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = stars.length - 1;
-    else return;
-    event.preventDefault();
-    next = Math.max(0, Math.min(stars.length - 1, next));
-    stars.forEach(function (s) { s.tabIndex = -1; });
-    stars[next].tabIndex = 0;
-    stars[next].focus();
-  });
-
-  starStrip.addEventListener('click', function (event) {
-    var star = event.target.closest('.star-rating__star');
-    if (!star) return;
-    var id = document.getElementById('title-modal').dataset.id;
-    if (!id) return;
-    var value = parseInt(star.dataset.value, 10);
-    var next = value === currentRating() ? null : value;
-    // Persists, and repaints the mark on the card behind the modal in place.
-    applyRatingChange(id, next);
-    renderRating(next);
-    // The pointer has not moved, so re-run the preview against the new rating —
-    // otherwise the readout would still be offering to clear what just went.
-    if (previewValue !== null) setPreview(value);
-    // Rating only changes the grid when it is the sort key, and the grid is
-    // behind a modal right now — defer it with everything else.
-    gridStale = true;
-  });
-
   statusGroup.addEventListener('click', function (event) {
     var btn = event.target.closest('.status-buttons__btn');
     if (!btn) return;
@@ -1178,8 +1036,6 @@
       statusGroup.hidden = false;
       renderStatusButtons(title.status);
     }
-    clearPreview();
-    renderRating(title.rating);
     var modal = document.getElementById('title-modal');
     modal.dataset.id = id;
     // The stats panel is a peer, never a floor to stack on — see
@@ -1247,10 +1103,9 @@
   var editError = document.getElementById('edit-error');
 
   // The fields this form can produce a diff for, in no particular order.
-  // `rating` stays off this list — it is still set from the star strip a few
-  // lines of markup above this form. `status` itself is also normally set
-  // from the plain status buttons next to it (also outside this form, and
-  // still live while the form is open — see updateEditFieldVisibility below).
+  // `status` is normally set from the plain status buttons next to it (outside
+  // this form, and still live while the form is open — see
+  // updateEditFieldVisibility below).
   // `unreleased` is the one exception: it is a virtual, form-only field (there
   // is no `title.unreleased`) that diffs like anything else here but, on
   // save, is translated into a `status` patch instead of copied verbatim —
@@ -1538,8 +1393,8 @@
     Sync.pushOverride(syncClient, id, patch);
 
     exitEditMode();
-    // Full rebuild rather than the in-place patch the quick status/rating
-    // actions use: an edit can touch the title's category, genres, sort keys
+    // Full rebuild rather than the in-place patch the quick status actions
+    // use: an edit can touch the title's category, genres, sort keys
     // and cover all at once, and it is a deliberate, discrete action from
     // inside an already-open modal rather than a rapid click in the grid, so
     // there is no hover/focus state in the wall worth preserving through it.
@@ -1580,38 +1435,14 @@
     card.setAttribute('aria-label', cardLabel(title));
   }
 
-  // Same discipline as patchCardStatus, for the poster's rating mark: rewrite
-  // the two glyphs and the card's accessible name, touch nothing else. A rating
-  // is only ever set from the modal, so the card being patched is the one
-  // behind the open panel — a full renderGrid would rebuild every <img> in the
-  // grid under it, and re-sort the wall out from under the card the user is
-  // about to be handed focus back to.
-  function patchCardRating(card, title) {
-    var mark = card.querySelector('.card-rating');
-    if (!mark) return;
-    var rated = typeof title.rating === 'number';
-    mark.classList.toggle('is-rated', rated);
-    mark.title = rated ? 'Моя оценка: ' + title.rating + ' из 10' : 'Оценка ещё не выставлена';
-    var value = mark.querySelector('.card-rating__value');
-    if (value) value.textContent = rated ? String(title.rating) : '—';
-    card.setAttribute('aria-label', cardLabel(title));
-  }
-
-  function applyRatingChange(id, rating) {
-    BacklogStorage.setOverride(window.localStorage, id, { rating: rating });
-    // Write-through: localStorage first (so the UI below is already correct and
-    // stays correct offline), then the same change to Supabase. The push is
-    // fire-and-forget by design — it can only ever fail into a console warning,
-    // never into a broken click. See lib/sync.js.
-    Sync.pushOverride(syncClient, id, { rating: rating });
-    var card = cardById(id);
-    var title = findTitleById(id);
-    if (card && title) patchCardRating(card, title);
-  }
-
   // The one path every status write goes through, from a card or from the
   // modal: persist, repaint what is on screen in place, and note that the
   // grid's order is now out of date.
+  //
+  // Write-through: localStorage first (so the UI below is already correct and
+  // stays correct offline), then the same change to Supabase. The push is
+  // fire-and-forget by design — it can only ever fail into a console warning,
+  // never into a broken click. See lib/sync.js.
   function applyStatusChange(id, status) {
     BacklogStorage.setOverride(window.localStorage, id, { status: status });
     Sync.pushOverride(syncClient, id, { status: status });

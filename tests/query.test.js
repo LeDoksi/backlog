@@ -117,10 +117,13 @@ test('sortTitles by name ascending', () => {
   assert.equal(sorted[0].title, 'Alien');
 });
 
-test('sortTitles by rating descending', () => {
-  var titles = [{ title: 'A', rating: 5 }, { title: 'B', rating: 9 }];
-  var sorted = sortTitles(titles, 'rating');
-  assert.equal(sorted[0].title, 'B');
+// Task 46 removed the "По оценке" option, so 'rating' is now just an
+// unrecognised key — it must fall through to the unsorted default rather than
+// throw, since an old sort choice can still be sitting in a returning user's
+// state.
+test('sortTitles falls through for a removed sort key', () => {
+  var titles = [{ title: 'A' }, { title: 'B' }];
+  assert.deepEqual(sortTitles(titles, 'rating'), titles);
 });
 
 test('sortTitles does not mutate the input array', () => {
