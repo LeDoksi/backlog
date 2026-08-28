@@ -1,7 +1,10 @@
 // app.js
 (function () {
   var state = { category: 'all', status: 'all', genre: [], returning: false, hideDone: false, draftsOnly: false, search: '', sort: 'status' };
-  var STATUS_LABELS = { queue: 'В бэклоге', in_progress: 'В процессе', done: 'Завершено' };
+  // Task 44: "unreleased" is a real 4th status (movie/series/anime that
+  // hasn't premiered yet), but it is deliberately not one of the three
+  // quick-click STATUS_ACTIONS below — see cardHtml and the edit form.
+  var STATUS_LABELS = { queue: 'В бэклоге', in_progress: 'В процессе', done: 'Завершено', unreleased: 'Ещё не вышло' };
 
   // Three silhouettes that stay legible at 15px and never need a label to be
   // told apart: ruled lines (a list of things not started), a half-turned dial
@@ -183,7 +186,10 @@
     // on the next read, so for these titles the strip is not rendered at all
     // rather than left to click and silently do nothing useful. The badge
     // above it still shows the derived status; only the three buttons go.
-    var quickActions = hasPartsChecklist(title) ? '' : cardStatusHtml(title);
+    // Task 44: same reasoning for "unreleased" — clicking "В процессе" or
+    // "Завершено" on something that has not come out yet makes no sense, so
+    // the strip is suppressed for it too. The badge alone still shows it.
+    var quickActions = (hasPartsChecklist(title) || title.status === 'unreleased') ? '' : cardStatusHtml(title);
     return (
       '<div class="card__poster">' +
       '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '">' +
@@ -477,6 +483,8 @@
   // search term or a stray genre filter left on from an earlier session
   // should never be the reason the pool comes up empty. Done titles are
   // excluded; queue and in_progress both count as "worth watching next".
+  // Task 44: unreleased is excluded too — you cannot "randomly watch"
+  // something that hasn't come out, any more than you can a game.
   //
   // Games are excluded unconditionally, regardless of which tab is active:
   // you don't "watch" a game, so a game can never be a correct answer to
@@ -528,7 +536,7 @@
     // native `disabled`), it just ignores the extra click.
     if (randomBtn.classList.contains('toolbar__random--empty')) return;
     if (randomBtn.classList.contains('toolbar__random--unavailable')) return;
-    var pool = titlesForCategory(state.category).filter(function (t) { return t.status !== 'done' && t.category !== 'game'; });
+    var pool = titlesForCategory(state.category).filter(function (t) { return t.status !== 'done' && t.status !== 'unreleased' && t.category !== 'game'; });
     var picked = BacklogQuery.pickRandom(pool);
     if (picked) {
       openTitleModal(picked.id);
@@ -577,6 +585,14 @@
   function tally(titles) {
     // done/total come from the exact call the tab counters make; the other two
     // are counted off the same array, so the four figures always sum.
+    //
+    // Task 44: "unreleased" gets no bucket of its own here — it falls into
+    // `queue` below by construction (it is neither done nor in_progress),
+    // folded into "в бэклоге" the same way the plan's Step 5 allows. Splitting
+    // it out would need a 5th number on a trophy case that is already reading
+    // four per row, for a status that — unlike the other three — says nothing
+    // about how much of the catalog has actually been got through; lumping it
+    // with "not started yet" is the accurate story and costs no code.
     var progress = BacklogQuery.countProgress(titles);
     var inProgress = titles.filter(function (t) { return t.status === 'in_progress'; }).length;
     return {
@@ -1144,28 +1160,48 @@
   var editSynopsisInput = document.getElementById('edit-synopsis');
   var editPartsField = document.getElementById('edit-parts-field');
   var editPartsList = document.getElementById('edit-parts-list');
+  var editUnreleasedField = document.getElementById('edit-unreleased-field');
+  var editUnreleasedInput = document.getElementById('edit-unreleased');
   var editDraftInput = document.getElementById('edit-draft');
   var editError = document.getElementById('edit-error');
 
-  // The fields this form can produce a diff for, in no particular order —
-  // `status`/`rating` stay off this list, they are still set from the status
-  // buttons and the star strip a few lines of markup above this form.
-  var EDIT_FIELDS = ['title', 'originalTitle', 'category', 'year', 'genres', 'cover', 'platforms', 'seasonInfo', 'synopsis', 'parts', 'draft'];
+  // The fields this form can produce a diff for, in no particular order.
+  // `rating` stays off this list — it is still set from the star strip a few
+  // lines of markup above this form. `status` itself is also normally set
+  // from the plain status buttons next to it (also outside this form, and
+  // still live while the form is open — see updateEditFieldVisibility below).
+  // `unreleased` is the one exception: it is a virtual, form-only field (there
+  // is no `title.unreleased`) that diffs like anything else here but, on
+  // save, is translated into a `status` patch instead of copied verbatim —
+  // see the special case in the save handler. Left untouched, it produces no
+  // diff and so never overwrites whatever the live status buttons did during
+  // the same edit; only an explicit check/uncheck ever touches `status`.
+  var EDIT_FIELDS = ['title', 'originalTitle', 'category', 'year', 'genres', 'cover', 'platforms', 'seasonInfo', 'synopsis', 'parts', 'draft', 'unreleased'];
 
   // Only the fields that make sense for the (possibly just-picked) category
   // are shown — `platforms` for games, `seasonInfo`/`parts` for series/anime.
   // A hidden field's input is simply never touched by the owner, so it stays
   // equal to its snapshot and produces no diff on save; no extra gating is
   // needed anywhere else for that.
-  function updateEditFieldVisibility(category) {
+  //
+  // Task 44: `unreleased` additionally needs `hasParts` — a fact about the
+  // title being edited, not the category dropdown — because a parts-bearing
+  // series/anime already expresses "hasn't come out yet" per-part and must
+  // never offer this checkbox at all. `hasParts` is snapshotted once when the
+  // form opens (see enterEditMode) rather than recomputed from the live
+  // edit-parts rows, matching how `platforms`/`seasonInfo`/`parts` visibility
+  // here has always only tracked the category, not other live-edited fields.
+  function updateEditFieldVisibility(category, hasParts) {
     editPlatformsField.hidden = category !== 'game';
     var isSeasonal = category === 'series' || category === 'anime';
     editSeasonInfoField.hidden = !isSeasonal;
     editPartsField.hidden = !isSeasonal;
+    var canBeUnreleased = (category === 'movie' || isSeasonal) && !hasParts;
+    editUnreleasedField.hidden = !canBeUnreleased;
   }
 
   editCategorySelect.addEventListener('change', function () {
-    updateEditFieldVisibility(editCategorySelect.value);
+    updateEditFieldVisibility(editCategorySelect.value, editHasPartsChecklist);
   });
 
   // ── Task 41: upload a cover image from device ─────────────────────────
@@ -1285,7 +1321,12 @@
   // (data.js titles have no `originalTitle` at all, for instance).
   var editSnapshot = null;
 
+  // Task 44: whether the title being edited carries a parts checklist, frozen
+  // at the moment the form opened — see the comment on updateEditFieldVisibility.
+  var editHasPartsChecklist = false;
+
   function enterEditMode(title) {
+    editHasPartsChecklist = hasPartsChecklist(title);
     editSnapshot = {
       title: title.title || '',
       originalTitle: title.originalTitle || '',
@@ -1302,7 +1343,12 @@
       // Task 43: missing/falsy `draft` (every ordinary catalog entry) reads
       // as unchecked, exactly like every other optional field's `|| ''`
       // fallback above.
-      draft: !!title.draft
+      draft: !!title.draft,
+      // Task 44: `title.status` here is already the *current effective*
+      // status (findTitleById reads through applyOverlay/withDerivedStatus),
+      // so a parts-bearing title — which can never derive to 'unreleased' —
+      // always reads false here too, on top of the checkbox being hidden.
+      unreleased: title.status === 'unreleased'
     };
     editTitleInput.value = editSnapshot.title;
     editOriginalTitleInput.value = editSnapshot.originalTitle;
@@ -1317,8 +1363,9 @@
     editSeasonInfoInput.value = editSnapshot.seasonInfo;
     editSynopsisInput.value = editSnapshot.synopsis;
     editPartsList.innerHTML = editSnapshot.parts.map(editPartRowHtml).join('');
+    editUnreleasedInput.checked = editSnapshot.unreleased;
     editDraftInput.checked = editSnapshot.draft;
-    updateEditFieldVisibility(editSnapshot.category);
+    updateEditFieldVisibility(editSnapshot.category, editHasPartsChecklist);
     editError.hidden = true;
     editError.textContent = '';
     modalEditBtn.hidden = true;
@@ -1355,7 +1402,8 @@
       seasonInfo: editSeasonInfoInput.value.trim(),
       synopsis: editSynopsisInput.value,
       parts: readEditParts(),
-      draft: editDraftInput.checked
+      draft: editDraftInput.checked,
+      unreleased: editUnreleasedInput.checked
     };
 
     var changedFields = EDIT_FIELDS.filter(function (field) {
@@ -1365,12 +1413,14 @@
     if (!changedFields.length) { exitEditMode(); return; }
 
     // Shape-checked against the same rules a catalog entry has to pass —
-    // status/airingStatus are untouched by this form and are carried through
-    // from the current title as-is, so only errors that actually mention a
-    // field the owner just edited can block the save. That keeps a
-    // pre-existing, unrelated shape issue (or a category change this form
-    // does not attempt to reconcile airingStatus for — see README) from
-    // silently blocking an edit to a different field.
+    // airingStatus is untouched by this form and is carried through from the
+    // current title as-is, so only errors that actually mention a field the
+    // owner just edited can block the save. That keeps a pre-existing,
+    // unrelated shape issue (or a category change this form does not attempt
+    // to reconcile airingStatus for — see README) from silently blocking an
+    // edit to a different field. `status` itself needs no such check here:
+    // the checkbox below can only ever produce 'unreleased' or 'queue', both
+    // always valid regardless of category (see lib/validate.js).
     var candidate = Object.assign({}, title, {
       title: next.title,
       category: next.category,
@@ -1389,7 +1439,16 @@
     }
 
     var patch = {};
-    changedFields.forEach(function (field) { patch[field] = next[field]; });
+    changedFields.forEach(function (field) {
+      // Task 44: `unreleased` is not a real title field — it is translated
+      // into the actual `status` write here. Checking it asks for
+      // 'unreleased'; unchecking it (only reachable when it was checked, since
+      // an unchanged checkbox never appears in changedFields at all) reverts
+      // to 'queue' — the same safe default a brand-new title gets, there being
+      // no reliable "previous status" to restore instead.
+      if (field === 'unreleased') { patch.status = next.unreleased ? 'unreleased' : 'queue'; return; }
+      patch[field] = next[field];
+    });
 
     BacklogStorage.setOverride(window.localStorage, id, patch);
     Sync.pushOverride(syncClient, id, patch);

@@ -50,6 +50,10 @@ test('validateTitle accepts null rating', () => {
   assert.deepEqual(validateTitle(validTitle({ rating: null })), []);
 });
 
+test('validateTitle accepts the unreleased status', () => {
+  assert.deepEqual(validateTitle(validTitle({ status: 'unreleased' })), []);
+});
+
 test('validateCatalog flags duplicate ids', () => {
   var errors = validateCatalog([validTitle(), validTitle()]);
   assert.ok(errors.some(function (e) { return e.indexOf('duplicate id') !== -1; }));

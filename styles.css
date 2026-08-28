@@ -69,6 +69,12 @@
   --status-queue: #579cce;      /* в бэклоге  — cold, still on the shelf */
   --status-progress: #6ccfdf;   /* в процессе — lit, in motion           */
   --status-done: #93bb91;       /* завершено  — resolved, settled        */
+  /* Ещё не вышло sits outside that pipeline on purpose — it is not a stage of
+     watching it, it is "there is nothing to watch yet" — so it borrows the
+     neutral --text-muted this app already uses for "not filled in yet" (the
+     draft badge, an unaired season's box) rather than joining the cool-hue
+     progression above. */
+  --status-unreleased: var(--text-muted);
 
   --scrim: rgba(8, 9, 12, 0.72);
   --bg-veil: rgba(13, 15, 20, 0.82);    /* sticky header backdrop            */
@@ -1318,6 +1324,12 @@ body {
 .card-status__btn[data-status="done"],
 .status-buttons__btn[data-status="done"],
 .parts__badge[data-status="done"] { --sc: var(--status-done); }
+
+/* unreleased only ever reaches the card's own badge — it is deliberately not
+   one of the three quick-click buttons (see STATUS_ACTIONS in app.js) and a
+   parts checklist never derives to it, so .card-status__btn/.status-buttons__btn/
+   .parts__badge have no "unreleased" state to colour. */
+.card__status-badge[data-status="unreleased"] { --sc: var(--status-unreleased); }
 
 /* ── Badges ───────────────────────────────────────────────────────────── */
 

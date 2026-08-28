@@ -29,6 +29,7 @@
       <option value="queue">В бэклоге</option>
       <option value="in_progress">В процессе</option>
       <option value="done">Завершено</option>
+      <option value="unreleased">Ещё не вышло</option>
     </select>
     <div id="genre-filter" class="genre-filter">
       <button id="genre-trigger" class="genre-filter__trigger" type="button" aria-expanded="false" aria-controls="genre-panel">
@@ -221,6 +222,14 @@
             <ul id="edit-parts-list" class="edit-parts"></ul>
             <button id="edit-parts-add" class="edit-parts__add" type="button">+ Добавить часть</button>
           </div>
+          <!-- Task 44: a 4th status, "not yet released" — a checkbox layered on
+               top of the plain status buttons (which stay live above this form),
+               not a select. Hidden for game and for a parts-checklist-bearing
+               title, since the checklist already expresses "hasn't come out
+               yet" per-part — see updateEditFieldVisibility in app.js. -->
+          <label id="edit-unreleased-field" class="edit-form__field edit-form__checkbox">
+            <input id="edit-unreleased" type="checkbox"> Ещё не вышло
+          </label>
           <label class="edit-form__field edit-form__checkbox">
             <input id="edit-draft" type="checkbox"> Черновик (требует проверки)
           </label>
