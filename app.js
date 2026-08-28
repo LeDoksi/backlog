@@ -1185,11 +1185,23 @@
       if (isReleased(part)) next.push(index);
     });
     var after = BacklogStorage.setCheckedParts(window.localStorage, title.id, next);
+    // Read BEFORE the write, not after: renderPartsSummary inside
+    // commitPartsChange hides this button (there is nothing left to bulk-tick),
+    // and hiding the focused element hands focus to <body> synchronously — so by
+    // the time that call returns, "did this button have focus" is already gone.
+    var hadFocus = document.activeElement === partsAllBtn;
     // The boxes themselves moved this time, so the rows are rebuilt — unlike a
     // single tick, nothing here holds focus inside the list (the button is
     // outside it), so there is no focus to throw.
     partsList.innerHTML = partsHtml(title.parts, after);
     commitPartsChange(title, before, after);
+    // Focus lands in the list the button just filled — the nearest thing, and
+    // the thing that changed — rather than at <body>, from where the next Tab
+    // would restart at the top of the document.
+    if (hadFocus && partsAllBtn.hidden) {
+      var firstBox = partsList.querySelector('.part__box:not(:disabled)');
+      if (firstBox) firstBox.focus();
+    }
   });
 
   statusGroup.addEventListener('click', function (event) {
@@ -1602,6 +1614,12 @@
     if (errors.length) {
       editError.textContent = errors.join('; ');
       editError.hidden = false;
+      // Task 48: Сохранить is sticky now, so it can be pressed from the top of
+      // the form with every section collapsed — and this message renders in its
+      // own place near the foot, up to ~970px below the eye. Without this the
+      // save reads as having silently done nothing. Centred rather than
+      // `start`, so the message lands clear of the sticky bar that triggered it.
+      editError.scrollIntoView({ block: 'center' });
       return;
     }
 

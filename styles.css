@@ -1554,6 +1554,20 @@ body {
 
 .modal.is-parts .modal__body > .modal__field { order: 1; }
 
+/* A flex item's cross-axis default is `stretch`, and in a column that is the
+   width. Every other child of the body is a block that filled the width anyway,
+   but these two are buttons sized by their own label — left alone they went
+   from ~148px to the full 514px, which made «Удалить тайтл», deliberately the
+   most understated control in the panel, the widest thing in it. The mobile
+   block's explicit `width: 100%` still wins there, as it should. */
+.modal.is-parts .modal__body > :is(.modal__edit, .modal__delete) { align-self: start; }
+
+/* Adjacent margins collapse in block flow and add up in flex, so the one pair
+   with a margin on both sides of the boundary — the synopsis's 24 and the edit
+   button's 8 — went from 24px to 32px. Given back here so the parts view keeps
+   the base panel's rhythm. */
+.modal.is-parts .modal__synopsis { margin-bottom: var(--sp-4); }
+
 /* The meta line runs straight into the checklist now, so it gives up the gap it
    used to hold open for the synopsis. */
 .modal.is-parts .modal__meta { margin-bottom: var(--sp-3); }

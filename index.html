@@ -172,9 +172,11 @@
               <span id="modal-parts-status" class="badge parts__badge"></span>
               <span id="modal-parts-progress" class="parts__progress" aria-live="polite"></span>
               <!-- Task 48: writes through the same setCheckedParts the individual
-                   boxes use, so it lands on the identical derive/sync/animate path
-                   — see markAllReleased in app.js. Hidden when there is nothing
-                   left to tick rather than sitting there dead. -->
+                   boxes use, so it lands on the identical derive/sync/animate
+                   path — its click listener in app.js adds every released index
+                   to what is already checked and hands the result to
+                   commitPartsChange, exactly as a single tick does. Hidden when
+                   there is nothing left to tick rather than sitting there dead. -->
               <button id="modal-parts-all" class="parts__all" type="button" hidden>Отметить все вышедшие</button>
             </div>
             <ul id="modal-parts-list" class="parts__list"></ul>
