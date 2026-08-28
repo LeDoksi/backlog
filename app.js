@@ -1196,7 +1196,7 @@
     var isSeasonal = category === 'series' || category === 'anime';
     editSeasonInfoField.hidden = !isSeasonal;
     editPartsField.hidden = !isSeasonal;
-    var canBeUnreleased = (category === 'movie' || isSeasonal) && !hasParts;
+    var canBeUnreleased = !hasParts;
     editUnreleasedField.hidden = !canBeUnreleased;
   }
 
