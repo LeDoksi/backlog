@@ -3196,6 +3196,61 @@ git commit -m "Remove the rating feature — nobody wants to fill it in"
 
 ---
 
+---
+
+## Phase I: mobile toolbar, edit-form/ritual polish, sync visibility
+
+Remaining items from the `/impeccable critique` action plan the owner chose to pursue (mobile/touch, emotional design, "shared" visibility categories — technical/a11y P0/P1 and the rating removal are already done).
+
+### Task 47: Collapse the toolbar into search + a filters sheet on mobile
+
+**Files:** `index.html`, `app.js`, `styles.css`
+
+**Why:** measured directly during the critique — at 390×812 the toolbar (topbar + toolbar + quick-add) occupies 625px, 74% of the first screen, before a single poster is visible. The toolbar today is 9 flat peers in one row (search, status select, genre popover, 3 checkboxes, sort select, random-pick, stats) with no hierarchy between a high-frequency control (search) and a rarely-touched one (drafts-only checkbox).
+
+**Design direction (adapt, don't over-specify — invoke `frontend-design` for the exact visual treatment, matching the existing dark-cinematic system and reusing the genre-popover's proven trigger+panel pattern rather than inventing a new one):**
+
+- [ ] **Step 1: Below a chosen breakpoint (match the existing `≤600px` breakpoint already used elsewhere in `styles.css`), collapse the toolbar to two visible controls**: the search input, and a single "Фильтры" trigger button that shows an active-filter count (reuse `#genre-count`'s badge-on-trigger pattern) and opens a bottom-sheet/panel containing everything else currently in the toolbar row — status select, genre filter (can nest the existing genre panel inside this sheet, or keep it a level down, implementer's call), the 3 checkboxes, and the sort select. `random-pick` and `stats-open` stay directly visible outside the sheet (they're the two actions, not filters, and "Что посмотреть?" is explicitly the product's best invitation per the critique — don't bury it).
+- [ ] **Step 2: Move quick-add behind a compact trigger on mobile** (a FAB-style button or a collapsed row that expands on tap) rather than permanently costing ~150px of vertical space. Above the collapse breakpoint, leave the toolbar and quick-add exactly as they are today — this is a mobile-only restructuring, not a redesign of the desktop layout.
+- [ ] **Step 3: Wire the filter count badge** on the new "Фильтры" trigger to reflect however many of {status≠all, genre selected, any of the 3 checkboxes on, sort≠default} are currently active — reuse whatever counting logic already exists for genre-count if it generalizes, otherwise a small new tally is fine.
+- [ ] **Step 4: Verify** at 375px/390px: confirm the first grid card is visible well above the previous y≈625, confirm every control that was reachable before is still reachable (nothing silently removed, just re-homed), confirm the sheet opens/closes cleanly (Escape, backdrop click, matching the existing genre-panel's dismissal conventions), confirm desktop (≥the breakpoint) is pixel-identical to before this task. `node --test tests/*.test.js` / `node tools/validate-data.js` unaffected (this is a DOM/CSS-only change, no `lib/*.js` touch expected).
+- [ ] **Step 5: Commit.**
+
+---
+
+### Task 48: Edit-form grouping, parts-checklist above the fold, franchise-completion payoff
+
+**Files:** `app.js`, `index.html`, `styles.css`
+
+**Why:** three related "the app is at its most tedious exactly where it should feel like a ritual" findings from the critique:
+1. The edit form is 11 fields in one flat 947px column with no landmarks — editing one field means scrolling past ten you didn't come to touch.
+2. For a parts-bearing title, the season checklist — the actual reason this feature exists — currently sits below the cover/meta/synopsis, often below the fold on mobile, with the rating/action buttons further below that.
+3. Ticking the final part of a franchise produces no acknowledgment beyond a text swap in the badge/counter.
+
+**Design direction (invoke `frontend-design`; this is genuine craft work, not a mechanical refactor):**
+
+- [ ] **Step 1: Group the edit form into labeled sections** — roughly "Идентичность" (title/originalTitle/category/year, always expanded), "Внешний вид" (cover — url + upload, collapsible), "Содержание" (genres/synopsis/platforms-or-seasonInfo-and-parts, collapsible). Reuse the section-header-plus-hairline treatment the stats panel already established (`.stats__section-title` or equivalent) rather than inventing new chrome. Add a sticky footer for the Сохранить/Отмена pair so it's never ~800px below the fold.
+- [ ] **Step 2: For a parts-bearing title's modal (non-edit view), move the checklist above the synopsis**, directly under the meta line — it's the primary reason someone opens a parts-bearing title's modal, and should not be the thing they scroll to find. Consider shrinking the cover somewhat on this view (the owner just tapped it from its full-size grid card; re-showing it at full size here is the thing pushing the checklist down).
+- [ ] **Step 3: Give franchise completion a moment.** When ticking a part causes the derived status to become "Завершено" (all released parts now checked, none pending — reuse `deriveStatus`'s existing logic from `lib/storage.js`, do not reimplement it), animate the completion: reuse the stats panel's `stats-wipe`-style clip-path reveal down the now-fully-checked list, and have the status badge pick up the same glow treatment the filled star/rating mark used to have (check what's left of that visual language post-Task-46's rating removal — if the glow effect was removed along with the star widget, recreate a comparable one scoped to this badge rather than resurrecting rating-specific code). Respect `prefers-reduced-motion` exactly as rigorously as the rest of this codebase already does (see the existing motion block's targeted-override pattern, don't just blanket-disable).
+- [ ] **Step 4: Add a "Отметить все вышедшие" bulk action** in the parts checklist, for a long franchise — ticks every currently-released, not-yet-checked part in one action (this writes through the same `setPartChecked`/`setCheckedParts` path individual ticks already use, just called for every index rather than one).
+- [ ] **Step 5: Verify.** Confirm the derived-status logic (`deriveStatus` in `lib/storage.js`) is genuinely untouched — this task only changes what's rendered and when an animation plays, never how status is computed. Confirm the completion animation fires exactly once per genuine transition into "done" (not on every render, not on page load if a title is already done) and respects reduced-motion. Confirm the bulk-mark action correctly skips unreleased parts and correctly triggers the same completion path if it results in "done". `node --test tests/*.test.js` / `node tools/validate-data.js` must stay green; add a test if this task ends up touching any `lib/*.js` logic (it shouldn't need to for the bulk-mark action beyond what already exists).
+- [ ] **Step 6: Commit.**
+
+---
+
+### Task 49: Sync status indicator
+
+**Files:** `app.js`, `index.html`, `styles.css`
+
+**Why:** the sync layer is currently completely silent — a failure is a `console.warn`, and unsent edits queue invisibly in `backlog-sync-outbox`. For a two-person shared backlog, "did my partner's change actually arrive" and "did my edit actually save to the shared state" are real, currently-unanswerable questions.
+
+- [ ] **Step 1: A small status element in the topbar** (near the title, or as a subtle dot/icon — invoke `frontend-design` for placement/treatment, keep it unobtrusive, this is a status signal not a feature announcement) with 3 states: synced (default/quiet — e.g. no visible indicator at all, or a small quiet checkmark), offline/no-client (a clear but calm "офлайн" state), pending (N items in `backlog-sync-outbox`, e.g. "офлайн · 3" or similar — read the outbox's current length; check `lib/sync.js` for whatever read access to the outbox already exists rather than reaching into `localStorage` directly from `app.js`).
+- [ ] **Step 2: Wire it to update** on `startSync`'s outcome, on `flushOutbox` completion, and on the `online`/`offline` window events already handled elsewhere in `app.js`'s sync wiring.
+- [ ] **Step 3: Verify** by simulating offline (devtools/browser network throttling if available) and confirming the indicator reflects it, then coming back online and confirming it clears once the outbox drains. `node --test tests/*.test.js` / `node tools/validate-data.js` unaffected unless `lib/sync.js` needs a small read-only helper to expose the outbox length cleanly (acceptable, keep it minimal — a getter, not new state).
+- [ ] **Step 4: Commit.**
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
