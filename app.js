@@ -498,6 +498,8 @@
   var toolbar = document.querySelector('.toolbar');
   var filtersTrigger = document.getElementById('filters-trigger');
   var filtersCount = document.getElementById('filters-count');
+  var filtersSheet = document.getElementById('toolbar-filters');
+  var filtersBackdrop = document.getElementById('filters-backdrop');
 
   function filtersOpen() { return toolbar.classList.contains('is-filters-open'); }
 
@@ -505,12 +507,35 @@
     if (filtersOpen() === open) return;
     toolbar.classList.toggle('is-filters-open', open);
     filtersTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // The closed sheet fades for --dur-base before `visibility` takes it out of
+    // the tab order, and under reduced motion the duration collapses but the
+    // delay does not — so for that window it was still focusable and still
+    // swallowing the first tap after dismissal. `inert` ends the window outright,
+    // independent of any timing.
+    filtersSheet.inert = !open;
+    // Same containment the two modals get, for the same reason: this veil is
+    // making their claim.
+    syncModalBackground();
     if (open) return;
     // The nested list must never be left standing open inside a sheet that is
     // on its way out — it would be there, mid-scroll, on the next open.
     closeGenrePanel(false);
     if (returnFocus) filtersTrigger.focus();
   }
+
+  // Turning a phone sideways crosses 600px, and above it the CSS stops styling
+  // the sheet entirely — an open one would be left inline in the desktop row
+  // with the background it locked still inert and the page still scroll-pinned.
+  // Closing it on the way through is the whole fix.
+  window.matchMedia('(max-width: 600px)').addEventListener('change', function (e) {
+    if (e.matches) return;
+    setFiltersOpen(false, false);
+    // Unconditional, not folded into setFiltersOpen's already-closed early
+    // return: above the breakpoint this element is not a sheet at all, it is the
+    // desktop row's own controls under display:contents, and they must never
+    // carry the closed-sheet `inert`.
+    filtersSheet.inert = false;
+  });
 
   // How many of the six are actually doing something. Read off `state` and
   // nowhere else: the DOM controls are inputs to it, never a second copy of it,
@@ -852,18 +877,43 @@
   var savedBodyOverflow = '';
 
   function syncModalBackground() {
-    var open = !document.getElementById('title-modal').hidden || !statsModal.hidden;
-    if (open === backgroundLocked) return;
-    backgroundLocked = open;
-    if (open) {
-      savedBodyOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = savedBodyOverflow;
+    var modal = !document.getElementById('title-modal').hidden || !statsModal.hidden;
+    // Task 47: the filters sheet drops this same veil at this same blur, so it
+    // makes the same "nothing else right now" claim and has to back it the same
+    // way. It is the one live layer that is NOT a body child — it stays inside
+    // .toolbar so the desktop row can keep it as display:contents — so when it
+    // is the thing open, .toolbar is spared by the walk below and walked one
+    // level deeper instead.
+    var sheetOnly = filtersOpen() && !modal;
+    var open = modal || sheetOnly;
+
+    // Guards the overflow save/restore only, never the walks. That guard exists
+    // so one panel opening over another cannot save the already-locked
+    // `overflow: hidden` as the value to restore; the walks are idempotent and
+    // must still run when `open` holds but the live layer has changed.
+    if (open !== backgroundLocked) {
+      backgroundLocked = open;
+      if (open) {
+        savedBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = savedBodyOverflow;
+      }
     }
+
     Array.prototype.forEach.call(document.body.children, function (el) {
       if (el.classList.contains('modal')) return;
-      el.inert = open;
+      el.inert = open && !(sheetOnly && el === toolbar);
+    });
+    // Skipped, not assigned false — the same shape as the `.modal` skip above,
+    // and load-bearing: the sheet's own `inert` is owned by setFiltersOpen (it is
+    // what closes the fade-out window), so clearing it here would undo that on
+    // every close. `inert` inherits, so with a modal up these are already
+    // unreachable through the inert .toolbar and this loop only releases what the
+    // sheet last set.
+    Array.prototype.forEach.call(toolbar.children, function (el) {
+      if (el === filtersSheet || el === filtersBackdrop) return;
+      el.inert = sheetOnly;
     });
   }
 
@@ -1669,7 +1719,10 @@
     var open = !document.body.classList.contains('is-quick-add-open');
     document.body.classList.toggle('is-quick-add-open', open);
     quickAddToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) document.getElementById('quick-add-title').focus();
+    if (open) { document.getElementById('quick-add-title').focus(); return; }
+    // Collapsing only hid the results in CSS, so reopening flashed the previous
+    // search's hits until the next keystroke replaced them.
+    document.getElementById('quick-add-picker').hidden = true;
   });
 
   document.getElementById('quick-add-form').addEventListener('submit', function (event) {

@@ -2518,6 +2518,11 @@ body {
     visibility: hidden;
     opacity: 0;
     transform: translateY(10px);
+    /* The fade runs for --dur-base before `visibility` lands, and the global
+       reduced-motion block collapses transition DURATION but not DELAY — so
+       without this the invisible layer went on intercepting taps for the full
+       240ms either way, and the first tap after a dismissal was swallowed. */
+    pointer-events: none;
     transition:
       opacity var(--dur-base) var(--ease-out),
       transform var(--dur-base) var(--ease-out),
@@ -2528,6 +2533,7 @@ body {
     visibility: visible;
     opacity: 1;
     transform: none;
+    pointer-events: auto;
     transition:
       opacity var(--dur-base) var(--ease-out),
       transform var(--dur-base) var(--ease-out);
@@ -2547,6 +2553,9 @@ body {
     touch-action: none;
     visibility: hidden;
     opacity: 0;
+    /* Same reason as the sheet's: a dismissed veil must stop being a hit target
+       the instant it is dismissed, not when its fade finishes. */
+    pointer-events: none;
     transition:
       opacity var(--dur-base) var(--ease-out),
       visibility 0s linear var(--dur-base);
@@ -2555,14 +2564,26 @@ body {
   .toolbar.is-filters-open .filters-backdrop {
     visibility: visible;
     opacity: 1;
+    pointer-events: auto;
     transition: opacity var(--dur-base) var(--ease-out);
   }
 
+  /* Sticky because the sheet scrolls: at 320x568 the genre list alone is taller
+     than the sheet, and the × scrolled away with the header the moment it opened.
+     Bled to the sheet's edges and carrying the sheet's own top padding, so
+     pinning it at that padding's negative offset lets the padding scroll off
+     and leaves the title row flush against the top edge. */
   .toolbar__filters-head {
+    position: sticky;
+    top: calc(var(--sp-4) * -1);
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--sp-3);
+    margin: calc(var(--sp-4) * -1) calc(var(--gutter) * -1) 0;
+    padding: var(--sp-4) var(--gutter) var(--sp-2);
+    background: var(--surface);
   }
 
   .toolbar__filters-title {
