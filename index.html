@@ -24,7 +24,7 @@
 
   <section class="toolbar">
     <input id="search-input" class="toolbar__search" type="search" placeholder="Поиск по названию…">
-    <select id="status-filter" class="toolbar__select">
+    <select id="status-filter" class="toolbar__select" aria-label="Фильтр по статусу">
       <option value="all">Любой статус</option>
       <option value="queue">В бэклоге</option>
       <option value="in_progress">В процессе</option>
@@ -55,7 +55,7 @@
     <label class="toolbar__checkbox">
       <input id="drafts-only-filter" type="checkbox"> Только черновики
     </label>
-    <select id="sort-select" class="toolbar__select">
+    <select id="sort-select" class="toolbar__select" aria-label="Сортировка">
       <option value="status" selected>Актуальное сначала</option>
       <option value="added">По дате добавления</option>
       <option value="name">По названию</option>
@@ -86,7 +86,7 @@
 
   <form id="quick-add-form" class="quick-add">
     <input id="quick-add-title" class="quick-add__input" type="text" placeholder="Название нового тайтла…" required>
-    <select id="quick-add-category" class="quick-add__select" required>
+    <select id="quick-add-category" class="quick-add__select" required aria-label="Категория нового тайтла">
       <option value="" disabled selected>Категория…</option>
       <option value="game">Игра</option>
       <option value="series">Сериал</option>
@@ -201,7 +201,7 @@
                 <label class="edit-form__cover-label">или загрузить файл
                   <input id="edit-cover-file" class="edit-form__file" type="file" accept="image/*">
                 </label>
-                <p id="edit-cover-error" class="edit-form__error" hidden></p>
+                <p id="edit-cover-error" class="edit-form__error" role="alert" hidden></p>
               </div>
             </div>
           </div>
@@ -233,7 +233,7 @@
           <label class="edit-form__field edit-form__checkbox">
             <input id="edit-draft" type="checkbox"> Черновик (требует проверки)
           </label>
-          <p id="edit-error" class="edit-form__error" hidden></p>
+          <p id="edit-error" class="edit-form__error" role="alert" hidden></p>
           <div class="edit-form__actions">
             <button id="edit-save" class="edit-form__save" type="button">Сохранить</button>
             <button id="edit-cancel" class="edit-form__cancel" type="button">Отмена</button>

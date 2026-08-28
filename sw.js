@@ -36,6 +36,13 @@ var SHELL_FILES = [
   'lib/storage.js',
   'lib/query.js',
   'lib/sync.js',
+  // Every <script> index.html loads has to be here. lib/validate.js in
+  // particular is not optional: app.js's save handler calls
+  // BacklogValidate.validateTitle unguarded (unlike Sync/Enrich, which have
+  // stand-ins), so a first-ever visit made offline would throw a ReferenceError
+  // on Сохранить instead of just failing to sync.
+  'lib/validate.js',
+  'lib/enrich.js',
   'manifest.webmanifest'
 ];
 

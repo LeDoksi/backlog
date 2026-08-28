@@ -120,6 +120,37 @@
     return window.CSS && CSS.escape ? CSS.escape(value) : value;
   }
 
+  // ── Broken covers ─────────────────────────────────────────────────────
+  //
+  // A cover URL can 404 — a hand-typed path in the edit form, a hotlinked
+  // poster that moved, a cover file that never made it into the deploy — and a
+  // browser's default broken-image glyph is the ugliest thing this wall can
+  // show. Two shapes for two lifetimes:
+  //
+  // - the grid's <img> is rebuilt from scratch on every render, so the inline
+  //   attribute below rides along in the same string; `this.onerror = null`
+  //   makes it one-shot, which is what stops an infinite loop if the
+  //   placeholder itself ever goes missing, and the next render re-arms it.
+  // - the modal's cover and the edit form's preview are two elements reused
+  //   for every title, so a one-shot handler would protect the first broken
+  //   cover of a session and none after it. They get a listener that guards
+  //   against the loop by looking at the src instead of by disarming itself.
+  var COVER_PLACEHOLDER = 'images/covers/_placeholder.svg';
+  var COVER_ONERROR = ' onerror="this.onerror=null;this.src=\'' + COVER_PLACEHOLDER + '\'"';
+
+  function coverFallback(event) {
+    var img = event.target;
+    var src = img.getAttribute('src');
+    // An emptied preview (src="") is a field with nothing in it, not a broken
+    // cover — and it is hidden at that point anyway.
+    if (!src || src === COVER_PLACEHOLDER) return;
+    img.src = COVER_PLACEHOLDER;
+  }
+
+  // app.js runs from the end of <body>, so both elements already exist here.
+  document.getElementById('modal-cover').addEventListener('error', coverFallback);
+  document.getElementById('edit-cover-preview').addEventListener('error', coverFallback);
+
   function cardStatusHtml(title) {
     var buttons = STATUS_ACTIONS.map(function (action) {
       var isActive = title.status === action.key;
@@ -166,11 +197,16 @@
     return typeof title.rating === 'number' ? 'оценка ' + title.rating + ' из 10' : 'без оценки';
   }
 
-  // The card's accessible name carries what the poster shows: the title, and
-  // whether it has been graded. Kept in one place because renderGrid writes it
-  // once and patchCardRating rewrites it on every change.
+  // The card's accessible name carries everything the poster shows, because
+  // `role="button"` makes the card's children presentational — the status chip
+  // and the two badges are read out from nowhere else. Kept in one place because
+  // renderGrid writes it once and patchCardStatus/patchCardRating rewrite it on
+  // every change.
   function cardLabel(title) {
-    return title.title + ' — ' + ratingLabel(title);
+    var parts = [title.title, STATUS_LABELS[title.status] || title.status, ratingLabel(title)];
+    if (BacklogQuery.isStillAiring(title)) parts.push('всё ещё выходит');
+    if (title.draft) parts.push('черновик');
+    return parts.join(' — ');
   }
 
   function cardHtml(title) {
@@ -192,7 +228,7 @@
     var quickActions = (hasPartsChecklist(title) || title.status === 'unreleased') ? '' : cardStatusHtml(title);
     return (
       '<div class="card__poster">' +
-      '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '">' +
+      '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '"' + COVER_ONERROR + '>' +
       cardRatingHtml(title) +
       quickActions +
       '</div>' +
@@ -750,6 +786,43 @@
   // to the other's origin.
   var statsLastFocused = null;
 
+  // ── What happens to the page behind an open panel ─────────────────────
+  //
+  // Neither panel is a real <dialog>, so nothing stopped Tab from walking out
+  // of the panel into the toolbar and the grid behind the backdrop, and nothing
+  // stopped the wheel from scrolling the wall underneath it. Both are fixed
+  // here rather than by restructuring the panels: `inert` on everything outside
+  // them takes the whole background out of the tab order (and out of reach of a
+  // click) in one attribute, and `overflow: hidden` on <body> pins the page.
+  //
+  // Derived from "is either panel open" rather than incremented per panel, for
+  // the handoff in hideStatsForTitleModal/hideTitleModalForStats: one panel
+  // opening on top of the other would otherwise save the already-locked
+  // `overflow: hidden` as the value to restore, and closing the second panel
+  // would leave the page scroll-locked for good.
+  //
+  // Everything outside the panels is walked from document.body rather than
+  // listed by id, so a control added to the page later cannot silently stay
+  // reachable behind the backdrop.
+  var backgroundLocked = false;
+  var savedBodyOverflow = '';
+
+  function syncModalBackground() {
+    var open = !document.getElementById('title-modal').hidden || !statsModal.hidden;
+    if (open === backgroundLocked) return;
+    backgroundLocked = open;
+    if (open) {
+      savedBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = savedBodyOverflow;
+    }
+    Array.prototype.forEach.call(document.body.children, function (el) {
+      if (el.classList.contains('modal')) return;
+      el.inert = open;
+    });
+  }
+
   // Where Escape/× should hand focus back to. Anything inside either panel is
   // refused: this panel can be opened while the title panel is still up (the
   // handoff below hides it), and remembering an element in the panel that is on
@@ -770,12 +843,16 @@
     statsBody.innerHTML = statsHtml(computeStats());
     statsLastFocused = statsFocusTarget(document.activeElement);
     statsModal.hidden = false;
+    syncModalBackground();
     statsClose.focus();
   }
 
   function closeStatsModal() {
     if (statsModal.hidden) return;
     statsModal.hidden = true;
+    // Before the focus handoff below, never after: the button focus is handed
+    // back to is inside the background, and an inert subtree refuses focus.
+    syncModalBackground();
     var target = statsLastFocused;
     statsLastFocused = null;
     // Unlike the title panel — whose card can genuinely be gone by now, deleted
@@ -1115,6 +1192,7 @@
     // page. Nothing is stored if focus was already inside the modal.
     if (!modal.contains(document.activeElement)) lastFocused = document.activeElement;
     modal.hidden = false;
+    syncModalBackground();
     // Focus has to cross into the dialog, otherwise a card opened with Enter
     // keeps focus behind the overlay and the next Tab walks the hidden grid.
     document.getElementById('modal-close').focus();
@@ -1122,6 +1200,9 @@
 
   function closeTitleModal() {
     document.getElementById('title-modal').hidden = true;
+    // Before the focus handoff below: the card focus goes back to lives in the
+    // grid, which is inert until this call lifts it.
+    syncModalBackground();
     var target = lastFocused;
     lastFocused = null;
     // The card may have been dropped by a grid refresh (delete, filter change)
@@ -1283,8 +1364,11 @@
     var year = part && part.year != null ? escapeHtml(part.year) : '';
     var released = !part || part.released !== false;
     return '<li class="edit-parts__row">' +
-      '<input type="text" class="edit-parts__name" placeholder="Название части" value="' + name + '">' +
-      '<input type="number" class="edit-parts__year" placeholder="Год" value="' + year + '">' +
+      // A placeholder is not a label — it disappears as soon as anything is
+      // typed, and a screen reader announces these rows as "edit blank" without
+      // the aria-label alongside it.
+      '<input type="text" class="edit-parts__name" placeholder="Название части" aria-label="Название части" value="' + name + '">' +
+      '<input type="number" class="edit-parts__year" placeholder="Год" aria-label="Год" value="' + year + '">' +
       '<label class="edit-parts__released"><input type="checkbox" class="edit-parts__released-box"' + (released ? ' checked' : '') + '> вышло</label>' +
       '<button type="button" class="edit-parts__remove" aria-label="Удалить часть">×</button>' +
       '</li>';
@@ -1489,6 +1573,11 @@
     // because it depended on the status being changed. It no longer does — it is
     // now a plain fact about the title (airingStatus === 'ongoing'), which a
     // status write cannot touch. So there is nothing left to sync.
+    //
+    // The accessible name does have to be rewritten, though: it now carries the
+    // status word too, and this in-place patch is the one path that changes a
+    // card's status without going through renderGrid.
+    card.setAttribute('aria-label', cardLabel(title));
   }
 
   // Same discipline as patchCardStatus, for the poster's rating mark: rewrite
@@ -1889,9 +1978,7 @@
       runSearch();
     });
 
-    list.addEventListener('click', function (event) {
-      var item = event.target.closest('.enrich-picker__item');
-      if (!item) return;
+    function pick(item) {
       var provider = container.dataset.provider;
       showMessage('Загружаю…');
       detailsByProvider(provider, item.dataset.id).then(function (details) {
@@ -1899,6 +1986,24 @@
         onPick(details);
         close();
       });
+    }
+
+    list.addEventListener('click', function (event) {
+      var item = event.target.closest('.enrich-picker__item');
+      if (!item) return;
+      pick(item);
+    });
+
+    // The rows are tabbable but are <li>, not buttons, so nothing activates
+    // them from the keyboard on their own. Same delegation as the click above,
+    // and the same two keys the grid's cards already answer to.
+    list.addEventListener('keydown', function (event) {
+      var key = event.key;
+      if (key !== 'Enter' && key !== ' ' && key !== 'Spacebar') return;
+      var item = event.target.closest('.enrich-picker__item');
+      if (!item) return;
+      event.preventDefault();
+      pick(item);
     });
 
     container.querySelector('.enrich-picker__close').addEventListener('click', function () {

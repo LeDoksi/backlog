@@ -1899,6 +1899,11 @@ body {
 .edit-form[hidden] { display: none; }
 
 .edit-form__field { display: block; margin: 0 0 var(--sp-3); }
+/* Same reason as .status-buttons[hidden] above: updateEditFieldVisibility hides
+   these fields with the `hidden` attribute, and the `display: block` on the line
+   above out-ranks the attribute's UA `display: none` — so a game would keep
+   showing the seasons/parts fields. */
+.edit-form__field[hidden] { display: none; }
 
 /* Task 43: a checkbox field reuses .edit-form__field's spacing but needs the
    same inline layout as .toolbar__checkbox (label text beside the box, not
