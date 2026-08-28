@@ -1024,6 +1024,7 @@
   var partsList = document.getElementById('modal-parts-list');
   var partsBadge = document.getElementById('modal-parts-status');
   var partsProgress = document.getElementById('modal-parts-progress');
+  var partsAllBtn = document.getElementById('modal-parts-all');
 
   // One rule, defined next to the derivation that depends on it. `baseTitles`
   // already hands back the derived status for exactly these titles, so the
@@ -1071,34 +1072,124 @@
       : 'Пока ничего не вышло';
     if (progress.pending) text += ' · впереди ещё ' + progress.pending;
     partsProgress.textContent = text;
+    // Task 48: nothing left to bulk-tick means nothing for the button to do, and
+    // a button that does nothing is worse than no button. Recomputed from the
+    // same walk of `parts` as the counter above, so it can never disagree with it.
+    partsAllBtn.hidden = progress.watched >= progress.released;
     return derived;
   }
 
   function renderPartsChecklist(title) {
     var checked = BacklogStorage.getCheckedParts(window.localStorage, title.id);
+    // Task 48: a fresh open starts with no celebration pending, always. The
+    // class normally clears itself on animationend, but a modal closed mid-run
+    // leaves it behind — and `.parts` is shown by dropping `hidden`, i.e. by
+    // going from display:none to displayed, which is exactly what makes a CSS
+    // animation start over. Without this line an already-finished franchise
+    // would replay its payoff every time it was looked at.
+    partsList.classList.remove('is-completing');
+    partsBadge.classList.remove('is-completing');
     partsList.innerHTML = partsHtml(title.parts, checked);
     return renderPartsSummary(title, checked);
   }
 
-  partsList.addEventListener('change', function (event) {
-    var box = event.target;
-    if (!box.classList || !box.classList.contains('part__box')) return;
-    var id = document.getElementById('title-modal').dataset.id;
-    if (!id) return;
-    var title = findTitleById(id);
-    if (!title || !hasPartsChecklist(title)) return;
-    var checked = BacklogStorage.setPartChecked(window.localStorage, id, parseInt(box.dataset.index, 10), box.checked);
+  // ── Task 48: the completion payoff ────────────────────────────────────
+  //
+  // Ticking the last released part of a franchise used to swap two strings and
+  // stop. It now gets the app's one gesture — the shelf lights coming on down
+  // the row, the same `stats-wipe` clip-path the Итоги comb runs — plus a
+  // single gold bloom on the badge.
+  //
+  // It fires on an EDGE, never on a state. `commitPartsChange` below is reached
+  // only from the two user-initiated writes (a checkbox, the bulk button) and
+  // compares the status derived from the checked list BEFORE the write against
+  // the one derived after it. So:
+  //   · opening a modal renders through renderPartsChecklist, which never calls
+  //     this — an already-done title draws statically, on first load and on
+  //     every re-open;
+  //   · ticking two parts in a row where only the second completes the list
+  //     runs the comparison twice and passes it once (in_progress→in_progress,
+  //     then in_progress→done);
+  //   · a list with an unreleased part still pending never derives to 'done' at
+  //     all (deriveStatus caps it at in_progress), so no amount of ticking
+  //     reaches this — which is the whole point of that rule and is not
+  //     re-implemented here, only read.
+  //
+  // The class is removed first and the reflow forced, so a second genuine
+  // completion in the same open modal (untick, re-tick) restarts the animation
+  // instead of silently doing nothing.
+  function playCompletion() {
+    [partsList, partsBadge].forEach(function (el) {
+      el.classList.remove('is-completing');
+      void el.offsetWidth;
+      el.classList.add('is-completing');
+    });
+  }
+
+  partsList.addEventListener('animationend', function (event) {
+    if (event.target === partsList) partsList.classList.remove('is-completing');
+  });
+  partsBadge.addEventListener('animationend', function () {
+    partsBadge.classList.remove('is-completing');
+  });
+
+  // The one path every checklist write lands on. `before`/`after` are the
+  // checked-index lists either side of the write that just happened.
+  function commitPartsChange(title, before, after) {
     // The checklist is the input and the status is the output, so both travel:
     // the indices here, and the derived status through applyStatusChange below.
     // Sending only the status would leave the other device deriving `queue`
     // from its own empty checklist and shadowing the value it had just been
     // sent — see the note on effectiveStatus in lib/storage.js.
-    Sync.pushParts(syncClient, id, checked);
-    var derived = renderPartsSummary(title, checked);
+    Sync.pushParts(syncClient, title.id, after);
+    // renderPartsSummary already returns deriveStatus(parts, after) — the edge
+    // test below reads that value rather than deriving it a second time.
+    var derived = renderPartsSummary(title, after);
+    if (derived === 'done' && BacklogStorage.deriveStatus(title.parts, before) !== 'done') playCompletion();
     // Straight down the existing status path: one setOverride, the card behind
     // the modal patched in place, counters redrawn, reorder deferred. Nothing
     // in the grid, the filters or the sort had to learn what a part is.
-    if (derived) applyStatusChange(id, derived);
+    if (derived) applyStatusChange(title.id, derived);
+  }
+
+  // The title the open modal is showing, if it is one with a checklist.
+  function openPartsTitle() {
+    var id = document.getElementById('title-modal').dataset.id;
+    if (!id) return null;
+    var title = findTitleById(id);
+    return (title && hasPartsChecklist(title)) ? title : null;
+  }
+
+  partsList.addEventListener('change', function (event) {
+    var box = event.target;
+    if (!box.classList || !box.classList.contains('part__box')) return;
+    var title = openPartsTitle();
+    if (!title) return;
+    var before = BacklogStorage.getCheckedParts(window.localStorage, title.id);
+    var after = BacklogStorage.setPartChecked(window.localStorage, title.id, parseInt(box.dataset.index, 10), box.checked);
+    commitPartsChange(title, before, after);
+  });
+
+  // Task 48: one action for a twenty-entry franchise. It adds the indices of
+  // every released part to whatever is already checked and writes the result
+  // through setCheckedParts — the same function setPartChecked itself calls, so
+  // this is not a second write path. An unreleased part is never added (the
+  // `isReleased` guard), and anything already stored is carried through rather
+  // than pruned; setCheckedParts normalizes and de-duplicates the result.
+  partsAllBtn.addEventListener('click', function () {
+    var title = openPartsTitle();
+    if (!title) return;
+    var before = BacklogStorage.getCheckedParts(window.localStorage, title.id);
+    var next = before.slice();
+    title.parts.forEach(function (part, index) {
+      if (isReleased(part)) next.push(index);
+    });
+    var after = BacklogStorage.setCheckedParts(window.localStorage, title.id, next);
+    // The boxes themselves moved this time, so the rows are rebuilt — unlike a
+    // single tick, nothing here holds focus inside the list (the button is
+    // outside it), so there is no focus to throw.
+    partsList.innerHTML = partsHtml(title.parts, after);
+    commitPartsChange(title, before, after);
   });
 
   statusGroup.addEventListener('click', function (event) {
@@ -1148,7 +1239,15 @@
     document.getElementById('modal-synopsis').textContent = title.synopsis
       ? title.synopsis
       : 'Описание пока не заполнено. Попросите Claude дополнить «' + title.title + '».';
-    if (hasPartsChecklist(title)) {
+    // Task 48: for a title made of parts, the checklist is the reason the modal
+    // was opened — so on this view only it moves up under the meta line, above
+    // the synopsis, and the cover gives back some of the width/height it was
+    // spending to push it down (the owner has just tapped that same poster at
+    // full size in the grid). Both are pure CSS off this one class; see
+    // `.modal.is-parts` in styles.css.
+    var partsView = hasPartsChecklist(title);
+    document.getElementById('title-modal').classList.toggle('is-parts', partsView);
+    if (partsView) {
       statusLabel.textContent = 'Сезоны и части';
       statusGroup.hidden = true;
       partsWrap.hidden = false;

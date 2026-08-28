@@ -171,6 +171,11 @@
             <div class="parts__summary">
               <span id="modal-parts-status" class="badge parts__badge"></span>
               <span id="modal-parts-progress" class="parts__progress" aria-live="polite"></span>
+              <!-- Task 48: writes through the same setCheckedParts the individual
+                   boxes use, so it lands on the identical derive/sync/animate path
+                   — see markAllReleased in app.js. Hidden when there is nothing
+                   left to tick rather than sitting there dead. -->
+              <button id="modal-parts-all" class="parts__all" type="button" hidden>Отметить все вышедшие</button>
             </div>
             <ul id="modal-parts-list" class="parts__list"></ul>
           </div>
@@ -182,67 +187,86 @@
              exactly as before. -->
         <button id="modal-edit" class="modal__edit" type="button">Редактировать</button>
         <div id="modal-edit-form" class="edit-form" hidden>
-          <label class="edit-form__field">
-            <span class="modal__field-label">Название</span>
-            <input id="edit-title" class="edit-form__input" type="text">
-          </label>
-          <label class="edit-form__field">
-            <span class="modal__field-label">Оригинальное название</span>
-            <input id="edit-original-title" class="edit-form__input" type="text">
-          </label>
-          <label class="edit-form__field">
-            <span class="modal__field-label">Категория</span>
-            <select id="edit-category" class="edit-form__select">
-              <option value="game">Игра</option>
-              <option value="series">Сериал</option>
-              <option value="movie">Кино</option>
-              <option value="anime">Аниме</option>
-            </select>
-          </label>
-          <label class="edit-form__field">
-            <span class="modal__field-label">Год</span>
-            <input id="edit-year" class="edit-form__input" type="number">
-          </label>
-          <label class="edit-form__field">
-            <span class="modal__field-label">Жанры (через запятую)</span>
-            <input id="edit-genres" class="edit-form__input" type="text">
-          </label>
-          <div class="edit-form__field">
-            <span class="modal__field-label">Обложка</span>
-            <div class="edit-form__cover">
-              <img id="edit-cover-preview" class="edit-form__cover-preview" alt="">
-              <div class="edit-form__cover-inputs">
-                <label class="edit-form__cover-label">Ссылка на картинку (URL или путь)
-                  <input id="edit-cover" class="edit-form__input" type="text">
-                </label>
-                <!-- Task 41: reads the file client-side, downscales it on a canvas
-                     (max 900px longest edge) and writes the resulting JPEG data URI
-                     straight into #edit-cover above — same field Сохранить already
-                     diffs/saves, no new storage mechanism. -->
-                <label class="edit-form__cover-label">или загрузить файл
-                  <input id="edit-cover-file" class="edit-form__file" type="file" accept="image/*">
-                </label>
-                <p id="edit-cover-error" class="edit-form__error" role="alert" hidden></p>
+          <!-- Task 48: eleven fields in one flat column had no landmarks, so
+               editing one meant scrolling past ten. They are grouped here into
+               three <details> sections — native, so a collapsed section keeps
+               every input (and every unsaved keystroke) in the DOM, and no
+               disclosure state has to be tracked in JS. «Идентичность» carries
+               `open`: it holds the fields an edit is most often actually about. -->
+          <details class="edit-form__section" open>
+            <summary class="edit-form__section-title">Идентичность</summary>
+            <label class="edit-form__field">
+              <span class="modal__field-label">Название</span>
+              <input id="edit-title" class="edit-form__input" type="text">
+            </label>
+            <label class="edit-form__field">
+              <span class="modal__field-label">Оригинальное название</span>
+              <input id="edit-original-title" class="edit-form__input" type="text">
+            </label>
+            <label class="edit-form__field">
+              <span class="modal__field-label">Категория</span>
+              <select id="edit-category" class="edit-form__select">
+                <option value="game">Игра</option>
+                <option value="series">Сериал</option>
+                <option value="movie">Кино</option>
+                <option value="anime">Аниме</option>
+              </select>
+            </label>
+            <label class="edit-form__field">
+              <span class="modal__field-label">Год</span>
+              <input id="edit-year" class="edit-form__input" type="number">
+            </label>
+          </details>
+          <details class="edit-form__section">
+            <summary class="edit-form__section-title">Внешний вид</summary>
+            <div class="edit-form__field">
+              <span class="modal__field-label">Обложка</span>
+              <div class="edit-form__cover">
+                <img id="edit-cover-preview" class="edit-form__cover-preview" alt="">
+                <div class="edit-form__cover-inputs">
+                  <label class="edit-form__cover-label">Ссылка на картинку (URL или путь)
+                    <input id="edit-cover" class="edit-form__input" type="text">
+                  </label>
+                  <!-- Task 41: reads the file client-side, downscales it on a canvas
+                       (max 900px longest edge) and writes the resulting JPEG data URI
+                       straight into #edit-cover above — same field Сохранить already
+                       diffs/saves, no new storage mechanism. -->
+                  <label class="edit-form__cover-label">или загрузить файл
+                    <input id="edit-cover-file" class="edit-form__file" type="file" accept="image/*">
+                  </label>
+                  <p id="edit-cover-error" class="edit-form__error" role="alert" hidden></p>
+                </div>
               </div>
             </div>
-          </div>
-          <label id="edit-platforms-field" class="edit-form__field">
-            <span class="modal__field-label">Платформы (через запятую)</span>
-            <input id="edit-platforms" class="edit-form__input" type="text">
-          </label>
-          <label id="edit-season-info-field" class="edit-form__field">
-            <span class="modal__field-label">Сезоны (описание)</span>
-            <textarea id="edit-season-info" class="edit-form__textarea" rows="2"></textarea>
-          </label>
-          <label class="edit-form__field">
-            <span class="modal__field-label">Синопсис</span>
-            <textarea id="edit-synopsis" class="edit-form__textarea" rows="4"></textarea>
-          </label>
-          <div id="edit-parts-field" class="edit-form__field">
-            <span class="modal__field-label">Сезоны и части</span>
-            <ul id="edit-parts-list" class="edit-parts"></ul>
-            <button id="edit-parts-add" class="edit-parts__add" type="button">+ Добавить часть</button>
-          </div>
+          </details>
+          <details class="edit-form__section">
+            <summary class="edit-form__section-title">Содержание</summary>
+            <label class="edit-form__field">
+              <span class="modal__field-label">Жанры (через запятую)</span>
+              <input id="edit-genres" class="edit-form__input" type="text">
+            </label>
+            <label id="edit-platforms-field" class="edit-form__field">
+              <span class="modal__field-label">Платформы (через запятую)</span>
+              <input id="edit-platforms" class="edit-form__input" type="text">
+            </label>
+            <label id="edit-season-info-field" class="edit-form__field">
+              <span class="modal__field-label">Сезоны (описание)</span>
+              <textarea id="edit-season-info" class="edit-form__textarea" rows="2"></textarea>
+            </label>
+            <label class="edit-form__field">
+              <span class="modal__field-label">Синопсис</span>
+              <textarea id="edit-synopsis" class="edit-form__textarea" rows="4"></textarea>
+            </label>
+            <div id="edit-parts-field" class="edit-form__field">
+              <span class="modal__field-label">Сезоны и части</span>
+              <ul id="edit-parts-list" class="edit-parts"></ul>
+              <button id="edit-parts-add" class="edit-parts__add" type="button">+ Добавить часть</button>
+            </div>
+          </details>
+          <!-- The two flags stay outside the sections on purpose: they are
+               one-click state about the title rather than content to edit, and a
+               fourth header for two checkboxes would be more chrome than they are
+               worth. -->
           <!-- Task 44: a 4th status, "not yet released" — a checkbox layered on
                top of the plain status buttons (which stay live above this form),
                not a select. Hidden for game and for a parts-checklist-bearing
@@ -255,6 +279,8 @@
             <input id="edit-draft" type="checkbox"> Черновик (требует проверки)
           </label>
           <p id="edit-error" class="edit-form__error" role="alert" hidden></p>
+          <!-- Task 48: sticky to the bottom of the scrolling panel, so the pair
+               is reachable from anywhere in the form rather than ~800px down it. -->
           <div class="edit-form__actions">
             <button id="edit-save" class="edit-form__save" type="button">Сохранить</button>
             <button id="edit-cancel" class="edit-form__cancel" type="button">Отмена</button>

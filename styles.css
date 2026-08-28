@@ -1528,6 +1528,63 @@ body {
 .parts { margin-top: var(--sp-2); }
 .parts[hidden] { display: none; }
 
+/* ── Task 48: the checklist comes up the page ───────────────────────────── */
+
+/* On a title made of parts the checklist is not one field among several — it is
+   what the modal was opened to do. So on that view only, it moves up under the
+   meta line and the synopsis follows it, and the poster gives back a third of
+   its width. Re-showing the cover at full size is hard to justify a second
+   after the owner tapped that exact poster in the grid, and at 390px it was the
+   single thing pushing the list below the fold.
+ *
+ * Done with `order` rather than by moving nodes: the DOM stays in one reading
+ * order for every title, and nothing in app.js has to remember to put it back.
+ * Source order is preserved inside each of the two groups, and a field hidden
+ * by the `hidden` attribute is still display:none, so no gap is left behind. */
+.modal.is-parts .modal__cover { width: 148px; }
+
+.modal.is-parts .modal__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal.is-parts .modal__body > * { order: 2; }
+
+.modal.is-parts .modal__body > :is(.modal__title, .modal__original, .modal__meta) { order: 0; }
+
+.modal.is-parts .modal__body > .modal__field { order: 1; }
+
+/* The meta line runs straight into the checklist now, so it gives up the gap it
+   used to hold open for the synopsis. */
+.modal.is-parts .modal__meta { margin-bottom: var(--sp-3); }
+
+/* Quiet outline, sitting at the end of the summary row — it is a shortcut for
+   the list below it, not a fourth status control, so it takes none of the
+   accent and none of the status hues. Pushed to the right edge so the badge and
+   the counter keep reading as one phrase on the left. */
+.parts__all {
+  margin-left: auto;
+  flex: none;
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.parts__all:hover { border-color: var(--border-strong); color: var(--text); }
+.parts__all[hidden] { display: none; }
+
 /* Result first, list second — the badge is what the field is asked for. */
 .parts__summary {
   display: flex;
@@ -1634,6 +1691,63 @@ body {
   color: var(--text-muted);
 }
 
+/* ── Task 48: finishing a franchise ─────────────────────────────────────── */
+
+/* Ticking the last released season of a twelve-year show used to change two
+   words. It now gets the only gesture this app has: the shelf lights coming on
+   down the row, which is what `stats-wipe` draws over the Итоги comb.
+ *
+ * Same technique, turned ninety degrees. The comb is a row and wipes left to
+ * right; a checklist is a column, and a horizontal wipe over a tall stack reads
+ * as a rendering fault rather than as lights coming on. So the inset travels on
+ * the other axis and the list fills top to bottom — the order the seasons are
+ * in, and the order they were watched in.
+ *
+ * The gold is the point of the moment. --star is already this app's "this one
+ * is finished" colour (the Итоги score is set in it), and it out-ranks every
+ * status hue because it is the only one at full chroma. But it is spent here as
+ * a flare, not as a state: the chip's resting identity stays --status-done, the
+ * same green it wears on the card behind the modal, because that agreement
+ * between the two surfaces is what stops the wall and the panel telling
+ * different stories. Gold arrives, and settles into green.
+ *
+ * Both animations end ON the resting truth, which is what makes reduced motion
+ * free: the global block collapses the duration to 0.01ms and `both` lands the
+ * element on its `to` frame — an unclipped list, and a settled green chip
+ * reading «Завершено». The state change is fully delivered; only the travel is
+ * gone. Neither rule carries an animation-delay, so neither needs the targeted
+ * override the staggered Итоги bars do (see the reduced-motion block). */
+.parts__list.is-completing {
+  animation: parts-wipe 640ms var(--ease-out) both;
+}
+
+.parts__badge.is-completing {
+  animation: parts-bloom 760ms var(--ease-out) both;
+}
+
+@keyframes parts-wipe {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* The `to` frame is character-for-character the chip's resting state from
+   .parts__badge[data-status="done"], plus a halo that has faded to nothing — so
+   whatever cuts the animation short, the badge is left correct. */
+@keyframes parts-bloom {
+  from {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--star) 75%, transparent),
+      0 0 0 0 rgba(242, 193, 78, 0.55);
+    color: var(--star);
+  }
+  to {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--sc) 30%, transparent),
+      0 0 24px 7px rgba(242, 193, 78, 0);
+    color: var(--sc);
+  }
+}
+
 /* Destructive: outlined and cool until you touch it, then it commits. */
 .modal__delete {
   display: block;
@@ -1692,6 +1806,54 @@ body {
 
 .edit-form { margin: var(--sp-2) 0 var(--sp-4); }
 .edit-form[hidden] { display: none; }
+
+/* ── Task 48: the form's landmarks ──────────────────────────────────────── */
+
+/* Eleven fields in one 947px column with nothing to navigate by. The three
+   groups are <details>, so the disclosure costs no JS and a collapsed section
+   still holds its inputs — and every keystroke in them — in the DOM.
+
+   The header is the stats panel's section rule verbatim (see the shared
+   selector list above): same micro-caps label, same hairline running out to the
+   edge. It already said "here is one pass over the material" in Итоги and in
+   the filters sheet; a form section is the same statement. All this adds is the
+   chevron, and that is the select's own arrow — the one glyph in the app that
+   already means "there is more under this". */
+.edit-form__section { margin: 0 0 var(--sp-4); }
+
+.edit-form__section-title {
+  /* The chevron is a mark on the label, not a peer of it; --sp-3 is the gap
+     that separates the label from the hairline, and is too wide for this. */
+  gap: var(--sp-2);
+  cursor: pointer;
+  /* Both are needed to retire the UA triangle — Firefox/Chromium read the
+     first, older WebKit only the second. */
+  list-style: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.edit-form__section-title::-webkit-details-marker { display: none; }
+
+.edit-form__section-title:hover { color: var(--text); }
+
+.edit-form__section-title::before {
+  content: "";
+  flex: none;
+  width: 11px;
+  height: 11px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%238a8f9c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 11px 11px;
+  /* Pointing at the closed section's own title, and swinging down to point into
+     the section once it is open. */
+  transform: rotate(-90deg);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.edit-form__section[open] > .edit-form__section-title::before { transform: none; }
+
+.edit-form__section-title:focus-visible { outline-offset: 2px; border-radius: var(--radius-sm); }
 
 .edit-form__field { display: block; margin: 0 0 var(--sp-3); }
 /* Same reason as .status-buttons[hidden] above: updateEditFieldVisibility hides
@@ -1889,7 +2051,23 @@ body {
 
 .edit-form__error[hidden] { display: none; }
 
-.edit-form__actions { display: flex; gap: var(--sp-2); }
+/* Task 48: pinned to the foot of the scrolling panel (.modal__panel is the
+   scroll container) so Сохранить is one glance away wherever you are in the
+   form, instead of ~800px below it. Sticky rather than fixed: the bar rides
+   with the form and hands the space back at its natural place once the form's
+   end is reached, so «Удалить тайтл» underneath is never covered. It needs an
+   opaque ground and a hairline of its own — it is the only thing in this panel
+   that content passes behind. */
+.edit-form__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
 
 .edit-form__save,
 .edit-form__cancel {
@@ -2123,7 +2301,8 @@ body {
    same 55 titles, and it runs to the panel edge so each block reads as its own
    pass over the catalog. */
 .stats__section-title,
-.toolbar__filters-section {
+.toolbar__filters-section,
+.edit-form__section-title {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -2137,7 +2316,8 @@ body {
 }
 
 .stats__section-title::after,
-.toolbar__filters-section::after {
+.toolbar__filters-section::after,
+.edit-form__section-title::after {
   content: "";
   flex: 1 1 auto;
   height: 1px;
@@ -2361,6 +2541,10 @@ body {
   .topbar__title { flex: 1 1 100%; }
 
   .modal__cover { width: 168px; }
+  /* Tracks the rule above rather than inheriting the desktop is-parts width —
+     .modal.is-parts .modal__cover out-specifies a bare .modal__cover at every
+     width, so each breakpoint has to state its own. */
+  .modal.is-parts .modal__cover { width: 128px; }
   .modal__panel { gap: var(--sp-4); }
 }
 
@@ -2702,6 +2886,15 @@ body {
     letter-spacing: 0.03em;
   }
 
+  /* Its own row at the 40px this block gives every other thumb target — at
+     375px it could not share the summary line with the badge and the counter
+     without all three being squeezed, and .parts__summary already wraps. */
+  .parts__all {
+    width: 100%;
+    margin-left: 0;
+    height: 40px;
+  }
+
   .modal { padding: var(--sp-3); align-items: flex-end; }
 
   .modal__panel {
@@ -2714,6 +2907,9 @@ body {
   }
 
   .modal__cover { width: 132px; }
+  /* The panel stacks here, so the poster costs vertical space directly — this is
+     the breakpoint the checklist was falling below the fold at. */
+  .modal.is-parts .modal__cover { width: 104px; }
   .modal__body { padding-right: 0; width: 100%; }
   .modal__synopsis { font-size: var(--fs-base); }
   .modal__delete { width: 100%; height: 40px; }
