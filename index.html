@@ -24,43 +24,70 @@
 
   <section class="toolbar">
     <input id="search-input" class="toolbar__search" type="search" placeholder="Поиск по названию…">
-    <select id="status-filter" class="toolbar__select" aria-label="Фильтр по статусу">
-      <option value="all">Любой статус</option>
-      <option value="queue">В бэклоге</option>
-      <option value="in_progress">В процессе</option>
-      <option value="done">Завершено</option>
-      <option value="unreleased">Ещё не вышло</option>
-    </select>
-    <div id="genre-filter" class="genre-filter">
-      <button id="genre-trigger" class="genre-filter__trigger" type="button" aria-expanded="false" aria-controls="genre-panel">
-        <span class="genre-filter__name">Жанры</span>
-        <span id="genre-count" class="genre-filter__count" hidden></span>
-        <svg class="genre-filter__chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-          <path d="M2.5 4.5 6 8l3.5-3.5"/>
-        </svg>
-      </button>
-      <div id="genre-panel" class="genre-filter__panel" hidden>
-        <div id="genre-options" class="genre-filter__options" role="group" aria-label="Фильтр по жанрам"></div>
-        <div id="genre-footer" class="genre-filter__footer" hidden>
-          <button id="genre-reset" class="genre-filter__reset" type="button">Сбросить</button>
+    <!-- Task 47: mobile only. Below 600px the six filter controls below fold
+         behind this one trigger — same silhouette, same count chip and same
+         open/close conventions as #genre-trigger, one level up. `display:none`
+         above the breakpoint (never the `hidden` attribute), so on desktop it
+         is absent from the layout and from the accessibility tree alike. -->
+    <button id="filters-trigger" class="filters-trigger" type="button" aria-expanded="false" aria-controls="toolbar-filters">
+      <span class="filters-trigger__name">Фильтры</span>
+      <span id="filters-count" class="filters-trigger__count" hidden></span>
+      <svg class="filters-trigger__chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M2.5 4.5 6 8l3.5-3.5"/>
+      </svg>
+    </button>
+    <!-- `display: contents` above the breakpoint: this wrapper has no box on
+         desktop, so status/genre/checkboxes/sort stay direct flex items of the
+         toolbar in exactly the order and layout they had before this task.
+         Below it, the wrapper becomes the sheet. -->
+    <div id="toolbar-filters" class="toolbar__filters">
+      <div class="toolbar__filters-head">
+        <span class="toolbar__filters-title">Фильтры</span>
+        <button id="filters-close" class="toolbar__filters-close" type="button" aria-label="Закрыть фильтры">×</button>
+      </div>
+      <select id="status-filter" class="toolbar__select" aria-label="Фильтр по статусу">
+        <option value="all">Любой статус</option>
+        <option value="queue">В бэклоге</option>
+        <option value="in_progress">В процессе</option>
+        <option value="done">Завершено</option>
+        <option value="unreleased">Ещё не вышло</option>
+      </select>
+      <div id="genre-filter" class="genre-filter">
+        <button id="genre-trigger" class="genre-filter__trigger" type="button" aria-expanded="false" aria-controls="genre-panel">
+          <span class="genre-filter__name">Жанры</span>
+          <span id="genre-count" class="genre-filter__count" hidden></span>
+          <svg class="genre-filter__chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M2.5 4.5 6 8l3.5-3.5"/>
+          </svg>
+        </button>
+        <div id="genre-panel" class="genre-filter__panel" hidden>
+          <div id="genre-options" class="genre-filter__options" role="group" aria-label="Фильтр по жанрам"></div>
+          <div id="genre-footer" class="genre-filter__footer" hidden>
+            <button id="genre-reset" class="genre-filter__reset" type="button">Сбросить</button>
+          </div>
         </div>
       </div>
+      <label class="toolbar__checkbox">
+        <input id="returning-filter" type="checkbox"> Всё ещё выходит
+      </label>
+      <label class="toolbar__checkbox">
+        <input id="hide-done-filter" type="checkbox"> Скрыть завершённое
+      </label>
+      <label class="toolbar__checkbox">
+        <input id="drafts-only-filter" type="checkbox"> Только черновики
+      </label>
+      <!-- Everything above narrows the list; this reorders it. The hairline
+           says so, and only on mobile — on desktop the row's own left-to-right
+           order already separates the two. -->
+      <p class="toolbar__filters-section">Порядок</p>
+      <select id="sort-select" class="toolbar__select" aria-label="Сортировка">
+        <option value="status" selected>Актуальное сначала</option>
+        <option value="added">По дате добавления</option>
+        <option value="name">По названию</option>
+        <option value="year">По году</option>
+      </select>
     </div>
-    <label class="toolbar__checkbox">
-      <input id="returning-filter" type="checkbox"> Всё ещё выходит
-    </label>
-    <label class="toolbar__checkbox">
-      <input id="hide-done-filter" type="checkbox"> Скрыть завершённое
-    </label>
-    <label class="toolbar__checkbox">
-      <input id="drafts-only-filter" type="checkbox"> Только черновики
-    </label>
-    <select id="sort-select" class="toolbar__select" aria-label="Сортировка">
-      <option value="status" selected>Актуальное сначала</option>
-      <option value="added">По дате добавления</option>
-      <option value="name">По названию</option>
-      <option value="year">По году</option>
-    </select>
+    <div id="filters-backdrop" class="filters-backdrop"></div>
     <button id="random-pick" class="toolbar__random" type="button" aria-live="polite">
       <svg class="toolbar__random-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
         <rect x="2.4" y="2.4" width="11.2" height="11.2" rx="2.6"/>
@@ -82,6 +109,19 @@
   </section>
 
   <div id="genre-chips" class="genre-chips" role="group" aria-label="Выбранные жанры" hidden></div>
+
+  <!-- Task 47: mobile only. The add row is a utility used once in a while, and
+       it was costing ~150px above the first poster on every load. Below 600px
+       it folds behind this disclosure — the same trigger+panel gesture the
+       genre filter established, so there is one way to open a thing in this
+       app, not two. `display:none` above the breakpoint. -->
+  <button id="quick-add-toggle" class="quick-add-toggle" type="button" aria-expanded="false" aria-controls="quick-add-form">
+    <span class="quick-add-toggle__mark" aria-hidden="true">+</span>
+    <span class="quick-add-toggle__name">Добавить тайтл</span>
+    <svg class="quick-add-toggle__chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="M2.5 4.5 6 8l3.5-3.5"/>
+    </svg>
+  </button>
 
   <form id="quick-add-form" class="quick-add">
     <input id="quick-add-title" class="quick-add__input" type="text" placeholder="Название нового тайтла…" required>

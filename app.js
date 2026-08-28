@@ -256,6 +256,10 @@
     gridStale = false;
     renderGrid(getVisibleTitles());
     renderCounters();
+    // The one call site on purpose: every filter, the sort and the genre list
+    // all end here, so the mobile trigger's badge cannot fall behind the wall
+    // it describes. (Declared further down; hoisted.)
+    renderFilterCount();
   }
 
   function flushGrid() {
@@ -479,6 +483,79 @@
   document.addEventListener('pointerdown', function (event) {
     if (!genreWrap.contains(event.target)) closeGenrePanel(false);
   }, true);
+
+  // ── Task 47: the mobile filters sheet ────────────────────────────────
+  //
+  // One level up from the genre popover and built out of it: below 600px the
+  // six filter controls fold behind a single trigger that carries the same
+  // count chip, and open in a sheet hinged to the bottom of the screen.
+  //
+  // Mobile-only is decided entirely in CSS — above the breakpoint the trigger
+  // and the veil are display:none and the wrapper has no box, so none of this
+  // is reachable. That is deliberate: there is no matchMedia here and nothing
+  // to unwind when a phone is turned sideways, because the open state is one
+  // class on .toolbar that a wider viewport simply stops styling.
+  var toolbar = document.querySelector('.toolbar');
+  var filtersTrigger = document.getElementById('filters-trigger');
+  var filtersCount = document.getElementById('filters-count');
+
+  function filtersOpen() { return toolbar.classList.contains('is-filters-open'); }
+
+  function setFiltersOpen(open, returnFocus) {
+    if (filtersOpen() === open) return;
+    toolbar.classList.toggle('is-filters-open', open);
+    filtersTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) return;
+    // The nested list must never be left standing open inside a sheet that is
+    // on its way out — it would be there, mid-scroll, on the next open.
+    closeGenrePanel(false);
+    if (returnFocus) filtersTrigger.focus();
+  }
+
+  // How many of the six are actually doing something. Read off `state` and
+  // nowhere else: the DOM controls are inputs to it, never a second copy of it,
+  // and a tally taken from them would be free to drift.
+  function renderFilterCount() {
+    var n = [
+      state.status !== 'all',
+      state.genre.length > 0,
+      state.returning,
+      state.hideDone,
+      state.draftsOnly,
+      state.sort !== 'status'
+    ].filter(Boolean).length;
+    filtersCount.textContent = n ? String(n) : '';
+    filtersCount.hidden = !n;
+    filtersTrigger.classList.toggle('is-filtering', n > 0);
+    // Same reason as the genre trigger's: on screen it is "Фильтры" beside a
+    // bare number, which read aloud has to say what the number counts.
+    filtersTrigger.setAttribute('aria-label', n ? 'Фильтры, активно: ' + n : 'Фильтры');
+  }
+
+  filtersTrigger.addEventListener('click', function () {
+    setFiltersOpen(!filtersOpen(), false);
+  });
+
+  document.getElementById('filters-close').addEventListener('click', function () {
+    setFiltersOpen(false, true);
+  });
+
+  document.getElementById('filters-backdrop').addEventListener('click', function () {
+    setFiltersOpen(false, false);
+  });
+
+  // Bound to the toolbar rather than the sheet so it also answers while focus
+  // is still on the trigger. The genre panel's own Escape handler sits inside
+  // this one and stops the event there, so one press closes the innermost open
+  // thing and the next closes the sheet — never both at once.
+  toolbar.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape' && event.key !== 'Esc') return;
+    if (!filtersOpen()) return;
+    // Keep the page-level Escape handler from reading this as "close the modal".
+    event.stopPropagation();
+    event.preventDefault();
+    setFiltersOpen(false, true);
+  });
 
   // ── Random pick ──────────────────────────────────────────────────────
   //
@@ -1581,6 +1658,20 @@
     refresh();
   });
 
+  // Task 47: the mobile disclosure over the add row. The class rides on <body>
+  // because the form and its results picker are siblings rather than one
+  // subtree, and because a viewport wide enough to ignore it does exactly that
+  // — the CSS that reads this class only exists below 600px. It stays open
+  // after a successful add: the form clears itself, and adding three titles in
+  // a row is the normal way this gets used.
+  var quickAddToggle = document.getElementById('quick-add-toggle');
+  quickAddToggle.addEventListener('click', function () {
+    var open = !document.body.classList.contains('is-quick-add-open');
+    document.body.classList.toggle('is-quick-add-open', open);
+    quickAddToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) document.getElementById('quick-add-title').focus();
+  });
+
   document.getElementById('quick-add-form').addEventListener('submit', function (event) {
     event.preventDefault();
     var titleInput = document.getElementById('quick-add-title');
@@ -2019,6 +2110,9 @@
     if (!statsModal.hidden) return true;
     if (!genrePanel.hidden) return true;
     if (genreWrap.contains(document.activeElement)) return true;
+    // Task 47: the same hazard one level up — an open sheet is being read and
+    // worked, and a remote change rebuilds the genre list inside it.
+    if (filtersOpen()) return true;
     if (grid.contains(document.activeElement)) return true;
     // A pointer resting on the wall means a click is probably on its way.
     if (grid.matches && grid.matches(':hover')) return true;

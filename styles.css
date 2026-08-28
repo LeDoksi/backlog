@@ -457,7 +457,14 @@ body {
   z-index: 4;
 }
 
-.genre-filter__trigger {
+/* Task 47's two mobile disclosures ride in every rule group below rather than
+   copying them: the filters sheet and the quick-add row are the same gesture
+   as this popover one level up, and there must be exactly one trigger in this
+   app, not three that drift apart. Both are display:none above 600px — see the
+   Task 47 block near the end of this file. */
+.genre-filter__trigger,
+.filters-trigger,
+.quick-add-toggle {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
@@ -482,9 +489,13 @@ body {
     box-shadow var(--dur-fast) var(--ease-out);
 }
 
-.genre-filter__trigger:hover { border-color: var(--border-strong); }
+.genre-filter__trigger:hover,
+.filters-trigger:hover,
+.quick-add-toggle:hover { border-color: var(--border-strong); }
 
-.genre-filter__trigger[aria-expanded="true"] {
+.genre-filter__trigger[aria-expanded="true"],
+.filters-trigger[aria-expanded="true"],
+.quick-add-toggle[aria-expanded="true"] {
   border-color: var(--border-strong);
   background-color: var(--surface);
 }
@@ -492,7 +503,9 @@ body {
 /* Drawn as an element rather than the selects' background-image so it can
    turn over when the panel is open — the one bit of state the closed control
    cannot show with text. */
-.genre-filter__chevron {
+.genre-filter__chevron,
+.filters-trigger__chevron,
+.quick-add-toggle__chevron {
   width: 11px;
   height: 11px;
   flex: none;
@@ -503,18 +516,22 @@ body {
   transition: transform var(--dur-fast) var(--ease-out);
 }
 
-.genre-filter__trigger[aria-expanded="true"] .genre-filter__chevron { transform: rotate(180deg); }
+.genre-filter__trigger[aria-expanded="true"] .genre-filter__chevron,
+.filters-trigger[aria-expanded="true"] .filters-trigger__chevron,
+.quick-add-toggle[aria-expanded="true"] .quick-add-toggle__chevron { transform: rotate(180deg); }
 
 /* A live filter wears the same "you are here" as an active tab: contrast and
    a warm rim, never a red fill. */
-.genre-filter.is-filtering .genre-filter__trigger {
+.genre-filter.is-filtering .genre-filter__trigger,
+.filters-trigger.is-filtering {
   border-color: rgba(233, 69, 96, 0.55);
   box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.09);
 }
 
 /* The count chip is the one place the accent is spent out here — small, tinted
    and carrying nothing but a number, which is precisely the sanctioned use. */
-.genre-filter__count {
+.genre-filter__count,
+.filters-trigger__count {
   font-family: var(--font-display);
   font-size: var(--fs-micro);
   font-weight: 600;
@@ -527,7 +544,8 @@ body {
   color: var(--accent-bright);
 }
 
-.genre-filter__count[hidden] { display: none; }
+.genre-filter__count[hidden],
+.filters-trigger__count[hidden] { display: none; }
 
 .genre-filter__panel {
   position: absolute;
@@ -1787,8 +1805,32 @@ body {
   gap: var(--sp-1);
 }
 
+/* Deliberately lopsided, not a split. The name holds «Сезон 3, часть 2» or a
+   whole film title; the year holds four digits and will never hold five. At
+   375px the row's other fixed passengers («вышло» and the ×) already take ~90px,
+   so an even-handed basis left the two fields nearly the same width and the
+   name doing all the truncating. The spinner buttons go with it — they are
+   ~15px of the box that never showed a digit, and nobody nudges a release year
+   one step at a time. */
 .edit-parts__name { flex: 1 1 auto; min-width: 0; }
-.edit-parts__year { flex: 0 0 84px; }
+
+.edit-parts__year {
+  flex: 0 0 68px;
+  /* The whole bug, and the reason the old `flex: 0 0 84px` never held either: a
+     flex item's automatic minimum size beats its basis, and for an <input> that
+     minimum comes from `size`, which defaults to 20 characters — ~213px here.
+     The name field has carried this line since it was written; the year needs
+     it for the same reason. */
+  min-width: 0;
+  -webkit-appearance: textfield;
+  appearance: textfield;
+}
+
+.edit-parts__year::-webkit-outer-spin-button,
+.edit-parts__year::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
 .edit-parts__name,
 .edit-parts__year {
@@ -2080,7 +2122,8 @@ body {
 /* The rule is not decoration: it separates two different axes cut through the
    same 55 titles, and it runs to the panel edge so each block reads as its own
    pass over the catalog. */
-.stats__section-title {
+.stats__section-title,
+.toolbar__filters-section {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -2093,7 +2136,8 @@ body {
   color: var(--text-muted);
 }
 
-.stats__section-title::after {
+.stats__section-title::after,
+.toolbar__filters-section::after {
   content: "";
   flex: 1 1 auto;
   height: 1px;
@@ -2284,6 +2328,29 @@ body {
   to   { clip-path: inset(0 0 0 0); }
 }
 
+/* ── Task 47: the mobile-only toolbar collapse ────────────────────────── */
+
+/* At 390×812 the topbar, the nine-control toolbar and the always-open quick-add
+   row took 625px — 74% of the first screen — before one poster was visible. So
+   below the phone breakpoint the row keeps the two things you reach for (search,
+   «Что посмотреть?») plus «Итоги», and the six filters fold into a sheet.
+ *
+ * This whole block is what makes that additive. Above 600px the wrapper has no
+ * box at all, so status / genre / the three checkboxes / sort stay direct flex
+ * items of .toolbar in their original DOM order and the desktop row renders
+ * exactly as it did before this task; the sheet's own chrome, the two triggers
+ * and the backdrop are display:none, which keeps them out of the accessibility
+ * tree as well as out of the layout. Everything below turns them on, and only
+ * there — see the @media (max-width: 600px) block further down. */
+
+.toolbar__filters { display: contents; }
+
+.filters-trigger,
+.toolbar__filters-head,
+.toolbar__filters-section,
+.filters-backdrop,
+.quick-add-toggle { display: none; }
+
 /* ── Responsive ───────────────────────────────────────────────────────── */
 
 /* Tablet: tighter poster wall, tabs get their own line. */
@@ -2325,6 +2392,33 @@ body {
 
   .tabs__item { scroll-snap-align: start; }
 
+  /* ── The 16px floor for anything you type into ──────────────────────
+   *
+   * iOS Safari and Android Chrome zoom the viewport when a focused text control
+   * measures under 16px, and neither zooms back out afterwards — so every visit
+   * to the search box or the edit form ended with a manual pinch. The app's own
+   * --fs-sm (13px) is what tripped it on every one of these.
+   *
+   * 16px is a literal here rather than a token on purpose: it is a browser
+   * threshold, not a step on this app's type scale, and inventing --fs-touch
+   * would imply it were a design decision that could later be retuned. Only
+   * real typing targets are listed — the selects are here because Android zooms
+   * on those too; checkboxes and buttons are not, because nothing is ever
+   * focused for text entry in them. */
+  .toolbar__search,
+  .toolbar__select,
+  .quick-add__input,
+  .quick-add__select,
+  .edit-form__input,
+  .edit-form__select,
+  .edit-form__textarea,
+  .edit-parts__name,
+  .edit-parts__year { font-size: 16px; }
+
+  /* The parts rows were cut for 13px text; give the taller glyphs their box. */
+  .edit-parts__name,
+  .edit-parts__year { height: 36px; }
+
   .toolbar {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -2340,23 +2434,14 @@ body {
 
   .toolbar__select { height: 40px; width: 100%; min-width: 0; }
 
-  #sort-select { grid-column: 1 / -1; }
-
-  /* Status and genre pair up on one row, genre in the right-hand cell — so the
-     panel, which is wider than its trigger, is anchored by its right edge and
-     opens back across the toolbar instead of hanging off the screen. */
   .genre-filter { min-width: 0; }
 
-  .genre-filter__trigger {
+  .genre-filter__trigger,
+  .filters-trigger,
+  .quick-add-toggle {
     width: 100%;
     min-width: 0;
     height: 40px;
-  }
-
-  .genre-filter__panel {
-    left: auto;
-    right: 0;
-    max-height: min(60vh, 344px);
   }
 
   /* Bigger targets on a thumb-driven screen, matching the 40px controls above. */
@@ -2367,12 +2452,12 @@ body {
   .genre-chip { height: 28px; }
   .genre-chip__remove { width: 24px; height: 24px; }
 
-  /* Pull the flag below the selects: pickers first, then the one toggle. */
+  /* Full-width rows inside the sheet now, not toolbar cells. Padding goes so
+     the tick lines up with the selects above and below it; the row still
+     answers to a thumb at the 40px this block uses everywhere. */
   .toolbar__checkbox {
-    order: 1;
-    grid-column: 1 / -1;
     height: auto;
-    min-height: 32px;
+    min-height: 40px;
     padding: 0;
     font-size: var(--fs-base);
   }
@@ -2397,6 +2482,184 @@ body {
   .quick-add__input { grid-column: 1 / -1; max-width: none; height: 40px; }
   .quick-add__select { grid-column: 1 / -1; height: 40px; min-width: 0; }
   .quick-add__submit { height: 40px; }
+
+  /* ── Task 47: the filters sheet ─────────────────────────────────────── */
+
+  .filters-trigger { display: inline-flex; }
+
+  /* Ordinary controls stacked in a lit panel — not a new species of surface.
+     Same --surface, hairline and --radius-lg as the genre popover it grew out
+     of, hinged to the bottom edge instead of to a trigger because at 812px tall
+     that is the half of the screen a thumb actually owns. It arrives with the
+     popover's gesture too — a short lift and a fade, --dur-base rather than
+     --dur-fast for the longer distance — so the room still reads as one that
+     moves quietly. */
+  .toolbar__filters {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    max-height: 86vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--sp-4) var(--gutter) calc(var(--sp-5) + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-modal);
+    /* visibility, not display: it is what keeps a closed sheet out of the tab
+       order and the accessibility tree while still leaving something to
+       transition. Delayed to the end of the leaving transition so the panel is
+       not yanked out from under its own fade. */
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out),
+      visibility 0s linear var(--dur-base);
+  }
+
+  .toolbar.is-filters-open .toolbar__filters {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
+  }
+
+  /* The same veil the two modals drop, at the same blur — an open sheet is a
+     "nothing else right now" state here exactly as they are. */
+  .filters-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    background: var(--scrim);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    /* Stops a drag on the veil from scrolling the wall underneath it. */
+    touch-action: none;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      visibility 0s linear var(--dur-base);
+  }
+
+  .toolbar.is-filters-open .filters-backdrop {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .toolbar__filters-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+  }
+
+  .toolbar__filters-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  /* The × the two modals use, minus their absolute placement — it sits in the
+     header row here rather than floating over the content. */
+  .toolbar__filters-close {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin-right: -6px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .toolbar__filters-close:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Borrowed whole from the stats panel, hairline and all: it separates the
+     four controls that narrow the wall from the one that reorders it. */
+  .toolbar__filters-section {
+    display: flex;
+    margin-top: var(--sp-2);
+  }
+
+  /* Genres stay nested here rather than escaping as a second floating popover
+     over the sheet: two stacked overlays on a 375px screen is a stack nobody
+     can back out of. In the sheet the panel simply drops in flow under its own
+     trigger and the sheet scrolls, so the list is read in the same place it was
+     opened from. */
+  .toolbar__filters .genre-filter { z-index: auto; }
+
+  .toolbar__filters .genre-filter__panel {
+    position: static;
+    min-width: 0;
+    max-width: none;
+    margin-top: var(--sp-2);
+    max-height: min(42vh, 300px);
+    /* On desktop the panel floats over --bg and its shadow does the separating.
+       In flow on --surface it has neither, so it takes the well the selects
+       around it already use — in this room, nested means sunken. */
+    background: var(--surface-sunken);
+    box-shadow: none;
+    /* And the wells' radius with it — --radius-lg belongs to a panel that
+       floats, not to one sitting in a column of 6px controls. */
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Task 47: quick-add behind a disclosure ─────────────────────────── */
+
+  /* A button is shrink-to-fit even as a block-level flex container, and the
+     shared trigger rule's `width: 100%` would measure the body rather than the
+     gutters it sits inside — so the span is spelled out. It matches the rows
+     above it: every control in this block is a full width or a half cell. */
+  .quick-add-toggle {
+    display: flex;
+    width: calc(100% - var(--gutter) * 2);
+    margin: 0 var(--gutter) var(--sp-4);
+  }
+
+  /* The one accent out here, on one glyph — the same «+» the submit button
+     inside carries, so the closed row still names what opening it commits to. */
+  .quick-add-toggle__mark {
+    flex: none;
+    color: var(--accent-bright);
+    font-family: var(--font-display);
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .quick-add,
+  #quick-add-picker { display: none; }
+
+  body.is-quick-add-open .quick-add-toggle { margin-bottom: var(--sp-2); }
+  body.is-quick-add-open .quick-add { display: grid; }
+  /* :not([hidden]) so opening the disclosure never overrides the picker's own
+     hidden state — it is the search results' business when they show. */
+  body.is-quick-add-open #quick-add-picker:not([hidden]) { display: block; }
 
   .grid { gap: var(--sp-4) var(--sp-3); }
 
@@ -2444,15 +2707,16 @@ body {
   .edit-form__save,
   .edit-form__cancel { width: 100%; }
 
-  /* Last in the toolbar, and full width like every other control here. Left in
-     the default order rather than pulled up beside «Что посмотреть?»: that one
-     is the invitation and earns the top of the row, this is a reference you go
-     to when you want it. Without the explicit span it lands in a single grid
-     cell and sits as a half-width orphan beside an empty one. Sized to the 40px
-     touch target the rest of this block establishes, not the 36px desktop pill. */
+  /* Task 47 gave this a partner. «Фильтры» and «Итоги» share the last row —
+     both are "go and look at something", neither is the invitation «Что
+     посмотреть?» is, and two half-width cells is what stops the toolbar from
+     spending a third full row on a control you touch once a session. Sized to
+     the 40px touch target the rest of this block establishes, not the 36px
+     desktop pill. */
+  .filters-trigger,
+  .toolbar__stats { order: 2; }
+
   .toolbar__stats {
-    order: 2;
-    grid-column: 1 / -1;
     justify-content: center;
     height: 40px;
   }
