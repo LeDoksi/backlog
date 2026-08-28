@@ -554,6 +554,69 @@ test('a pre-migration override row no longer overwrites the catalog title with n
   assert.equal(shown.rating, 7);
 });
 
+// The other half, and the one that matters for the device that actually
+// reported the incident: it pulled the artefact NULLs *before* the fix, so they
+// are already sitting in its `backlog-overrides`. Fixing the pull alone would
+// not have helped it — merge-not-replace keeps exactly the fields the fixed
+// pull now correctly omits — so the local side is scrubbed too.
+test('a device poisoned by a pre-fix pull self-heals on its first post-fix pull', async () => {
+  var store = fakeStorage({
+    'backlog-overrides': JSON.stringify({
+      'barbie-2023': {
+        status: 'done', rating: 7,
+        title: null, category: null, genres: null, synopsis: null,
+        cover: null, originalTitle: null, seasonInfo: null, platforms: null,
+        parts: null, draft: null
+      }
+    })
+  });
+
+  // Post-fix remote: the same row, now correctly shaped to just the two fields
+  // it really asserts.
+  var client = fullClient({
+    overrides: rows([{
+      id: 'barbie-2023',
+      status: 'done', rating: 7,
+      title: null, category: null, genres: null, synopsis: null, cover: null,
+      original_title: null, season_info: null, platforms: null, parts: null,
+      draft: null, updated_at: 'x'
+    }])
+  });
+
+  var pull = await sync.pullState(client);
+  assert.deepEqual(pull.state['backlog-overrides']['barbie-2023'], { status: 'done', rating: 7 });
+  sync.applyState(store, pull.state, { tables: pull.tables });
+
+  // The mirror itself is clean, not just the render.
+  assert.deepEqual(storage.getOverrides(store), {
+    'barbie-2023': { status: 'done', rating: 7 }
+  });
+
+  var catalog = [{
+    id: 'barbie-2023', title: 'Барби', category: 'movie', status: 'queue',
+    year: 2023, genres: ['комедия'], rating: null, synopsis: 'Синопсис.',
+    cover: 'images/covers/barbie-2023.jpg', airingStatus: null
+  }];
+  var shown = storage.applyOverlay(catalog, store)[0];
+  assert.equal(shown.title, 'Барби');
+  assert.equal(shown.cover, 'images/covers/barbie-2023.jpg');
+  assert.equal(shown.status, 'done');
+  assert.equal(shown.rating, 7);
+});
+
+// The scrub must not eat the two nulls that are real edits. `rating: null` is
+// an un-rating; `year: null` is a cleared year field, and nothing is about to
+// re-assert it from the remote, so scrubbing it would undo a deliberate edit.
+test('the local scrub keeps a null rating and a null year', () => {
+  var store = fakeStorage({
+    'backlog-overrides': JSON.stringify({
+      'dune-2021': { rating: null, year: null, title: null }
+    })
+  });
+  sync.applyState(store, { 'backlog-overrides': {} }, { tables: sync.TABLES });
+  assert.deepEqual(storage.getOverrides(store), { 'dune-2021': { rating: null, year: null } });
+});
+
 // The end-to-end shape of the bug, in the order app.js runs it: seed, then
 // pull, then apply. `overrides` refuses the write and answers the read.
 test('a pull cannot wipe local data for a table whose seed failed', async () => {
@@ -607,6 +670,38 @@ test('pushOverride sends only the keys in the patch', async () => {
   var client = fullClient();
   await sync.pushOverride(client, 'x', { rating: 9 });
   assert.deepEqual(Object.keys(client.log[0].row).sort(), ['id', 'rating', 'updated_at']);
+});
+
+// The read path has always mapped these two; the write path did not, so every
+// edit to either field 400'd on a column that does not exist, queued to the
+// outbox and retried forever without ever landing.
+test('pushOverride maps originalTitle/seasonInfo onto their SQL column names', async () => {
+  var client = fullClient();
+  await sync.pushOverride(client, 'frieren-2023', {
+    originalTitle: 'Sousou no Frieren',
+    seasonInfo: 'Сезон 2 анонсирован.'
+  });
+  assert.deepEqual(Object.keys(client.log[0].row).sort(), ['id', 'original_title', 'season_info', 'updated_at']);
+  assert.equal(client.log[0].row.original_title, 'Sousou no Frieren');
+  assert.equal(client.log[0].row.season_info, 'Сезон 2 анонсирован.');
+});
+
+// Same bug on the seed path, and worse there: a rejected batch leaves the whole
+// `overrides` table unseeded, which makes applyState's gate skip it on every
+// later load.
+test('seedLocal maps originalTitle/seasonInfo and drops artifact nulls', async () => {
+  var store = fakeStorage({
+    'backlog-overrides': JSON.stringify({
+      'frieren-2023': { originalTitle: 'Sousou no Frieren', title: null, rating: null }
+    })
+  });
+  var client = fullClient();
+  await sync.seedLocal(client, store, { tables: ['overrides'] });
+  var row = client.log[0].row[0];
+  assert.equal(row.original_title, 'Sousou no Frieren');
+  assert.equal(Object.prototype.hasOwnProperty.call(row, 'originalTitle'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(row, 'title'), false);
+  assert.equal(row.rating, null);
 });
 
 test('pushOverride sends an explicit null rating so un-rating is stored', async () => {
