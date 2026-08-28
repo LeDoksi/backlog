@@ -842,31 +842,7 @@ body {
   color: #fff;
 }
 
-/* Neutral outline, same language as .edit-form__cancel/.modal__edit — this
-   opens a picker, it does not add anything by itself. */
-.quick-add__find {
-  flex: none;
-  height: 36px;
-  padding: 0 var(--sp-4);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: var(--font-display);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  transition:
-    background-color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
-}
-
-.quick-add__find:hover { border-color: var(--border-strong); color: var(--text); }
-
-/* ── Task 40: auto-fill search-and-pick ──────────────────────────────────
+/* ── Task 40/42: auto-fill search-and-pick ───────────────────────────────
    Mounts below the quick-add row as #quick-add-picker — same tokens as
    .edit-form throughout, so it never reads as a different surface from the
    rest of the page. */
@@ -2608,7 +2584,6 @@ body {
 
   .quick-add__input { grid-column: 1 / -1; max-width: none; height: 40px; }
   .quick-add__select { grid-column: 1 / -1; height: 40px; min-width: 0; }
-  .quick-add__find,
   .quick-add__submit { height: 40px; }
 
   .grid { gap: var(--sp-4) var(--sp-3); }

@@ -2,15 +2,16 @@
 //
 // Every test hands in a fake `fetchFn` — a function returning canned
 // `{ ok, json: () => Promise.resolve(...) }` responses shaped like the real
-// TMDb/RAWG/Jikan bodies confirmed live during Task 40 (see lib/enrich.js's
-// header comment). No real network calls. Same discipline as tests/sync.test.js
-// faking the Supabase client.
+// TMDb/RAWG bodies confirmed live during Task 40 and the real Shikimori
+// bodies confirmed live during Task 42 (see lib/enrich.js's header comment).
+// No real network calls. Same discipline as tests/sync.test.js faking the
+// Supabase client.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   searchTmdb, fetchTmdbDetails,
   searchRawg, fetchRawgDetails,
-  searchJikan, fetchJikanDetails
+  searchShikimori, fetchShikimoriDetails
 } = require('../lib/enrich.js');
 
 function okJson(body) {
@@ -130,60 +131,91 @@ test('fetchRawgDetails resolves to null on an HTTP error', async () => {
   assert.equal(await fetchRawgDetails(httpError(403), 'bad-key', 324997), null);
 });
 
-// ── Jikan ────────────────────────────────────────────────────────────────
+// ── Shikimori ────────────────────────────────────────────────────────────
+//
+// Shapes below are trimmed copies of real responses from
+// `https://shikimori.io/api/animes?search=frieren&limit=5` and
+// `https://shikimori.io/api/animes/52991` (lib/enrich.js hits `.io` directly
+// rather than the commonly-documented `.one`, which 301-redirects to `.io`
+// via a CORS-header-less hop — see lib/enrich.js's header comment), confirmed
+// live during Task 42 (a bare array from search — not `{ results: [...] }`
+// like TMDb/RAWG — and Russian `russian`/`genres[].russian`/`description`
+// fields already populated, unlike Jikan).
 
-test('searchJikan normalizes an anime search result without title/synopsis leaking into details', async () => {
-  var fetchFn = okJson({
-    data: [
-      {
-        mal_id: 52991,
-        title: 'Sousou no Frieren',
-        title_english: "Frieren: Beyond Journey's End",
-        year: 2023,
-        images: { jpg: { large_image_url: 'https://cdn.myanimelist.net/x.jpg' } }
-      }
-    ]
-  });
-  var candidates = await searchJikan(fetchFn, 'frieren');
+test('searchShikimori normalizes an anime search result (bare array response)', async () => {
+  var fetchFn = okJson([
+    {
+      id: 52991,
+      name: 'Sousou no Frieren',
+      russian: 'Провожающая в последний путь Фрирен',
+      image: { original: '/system/animes/original/52991.jpg?1710731127' },
+      kind: 'tv',
+      aired_on: '2023-09-29'
+    }
+  ]);
+  var candidates = await searchShikimori(fetchFn, 'frieren');
   assert.deepEqual(candidates, [
-    { id: 52991, title: "Frieren: Beyond Journey's End", year: 2023, poster: 'https://cdn.myanimelist.net/x.jpg' }
+    {
+      id: 52991,
+      title: 'Провожающая в последний путь Фрирен',
+      year: 2023,
+      poster: 'https://shikimori.io/system/animes/original/52991.jpg?1710731127'
+    }
   ]);
 });
 
-test('searchJikan falls back to aired.from when year is absent', async () => {
-  var fetchFn = okJson({
-    data: [{ mal_id: 1, title: 'X', year: null, aired: { from: '2016-04-04T00:00:00+00:00' }, images: {} }]
-  });
-  var candidates = await searchJikan(fetchFn, 'x');
-  assert.equal(candidates[0].year, 2016);
+test('searchShikimori falls back to romaji name when russian is empty', async () => {
+  var fetchFn = okJson([
+    { id: 1, name: 'Cowboy Bebop', russian: '', image: { original: '/system/animes/original/1.jpg' }, aired_on: '1998-04-03' }
+  ]);
+  var candidates = await searchShikimori(fetchFn, 'bebop');
+  assert.equal(candidates[0].title, 'Cowboy Bebop');
 });
 
-test('searchJikan resolves to [] on a 504 (Jikan/MAL unreachable)', async () => {
-  assert.deepEqual(await searchJikan(httpError(504), 'x'), []);
+test('searchShikimori resolves to [] on an empty search (no matches)', async () => {
+  assert.deepEqual(await searchShikimori(okJson([]), 'zzzznotanything'), []);
 });
 
-test('fetchJikanDetails normalizes a details response and omits title/synopsis', async () => {
+test('searchShikimori resolves to [] on a network failure', async () => {
+  assert.deepEqual(await searchShikimori(networkError(), 'x'), []);
+});
+
+test('fetchShikimoriDetails normalizes a details response, preferring Russian genre names and stripping BBCode', async () => {
   var fetchFn = okJson({
-    data: {
-      mal_id: 52991,
-      title: 'Sousou no Frieren',
-      title_english: "Frieren: Beyond Journey's End",
-      year: 2023,
-      genres: [{ mal_id: 2, name: 'Adventure' }, { mal_id: 10, name: 'Fantasy' }],
-      images: { jpg: { large_image_url: 'https://cdn.myanimelist.net/x.jpg' } },
-      synopsis: 'During their decade-long quest…'
-    }
+    id: 52991,
+    name: 'Sousou no Frieren',
+    russian: 'Провожающая в последний путь Фрирен',
+    english: ["Frieren: Beyond Journey's End"],
+    image: { original: '/system/animes/original/52991.jpg?1710731127' },
+    aired_on: '2023-09-29',
+    genres: [
+      { id: 8, name: 'Drama', russian: 'Драма' },
+      { id: 10, name: 'Fantasy', russian: 'Фэнтези' }
+    ],
+    description: 'Отряд героя [character=186854]Химмеля[/character] вернулся домой.'
   });
-  var details = await fetchJikanDetails(fetchFn, 52991);
+  var details = await fetchShikimoriDetails(fetchFn, 52991);
   assert.deepEqual(details, {
+    title: 'Провожающая в последний путь Фрирен',
     year: 2023,
-    genres: ['Adventure', 'Fantasy'],
-    cover: 'https://cdn.myanimelist.net/x.jpg'
+    genres: ['Драма', 'Фэнтези'],
+    synopsis: 'Отряд героя Химмеля вернулся домой.',
+    cover: 'https://shikimori.io/system/animes/original/52991.jpg?1710731127'
   });
-  assert.equal('title' in details, false);
-  assert.equal('synopsis' in details, false);
 });
 
-test('fetchJikanDetails resolves to null on a network failure', async () => {
-  assert.equal(await fetchJikanDetails(networkError(), 52991), null);
+test('fetchShikimoriDetails falls back to english[0] when russian and name are both empty', async () => {
+  var fetchFn = okJson({
+    id: 2, name: '', russian: '', english: ['Some Title'], image: {}, aired_on: null, genres: [], description: ''
+  });
+  var details = await fetchShikimoriDetails(fetchFn, 2);
+  assert.equal(details.title, 'Some Title');
+});
+
+test('fetchShikimoriDetails resolves to null on an HTTP 404 (unknown id)', async () => {
+  assert.equal(await fetchShikimoriDetails(httpError(404), 999999999), null);
+});
+
+test('fetchShikimoriDetails resolves to null on a network failure', async () => {
+  assert.equal(await fetchShikimoriDetails(networkError(), 52991), null);
 });

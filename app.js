@@ -58,8 +58,8 @@
     fetchTmdbDetails: function () { return Promise.resolve(null); },
     searchRawg: function () { return Promise.resolve([]); },
     fetchRawgDetails: function () { return Promise.resolve(null); },
-    searchJikan: function () { return Promise.resolve([]); },
-    fetchJikanDetails: function () { return Promise.resolve(null); }
+    searchShikimori: function () { return Promise.resolve([]); },
+    fetchShikimoriDetails: function () { return Promise.resolve(null); }
   };
 
   var Sync = (typeof BacklogSync !== 'undefined' && BacklogSync) ? BacklogSync : {
@@ -1620,22 +1620,23 @@
     refresh();
   });
 
-  // ── Task 40: auto-fill from TMDb/RAWG/Jikan ───────────────────────────
+  // ── Task 40/42: auto-fill from TMDb/RAWG/Shikimori ────────────────────
   //
   // Quick-add only, by design: a title's data is expected to be curated and
   // then stable, so re-fetching from an API is never offered from Task 39's
   // edit form for an already-existing card (risk of silently overwriting a
   // correct/curated value with a fresh API guess). Wired exactly once, onto
-  // #quick-add-find/#quick-add-picker.
+  // #quick-add-picker, live as the owner types (see wireEnrichPicker).
   //
   // category → provider is fixed by this catalog's own rules: movies/series
-  // go to TMDb, games to RAWG, anime to Jikan (see lib/enrich.js's header for
-  // why Jikan's normalized details never carry title/synopsis).
+  // go to TMDb, games to RAWG, anime to Shikimori (a Russian anime-tracking
+  // site — unlike the old Jikan source, its titles/synopses are already
+  // Russian, so an anime pick is exactly as complete as a TMDb/RAWG one).
   function providerFor(category) {
     if (category === 'movie') return 'tmdb-movie';
     if (category === 'series') return 'tmdb-series';
     if (category === 'game') return 'rawg';
-    if (category === 'anime') return 'jikan';
+    if (category === 'anime') return 'shikimori';
     return null;
   }
 
@@ -1666,8 +1667,8 @@
       return Enrich.searchRawg(fetchFn, RAWG_KEY, query)
         .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
     }
-    if (provider === 'jikan') {
-      return Enrich.searchJikan(fetchFn, query)
+    if (provider === 'shikimori') {
+      return Enrich.searchShikimori(fetchFn, query)
         .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
     }
     return Promise.resolve({ ok: false, reason: 'no-category' });
@@ -1679,7 +1680,7 @@
     if (provider === 'tmdb-movie') return Enrich.fetchTmdbDetails(fetchFn, TMDB_KEY, 'movie', id);
     if (provider === 'tmdb-series') return Enrich.fetchTmdbDetails(fetchFn, TMDB_KEY, 'series', id);
     if (provider === 'rawg') return Enrich.fetchRawgDetails(fetchFn, RAWG_KEY, id);
-    if (provider === 'jikan') return Enrich.fetchJikanDetails(fetchFn, id);
+    if (provider === 'shikimori') return Enrich.fetchShikimoriDetails(fetchFn, id);
     return Promise.resolve(null);
   }
 
@@ -1695,14 +1696,24 @@
       '</li>';
   }
 
-  // Wires one "Найти" button to one results container. `getCategory`/`getQuery`
-  // read whatever the surrounding form currently holds (evaluated on click, not
-  // captured once, so a category picked after the button was wired still
-  // works); `onPick(details)` is handed the normalized fetchXDetails result for
-  // whichever candidate was clicked.
-  function wireEnrichPicker(triggerBtn, container, getCategory, getQuery, onPick) {
+  // Task 42: search is instant, not click-triggered — a debounced `input`
+  // listener on the title field plus an immediate re-search on the category
+  // `<select>`'s `change` (changing category changes which provider/results
+  // apply, so that shouldn't wait for the debounce either). `onPick(details)`
+  // is handed the normalized fetchXDetails result for whichever candidate
+  // was clicked.
+  //
+  // Race-condition guard: a fast typer can have an older, slower request
+  // resolve after a newer one has already started or landed. Every call to
+  // runSearch (and every close(), including the implicit one when the query
+  // drops below 2 characters) bumps `searchToken`; a search's `.then` only
+  // renders its result if its own token still matches the latest one issued,
+  // so a stale response can never overwrite or flicker over fresher results.
+  function wireEnrichPicker(titleInput, categorySelect, container, onPick) {
     var list = container.querySelector('.enrich-picker__list');
     var msg = container.querySelector('.enrich-picker__message');
+    var debounceTimer = null;
+    var searchToken = 0;
 
     function showMessage(text) {
       list.innerHTML = '';
@@ -1712,20 +1723,26 @@
     }
 
     function close() {
+      searchToken += 1; // invalidate any search still in flight
       container.hidden = true;
       list.innerHTML = '';
       msg.hidden = true;
     }
 
-    triggerBtn.addEventListener('click', function () {
-      var category = getCategory();
-      var query = (getQuery() || '').trim();
-      if (!query || !category) {
-        showMessage('Укажите название и категорию, чтобы искать');
+    function runSearch() {
+      var category = categorySelect.value;
+      var query = titleInput.value.trim();
+      searchToken += 1;
+      var token = searchToken;
+      // Below 2 characters or no category picked isn't a failure state, just
+      // "not enough to search yet" — hide the panel rather than message it.
+      if (query.length < 2 || !category) {
+        close();
         return;
       }
       showMessage('Ищу…');
       searchByCategory(category, query).then(function (result) {
+        if (token !== searchToken) return; // superseded by a newer search
         if (!result.ok) {
           showMessage(result.reason === 'no-key'
             ? 'Добавь ключ TMDB_KEY/RAWG_KEY в app.js'
@@ -1744,6 +1761,16 @@
       // searchByCategory never rejects (see lib/enrich.js), so there is
       // deliberately no .catch() chained above — the form's own state is
       // never at risk from this call either way.
+    }
+
+    titleInput.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(runSearch, 350);
+    });
+
+    categorySelect.addEventListener('change', function () {
+      clearTimeout(debounceTimer);
+      runSearch();
     });
 
     list.addEventListener('click', function (event) {
@@ -1758,7 +1785,10 @@
       });
     });
 
-    container.querySelector('.enrich-picker__close').addEventListener('click', close);
+    container.querySelector('.enrich-picker__close').addEventListener('click', function () {
+      clearTimeout(debounceTimer);
+      close();
+    });
   }
 
   // Quick-add has no year/genre/synopsis fields to stage a pick in, so a
@@ -1804,10 +1834,9 @@
   }
 
   wireEnrichPicker(
-    document.getElementById('quick-add-find'),
+    document.getElementById('quick-add-title'),
+    document.getElementById('quick-add-category'),
     document.getElementById('quick-add-picker'),
-    function () { return document.getElementById('quick-add-category').value; },
-    function () { return document.getElementById('quick-add-title').value; },
     applyQuickAddPick
   );
 
