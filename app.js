@@ -492,9 +492,11 @@
   //
   // Mobile-only is decided entirely in CSS — above the breakpoint the trigger
   // and the veil are display:none and the wrapper has no box, so none of this
-  // is reachable. That is deliberate: there is no matchMedia here and nothing
-  // to unwind when a phone is turned sideways, because the open state is one
-  // class on .toolbar that a wider viewport simply stops styling.
+  // is reachable by pointer/keyboard. But an *already-open* sheet crossing the
+  // breakpoint (rotating a phone, resizing a window) would otherwise strand
+  // its inert/scroll-locked background under a desktop layout that no longer
+  // renders the sheet at all — see the matchMedia listener further down,
+  // which force-closes it on that exact transition.
   var toolbar = document.querySelector('.toolbar');
   var filtersTrigger = document.getElementById('filters-trigger');
   var filtersCount = document.getElementById('filters-count');
