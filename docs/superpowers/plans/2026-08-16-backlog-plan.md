@@ -3012,6 +3012,57 @@ git commit -m "feat: instant search-as-you-type in quick-add, switch anime sourc
 
 ---
 
+### Task 45: Steam as the primary game source, RAWG as fallback/supplement
+
+**Files:**
+- Modify: `lib/enrich.js`
+- Modify: `tests/enrich.test.js`
+- Modify: `app.js`
+- Modify: `README.md`
+
+**Why:** RAWG has no Russian localization (English genres/descriptions only). Steam's official storefront has real, curated Russian descriptions and genre names for any game with a Russian-localized store page — a much better fit for this catalog's Russian-content rule than RAWG, for the games that have it. The owner wants both working together, Steam preferred: search Steam first, fall back to RAWG when Steam has nothing (unreleased-on-Steam titles, console exclusives, delisted games), and pull `platforms` from RAWG even for a Steam-sourced pick since Steam only reports Windows/Mac/Linux booleans, not console platforms.
+
+**Verified findings, already confirmed live before this task was written — do not re-derive, but do re-confirm they still hold at implementation time:**
+- Steam's storefront API (`store.steampowered.com/api/storesearch/` and `.../api/appdetails`) has **no CORS headers** — a direct browser `fetch` from any third-party origin fails with "Failed to fetch" (confirmed live: RAWG succeeds from the same page, Steam does not — this is Steam-specific, not an environment issue).
+- A public CORS relay, `https://proxy.cors.sh/<url>`, was confirmed live (no API key needed, at least at low/personal request volumes) to successfully proxy both endpoints and return real data, e.g. `https://proxy.cors.sh/https://store.steampowered.com/api/appdetails?appids=620&l=russian&cc=RU` returned a 200 with genuine Russian `detailed_description` text. Two other public proxies tried first (`corsproxy.io`, `api.allorigins.win`) failed (key-gated / down) — `proxy.cors.sh` is the one to use.
+- **This is a third-party dependency outside the project's control** and the one genuinely new kind of risk in this feature (every other provider — TMDb, RAWG, Shikimori, Supabase — has real first-party CORS support; this one is relayed through someone else's free service that could rate-limit, start requiring a key, or go down without notice). Design for graceful degradation from the start: if the proxied Steam call fails for *any* reason, fall back to RAWG exactly as if Steam had simply found nothing — never surface a scary error for what is, from the owner's perspective, just "no Steam match, using RAWG instead." Put the proxy base URL in exactly one constant (e.g. `CORS_PROXY`) so swapping providers later is a one-line change, not a search-and-replace.
+- IGDB was considered and rejected: same CORS problem as Steam (confirmed live, also "Failed to fetch") *plus* it requires a real Twitch `client_secret` (unlike every other key this project uses, which are public-by-design) *plus* its data isn't Russian-localized either — strictly worse on every axis, don't revisit it.
+
+- [ ] **Step 1: `lib/enrich.js` additions**
+
+Add `searchSteam(fetchFn, query)` and `fetchSteamDetails(fetchFn, appid)`, same injected-`fetchFn` DI pattern as every other provider function, both going through the `CORS_PROXY` prefix (pass the proxy base in as a parameter, don't hardcode it inside `lib/enrich.js` — keep the module able to work proxy-free if the constant is ever pointed at an empty string / real CORS support arrives later). Normalize to the same shapes existing providers use: search → `{id, title, year, poster}` (from `storesearch`'s `items[].{id, name, tiny_image}` — verify `year` availability yourself, `storesearch` may not carry a release year per item; it's fine if search-time year is `null` and only `fetchSteamDetails` fills it in, following the same "search is a thin list, details fill in the rest" pattern already established for the other providers); details → `{title, year, genres, synopsis, cover, platforms}` from `appdetails`'s `data.{name, release_date.date, genres[].description, detailed_description or short_description, header_image}` — parse `release_date.date` for a year defensively (its format varies, sometimes a full date, sometimes just unreleased text; fail to `null` rather than throwing on an unparseable value). `platforms` here should just reflect Steam's own booleans mapped to a short list (e.g. `windows→'PC'`, `mac→'Mac'`, `linux→'Linux'`) — Step 3 below is what supplements this with RAWG's broader platform list.
+
+Before coding the exact field mapping, make your own live proxied `curl` calls (through `proxy.cors.sh`) to both endpoints for 2-3 real games to confirm the shapes above are exactly right — the plan's summary is a starting point from manual browser testing, not a substitute for your own verification.
+
+- [ ] **Step 2: Wire Steam-first, RAWG-fallback search into `app.js`**
+
+In `searchByCategory` (or wherever Task 40/42 left the category→provider dispatch), change the `game` branch: try `searchSteam` first; if it resolves `ok:true` with at least one candidate, use those results (tag them `provider: 'steam'`); otherwise (empty result, proxy failure, network error — anything short of a real match) fall through to the existing `searchRawg` call unchanged, tagged `provider: 'rawg'` as today. The picker UI itself doesn't need to change — it doesn't currently show which provider a result came from, and there's no requirement to add that.
+
+- [ ] **Step 3: Details + RAWG platform supplement on pick**
+
+When a candidate with `provider === 'steam'` is picked, call `fetchSteamDetails` for the title/genres/synopsis/cover, then make a **best-effort** supplemental `searchRawg` call using the resolved Steam title to find a platforms list, and merge it in if RAWG returns a confident match; if RAWG finds nothing, times out, or errors, proceed with just Steam's own Windows/Mac/Linux-derived platform list rather than blocking or failing the whole pick — this supplement must never be able to fail the enrichment, only enrich it further when it succeeds. A `provider === 'rawg'` pick (Steam had nothing) behaves exactly as it already does today — full RAWG details including its own platforms, no Steam call involved.
+
+- [ ] **Step 4: Tests**
+
+Extend `tests/enrich.test.js` with fake-`fetchFn` cases for `searchSteam`/`fetchSteamDetails`: a successful search, an empty-result search (to prove the RAWG-fallback trigger condition is correctly "empty or failed", tested at the `lib/enrich.js` unit level — the actual fallback *wiring* in `app.js` has no existing test harness in this project, so verify that part by hand in Step 5 instead), a proxy/network error, and the `release_date.date` parsing edge cases (a normal date, an "unreleased" placeholder string, a missing field).
+
+- [ ] **Step 5: Verify**
+
+Search a game that has a real Steam store page (e.g. something like "Portal 2" or "Hades") and confirm the result now comes back with genuine Russian genre names/description; search something Steam won't have (a console-exclusive, or a deliberately garbled query) and confirm it falls back to RAWG results without any visible error. Pick a Steam-sourced result and confirm the final draft has a sensible `platforms` value (from the RAWG supplement if it matched, or Steam's own PC/Mac/Linux flags otherwise). Confirm the existing RAWG-only path (Steam genuinely has nothing) still works exactly as before. `node --test tests/*.test.js` and `node tools/validate-data.js` pass. Follow this project's standing production-safety rule for any real draft created during manual testing (unmistakable test title, delete via `curl` afterward, confirm clean via a follow-up GET).
+
+- [ ] **Step 6: README**
+
+Document the Steam-primary/RAWG-fallback/RAWG-platform-supplement behavior, name `proxy.cors.sh` explicitly as a third-party CORS relay with a note on what "degrades gracefully" means here (falls back to RAWG, or to the existing no-results message if RAWG also has nothing) and where the one-line swap point (`CORS_PROXY`) lives if this proxy ever needs replacing.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/enrich.js tests/enrich.test.js app.js README.md
+git commit -m "feat: search Steam first for games (via CORS proxy), RAWG as fallback and platform supplement"
+```
+
+---
+
 ### Task 43: Un-mark a draft manually + a "show drafts" filter
 
 **Files:**
