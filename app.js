@@ -371,7 +371,7 @@
 
     var counts = {};
     titlesForCategory(state.category).forEach(function (t) {
-      t.genres.forEach(function (genre) { counts[genre] = (counts[genre] || 0) + 1; });
+      (t.genres || []).forEach(function (genre) { counts[genre] = (counts[genre] || 0) + 1; });
     });
     var names = Object.keys(counts).sort(function (a, b) {
       return counts[b] - counts[a] || a.localeCompare(b);
@@ -1071,7 +1071,7 @@
       && title.originalTitle !== title.title;
     originalEl.textContent = hasOriginal ? title.originalTitle : '';
     originalEl.hidden = !hasOriginal;
-    var meta = [title.year, title.genres.join(', ')].filter(Boolean).join(' · ');
+    var meta = [title.year, (title.genres || []).join(', ')].filter(Boolean).join(' · ');
     if (title.airingStatus) meta += ' · ' + (title.airingStatus === 'ongoing' ? 'ещё выходит' : 'закончен');
     document.getElementById('modal-meta').textContent = meta;
     var seasonsEl = document.getElementById('modal-seasons');
