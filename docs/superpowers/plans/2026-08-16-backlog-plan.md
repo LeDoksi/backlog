@@ -3145,6 +3145,57 @@ git commit -m "feat: add an 'unreleased' status, editable via a checkbox in the 
 
 ---
 
+---
+
+## Phase H: remove the rating feature entirely
+
+**Owner decision, supersedes the earlier "per-person ratings" idea from the `/impeccable critique` action plan** — the owner realized filling in a rating is friction nobody actually wants to do, so the fix isn't per-person ratings, it's removing the rating concept from the product altogether. This also directly answers one of the critique's own findings (the "—" unrated plate sits on ~170 of 178 posters, diluting the few real ratings and adding a permanent "not filled in yet" visual to almost every card) — removing the affordance removes the clutter at the same time.
+
+**Scope decision:** remove every UI surface that displays or edits a rating (star widget in the modal, the rating mark/plate on grid cards, "По оценке" in the sort dropdown, rating references in the stats dashboard). **Do not** touch existing `rating` values already sitting in `data.js`/Supabase's `overrides` table, and do not attempt a destructive schema/data migration — this is a UI-only removal. An already-rated title's stored `rating` value becomes permanently inert (never read, never displayed, never synced-with-meaning again) rather than erased; this is the safe, non-destructive choice, and it costs nothing to leave those old values sitting unused in the data.
+
+### Task 46: Remove the rating feature
+
+**Files:**
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `lib/query.js`
+- Modify: `README.md`
+- Modify: `tests/query.test.js` (if it has rating-sort-specific cases that need removing/updating)
+
+- [ ] **Step 1: Remove the rating UI from the modal**
+
+Remove the star-rating widget and its click/keyboard handlers from the title-detail modal. Remove the corresponding markup from `index.html`.
+
+- [ ] **Step 2: Remove the rating mark from grid cards**
+
+Remove the on-poster rating indicator (the small "N★"/"—★" mark) from `cardHtml` in `app.js`, and its CSS (`.card-rating*` or equivalent) from `styles.css`. This also removes the exact "—" plate on unrated titles that the critique flagged as visual noise.
+
+- [ ] **Step 3: Remove rating from sort**
+
+Remove the "По оценке" `<option>` from `#sort-select` in `index.html`, and the corresponding `'rating'` case from `sortTitles` in `lib/query.js` (fall through to whatever the function already does for an unrecognized/removed sort key, or repoint the option removal so this case is simply unreachable — don't leave dead code you can't reach from the UI, but don't break `sortTitles` for any test that still exercises it directly unless that test is also removed/updated).
+
+- [ ] **Step 4: Remove rating from the stats dashboard**
+
+Check `computeStats`/the stats modal for any rating-derived numbers or rows (an average rating, a "N titles rated" count, etc.) and remove them.
+
+- [ ] **Step 5: Leave the data model alone**
+
+Do NOT remove the `rating` field from `lib/validate.js`'s schema checks, `data.js`'s existing entries, or the Supabase `overrides.rating` column — these stay exactly as they are, just permanently unread by the UI going forward. Do NOT write a data migration to null out or delete existing rating values. `lib/storage.js`/`lib/sync.js` need no changes — they're already fully generic about field names and don't need to know a field became UI-dead.
+
+- [ ] **Step 6: Verify**
+
+Confirm no visible rating UI remains anywhere (grid, modal, sort dropdown, stats), confirm nothing throws when opening a title that has an old stored rating (it should just be silently unused), confirm `node --test tests/*.test.js` and `node tools/validate-data.js` still pass.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add app.js index.html styles.css lib/query.js README.md tests/query.test.js
+git commit -m "Remove the rating feature — nobody wants to fill it in"
+```
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
