@@ -2952,6 +2952,148 @@ git commit -m "feat: upload cover image from device in the edit form"
 
 ---
 
+---
+
+## Phase G: search UX, draft controls, and an "unreleased" status
+
+Five owner requests after trying Phase F live, grouped into three tasks by shared surface area.
+
+### Task 42: Instant search-as-you-type in quick-add + Shikimori for anime
+
+**Files:**
+- Modify: `lib/enrich.js`
+- Modify: `tests/enrich.test.js`
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `README.md`
+
+**Why / two owner asks bundled here:**
+
+1. The quick-add "Найти" button requires an explicit click after typing. The owner wants results to appear live as they type — no button, no separate step. The category `<select>` stays exactly where it is: it still decides which provider to search (TMDb/RAWG/Shikimori) and still gates the "+ Добавить" submit, unchanged. What goes away is only the *manual trigger* — typing (or changing category, since that changes which provider/results apply) re-searches automatically.
+2. Jikan (the current anime source) only has English/romaji titles and synopses, which is exactly backwards for a catalog whose hard rule is Russian titles — Jikan-sourced picks currently can't even populate `title`. **Shikimori** (`shikimori.one`, a Russian anime-tracking site) has a public REST API with content already in Russian, needs no API key (a descriptive `User-Agent` header is required by its usage policy, and it rate-limits — be gentle, this app makes maybe a handful of calls a session), and is a direct fit. Switch anime from Jikan to Shikimori.
+
+(Games have no equivalent free Russian-native API with RAWG's breadth of platform data — Steam's storefront API can return Russian descriptions but only for titles with a Steam page and no cross-platform data, so it would need to run *alongside* RAWG, not replace it, for real benefit. That's out of scope here; flag it as a possible future add-on in your report, don't build it.)
+
+- [ ] **Step 1: Verify Shikimori's real response shape**
+
+Before writing any mapping code, make real `curl` calls (this project's standing rule: verify live, never assume from memory/docs) — e.g. `curl -A "backlog-app/1.0 (personal use)" "https://shikimori.one/api/animes?search=<something>&limit=5"` and the equivalent `/api/animes/{id}` details endpoint. Confirm exact field names for: title (Russian, likely `russian`, with `name`/`english` as the romaji/English fallback when `russian` is empty — don't assume, check), year (likely derived from `aired_on`), genres (likely `genres[].russian`/`genres[].name` — prefer the Russian genre name if present), synopsis/description (`description`ールrelated field — Shikimori's descriptions are often BBCode-ish; strip obvious markup like `[character=...]...[/character]` to plain text, keep this simple, don't build a full BBCode parser), poster (likely under `image.original`/`image.preview` — full URL may need a `https://shikimori.one` prefix if the API returns a relative path, verify).
+
+- [ ] **Step 2: Update `lib/enrich.js`**
+
+Replace `searchJikan`/`fetchJikanDetails` with `searchShikimori(fetchFn, query)` / `fetchShikimoriDetails(fetchFn, id)`, same injected-`fetchFn` pattern as every other provider function. Since Shikimori actually has Russian titles, its normalized details can now include `title`/`synopsis` (unlike Jikan's) — update `providerFor`/`detailsByProvider` in `app.js` accordingly, and remove the old "Jikan never supplies a synopsis, so a pick from it always stays `draft` in spirit anyway" reasoning anywhere it's referenced in comments, since it's no longer true for anime specifically (a complete Shikimori pick is exactly as complete as a TMDb/RAWG one now).
+
+- [ ] **Step 3: Instant search wiring**
+
+In `app.js`, replace the click-triggered search in `wireEnrichPicker` (or restructure it — your call, keep the diff proportional to the change) with: an `input` listener on the title field, debounced (~350ms), that re-runs `searchByCategory` automatically once the trimmed query is at least 2 characters and a category is selected; also re-run immediately on the category `<select>`'s `change` event (using whatever query is currently typed). Below a 2-character query or with no category selected, hide the results panel entirely rather than showing an error message (this isn't a failure state, just "not enough to search yet").
+
+**Race-condition guard, required**: a fast typer can have an older, slower request resolve after a newer one. Give each search call an incrementing token/id and ignore any response whose token isn't the latest issued — do not let a stale response overwrite fresher results or flicker the panel. Reuse or adapt the existing `enrich-picker__message`/`__list` rendering; keep the "Ищу…" / "Ничего не нашлось" / error-message states from the current implementation, just retrigger them from `input`/`change` instead of `click`.
+
+Remove the now-unused `#quick-add-find` button from `index.html` (and its `.quick-add__find`/`.edit-form__find`-adjacent styles from `styles.css` if nothing else references them — grep first, `.edit-form__find` should already be gone from the Task 40-fix commit).
+
+- [ ] **Step 4: Tests**
+
+Update `tests/enrich.test.js`: replace the Jikan test cases with equivalent Shikimori ones (success, error, empty-result), using the real shape confirmed in Step 1, fake `fetchFn` only, no real network in tests.
+
+- [ ] **Step 5: README**
+
+Update the auto-fill section: Shikimori replaces Jikan for anime (no key, note the `User-Agent` requirement), mention instant/live search replacing the old button, and add a one-line note that Steam-for-games-RU-descriptions was considered and deliberately deferred (so a future reader doesn't wonder why RAWG is still English-only for games).
+
+- [ ] **Step 6: Verify**
+
+Type a partial anime title, confirm results appear without clicking anything, in Russian; verify the race-guard by testing a rapid multi-keystroke sequence doesn't show stale results (you can simulate this by artificially delaying one fetch in a manual test, or reason through the token-check code carefully if a live repro is impractical). Confirm movie/series/game search still works unchanged. `node --test tests/*.test.js` and `node tools/validate-data.js` pass. Follow this project's standing production-safety rule: if you create any real draft during manual verification, use an unmistakable test title and delete it from the live `drafts` table afterward via `curl … -X DELETE`, then confirm with a GET it's gone — do not rely on browser `fetch` monkey-patching to intercept Supabase SDK calls (confirmed unreliable in this project's own history), use a fake-client Node harness or an unmistakable-and-cleaned-up real draft instead.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/enrich.js tests/enrich.test.js app.js index.html styles.css README.md
+git commit -m "feat: instant search-as-you-type in quick-add, switch anime source to Shikimori"
+```
+
+---
+
+### Task 43: Un-mark a draft manually + a "show drafts" filter
+
+**Files:**
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `README.md`
+
+**Why:** (1) an API-picked or hand-completed draft may in fact be perfect — the owner wants a way to clear the "Черновик" badge from the edit form once they've checked it over, without that being tied to editing any other field; (2) drafts can now accumulate for a while (quick-add, auto-fill), so the owner wants a toolbar filter to see just the drafts, the same way "Скрыть завершённое" already narrows the grid.
+
+- [ ] **Step 1: "Это черновик" checkbox in the edit form**
+
+In Task 39's edit form (`index.html`/`app.js`), add a checkbox bound to the `draft` field — label it something like "Черновик (требует проверки)" — pre-filled from the title's current `draft` value (falsy for ordinary catalog entries, which have no `draft` field at all — treat missing as unchecked). Wire it into the same changed-fields diff Task 39 already computes, so unchecking it (or, in principle, re-checking it) only writes `draft` when it actually changed. This uses the exact same `setOverride`/`pushOverride` path every other edited field already does — no new plumbing.
+
+While you're in this area: the modal's placeholder-synopsis message (`app.js`, the `title.synopsis ? ... : 'Черновик — жанры, год...'` line from the recent fix) still hardcodes the word "Черновик" in its copy even though the flag and the message are now decoupled (the message shows for *any* missing synopsis, draft or not). Reword it to not presuppose draft status, e.g. "Описание пока не заполнено. Попросите Claude дополнить «` + title.title + `»." — small copy fix, not a behavior change.
+
+- [ ] **Step 2: "Показать только черновики" toolbar filter**
+
+Add a checkbox to the toolbar (`index.html`, same `.toolbar__checkbox` pattern as `#hide-done-filter`/`#returning-filter`) — id it `#drafts-only-filter`, label "Только черновики". Wire a new `state.draftsOnly` boolean (default `false`) into the same filtering pass `state.hideDone`/`state.returning` already go through in `app.js` (grep for where `state.hideDone` is checked in the render/filter path and add a sibling check: `if (state.draftsOnly && !t.draft) return false;`). This is a plain client-side filter, no changes needed to `lib/query.js`/`lib/storage.js`.
+
+- [ ] **Step 3: Verify**
+
+Toggle the new checkbox on a catalog with a mix of draft and non-draft titles, confirm only drafts show. Uncheck a draft's "Черновик" box in the edit form, save, confirm the badge disappears from its card and it drops out of the drafts-only filter. Re-check it, confirm it reappears. `node --test tests/*.test.js` and `node tools/validate-data.js` pass (no new automated tests needed — this is UI-state wiring with no new pure-logic surface).
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add app.js index.html styles.css README.md
+git commit -m "feat: manual draft toggle in the editor, drafts-only toolbar filter"
+```
+
+---
+
+### Task 44: A fourth status — "Ещё не вышло" (not yet released)
+
+**Files:**
+- Modify: `lib/validate.js`
+- Modify: `lib/query.js`
+- Modify: `app.js`
+- Modify: `index.html`
+- Modify: `styles.css`
+- Modify: `README.md`
+
+**Why:** for a movie/series/anime that has been added to the backlog but hasn't actually premiered/released yet (in theaters or digitally), "В бэклоге" is misleading — it implies "available, just haven't started," when actually the owner literally cannot watch it yet. This is a real, distinct 4th status, not a display quirk — but it is deliberately **not** one of the three quick-click status buttons on a card (you can't accidentally mark an unreleased title "in progress"). It is set the same way the parts checklist already occupies that same "status" real estate for a different reason: through a dedicated control in the edit form, not the three-button strip.
+
+**Scope, read carefully before touching anything:**
+- Applies to `movie`/`series`/`anime` only, never `game` (mirrors this catalog's existing games-are-different treatment elsewhere, e.g. the random-pick exclusion, `platforms` being game-only).
+- Only meaningful for titles **without** a parts checklist. A parts-bearing title's status is always derived by `hasPartsChecklist`/`deriveStatus` in `lib/storage.js` and that derivation already only ever produces `queue`/`in_progress`/`done` — it does not need a 4th state, because "hasn't come out yet" is already expressed at the per-part level via `released: false`. Do not touch `lib/storage.js`, `deriveStatus`, or the parts-checklist logic at all in this task — the new status is a plain stored `status` value, exactly like the existing three, and for a parts-bearing title it would simply be shadowed by the derived value on every read, same as any other manually-set status is today. The edit form's new control for this status should be hidden for parts-bearing titles (there is already a `updateEditFieldVisibility(category)` function in `app.js` gating `platforms`/`seasonInfo`/`parts` fields by category — add the same kind of category+parts-checklist gate there for this control, not a new mechanism).
+
+- [ ] **Step 1: Schema**
+
+In `lib/validate.js`, add `'unreleased'` to the `STATUSES` array (now `['queue', 'in_progress', 'done', 'unreleased']`). No other validation change needed — `status` is validated the same way regardless of value, and there's no existing rule tying status to category that would need updating (games can technically carry `unreleased` in the schema even though the UI never offers it to them — don't add a category cross-check that doesn't already exist for the other three statuses).
+
+- [ ] **Step 2: Labels, sorting, filtering**
+
+In `app.js`: add `unreleased: 'Ещё не вышло'` to `STATUS_LABELS`. Do **not** add a 4th entry to `STATUS_ACTIONS` (that array is exactly the three quick-click buttons and stays at 3). Add `unreleased` to `lib/query.js`'s `STATUS_PRIORITY` map — place it last (after `done`) since it is the least actionable/soonest-irrelevant-to-sort-toward state; use your judgment if you find a more natural ordering but say why in your report. Add `<option value="unreleased">Ещё не вышло</option>` to `#status-filter` in `index.html`.
+
+- [ ] **Step 3: Card rendering**
+
+In `app.js`'s `cardHtml`, extend the existing `var quickActions = hasPartsChecklist(title) ? '' : cardStatusHtml(title);` line to also suppress the three-button strip when `title.status === 'unreleased'` (same reasoning as the parts-checklist case: clicking "В процессе"/"Завершено" on something not yet released doesn't make sense). The existing status badge (`<span class="badge card__status-badge" data-status="...">`) already reads `STATUS_LABELS[title.status]` and colors itself from `data-status` — give `unreleased` its own color in `styles.css` alongside the other three status hues (reuse the existing token-driven approach, don't hardcode a new raw color if an existing muted/neutral token fits).
+
+- [ ] **Step 4: Edit-form control**
+
+In Task 39's edit form, add a checkbox (not a select — this is a binary toggle layered on top of, not replacing, the normal status buttons for titles that don't use it) — label "Ещё не вышло" — visible only for `category` in `(movie, series, anime)` **and** the title is not parts-checklist-bearing (use `updateEditFieldVisibility`'s existing category-switch hook, extended with the parts-checklist check). Behavior: checking it sets `status` to `'unreleased'` in the save patch; unchecking it when it was `unreleased` reverts `status` to `'queue'` (there is no reliable "previous status" to restore — `queue` is the same safe default a brand-new title gets). Pre-fill the checkbox from whether the title's *current effective* status is already `'unreleased'`.
+
+- [ ] **Step 5: Random pick + stats**
+
+In `app.js`, `updateRandomAvailability`'s pool-building logic (`titlesForCategory(state.category).filter(...)`) already excludes `t.category === 'game'` and `t.status === 'done'` — add `&& t.status !== 'unreleased'` to the same filter (you can't watch something unreleased any more than you can "randomly watch" a game). Check `computeStats`/the stats dashboard for how it currently buckets titles by status and decide, using your judgment, whether `unreleased` needs its own bucket/row or can be folded into the existing "в бэклоге" count with a note — either is acceptable, just be deliberate and explain your choice in the report rather than leaving it as an accidental side effect.
+
+- [ ] **Step 6: Verify**
+
+Mark a plain (non-parts) movie as unreleased via the edit form: confirm the card shows the new badge and no quick-action strip, it's excluded from random-pick, it appears under the new `#status-filter` option, and unchecking the box in edit mode returns it to `queue` with the normal 3-button strip back. Confirm a parts-bearing title never shows this checkbox at all. Confirm a game never shows it either. `node --test tests/*.test.js` and `node tools/validate-data.js` pass — extend `tests/validate.test.js` with a case confirming `'unreleased'` is now accepted by `validateTitle`, following that file's existing style.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add lib/validate.js lib/query.js app.js index.html styles.css README.md tests/validate.test.js
+git commit -m "feat: add an 'unreleased' status, editable via a checkbox in the editor"
+```
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
