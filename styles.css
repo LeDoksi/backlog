@@ -1560,7 +1560,7 @@ body {
    from ~148px to the full 514px, which made «Удалить тайтл», deliberately the
    most understated control in the panel, the widest thing in it. The mobile
    block's explicit `width: 100%` still wins there, as it should. */
-.modal.is-parts .modal__body > :is(.modal__edit, .modal__delete) { align-self: start; }
+.modal.is-parts .modal__body > :is(.modal__edit, .modal__delete) { align-self: start; flex-shrink: 0; }
 
 /* Adjacent margins collapse in block flow and add up in flex, so the one pair
    with a margin on both sides of the boundary — the synopsis's 24 and the edit
