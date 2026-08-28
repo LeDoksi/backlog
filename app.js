@@ -59,7 +59,9 @@
     searchRawg: function () { return Promise.resolve([]); },
     fetchRawgDetails: function () { return Promise.resolve(null); },
     searchShikimori: function () { return Promise.resolve([]); },
-    fetchShikimoriDetails: function () { return Promise.resolve(null); }
+    fetchShikimoriDetails: function () { return Promise.resolve(null); },
+    searchSteam: function () { return Promise.resolve([]); },
+    fetchSteamDetails: function () { return Promise.resolve(null); }
   };
 
   var Sync = (typeof BacklogSync !== 'undefined' && BacklogSync) ? BacklogSync : {
@@ -1629,9 +1631,13 @@
   // #quick-add-picker, live as the owner types (see wireEnrichPicker).
   //
   // category → provider is fixed by this catalog's own rules: movies/series
-  // go to TMDb, games to RAWG, anime to Shikimori (a Russian anime-tracking
-  // site — unlike the old Jikan source, its titles/synopses are already
-  // Russian, so an anime pick is exactly as complete as a TMDb/RAWG one).
+  // go to TMDb, anime to Shikimori (a Russian anime-tracking site — unlike
+  // the old Jikan source, its titles/synopses are already Russian, so an
+  // anime pick is exactly as complete as a TMDb/RAWG one), games try Steam
+  // first and fall back to RAWG (Task 45 — see searchByCategory's `rawg`
+  // branch and lib/enrich.js's Steam header comment for why: Steam has real
+  // Russian genres/descriptions for titles with a Russian store page, RAWG
+  // covers everything else and supplies console `platforms` either way).
   function providerFor(category) {
     if (category === 'movie') return 'tmdb-movie';
     if (category === 'series') return 'tmdb-series';
@@ -1663,9 +1669,20 @@
         .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
     }
     if (provider === 'rawg') {
-      if (!RAWG_KEY) return Promise.resolve({ ok: false, reason: 'no-key' });
-      return Enrich.searchRawg(fetchFn, RAWG_KEY, query)
-        .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
+      // Task 45: Steam first (real Russian genres/descriptions, for any game
+      // that has a Russian-localized Steam store page), RAWG as the
+      // fallback — an empty Steam result, a proxy failure and a network
+      // error all collapse to the same "[]" from searchSteam (see its
+      // header comment in lib/enrich.js), so there is nothing special to
+      // branch on here beyond "did Steam find anything at all".
+      return Enrich.searchSteam(fetchFn, CORS_PROXY, query).then(function (steamList) {
+        if (steamList && steamList.length) {
+          return { ok: true, provider: 'steam', candidates: steamList };
+        }
+        if (!RAWG_KEY) return { ok: false, reason: 'no-key' };
+        return Enrich.searchRawg(fetchFn, RAWG_KEY, query)
+          .then(function (list) { return { ok: true, provider: 'rawg', candidates: list }; });
+      });
     }
     if (provider === 'shikimori') {
       return Enrich.searchShikimori(fetchFn, query)
@@ -1681,7 +1698,35 @@
     if (provider === 'tmdb-series') return Enrich.fetchTmdbDetails(fetchFn, TMDB_KEY, 'series', id);
     if (provider === 'rawg') return Enrich.fetchRawgDetails(fetchFn, RAWG_KEY, id);
     if (provider === 'shikimori') return Enrich.fetchShikimoriDetails(fetchFn, id);
+    if (provider === 'steam') return steamDetailsWithPlatformSupplement(fetchFn, id);
     return Promise.resolve(null);
+  }
+
+  // Task 45 Step 3: Steam's own appdetails only reports Windows/Mac/Linux
+  // booleans, not console platforms, so a Steam-sourced pick makes one
+  // extra, best-effort RAWG search by the resolved Steam title purely to
+  // pull a richer `platforms` list (RAWG's top hit for that title, if any).
+  // This supplement can never fail or block the pick: a missing RAWG_KEY, no
+  // match, a network error or a thrown exception anywhere in the RAWG leg
+  // all fall back to just returning Steam's own details unchanged — only a
+  // real, non-empty RAWG `platforms` list ever overwrites Steam's.
+  function steamDetailsWithPlatformSupplement(fetchFn, appid) {
+    return Enrich.fetchSteamDetails(fetchFn, CORS_PROXY, appid).then(function (details) {
+      if (!details) return null;
+      if (!RAWG_KEY) return details;
+      return Enrich.searchRawg(fetchFn, RAWG_KEY, details.title)
+        .then(function (matches) {
+          var topMatch = matches && matches.length ? matches[0] : null;
+          return topMatch ? Enrich.fetchRawgDetails(fetchFn, RAWG_KEY, topMatch.id) : null;
+        })
+        .then(function (rawgDetails) {
+          if (rawgDetails && rawgDetails.platforms && rawgDetails.platforms.length) {
+            details.platforms = rawgDetails.platforms;
+          }
+          return details;
+        })
+        .catch(function () { return details; });
+    });
   }
 
   function candidateHtml(c) {
@@ -1863,6 +1908,14 @@
   // the browser, not server secrets.
   var TMDB_KEY = '9affbfce7554a8309e8ea9933431b1ff';
   var RAWG_KEY = 'bde5b0fbbc9242d0b0aeec940d845ac3';
+
+  // Task 45: store.steampowered.com sends no CORS headers on either endpoint
+  // lib/enrich.js's Steam functions call, so those requests are relayed
+  // through this public proxy instead (confirmed live, no API key needed —
+  // see lib/enrich.js's header comment). This is the one place that base URL
+  // lives, so swapping providers if proxy.cors.sh ever stops working is a
+  // one-line change here, not a search-and-replace.
+  var CORS_PROXY = 'https://proxy.cors.sh/';
 
   // Null until the SDK has loaded and a client has been built, and null forever
   // if that never happens. Every BacklogSync function takes null as "local-only

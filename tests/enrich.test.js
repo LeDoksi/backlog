@@ -11,7 +11,8 @@ const assert = require('node:assert/strict');
 const {
   searchTmdb, fetchTmdbDetails,
   searchRawg, fetchRawgDetails,
-  searchShikimori, fetchShikimoriDetails
+  searchShikimori, fetchShikimoriDetails,
+  searchSteam, fetchSteamDetails
 } = require('../lib/enrich.js');
 
 function okJson(body) {
@@ -218,4 +219,112 @@ test('fetchShikimoriDetails resolves to null on an HTTP 404 (unknown id)', async
 
 test('fetchShikimoriDetails resolves to null on a network failure', async () => {
   assert.equal(await fetchShikimoriDetails(networkError(), 52991), null);
+});
+
+// ── Steam ────────────────────────────────────────────────────────────────
+//
+// Shapes below are trimmed copies of real responses from
+// `https://proxy.cors.sh/https://store.steampowered.com/api/storesearch/?term=portal&l=russian&cc=RU`
+// and `.../api/appdetails?appids=620&l=russian&cc=RU`, confirmed live during
+// Task 45 (proxy.cors.sh still works with no API key; a direct browser fetch
+// to store.steampowered.com fails, no CORS headers there at all — see
+// lib/enrich.js's header comment). `proxyBase` here is just `''` since the
+// fake fetchFn doesn't care what's prepended to the URL.
+
+test('searchSteam normalizes a store search result (no year on a search hit)', async () => {
+  var fetchFn = okJson({
+    total: 2,
+    items: [
+      { type: 'app', name: 'Portal 2', id: 620, tiny_image: 'https://x/620.jpg', platforms: { windows: true, mac: false, linux: true } }
+    ]
+  });
+  var candidates = await searchSteam(fetchFn, '', 'portal');
+  assert.deepEqual(candidates, [
+    { id: 620, title: 'Portal 2', year: null, poster: 'https://x/620.jpg' }
+  ]);
+});
+
+test('searchSteam resolves to [] on an empty search (no matches)', async () => {
+  assert.deepEqual(await searchSteam(okJson({ total: 0, items: [] }), '', 'zzzznotarealgame'), []);
+});
+
+test('searchSteam resolves to [] on a proxy/network failure', async () => {
+  assert.deepEqual(await searchSteam(networkError(), '', 'x'), []);
+});
+
+test('searchSteam resolves to [] on a proxy HTTP error', async () => {
+  assert.deepEqual(await searchSteam(httpError(502), '', 'x'), []);
+});
+
+test('fetchSteamDetails normalizes a details response (Russian genres, plain-text short_description)', async () => {
+  var fetchFn = okJson({
+    620: {
+      success: true,
+      data: {
+        name: 'Portal 2',
+        release_date: { coming_soon: false, date: '18 апр. 2011 г.' },
+        genres: [{ id: '1', description: 'Экшены' }, { id: '25', description: 'Приключенческие игры' }],
+        short_description: 'Программа вечного тестирования расширена.',
+        detailed_description: 'В Portal 2...<br><br>ещё текст',
+        header_image: 'https://x/620/header.jpg',
+        platforms: { windows: true, mac: false, linux: true }
+      }
+    }
+  });
+  var details = await fetchSteamDetails(fetchFn, '', 620);
+  assert.deepEqual(details, {
+    title: 'Portal 2',
+    year: 2011,
+    genres: ['Экшены', 'Приключенческие игры'],
+    synopsis: 'Программа вечного тестирования расширена.',
+    cover: 'https://x/620/header.jpg',
+    platforms: ['PC', 'Linux']
+  });
+});
+
+test('fetchSteamDetails falls back to a tag-stripped detailed_description when short_description is empty', async () => {
+  var fetchFn = okJson({
+    620: {
+      success: true,
+      data: {
+        name: 'Portal 2',
+        release_date: { coming_soon: false, date: '18 апр. 2011 г.' },
+        genres: [],
+        short_description: '',
+        detailed_description: 'Текст<br><br>ещё<b>жирный</b>',
+        header_image: '',
+        platforms: {}
+      }
+    }
+  });
+  var details = await fetchSteamDetails(fetchFn, '', 620);
+  assert.equal(details.synopsis, 'Текстещёжирный');
+  assert.deepEqual(details.platforms, []);
+});
+
+test('fetchSteamDetails parses a normal release_date.date into a year', async () => {
+  var fetchFn = okJson({
+    620: { success: true, data: { name: 'Portal 2', release_date: { date: '3 авг. 2023 г.' } } }
+  });
+  assert.equal((await fetchSteamDetails(fetchFn, '', 620)).year, 2023);
+});
+
+test('fetchSteamDetails resolves year to null for an unreleased placeholder date ("Скоро выйдет")', async () => {
+  var fetchFn = okJson({
+    388860: { success: true, data: { name: 'Judas', release_date: { coming_soon: true, date: 'Скоро выйдет' } } }
+  });
+  assert.equal((await fetchSteamDetails(fetchFn, '', 388860)).year, null);
+});
+
+test('fetchSteamDetails resolves year to null when release_date is missing entirely', async () => {
+  var fetchFn = okJson({ 620: { success: true, data: { name: 'Portal 2' } } });
+  assert.equal((await fetchSteamDetails(fetchFn, '', 620)).year, null);
+});
+
+test('fetchSteamDetails resolves to null when appdetails reports success: false (unknown appid)', async () => {
+  assert.equal(await fetchSteamDetails(okJson({ 999999999: { success: false } }), '', 999999999), null);
+});
+
+test('fetchSteamDetails resolves to null on a proxy/network failure', async () => {
+  assert.equal(await fetchSteamDetails(networkError(), '', 620), null);
 });
