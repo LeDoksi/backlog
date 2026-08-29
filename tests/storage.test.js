@@ -1,7 +1,7 @@
 // tests/storage.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { getOverrides, setOverride, getDeleted, deleteTitle, applyOverlay, addTitle, getAdded, removeAdded, isSupersededBy, pruneAdded, combineWithAdded, getCheckedParts, setCheckedParts, setPartChecked, deriveStatus, partsProgress, hasPartsChecklist, effectiveStatus } = require('../lib/storage.js');
+const { getOverrides, setOverride, getDeleted, deleteTitle, applyOverlay, addTitle, getAdded, removeAdded, isSupersededBy, pruneAdded, combineWithAdded, getCheckedParts, setCheckedParts, setPartChecked, deriveStatus, deriveAiringStatus, partsProgress, hasPartsChecklist, effectiveStatus, withDerivedStatus } = require('../lib/storage.js');
 
 function fakeStorage() {
   var data = {};
@@ -263,12 +263,20 @@ test('deriveStatus ignores out-of-range indices', () => {
   assert.equal(deriveStatus(RELEASED_ONLY, [7]), 'queue');
 });
 
-test('deriveStatus: a list with nothing released yet is queue, never done', () => {
-  // A show announced but not aired. There is nothing to have watched, so it
-  // sits in the backlog — and it can never be done, because it is all pending.
+// Task 50: this list used to derive to `queue`, which read as "available, just
+// not started" for something that has not aired at all. It is `unreleased` now.
+test('deriveStatus: a list with nothing released yet is unreleased, never done', () => {
   var announced = [{ name: 'Сезон 1', year: 2027, released: false }];
-  assert.equal(deriveStatus(announced, []), 'queue');
-  assert.equal(deriveStatus(announced, [0]), 'queue');
+  assert.equal(deriveStatus(announced, []), 'unreleased');
+  assert.equal(deriveStatus(announced, [0]), 'unreleased');
+  // Any length, and a stray check on a pending part cannot promote it.
+  var twoAnnounced = [
+    { name: 'Сезон 1', year: 2027, released: false },
+    { name: 'Сезон 2', year: 2028, released: false }
+  ];
+  assert.equal(deriveStatus(twoAnnounced, []), 'unreleased');
+  assert.equal(deriveStatus(twoAnnounced, [0, 1]), 'unreleased');
+  assert.equal(deriveStatus(twoAnnounced, [9]), 'unreleased');
 });
 
 test('deriveStatus treats a missing released flag as released', () => {
@@ -404,5 +412,234 @@ test('partsProgress and deriveStatus can never disagree — they share one count
     if (p.watched === 0) assert.equal(status, 'queue');
     else assert.equal(status, 'in_progress'); // pending > 0, so done is unreachable
     assert.ok(p.watched <= p.released);
+  });
+});
+
+// ── Task 50: the airing badge is derived from `parts` too ──────────────────
+//
+// `airingStatus` used to be hand-maintained on every title, and on a
+// parts-bearing one it drifted stale against the very list that already says
+// what is out and what is coming. For those titles it is now derived on read,
+// exactly like `status` — same read-only discipline, same one place.
+
+const ALL_PENDING = [
+  { name: 'Сезон 1', year: 2027, released: false },
+  { name: 'Сезон 2', year: 2028, released: false }
+];
+
+test('deriveAiringStatus: mixed is ongoing, everything else is completed', () => {
+  assert.equal(deriveAiringStatus(ONE_PENDING), 'ongoing');   // 2 out, 1 to come
+  assert.equal(deriveAiringStatus(RELEASED_ONLY), 'completed'); // nothing left
+  assert.equal(deriveAiringStatus(ALL_PENDING), 'completed');   // inert: see below
+  assert.equal(deriveAiringStatus([{ name: 'Сезон 1', year: 2019, released: true }]), 'completed');
+});
+
+test('deriveAiringStatus returns null when there is nothing to derive from', () => {
+  assert.equal(deriveAiringStatus(undefined), null);
+  assert.equal(deriveAiringStatus(null), null);
+  assert.equal(deriveAiringStatus([]), null);
+  assert.equal(deriveAiringStatus('nonsense'), null);
+});
+
+test('deriveAiringStatus is a pure function of its argument', () => {
+  var parts = ONE_PENDING.slice();
+  deriveAiringStatus(parts);
+  assert.deepEqual(parts, ONE_PENDING);
+});
+
+test('withDerivedStatus corrects a stale airingStatus on a mixed parts list', () => {
+  var storage = fakeStorage();
+  var title = { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING };
+  var out = withDerivedStatus(storage, title);
+  assert.equal(out.airingStatus, 'ongoing');
+  assert.equal(out.status, 'queue');
+  assert.notEqual(out, title);          // a copy was needed…
+  assert.equal(title.airingStatus, 'completed'); // …and the original is untouched
+});
+
+test('withDerivedStatus leaves an already-correct mixed title as the same object', () => {
+  var storage = fakeStorage();
+  var title = { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'ongoing', parts: ONE_PENDING };
+  var out = withDerivedStatus(storage, title);
+  assert.equal(out, title); // nothing differs, so nothing is cloned
+  assert.equal(out.airingStatus, 'ongoing');
+});
+
+test('withDerivedStatus clones for airingStatus alone when only that field differs', () => {
+  // status already matches the derived value, airingStatus does not: the clone
+  // must still happen, and must carry the corrected badge.
+  var storage = fakeStorage();
+  var title = { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING };
+  var out = withDerivedStatus(storage, title);
+  assert.notEqual(out, title);
+  assert.deepEqual({ status: out.status, airingStatus: out.airingStatus }, { status: 'queue', airingStatus: 'ongoing' });
+});
+
+// The double-signal rule, tested through the function that owns it. An
+// all-pending title derives to `unreleased`, and the badge must be off — the
+// status chip already says «Ещё не вышло», so «Всё ещё выходит» next to it
+// would be redundant and contradictory. This holds no matter what the stored
+// airingStatus claimed.
+test('withDerivedStatus on an all-pending list derives unreleased AND forces the badge off', () => {
+  var storage = fakeStorage();
+  var title = { id: 'upcoming-2027', category: 'anime', status: 'queue', airingStatus: 'ongoing', parts: ALL_PENDING };
+  var out = withDerivedStatus(storage, title);
+  assert.equal(out.status, 'unreleased');
+  assert.equal(out.airingStatus, 'completed');
+});
+
+test('a stray check on an unreleased part cannot bring the badge back', () => {
+  // Nothing a viewer (or corrupt storage) can do reaches the badge: it is a
+  // fact about the parts list, and the unreleased clamp sits above it anyway.
+  var storage = fakeStorage();
+  setPartChecked(storage, 'upcoming-2027', 0, true);
+  setPartChecked(storage, 'upcoming-2027', 9, true);
+  var title = { id: 'upcoming-2027', category: 'anime', status: 'done', airingStatus: 'ongoing', parts: ALL_PENDING };
+  var out = withDerivedStatus(storage, title);
+  assert.equal(out.status, 'unreleased');
+  assert.equal(out.airingStatus, 'completed');
+});
+
+test('withDerivedStatus never derives ongoing for a fully released parts list', () => {
+  var storage = fakeStorage();
+  // done: everything released, everything checked.
+  setCheckedParts(storage, 'wrapped-2019', [0, 1]);
+  var done = withDerivedStatus(storage, { id: 'wrapped-2019', category: 'series', status: 'queue', airingStatus: 'ongoing', parts: RELEASED_ONLY });
+  assert.deepEqual({ status: done.status, airingStatus: done.airingStatus }, { status: 'done', airingStatus: 'completed' });
+
+  // in_progress: everything released, not everything watched — the ordinary
+  // "I'm midway through a finished show" state, and plainly reachable.
+  var storage2 = fakeStorage();
+  setCheckedParts(storage2, 'wrapped-2019', [0]);
+  var mid = withDerivedStatus(storage2, { id: 'wrapped-2019', category: 'series', status: 'queue', airingStatus: 'ongoing', parts: RELEASED_ONLY });
+  assert.deepEqual({ status: mid.status, airingStatus: mid.airingStatus }, { status: 'in_progress', airingStatus: 'completed' });
+
+  // queue: everything released, nothing watched.
+  var storage3 = fakeStorage();
+  var untouched = withDerivedStatus(storage3, { id: 'wrapped-2019', category: 'series', status: 'queue', airingStatus: 'ongoing', parts: RELEASED_ONLY });
+  assert.deepEqual({ status: untouched.status, airingStatus: untouched.airingStatus }, { status: 'queue', airingStatus: 'completed' });
+});
+
+test('withDerivedStatus leaves airingStatus alone on a title without a parts checklist', () => {
+  var storage = fakeStorage();
+  // No parts at all.
+  var movie = { id: 'barbie-2023', category: 'movie', status: 'done', airingStatus: 'ongoing' };
+  assert.equal(withDerivedStatus(storage, movie), movie);
+  assert.equal(withDerivedStatus(storage, movie).airingStatus, 'ongoing');
+
+  // A series with no parts list: still hand-maintained, still untouched.
+  var series = { id: 'frieren-2023', category: 'series', status: 'queue', airingStatus: 'ongoing' };
+  assert.equal(withDerivedStatus(storage, series), series);
+
+  // Empty parts array — hasPartsChecklist is false, so same again.
+  var empty = { id: 'x', category: 'anime', status: 'queue', airingStatus: 'completed', parts: [] };
+  assert.equal(withDerivedStatus(storage, empty), empty);
+
+  // Wrong category with a real parts array: the checklist gate is what decides,
+  // and a movie is never parts-bearing however its data looks.
+  var oddMovie = { id: 'y', category: 'movie', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING };
+  assert.equal(withDerivedStatus(storage, oddMovie), oddMovie);
+  assert.equal(withDerivedStatus(storage, oddMovie).airingStatus, 'completed');
+
+  // …and a null airingStatus is a value like any other: not invented, not filled in.
+  var noBadge = { id: 'z', category: 'game', status: 'queue', airingStatus: null };
+  assert.equal(withDerivedStatus(storage, noBadge), noBadge);
+});
+
+test('applyOverlay hands the derived airingStatus to consumers', () => {
+  // The badge renderer and the "returning" filter read title.airingStatus and
+  // nothing else, so this is the whole integration surface.
+  var storage = fakeStorage();
+  var visible = applyOverlay([
+    { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING },
+    { id: 'upcoming-2027', category: 'anime', status: 'queue', airingStatus: 'ongoing', parts: ALL_PENDING },
+    { id: 'barbie-2023', category: 'movie', status: 'done', airingStatus: 'ongoing' }
+  ], storage);
+  assert.deepEqual(visible.map(function (t) { return [t.status, t.airingStatus]; }), [
+    ['queue', 'ongoing'],
+    ['unreleased', 'completed'],
+    ['done', 'ongoing']
+  ]);
+  // Still a pure read: nothing was persisted for any of them.
+  assert.equal(storage.getItem('backlog-overrides'), null);
+});
+
+// ── Brute force: prove the claims rather than assert them ──────────────────
+//
+// Two things this task must not get wrong, swept over every parts list of
+// length 1-4 and every subset of checked indices (plus a stray out-of-range
+// one): (1) moving the `released === 0` check to the top of deriveStatus
+// changes NO existing outcome, and (2) an `unreleased` title never carries an
+// `ongoing` badge, whatever the stored fields said.
+
+function legacyDeriveStatus(parts, checkedIndices) {
+  // deriveStatus exactly as it stood before Task 50.
+  if (!Array.isArray(parts) || parts.length === 0) return null;
+  var p = partsProgress(parts, checkedIndices);
+  if (p.watched === 0) return 'queue';
+  if (p.watched === p.released && p.pending === 0) return 'done';
+  return 'in_progress';
+}
+
+function everyPartsList(maxLen) {
+  var lists = [];
+  for (var len = 1; len <= maxLen; len += 1) {
+    for (var mask = 0; mask < (1 << len); mask += 1) {
+      var parts = [];
+      for (var i = 0; i < len; i += 1) {
+        parts.push({ name: 'Часть ' + (i + 1), released: (mask & (1 << i)) !== 0 });
+      }
+      lists.push(parts);
+    }
+  }
+  return lists;
+}
+
+function everyCheckedSubset(len) {
+  var subsets = [];
+  for (var mask = 0; mask < (1 << len); mask += 1) {
+    var checked = [];
+    for (var i = 0; i < len; i += 1) if (mask & (1 << i)) checked.push(i);
+    subsets.push(checked);
+    subsets.push(checked.concat([len + 5])); // …and the same with a stale index
+  }
+  return subsets;
+}
+
+test('deriveStatus is byte-for-byte unchanged for every list with a released part', () => {
+  var checkedCases = 0;
+  everyPartsList(4).forEach(function (parts) {
+    everyCheckedSubset(parts.length).forEach(function (checked) {
+      var p = partsProgress(parts, checked);
+      if (p.released > 0) {
+        assert.equal(deriveStatus(parts, checked), legacyDeriveStatus(parts, checked));
+        checkedCases += 1;
+      } else {
+        // The one new case — and the old code said `queue` for all of it,
+        // because released === 0 forces watched === 0.
+        assert.equal(p.watched, 0);
+        assert.equal(legacyDeriveStatus(parts, checked), 'queue');
+        assert.equal(deriveStatus(parts, checked), 'unreleased');
+      }
+    });
+  });
+  assert.ok(checkedCases > 100); // the sweep actually ran
+});
+
+test('a derived unreleased title can never carry an ongoing badge', () => {
+  ['ongoing', 'completed', null, undefined].forEach(function (stored) {
+    everyPartsList(4).forEach(function (parts) {
+      everyCheckedSubset(parts.length).forEach(function (checked) {
+        var storage = fakeStorage();
+        setCheckedParts(storage, 'sweep', checked);
+        var out = withDerivedStatus(storage, {
+          id: 'sweep', category: 'anime', status: 'queue', airingStatus: stored, parts: parts
+        });
+        var p = partsProgress(parts, checked);
+        assert.equal(out.status, deriveStatus(parts, checked));
+        assert.ok(!(out.status === 'unreleased' && out.airingStatus === 'ongoing'));
+        assert.equal(out.airingStatus, (p.released > 0 && p.pending > 0) ? 'ongoing' : 'completed');
+      });
+    });
   });
 });
