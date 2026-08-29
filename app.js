@@ -1869,7 +1869,14 @@
       title: name,
       category: category,
       status: 'queue',
-      airingStatus: (category === 'series' || category === 'anime') ? 'ongoing' : null,
+      // Left null rather than assumed 'ongoing' — a brand-new draft has no
+      // real signal either way, and a blind 'ongoing' default was showing a
+      // false "Всё ещё выходит" badge on titles nobody had confirmed were
+      // actually still airing (or, once a parts-bearing derivation existed,
+      // a stored guess that outlived being accurate the moment the title
+      // stopped having a parts list to derive from). Claude/the owner sets
+      // the real value once it's actually known.
+      airingStatus: null,
       year: null,
       genres: [],
       rating: null,
@@ -2141,7 +2148,14 @@
       title: name,
       category: category,
       status: 'queue',
-      airingStatus: (category === 'series' || category === 'anime') ? 'ongoing' : null,
+      // Left null rather than assumed 'ongoing' — a brand-new draft has no
+      // real signal either way, and a blind 'ongoing' default was showing a
+      // false "Всё ещё выходит" badge on titles nobody had confirmed were
+      // actually still airing (or, once a parts-bearing derivation existed,
+      // a stored guess that outlived being accurate the moment the title
+      // stopped having a parts list to derive from). Claude/the owner sets
+      // the real value once it's actually known.
+      airingStatus: null,
       year: details.year != null ? details.year : null,
       genres: details.genres || [],
       rating: null,
