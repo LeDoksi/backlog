@@ -1530,9 +1530,11 @@
       // fallback above.
       draft: !!title.draft,
       // Task 44: `title.status` here is already the *current effective*
-      // status (findTitleById reads through applyOverlay/withDerivedStatus),
-      // so a parts-bearing title — which can never derive to 'unreleased' —
-      // always reads false here too, on top of the checkbox being hidden.
+      // status (findTitleById reads through applyOverlay/withDerivedStatus).
+      // A parts-bearing title CAN derive to 'unreleased' since Task 50 (an
+      // all-pending parts list), so this can read true for one — harmlessly:
+      // the checkbox is hidden by the hasParts gate regardless, so it never
+      // diffs against itself and never reaches the save patch.
       unreleased: title.status === 'unreleased'
     };
     editTitleInput.value = editSnapshot.title;
