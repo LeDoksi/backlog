@@ -3251,6 +3251,73 @@ Remaining items from the `/impeccable critique` action plan the owner chose to p
 
 ---
 
+---
+
+## Phase J: derive "still airing" and "unreleased" from the parts list itself
+
+**Owner request, extends `deriveStatus`** — the single most carefully-reviewed piece of logic in this project (subject of a 16,000+ brute-force test pass in an earlier task, and the reason Task 44 explicitly refused to touch it). This task DOES touch it, deliberately, with a precise spec — read it exactly, do not improvise the edge cases.
+
+**The problem:** `title.airingStatus` (the field behind the "Всё ещё выходит" badge) is currently a manually-set field, independent of a parts-bearing title's actual `parts` list — so it drifts stale exactly the way `status` used to before `deriveStatus` existed (this session's own history has multiple examples: a title marked `completed` before it had actually premiered, a returning-series flag going stale after a season wrapped). For a parts-bearing title, the `parts` array already contains the ground truth (which installments are out, which aren't) — there is no reason `airingStatus` should ever need manual upkeep for these titles specifically.
+
+**The owner's exact spec, restated precisely:**
+- A parts-bearing title should show "Всё ещё выходит" when its parts list is in a **mixed** state: at least one part released, and at least one part not yet released (`released: false`). This is the "some of this franchise exists, more is coming" state.
+- A parts-bearing title whose parts are **all** unreleased (zero released) should derive to the `unreleased` status (Task 44's "Ещё не вышло") automatically — today, a title in this state (nothing checked, nothing released — e.g. a newly-added, not-yet-premiered season/franchise entered ahead of time) incorrectly derives to `queue` ("В бэклоге"), which is exactly the "available, just haven't started" misread the `unreleased` status was built to fix. This case should never show the "Всё ещё выходит" badge — the status badge itself already says "Ещё не вышло", and showing both would be redundant/contradictory.
+- A parts-bearing title whose parts are **all released** should not show "Всё ещё выходит" (nothing left airing) — its `status` is whatever `deriveStatus` already computes (`queue`/`in_progress`/`done`), unaffected by this task.
+- This derivation applies **only** to parts-bearing titles (`hasPartsChecklist(title)` true). Movies, games, and any series/anime WITHOUT a `parts` list keep `airingStatus` exactly as it is today — a manually-maintained field, untouched by this task.
+
+### Task 50: Derive `unreleased` status and the airing badge from `parts`
+
+**Files:**
+- Modify: `lib/storage.js`
+- Modify: `tests/storage.test.js`
+- Modify: `README.md`
+
+**Why:** see Phase J intro above.
+
+- [ ] **Step 1: Extend `deriveStatus` to recognize the all-pending case**
+
+In `lib/storage.js`, `deriveStatus(parts, checkedIndices)` currently returns (in order) `null` (no parts), `'queue'` (nothing watched), `'done'` (everything released is watched, nothing pending), `'in_progress'` (anything else). Add a new check: if `partsProgress(parts, checkedIndices).released === 0` (i.e. every part in the list is `released: false` — nothing has come out at all yet), return `'unreleased'`. This check must run BEFORE the existing `p.watched === 0 → 'queue'` check (if `released === 0`, `watched` is necessarily also `0` too, since `partsProgress` only ever counts a part as watched if it's released — so ordering the new check first doesn't change any existing case, it only catches the one new case correctly). Do not touch the `done`/`in_progress` logic at all — those branches are unreachable when `released === 0`, and must stay byte-for-byte identical to today for every case where `released > 0`.
+
+- [ ] **Step 2: Add a pure function deriving the airing badge from `parts`**
+
+Add `deriveAiringStatus(parts)`, alongside `deriveStatus`: returns `null` if `parts` isn't a non-empty array (mirroring `deriveStatus`'s own guard — "nothing to derive from, caller keeps whatever it already had"); otherwise computes `partsProgress(parts, [])` (checked indices are irrelevant here — only `released`/`pending` counts matter, `watched` is unused) and returns `'ongoing'` if `pending > 0 && released > 0` (the mixed state), else `'completed'` (covers both "everything released" and "nothing released yet" — in the nothing-released case this value is inert/unused, since Step 3 has already routed that title to the `unreleased` status where this badge should never show at all; do not special-case it here, just let `'completed'` fall out naturally and rely on Step 3's UI-level gating, described below, to keep the two signals from ever appearing together).
+
+- [ ] **Step 3: Wire both into the read path — `withDerivedStatus`**
+
+`withDerivedStatus(storage, title)` currently overrides only `status`. Extend it to also override `airingStatus`, but **only when `hasPartsChecklist(title)` is true** — a non-parts-bearing title's `airingStatus` must be returned completely untouched, byte-identical to today, in every case. For a parts-bearing title: compute the derived `airingStatus` via `deriveAiringStatus(title.parts)`; if the (already-computed, from Step 1's extended `deriveStatus`) effective status is `'unreleased'`, force the derived `airingStatus` to `'completed'` regardless of what `deriveAiringStatus` returned — this is the explicit "don't show both signals" rule from the spec (an `unreleased` title never shows "Всё ещё выходит", full stop, even though `deriveAiringStatus` alone might have said `'ongoing'` isn't reachable in that case anyway per Step 2's guard, but make this explicit and not incidental — a future change to Step 2 must not accidentally reintroduce the double-signal case, so encode the rule at the point that actually matters for correctness, not rely on it falling out of Step 2's specific arithmetic). Only write the `airingStatus` key onto the returned object when it actually differs from `title.airingStatus`, matching the existing `status`-only-when-different discipline already in this function (an unaffected title must return the exact same reference, not a needlessly-cloned object).
+
+- [ ] **Step 4: Do not touch anything else**
+
+`effectiveStatus`, `hasPartsChecklist`, `partsProgress`, `getCheckedParts`, `setCheckedParts`, `setPartChecked` — zero changes. `lib/query.js`'s `isStillAiring`/`STATUS_PRIORITY`/`sortTitles`, `app.js`'s badge rendering, the edit-form's "Ещё не вышло" checkbox visibility gate (already correctly hidden for parts-bearing titles since Task 44) — all already correctly consume whatever `title.status`/`title.airingStatus` the read path hands them, so none of them need to change; the derivation happening one level lower in `applyOverlay`'s pipeline is the entire fix. If you find yourself wanting to touch any of these, stop and reconsider — the fix belongs in `lib/storage.js` alone.
+
+- [ ] **Step 5: Tests — this is the load-bearing part of the task**
+
+Add to `tests/storage.test.js`, matching its existing style:
+- `deriveStatus` returns `'unreleased'` for a parts list where every part is `released: false` (any length ≥1).
+- `deriveStatus`'s existing behavior is completely unchanged for every parts list containing at least one released part — re-run/skim the existing test cases for `deriveStatus` and confirm none of them regress (they shouldn't, given Step 1's ordering, but prove it rather than assume it).
+- `deriveAiringStatus` returns `'ongoing'` for a mixed list (≥1 released, ≥1 pending), `'completed'` for an all-released list, `'completed'` for an all-pending list, `null` for an empty/missing parts list.
+- `withDerivedStatus` on a title with a mixed parts list derives `airingStatus: 'ongoing'` regardless of what `title.airingStatus` originally said (both a case where it was already `'ongoing'` — no-op clone-avoidance — and a case where it was stale `'completed'` — confirm it gets corrected).
+- `withDerivedStatus` on a title with an all-pending parts list derives `status: 'unreleased'` AND `airingStatus: 'completed'` (never `'ongoing'`) even if `deriveAiringStatus` were hypothetically miscalled with a stray `checkedIndices` value — this is the explicit double-signal-prevention rule from Step 3, test it directly, don't just trust Step 2's arithmetic to always prevent it.
+- `withDerivedStatus` on a NON-parts-bearing title (no `parts`, or `category` not series/anime) returns `airingStatus` completely untouched — same reference-equality-when-unaffected check the existing `status` tests already do for this function, extended to cover `airingStatus`.
+- `withDerivedStatus` on a fully-released parts-bearing title (no pending) does not derive `'ongoing'` regardless of watched/checked state — confirm both a `done` case and an `in_progress`-with-everything-released-but-not-fully-watched case (if such a case is even reachable — reason through whether "all released, not all watched" can coexist with "no pending," it should, that's the ordinary in-progress case) both correctly get `airingStatus: 'completed'`.
+
+- [ ] **Step 6: Verify**
+
+`node --test tests/*.test.js` (all new + existing tests green) and `node tools/validate-data.js` (`OK: 185 titles, no errors.`, unchanged — this task touches no `data.js` entries). If you have browser automation, spot-check live: a parts-bearing title in the catalog that has a genuinely mixed released/pending list shows "Всё ещё выходит" even if its stored `airingStatus` in `data.js` currently says something else; a parts-bearing title with nothing released yet shows the "Ещё не вышло" badge and does NOT show "Всё ещё выходит"; a fully-wrapped parts-bearing title shows neither. Do not edit any real title's data to test this — pick existing catalog entries whose `parts` arrays already exercise these states (there should be several — an unreleased-upcoming-season title, a fully-wrapped one, and this task doesn't need you to construct synthetic data to prove it works against real entries).
+
+- [ ] **Step 7: README**
+
+Add a short paragraph to the "Сезоны и части" section explaining that `airingStatus` is now also derived (not just `status`) for parts-bearing titles specifically, stating the exact rule (mixed → ongoing, all-pending → completed-but-status-is-unreleased-so-the-badge-never-shows, all-released → completed), and that non-parts titles are unaffected.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add lib/storage.js tests/storage.test.js README.md
+git commit -m "Derive the airing badge and 'unreleased' status from a title's parts list"
+```
+
+---
+
 ## Self-review notes
 
 - **Spec coverage:** architecture (Phase A tasks 6-7), data model + validator (Tasks 1-5), status/rating/delete editing in-UI via localStorage overlay (Tasks 2, 10), returning-flag (Task 3 `isReturning`, surfaced in Task 7 card badge and Task 8 filter), filters/search/sort/progress counters (Tasks 7-8), title detail modal (Task 9), visual style (Task 11), README (Task 12), Excel import + all clarified category mappings (Phase B, Tasks 14-19) — every design-spec section maps to at least one task.
