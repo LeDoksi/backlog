@@ -40,6 +40,57 @@ test('getSession returns null session when there is no client', async () => {
   assert.equal(result.data.session, null);
 });
 
+test('getSession returns the real session when a client is present', async () => {
+  var fakeSession = { user: { id: 'u1' } };
+  var client = fakeClient({
+    auth: {
+      getSession: function () { return Promise.resolve({ data: { session: fakeSession }, error: null }); }
+    }
+  });
+  var result = await Auth.getSession(client);
+  assert.deepEqual(result.data.session, fakeSession);
+});
+
+test('signOut calls client.auth.signOut and returns its result', async () => {
+  var called = false;
+  var client = fakeClient({
+    auth: {
+      signOut: function () { called = true; return Promise.resolve({ error: null }); }
+    }
+  });
+  var result = await Auth.signOut(client);
+  assert.equal(called, true);
+  assert.deepEqual(result, { error: null });
+});
+
+test('signOut without a client resolves with no error, never throws', async () => {
+  var result = await Auth.signOut(null);
+  assert.equal(result.error, null);
+});
+
+test('onAuthStateChange forwards the callback and returns an unsubscribable handle', () => {
+  var seenCallback = null;
+  var unsubscribeCalled = false;
+  var client = fakeClient({
+    auth: {
+      onAuthStateChange: function (cb) {
+        seenCallback = cb;
+        return { data: { subscription: { unsubscribe: function () { unsubscribeCalled = true; } } } };
+      }
+    }
+  });
+  var myCallback = function () {};
+  var handle = Auth.onAuthStateChange(client, myCallback);
+  assert.equal(seenCallback, myCallback);
+  handle.unsubscribe();
+  assert.equal(unsubscribeCalled, true);
+});
+
+test('onAuthStateChange without a client returns a no-op unsubscribable handle', () => {
+  var handle = Auth.onAuthStateChange(null, function () {});
+  assert.doesNotThrow(function () { handle.unsubscribe(); });
+});
+
 test('hasProfile is true when the profiles query returns a row', async () => {
   var client = fakeClient({
     from: function (table) {
