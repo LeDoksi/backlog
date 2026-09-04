@@ -11,6 +11,22 @@
   <link rel="apple-touch-icon" href="images/icon-192.png">
 </head>
 <body>
+  <div id="auth-gate" class="auth-gate" hidden>
+    <div class="auth-gate__card">
+      <h1 class="auth-gate__title">Бэклог</h1>
+      <button id="auth-signin" class="auth-gate__signin" type="button">Войти через Google</button>
+    </div>
+  </div>
+
+  <div id="auth-blocked" class="auth-gate" hidden>
+    <div class="auth-gate__card">
+      <h1 class="auth-gate__title">Бэклог</h1>
+      <p class="auth-gate__message">Этот аккаунт пока не приглашён.</p>
+      <button id="auth-blocked-signout" class="auth-gate__signin" type="button">Выйти</button>
+    </div>
+  </div>
+
+  <div id="app-root" hidden>
   <header class="topbar">
     <div class="topbar__brand">
       <h1 class="topbar__title">Бэклог</h1>
@@ -316,6 +332,7 @@
       <div id="stats-body" class="stats"></div>
     </div>
   </div>
+  </div>
 
   <!-- The app's one and only external dependency: the Supabase client, which
        carries the realtime websocket that lets two devices see each other's
@@ -333,6 +350,7 @@
   <script src="lib/sync.js"></script>
   <script src="lib/validate.js"></script>
   <script src="lib/enrich.js"></script>
+  <script src="lib/auth.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script>

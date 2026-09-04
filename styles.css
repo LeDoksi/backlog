@@ -1485,6 +1485,48 @@ body {
   text-transform: uppercase;
 }
 
+/* ── Auth gate ──────────────────────────────────────────────────────── */
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  z-index: 100;
+}
+.auth-gate[hidden] { display: none; }
+.auth-gate__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-6);
+  text-align: center;
+}
+.auth-gate__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text);
+}
+.auth-gate__message {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  max-width: 320px;
+}
+.auth-gate__signin {
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-control);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.auth-gate__signin:hover { border-color: var(--accent-bright); }
+
 /* ── Status: a segmented control ──────────────────────────────────────── */
 
 /* Three loose buttons would say "three actions"; one track with three seats

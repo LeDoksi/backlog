@@ -2459,19 +2459,87 @@
       });
   }
 
-  populateGenreFilter();
-  updateRandomAvailability();
-  refresh();
+  var Auth = (typeof BacklogAuth !== 'undefined' && BacklogAuth) ? BacklogAuth : {
+    signInWithGoogle: function () { return Promise.resolve({ data: null, error: { message: 'no client' } }); },
+    signOut: function () { return Promise.resolve({ error: null }); },
+    getSession: function () { return Promise.resolve({ data: { session: null }, error: null }); },
+    onAuthStateChange: function () { return { unsubscribe: function () {} }; },
+    hasProfile: function () { return Promise.resolve(false); },
+    listWorkspaceMembers: function () { return Promise.resolve([]); },
+    inviteEmail: function () { return Promise.resolve({ data: null, error: { message: 'no client' } }); },
+    leaveWorkspace: function () { return Promise.resolve({ data: null, error: { message: 'no client' } }); },
+    removeMember: function () { return Promise.resolve({ data: null, error: { message: 'no client' } }); }
+  };
 
-  // Deferred to DOMContentLoaded because the Supabase tag in index.html is
-  // `defer`red: this file runs during parsing, the SDK executes after it, and
-  // this event is the first moment `window.supabase` is guaranteed to exist.
-  // It also keeps the whole of sync strictly behind the first paint.
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startSync);
-  } else {
-    startSync();
+  var authGate = document.getElementById('auth-gate');
+  var authBlocked = document.getElementById('auth-blocked');
+  var appRoot = document.getElementById('app-root');
+  var authClient = (typeof window !== 'undefined' && window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    : null;
+  // Set inside evaluateSession below, read by Task 7's members panel to tell
+  // "this row is me" (→ Выйти) apart from "this row is someone else" (→
+  // Удалить) — declared here, not in Task 7, so it exists before anything
+  // that might read it does.
+  var currentUserId = null;
+
+  function showGate() {
+    appRoot.hidden = true;
+    authBlocked.hidden = true;
+    authGate.hidden = false;
   }
+
+  function showBlocked() {
+    appRoot.hidden = true;
+    authGate.hidden = true;
+    authBlocked.hidden = false;
+  }
+
+  function showApp() {
+    authGate.hidden = true;
+    authBlocked.hidden = true;
+    appRoot.hidden = false;
+  }
+
+  document.getElementById('auth-signin').addEventListener('click', function () {
+    Auth.signInWithGoogle(authClient);
+  });
+  document.getElementById('auth-blocked-signout').addEventListener('click', function () {
+    Auth.signOut(authClient).then(showGate);
+  });
+
+  function bootApp() {
+    populateGenreFilter();
+    updateRandomAvailability();
+    refresh();
+    // Deferred to DOMContentLoaded because the Supabase tag in index.html is
+    // `defer`red: this file runs during parsing, the SDK executes after it, and
+    // this event is the first moment `window.supabase` is guaranteed to exist.
+    // It also keeps the whole of sync strictly behind the first paint.
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startSync);
+    } else {
+      startSync();
+    }
+  }
+
+  var booted = false;
+  function evaluateSession() {
+    if (!authClient) { showGate(); return; }
+    Auth.getSession(authClient).then(function (res) {
+      var session = res && res.data && res.data.session;
+      if (!session) { currentUserId = null; showGate(); return; }
+      currentUserId = session.user && session.user.id;
+      return Auth.hasProfile(authClient).then(function (ok) {
+        if (!ok) { showBlocked(); return; }
+        showApp();
+        if (!booted) { booted = true; bootApp(); }
+      });
+    });
+  }
+
+  Auth.onAuthStateChange(authClient, function () { evaluateSession(); });
+  evaluateSession();
 
   window.BacklogApp = {
     getVisibleTitles: getVisibleTitles,
