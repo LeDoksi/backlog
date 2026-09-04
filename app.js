@@ -873,14 +873,20 @@
   // `overflow: hidden` as the value to restore, and closing the second panel
   // would leave the page scroll-locked for good.
   //
-  // Everything outside the panels is walked from document.body rather than
-  // listed by id, so a control added to the page later cannot silently stay
-  // reachable behind the backdrop.
+  // Everything outside the panels is walked from #app-root's children rather
+  // than listed by id, so a control added to the page later cannot silently
+  // stay reachable behind the backdrop. Task 6: walked from `appRoot`, not
+  // `document.body` — Task 5's auth gate wraps the whole app (header, toolbar,
+  // grid and all three modals) in #app-root, so a walk over document.body's
+  // own children would find only auth-gate/auth-blocked/app-root, and setting
+  // `app-root.inert = true` would inert every modal along with it, since
+  // `inert` cascades to descendants regardless of their own `inert` value —
+  // the just-opened panel would go inert together with the page behind it.
   var backgroundLocked = false;
   var savedBodyOverflow = '';
 
   function syncModalBackground() {
-    var modal = !document.getElementById('title-modal').hidden || !statsModal.hidden;
+    var modal = !document.getElementById('title-modal').hidden || !statsModal.hidden || !inviteModal.hidden;
     // Task 47: the filters sheet drops this same veil at this same blur, so it
     // makes the same "nothing else right now" claim and has to back it the same
     // way. It is the one live layer that is NOT a body child — it stays inside
@@ -904,7 +910,7 @@
       }
     }
 
-    Array.prototype.forEach.call(document.body.children, function (el) {
+    Array.prototype.forEach.call(appRoot.children, function (el) {
       if (el.classList.contains('modal')) return;
       el.inert = open && !(sheetOnly && el === toolbar);
     });
@@ -989,6 +995,53 @@
   document.getElementById('stats-open').addEventListener('click', openStatsModal);
   statsClose.addEventListener('click', closeStatsModal);
   statsModal.querySelector('.modal__backdrop').addEventListener('click', closeStatsModal);
+
+  // ── Task 6: invite by email ───────────────────────────────────────────
+  //
+  // A third peer of the same shape as the title/stats panels: open/close
+  // toggle `hidden` and hand off to syncModalBackground so the page behind
+  // it inerts the same way. Declared here — well before the Auth section
+  // and bootApp/evaluateSession at the end of this file — so `inviteModal`
+  // is already assigned by the time syncModalBackground's `var modal = ...`
+  // line (above) reads `inviteModal.hidden`, no matter which caller reaches
+  // it first.
+  var inviteModal = document.getElementById('invite-modal');
+  var inviteForm = document.getElementById('invite-form');
+  var inviteEmailInput = document.getElementById('invite-email');
+  var inviteAddToWorkspaceInput = document.getElementById('invite-add-to-workspace');
+  var inviteError = document.getElementById('invite-error');
+
+  function openInviteModal() {
+    inviteError.hidden = true;
+    inviteEmailInput.value = '';
+    inviteAddToWorkspaceInput.checked = false;
+    inviteModal.hidden = false;
+    syncModalBackground();
+    inviteEmailInput.focus();
+  }
+
+  function closeInviteModal() {
+    inviteModal.hidden = true;
+    syncModalBackground();
+  }
+
+  document.getElementById('invite-open').addEventListener('click', openInviteModal);
+  document.getElementById('invite-cancel').addEventListener('click', closeInviteModal);
+  inviteModal.querySelector('.modal__backdrop').addEventListener('click', closeInviteModal);
+
+  inviteForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var email = inviteEmailInput.value.trim();
+    if (!email) return;
+    Auth.inviteEmail(authClient, email, inviteAddToWorkspaceInput.checked).then(function (res) {
+      if (res && res.error) {
+        inviteError.textContent = 'Не удалось отправить приглашение';
+        inviteError.hidden = false;
+        return;
+      }
+      closeInviteModal();
+    });
+  });
 
   function findTitleById(id) {
     return baseTitles().filter(function (t) { return t.id === id; })[0];

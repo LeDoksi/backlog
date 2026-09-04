@@ -38,6 +38,7 @@
            is anything other than yes. `role="status"` because that is what
            this is: a polite readout that changes on its own, never a control. -->
       <span id="sync-status" class="sync-status" role="status" hidden></span>
+      <button id="invite-open" class="topbar__invite" type="button" aria-haspopup="dialog">Пригласить</button>
     </div>
     <nav id="tabs" class="tabs">
       <button class="tabs__item is-active" data-category="all">Всё <span class="tabs__count" data-count="all"></span></button>
@@ -330,6 +331,31 @@
       <button id="stats-close" class="modal__close" aria-label="Закрыть">×</button>
       <h2 id="stats-title" class="stats__heading">Итоги</h2>
       <div id="stats-body" class="stats"></div>
+    </div>
+  </div>
+
+  <!-- Task 6: invite by email, opened from #invite-open in the topbar. Same
+       .modal shell as #stats-modal: the outer div carries only `hidden`, the
+       dialog role and label sit on .modal__panel. -->
+  <div id="invite-modal" class="modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-title">
+      <h2 id="invite-title" class="modal__title">Пригласить</h2>
+      <form id="invite-form">
+        <label class="edit-form__field">
+          <span class="modal__field-label">Email</span>
+          <input id="invite-email" class="edit-form__input" type="email" required>
+        </label>
+        <label class="edit-form__field edit-form__checkbox">
+          <input id="invite-add-to-workspace" type="checkbox">
+          Добавить в моё пространство
+        </label>
+        <p id="invite-error" class="edit-form__error" hidden role="alert"></p>
+        <div class="edit-form__actions">
+          <button id="invite-cancel" type="button" class="edit-form__cancel">Отмена</button>
+          <button type="submit" class="edit-form__save">Отправить</button>
+        </div>
+      </form>
     </div>
   </div>
   </div>

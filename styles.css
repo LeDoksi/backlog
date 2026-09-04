@@ -263,6 +263,21 @@ body {
    quiet state — the one that is true almost always — is the whole point. */
 .sync-status[hidden] { display: none; }
 
+/* Task 6: opens #invite-modal. Same understated, label-only chrome as the
+   sync readout beside it — this is an occasional action, not a primary one,
+   so it never competes with the wordmark for weight. */
+.topbar__invite {
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.topbar__invite:hover { color: var(--text); }
+
 /* ── Category tabs ────────────────────────────────────────────────────── */
 
 .tabs {
