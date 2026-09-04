@@ -165,7 +165,7 @@ alter table drafts add column workspace_id uuid references workspaces(id);
 alter table parts add column workspace_id uuid references workspaces(id);
 ```
 
-Дальше — одноразовая миграция: одно общее пространство на существующие данные, и владелец с девушкой сразу туда приглашены. **Замените `<EMAIL_ДЕВУШКИ>` на настоящий email её Google-аккаунта перед выполнением.**
+Дальше — одноразовая миграция: одно общее пространство на существующие данные, и владелец с девушкой сразу туда приглашены.
 
 ```sql
 do $$
@@ -181,7 +181,7 @@ begin
 
   insert into allowed_emails (email, workspace_id) values
     ('shakov.georgy@gmail.com', main_workspace),
-    ('<EMAIL_ДЕВУШКИ>', main_workspace);
+    ('dashach98@gmail.com', main_workspace);
 end $$;
 ```
 
@@ -227,9 +227,9 @@ create policy "workspace members - parts" on parts for all
 **Клиентский код не меняется.** `lib/sync.js` строит вставляемые строки из фиксированного списка полей (`OVERRIDE_FIELDS`/`DRAFT_FIELDS`) — `workspace_id` в этот список никогда не входит, значит клиент никогда не пытается его передать, и `DEFAULT current_workspace_id()` заполняет его на стороне базы для каждой новой строки автоматически, от лица того, кто реально аутентифицирован в момент записи.
 ````
 
-- [ ] **Step 2: Спросить у владельца email девушки, если ещё не известен**
+- [ ] **Step 2: Email девушки уже известен и подставлен**
 
-Если email её Google-аккаунта не был указан раньше в разговоре — спросить прежде, чем показывать финальный SQL-блок с уже подставленным значением.
+`dashach98@gmail.com` — уже в SQL-блоке Step 1 выше, ничего спрашивать не нужно.
 
 - [ ] **Step 3: Владелец выполняет SQL**
 
