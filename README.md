@@ -193,8 +193,11 @@ declare
   invite record;
   new_workspace uuid;
 begin
-  select * into invite from allowed_emails where email = new.email;
-  if invite is null then
+  -- lower(trim(...)) on both sides of every email comparison in this file —
+  -- an invite typed as "Friend@Gmail.com" must still match the exact string
+  -- Google hands back on sign-in.
+  select * into invite from allowed_emails where email = lower(trim(new.email));
+  if not found then
     return new;
   end if;
   if invite.workspace_id is not null then
@@ -219,10 +222,10 @@ create trigger on_auth_user_created
 Каждая из четырёх таблиц (`overrides`, `deleted_titles`, `drafts`, `parts`) получает `workspace_id`. Колонка **сначала добавляется nullable** и заполняется существующим строкам, и только потом становится `not null` с дефолтом — тот же осторожный порядок, что уже спасал этот проект от истории с NULL-артефактами после прошлой миграции (см. запись в `.superpowers/sdd/2026-08-16-backlog-plan/progress.md` про инцидент с рейтингами): колонку с `not null default` от старта нельзя аккуратно добавить на таблицу с уже существующими строками без бэкофилла.
 
 ```sql
-alter table overrides add column workspace_id uuid references workspaces(id);
-alter table deleted_titles add column workspace_id uuid references workspaces(id);
-alter table drafts add column workspace_id uuid references workspaces(id);
-alter table parts add column workspace_id uuid references workspaces(id);
+alter table overrides add column if not exists workspace_id uuid references workspaces(id);
+alter table deleted_titles add column if not exists workspace_id uuid references workspaces(id);
+alter table drafts add column if not exists workspace_id uuid references workspaces(id);
+alter table parts add column if not exists workspace_id uuid references workspaces(id);
 ```
 
 Дальше — одноразовая миграция: одно общее пространство на существующие данные, и владелец с девушкой сразу туда приглашены.
@@ -307,10 +310,19 @@ declare
   target_profile_id uuid;
 begin
   select workspace_id into my_workspace from profiles where id = auth.uid();
+  -- Without this, an anonymous caller (auth.uid() is null, my_workspace stays
+  -- null too) still reaches the insert below — security definer runs as the
+  -- function owner, which bypasses allowed_emails' own RLS policy entirely,
+  -- so the "insert own invites" check is never evaluated on this path. That
+  -- would let anyone holding the public anon key self-grant site access with
+  -- no real invite. Found by review before this ever reached production.
+  if my_workspace is null then
+    raise exception 'not a workspace member';
+  end if;
 
   insert into allowed_emails (email, invited_by, workspace_id)
   values (
-    target_email,
+    lower(trim(target_email)),
     auth.uid(),
     case when add_to_my_workspace then my_workspace else null end
   )
@@ -322,7 +334,7 @@ begin
         end;
 
   if add_to_my_workspace then
-    select id into target_profile_id from profiles where email = target_email;
+    select id into target_profile_id from profiles where email = lower(trim(target_email));
     if target_profile_id is not null then
       update profiles set workspace_id = my_workspace where id = target_profile_id;
     end if;
@@ -375,6 +387,17 @@ begin
   update profiles set workspace_id = new_workspace where id = target_user_id;
 end;
 $$;
+
+-- Belt and braces alongside each function's own auth.uid()/my_workspace
+-- guard: the anon key (public by design, ships in the client bundle) must
+-- never be able to invoke any of these three at all. leave_workspace and
+-- remove_member already fail safely for an anonymous caller on their own
+-- member_count check, but revoking here means that's never load-bearing —
+-- PostgREST returns a permission-denied error before the function body ever
+-- runs, for all three, regardless of what each function's internals do.
+revoke execute on function invite_email(text, boolean) from anon;
+revoke execute on function leave_workspace() from anon;
+revoke execute on function remove_member(uuid) from anon;
 ```
 
 ## Как добавить новый тайтл
