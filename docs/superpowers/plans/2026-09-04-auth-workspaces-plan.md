@@ -474,6 +474,57 @@ test('getSession returns null session when there is no client', async () => {
   assert.equal(result.data.session, null);
 });
 
+test('getSession returns the real session when a client is present', async () => {
+  var fakeSession = { user: { id: 'u1' } };
+  var client = fakeClient({
+    auth: {
+      getSession: function () { return Promise.resolve({ data: { session: fakeSession }, error: null }); }
+    }
+  });
+  var result = await Auth.getSession(client);
+  assert.deepEqual(result.data.session, fakeSession);
+});
+
+test('signOut calls client.auth.signOut and returns its result', async () => {
+  var called = false;
+  var client = fakeClient({
+    auth: {
+      signOut: function () { called = true; return Promise.resolve({ error: null }); }
+    }
+  });
+  var result = await Auth.signOut(client);
+  assert.equal(called, true);
+  assert.deepEqual(result, { error: null });
+});
+
+test('signOut without a client resolves with no error, never throws', async () => {
+  var result = await Auth.signOut(null);
+  assert.equal(result.error, null);
+});
+
+test('onAuthStateChange forwards the callback and returns an unsubscribable handle', () => {
+  var seenCallback = null;
+  var unsubscribeCalled = false;
+  var client = fakeClient({
+    auth: {
+      onAuthStateChange: function (cb) {
+        seenCallback = cb;
+        return { data: { subscription: { unsubscribe: function () { unsubscribeCalled = true; } } } };
+      }
+    }
+  });
+  var myCallback = function () {};
+  var handle = Auth.onAuthStateChange(client, myCallback);
+  assert.equal(seenCallback, myCallback);
+  handle.unsubscribe();
+  assert.equal(unsubscribeCalled, true);
+});
+
+test('onAuthStateChange without a client returns a no-op unsubscribable handle', () => {
+  var handle = Auth.onAuthStateChange(null, function () {});
+  assert.doesNotThrow(function () { handle.unsubscribe(); });
+});
+
 test('hasProfile is true when the profiles query returns a row', async () => {
   var client = fakeClient({
     from: function (table) {
@@ -579,61 +630,100 @@ Expected: FAIL — `Cannot find module '../lib/auth.js'`
     return { data: null, error: { message: 'no client' } };
   }
 
+  // Resolves `run()`'s result no matter what, including a client that
+  // throws synchronously — same shape as lib/sync.js's selectAll/attempt:
+  // a `try` around the call itself, not just a `.catch` on its promise,
+  // since `client.from(...)`/`client.rpc(...)` can throw before ever
+  // returning a promise to chain onto.
+  function guarded(run, onError) {
+    try {
+      return Promise.resolve(run()).catch(function (e) { return onError(e); });
+    } catch (e) {
+      return Promise.resolve(onError(e));
+    }
+  }
+
   function signInWithGoogle(client) {
     if (!client) return Promise.resolve(noClientError());
-    return Promise.resolve(client.auth.signInWithOAuth({ provider: 'google' }));
+    return guarded(
+      function () { return client.auth.signInWithOAuth({ provider: 'google' }); },
+      function (e) { return { data: null, error: e || { message: 'unknown' } }; }
+    );
   }
 
   function signOut(client) {
     if (!client) return Promise.resolve({ error: null });
-    return Promise.resolve(client.auth.signOut());
+    return guarded(
+      function () { return client.auth.signOut(); },
+      function (e) { return { error: e || { message: 'unknown' } }; }
+    );
   }
 
   function getSession(client) {
     if (!client) return Promise.resolve({ data: { session: null }, error: null });
-    return Promise.resolve(client.auth.getSession());
+    return guarded(
+      function () { return client.auth.getSession(); },
+      function (e) { return { data: { session: null }, error: e || { message: 'unknown' } }; }
+    );
   }
 
   // Returns an unsubscribe-capable handle either way, so a caller can always
   // call `.unsubscribe()` on the result without a client-presence check.
   function onAuthStateChange(client, callback) {
     if (!client) return { unsubscribe: function () {} };
-    var result = client.auth.onAuthStateChange(callback);
-    return (result && result.data && result.data.subscription)
-      ? result.data.subscription
-      : { unsubscribe: function () {} };
+    try {
+      var result = client.auth.onAuthStateChange(callback);
+      return (result && result.data && result.data.subscription)
+        ? result.data.subscription
+        : { unsubscribe: function () {} };
+    } catch (e) {
+      return { unsubscribe: function () {} };
+    }
   }
 
   function hasProfile(client) {
     if (!client) return Promise.resolve(false);
-    return Promise.resolve(client.from('profiles').select('id').maybeSingle())
-      .then(function (res) { return !!(res && res.data); })
-      .catch(function () { return false; });
+    return guarded(
+      function () { return client.from('profiles').select('id').maybeSingle(); },
+      function () { return null; }
+    ).then(function (res) { return !!(res && res.data); });
   }
 
   function listWorkspaceMembers(client) {
     if (!client) return Promise.resolve([]);
-    return Promise.resolve(client.from('profiles').select('id, email'))
-      .then(function (res) { return (res && Array.isArray(res.data)) ? res.data : []; })
-      .catch(function () { return []; });
+    return guarded(
+      function () { return client.from('profiles').select('id, email'); },
+      function () { return null; }
+    ).then(function (res) { return (res && Array.isArray(res.data)) ? res.data : []; });
   }
 
   function inviteEmail(client, email, addToMyWorkspace) {
     if (!client) return Promise.resolve(noClientError());
-    return Promise.resolve(client.rpc('invite_email', {
-      target_email: email,
-      add_to_my_workspace: !!addToMyWorkspace
-    }));
+    return guarded(
+      function () {
+        return client.rpc('invite_email', {
+          target_email: email,
+          add_to_my_workspace: !!addToMyWorkspace
+        });
+      },
+      function (e) { return { data: null, error: e || { message: 'unknown' } }; }
+    );
   }
 
   function leaveWorkspace(client) {
     if (!client) return Promise.resolve(noClientError());
-    return Promise.resolve(client.rpc('leave_workspace'));
+    return guarded(
+      function () { return client.rpc('leave_workspace'); },
+      function (e) { return { data: null, error: e || { message: 'unknown' } }; }
+    );
   }
 
   function removeMember(client, userId) {
     if (!client) return Promise.resolve(noClientError());
-    return Promise.resolve(client.rpc('remove_member', { target_user_id: userId }));
+    return guarded(
+      function () { return client.rpc('remove_member', { target_user_id: userId }); },
+      function (e) { return { data: null, error: e || { message: 'unknown' } }; }
+    );
   }
 
   return {
