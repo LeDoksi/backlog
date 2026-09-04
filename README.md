@@ -132,6 +132,251 @@ alter table overrides
 
 **Запись `originalTitle`/`seasonInfo` (тоже Task 45).** У этих двух полей имя колонки в SQL отличается от имени поля в JS (`original_title`/`season_info`). Чтение всегда это учитывало, а запись — нет: и `pushOverride`, и первичный посев `seedLocal` отправляли camelCase-имя, PostgREST отвечал 400 «нет такой колонки», правка молча уходила в `backlog-sync-outbox` и повторялась там вечно. Для посева это было хуже всего: упавший батч оставляет таблицу `overrides` непосеянной, а непосеянную таблицу `applyState` пропускает при каждой следующей загрузке. Обе стороны теперь идут через ту же таблицу соответствия, что и чтение.
 
+## Аутентификация и пространства
+
+С этого момента сайт закрыт: вход только через Google, данные принадлежат «пространству» (`workspace`), а не отдельному пользователю — у пары, которая делит бэклог, пространство одно на двоих, у нового человека — своё личное. Подробности решения — `docs/superpowers/specs/2026-09-04-auth-workspaces-design.md`.
+
+### Схема
+
+```sql
+create table workspaces (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now()
+);
+
+create table profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  workspace_id uuid not null references workspaces(id),
+  created_at timestamptz not null default now()
+);
+
+create table allowed_emails (
+  email text primary key,
+  invited_by uuid references auth.users(id),
+  workspace_id uuid references workspaces(id),
+  created_at timestamptz not null default now()
+);
+
+alter table workspaces enable row level security;
+alter table profiles enable row level security;
+alter table allowed_emails enable row level security;
+
+-- current_workspace_id() — security definer, чтобы политика на profiles могла
+-- смотреть в саму profiles без рекурсии RLS (стандартный паттерн Supabase).
+create or replace function current_workspace_id() returns uuid
+language sql stable security definer set search_path = public
+as $$
+  select workspace_id from profiles where id = auth.uid()
+$$;
+
+-- Участники своего пространства видны друг другу (нужно для панели
+-- участников) — сами пространства и allowed_emails с клиента не читаются
+-- вообще (мониторинг — через Table Editor в дашборде, см. спеку).
+create policy "read own workspace profiles" on profiles for select
+  using (workspace_id = current_workspace_id());
+
+-- Разрешено вставлять/обновлять только свои собственные приглашения —
+-- реальная запись в allowed_emails всё равно идёт через invite_email() (Task 3),
+-- но политика тут на случай прямого вызова.
+create policy "insert own invites" on allowed_emails for insert
+  with check (invited_by = auth.uid());
+create policy "update own invites" on allowed_emails for update
+  using (invited_by = auth.uid());
+
+-- Создаёт профиль при первом входе. Если email не приглашён — профиль не
+-- создаётся вовсе, и RLS ниже по всей базе блокирует всё для этого auth.uid().
+create or replace function handle_new_user() returns trigger
+language plpgsql security definer set search_path = public
+as $$
+declare
+  invite record;
+  new_workspace uuid;
+begin
+  select * into invite from allowed_emails where email = new.email;
+  if invite is null then
+    return new;
+  end if;
+  if invite.workspace_id is not null then
+    insert into profiles (id, email, workspace_id) values (new.id, new.email, invite.workspace_id);
+  else
+    insert into workspaces default values returning id into new_workspace;
+    insert into profiles (id, email, workspace_id) values (new.id, new.email, new_workspace);
+  end if;
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function handle_new_user();
+```
+
+Выполнить в Supabase SQL Editor.
+
+### Существующие таблицы синхронизации
+
+Каждая из четырёх таблиц (`overrides`, `deleted_titles`, `drafts`, `parts`) получает `workspace_id`. Колонка **сначала добавляется nullable** и заполняется существующим строкам, и только потом становится `not null` с дефолтом — тот же осторожный порядок, что уже спасал этот проект от истории с NULL-артефактами после прошлой миграции (см. запись в `.superpowers/sdd/2026-08-16-backlog-plan/progress.md` про инцидент с рейтингами): колонку с `not null default` от старта нельзя аккуратно добавить на таблицу с уже существующими строками без бэкофилла.
+
+```sql
+alter table overrides add column workspace_id uuid references workspaces(id);
+alter table deleted_titles add column workspace_id uuid references workspaces(id);
+alter table drafts add column workspace_id uuid references workspaces(id);
+alter table parts add column workspace_id uuid references workspaces(id);
+```
+
+Дальше — одноразовая миграция: одно общее пространство на существующие данные, и владелец с девушкой сразу туда приглашены.
+
+```sql
+do $$
+declare
+  main_workspace uuid;
+begin
+  insert into workspaces default values returning id into main_workspace;
+
+  update overrides set workspace_id = main_workspace where workspace_id is null;
+  update deleted_titles set workspace_id = main_workspace where workspace_id is null;
+  update drafts set workspace_id = main_workspace where workspace_id is null;
+  update parts set workspace_id = main_workspace where workspace_id is null;
+
+  insert into allowed_emails (email, workspace_id) values
+    ('shakov.georgy@gmail.com', main_workspace),
+    ('dashach98@gmail.com', main_workspace);
+end $$;
+```
+
+Теперь колонки можно закрыть для новых пустых значений — вставки без `workspace_id` подставят его сами через `DEFAULT`:
+
+```sql
+alter table overrides
+  alter column workspace_id set not null,
+  alter column workspace_id set default current_workspace_id();
+alter table deleted_titles
+  alter column workspace_id set not null,
+  alter column workspace_id set default current_workspace_id();
+alter table drafts
+  alter column workspace_id set not null,
+  alter column workspace_id set default current_workspace_id();
+alter table parts
+  alter column workspace_id set not null,
+  alter column workspace_id set default current_workspace_id();
+```
+
+И RLS — с «разрешено всем» на «только своё пространство»:
+
+```sql
+drop policy "allow all - overrides" on overrides;
+drop policy "allow all - deleted_titles" on deleted_titles;
+drop policy "allow all - drafts" on drafts;
+drop policy "allow all - parts" on parts;
+
+create policy "workspace members - overrides" on overrides for all
+  using (workspace_id = current_workspace_id())
+  with check (workspace_id = current_workspace_id());
+create policy "workspace members - deleted_titles" on deleted_titles for all
+  using (workspace_id = current_workspace_id())
+  with check (workspace_id = current_workspace_id());
+create policy "workspace members - drafts" on drafts for all
+  using (workspace_id = current_workspace_id())
+  with check (workspace_id = current_workspace_id());
+create policy "workspace members - parts" on parts for all
+  using (workspace_id = current_workspace_id())
+  with check (workspace_id = current_workspace_id());
+```
+
+**Клиентский код не меняется.** `lib/sync.js` строит вставляемые строки из фиксированного списка полей (`OVERRIDE_FIELDS`/`DRAFT_FIELDS`) — `workspace_id` в этот список никогда не входит, значит клиент никогда не пытается его передать, и `DEFAULT current_workspace_id()` заполняет его на стороне базы для каждой новой строки автоматически, от лица того, кто реально аутентифицирован в момент записи.
+
+### Приглашение, выход, удаление участника
+
+Три функции с повышенными правами (`security definer`) — обычная RLS-политика не может безопасно выразить «изменить чужую строку `profiles` при выполнении условия», это ровно тот случай, для которого `security definer`-функции и существуют в Postgres/Supabase.
+
+```sql
+-- Пригласить email: даёт доступ к сайту всегда; добавляет в своё
+-- пространство только если add_to_my_workspace = true. Если этот email уже
+-- когда-то заходил (у него уже есть profiles) и чекбокс включён — применяет
+-- смену пространства сразу, а не ждёт несуществующего повторного «первого
+-- входа». Не включённый чекбокс никогда не откатывает уже существующее
+-- назначение пространства этого email — только явное включение чекбокса
+-- когда-либо меняет workspace_id в allowed_emails.
+create or replace function invite_email(target_email text, add_to_my_workspace boolean)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  my_workspace uuid;
+  target_profile_id uuid;
+begin
+  select workspace_id into my_workspace from profiles where id = auth.uid();
+
+  insert into allowed_emails (email, invited_by, workspace_id)
+  values (
+    target_email,
+    auth.uid(),
+    case when add_to_my_workspace then my_workspace else null end
+  )
+  on conflict (email) do update
+    set invited_by = excluded.invited_by,
+        workspace_id = case
+          when add_to_my_workspace then excluded.workspace_id
+          else allowed_emails.workspace_id
+        end;
+
+  if add_to_my_workspace then
+    select id into target_profile_id from profiles where email = target_email;
+    if target_profile_id is not null then
+      update profiles set workspace_id = my_workspace where id = target_profile_id;
+    end if;
+  end if;
+end;
+$$;
+
+-- Выйти из своего пространства: только если там больше одного участника —
+-- иначе выходить некуда, это уже личное пространство.
+create or replace function leave_workspace() returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  my_workspace uuid;
+  member_count int;
+  new_workspace uuid;
+begin
+  select workspace_id into my_workspace from profiles where id = auth.uid();
+  select count(*) into member_count from profiles where workspace_id = my_workspace;
+  if member_count <= 1 then
+    raise exception 'cannot leave a workspace you are the only member of';
+  end if;
+  insert into workspaces default values returning id into new_workspace;
+  update profiles set workspace_id = new_workspace where id = auth.uid();
+end;
+$$;
+
+-- Вывести другого участника из СВОЕГО пространства (любой участник может
+-- вывести любого другого — см. спеку, «Модель безопасности»). Тот же
+-- запрет на «остаться пустым» пространством.
+create or replace function remove_member(target_user_id uuid) returns void
+language plpgsql security definer set search_path = public
+as $$
+declare
+  my_workspace uuid;
+  target_workspace uuid;
+  member_count int;
+  new_workspace uuid;
+begin
+  select workspace_id into my_workspace from profiles where id = auth.uid();
+  select workspace_id into target_workspace from profiles where id = target_user_id;
+  if target_workspace is null or target_workspace != my_workspace then
+    raise exception 'target is not in your workspace';
+  end if;
+  select count(*) into member_count from profiles where workspace_id = my_workspace;
+  if member_count <= 1 then
+    raise exception 'cannot remove the only member of a workspace';
+  end if;
+  insert into workspaces default values returning id into new_workspace;
+  update profiles set workspace_id = new_workspace where id = target_user_id;
+end;
+$$;
+```
+
 ## Как добавить новый тайтл
 
 Просто попросите Claude добавить тайтл по названию — он найдёт год/жанры/синопсис/постер, скачает постер в `images/covers/`, допишет объект в `data.js` по схеме ниже и проверит каталог через `node tools/validate-data.js`.
