@@ -136,6 +136,12 @@ alter table overrides
 
 С этого момента сайт закрыт: вход только через Google, данные принадлежат «пространству» (`workspace`), а не отдельному пользователю — у пары, которая делит бэклог, пространство одно на двоих, у нового человека — своё личное. Подробности решения — `docs/superpowers/specs/2026-09-04-auth-workspaces-design.md`.
 
+### Настройка входа через Google (разовая, вручную)
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → создать OAuth-клиент (тип «Web application»), Authorized redirect URI — взять из Supabase Dashboard → Authentication → Providers → Google (там показан готовый callback URL проекта).
+2. Supabase Dashboard → Authentication → Providers → Google → включить, вставить Client ID/Secret из шага 1.
+3. Authentication → URL Configuration → добавить реальный домен сайта (`https://ledoksi.github.io`) в Redirect URLs.
+
 ### Схема
 
 ```sql
