@@ -405,7 +405,7 @@ alter table drafts add column if not exists airing_status text;
 
 ## Как добавить новый тайтл
 
-Просто попросите Claude добавить тайтл по названию — он найдёт год/жанры/синопсис/постер, скачает постер в `images/covers/`, допишет объект в `data.js` по схеме ниже и проверит каталог через `node tools/validate-data.js`.
+Через форму quick-add в топбаре: ввести название и категорию, выбрать один из предложенных вариантов (автозаполнение по TMDb/RAWG/Shikimori) — год, жанры, синопсис, обложка подставятся сами. Тайтл с известным годом получает id `slug-year` и не может быть добавлен дважды под тем же названием и годом — quick-add откажет с сообщением «Этот тайтл уже есть в бэклоге» (см. `lib/slug.js`, `BacklogSlug.makeId`). Два тайтла с одинаковым названием, но разным годом (например, два разных «Шаман Кинг») — это два разных id, оба добавляются независимо.
 
 Схема одного тайтла (см. `lib/validate.js` для точных правил):
 
@@ -499,7 +499,6 @@ alter table drafts add column if not exists airing_status text;
 
 ```bash
 node --test tests/*.test.js
-node tools/validate-data.js
 ```
 
 (Note: the bare `node --test tests/` without a glob fails with `MODULE_NOT_FOUND` on this machine's Node version when run from this path — always use the `tests/*.test.js` glob form.)
