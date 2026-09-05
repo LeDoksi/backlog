@@ -219,11 +219,10 @@ create trigger on_auth_user_created
 
 ### Существующие таблицы синхронизации
 
-Каждая из четырёх таблиц (`overrides`, `deleted_titles`, `drafts`, `parts`) получает `workspace_id`. Колонка **сначала добавляется nullable** и заполняется существующим строкам, и только потом становится `not null` с дефолтом — тот же осторожный порядок, что уже спасал этот проект от истории с NULL-артефактами после прошлой миграции (см. запись в `.superpowers/sdd/2026-08-16-backlog-plan/progress.md` про инцидент с рейтингами): колонку с `not null default` от старта нельзя аккуратно добавить на таблицу с уже существующими строками без бэкофилла.
+Каждая из трёх таблиц (`overrides`, `drafts`, `parts`) получает `workspace_id`. Колонка **сначала добавляется nullable** и заполняется существующим строкам, и только потом становится `not null` с дефолтом — тот же осторожный порядок, что уже спасал этот проект от истории с NULL-артефактами после прошлой миграции (см. запись в `.superpowers/sdd/2026-08-16-backlog-plan/progress.md` про инцидент с рейтингами): колонку с `not null default` от старта нельзя аккуратно добавить на таблицу с уже существующими строками без бэкофилла.
 
 ```sql
 alter table overrides add column if not exists workspace_id uuid references workspaces(id);
-alter table deleted_titles add column if not exists workspace_id uuid references workspaces(id);
 alter table drafts add column if not exists workspace_id uuid references workspaces(id);
 alter table parts add column if not exists workspace_id uuid references workspaces(id);
 ```
@@ -238,7 +237,6 @@ begin
   insert into workspaces default values returning id into main_workspace;
 
   update overrides set workspace_id = main_workspace where workspace_id is null;
-  update deleted_titles set workspace_id = main_workspace where workspace_id is null;
   update drafts set workspace_id = main_workspace where workspace_id is null;
   update parts set workspace_id = main_workspace where workspace_id is null;
 
@@ -254,9 +252,6 @@ end $$;
 alter table overrides
   alter column workspace_id set not null,
   alter column workspace_id set default current_workspace_id();
-alter table deleted_titles
-  alter column workspace_id set not null,
-  alter column workspace_id set default current_workspace_id();
 alter table drafts
   alter column workspace_id set not null,
   alter column workspace_id set default current_workspace_id();
@@ -269,14 +264,10 @@ alter table parts
 
 ```sql
 drop policy "allow all - overrides" on overrides;
-drop policy "allow all - deleted_titles" on deleted_titles;
 drop policy "allow all - drafts" on drafts;
 drop policy "allow all - parts" on parts;
 
 create policy "workspace members - overrides" on overrides for all
-  using (workspace_id = current_workspace_id())
-  with check (workspace_id = current_workspace_id());
-create policy "workspace members - deleted_titles" on deleted_titles for all
   using (workspace_id = current_workspace_id())
   with check (workspace_id = current_workspace_id());
 create policy "workspace members - drafts" on drafts for all
