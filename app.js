@@ -2503,9 +2503,11 @@
   var authGate = document.getElementById('auth-gate');
   var authBlocked = document.getElementById('auth-blocked');
   var appRoot = document.getElementById('app-root');
-  var authClient = (typeof window !== 'undefined' && window.supabase && window.supabase.createClient)
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-    : null;
+  // Assigned only inside initAuth below, once window.supabase is guaranteed to
+  // exist (see initAuth's own comment) — but declared here, as null, so
+  // evaluateSession/showGate/etc. below can close over it by reference no
+  // matter which of them runs first.
+  var authClient = null;
   // Set inside evaluateSession below, read by Task 7's members panel to tell
   // "this row is me" (→ Выйти) apart from "this row is someone else" (→
   // Удалить) — declared here, not in Task 7, so it exists before anything
@@ -2530,12 +2532,15 @@
     appRoot.hidden = false;
   }
 
-  document.getElementById('auth-signin').addEventListener('click', function () {
-    Auth.signInWithGoogle(authClient);
-  });
-  document.getElementById('auth-blocked-signout').addEventListener('click', function () {
-    Auth.signOut(authClient).then(showGate);
-  });
+  // A second account signing in on the same browser must never see or
+  // silently overwrite the first account's local data — clear the sync
+  // mirror (overrides/added/parts + the seeded-tables marker + the outbox)
+  // so the next bootApp() starts genuinely fresh for the new account.
+  function clearLocalMirror() {
+    [Sync.KEYS.overrides, Sync.KEYS.added, Sync.KEYS.parts, SEEDED_KEY, 'backlog-sync-outbox'].forEach(function (key) {
+      window.localStorage.removeItem(key);
+    });
+  }
 
   function bootApp() {
     populateGenreFilter();
@@ -2553,13 +2558,29 @@
   }
 
   var booted = false;
+  // undefined = this tab has never evaluated a session yet; null is a real
+  // "signed out" value, distinct from "unknown". Only a change FROM a known
+  // value (a real user or a real signed-out state) TO a different one counts
+  // as an actual account switch — the very first evaluation on a fresh page
+  // load must never clear anything, that would just be data loss for no reason.
+  var lastUserId;
   function evaluateSession() {
     if (!authClient) { showGate(); return; }
     Auth.getSession(authClient).then(function (res) {
       var session = res && res.data && res.data.session;
-      if (!session) { currentUserId = null; showGate(); return; }
-      currentUserId = session.user && session.user.id;
-      return Auth.hasProfile(authClient).then(function (ok) {
+      var userId = session ? (session.user && session.user.id) : null;
+      if (lastUserId !== undefined && userId !== lastUserId) {
+        // A second account signing in on the same browser (or the same
+        // account signing out) must never see, or silently overwrite, the
+        // previous account's local sync mirror — wipe it and force bootApp
+        // to start genuinely fresh for whoever is signed in now.
+        clearLocalMirror();
+        booted = false;
+      }
+      lastUserId = userId;
+      currentUserId = userId;
+      if (!session) { showGate(); return; }
+      return Auth.hasProfile(authClient, currentUserId).then(function (ok) {
         if (!ok) { showBlocked(); return; }
         showApp();
         if (!booted) { booted = true; bootApp(); }
@@ -2567,8 +2588,32 @@
     });
   }
 
-  Auth.onAuthStateChange(authClient, function () { evaluateSession(); });
-  evaluateSession();
+  // The Supabase tag in index.html is `defer`red (see bootApp's own comment
+  // above startSync) so `window.supabase` does not exist yet at this file's
+  // top level — creating the client, wiring the two auth buttons, subscribing
+  // to auth state changes and the first evaluateSession() call all have to
+  // wait for the same DOMContentLoaded moment startSync already waits for.
+  function initAuth() {
+    authClient = (typeof window !== 'undefined' && window.supabase && window.supabase.createClient)
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+      : null;
+
+    document.getElementById('auth-signin').addEventListener('click', function () {
+      Auth.signInWithGoogle(authClient);
+    });
+    document.getElementById('auth-blocked-signout').addEventListener('click', function () {
+      Auth.signOut(authClient).then(showGate);
+    });
+
+    Auth.onAuthStateChange(authClient, function () { evaluateSession(); });
+    evaluateSession();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuth);
+  } else {
+    initAuth();
+  }
 
   window.BacklogApp = {
     getVisibleTitles: getVisibleTitles,

@@ -91,31 +91,68 @@ test('onAuthStateChange without a client returns a no-op unsubscribable handle',
   assert.doesNotThrow(function () { handle.unsubscribe(); });
 });
 
-test('hasProfile is true when the profiles query returns a row', async () => {
+test('hasProfile is true when the profiles query for this user returns a row', async () => {
   var client = fakeClient({
     from: function (table) {
       assert.equal(table, 'profiles');
-      return { select: function () { return { maybeSingle: function () {
-        return Promise.resolve({ data: { id: 'u1' }, error: null });
-      } }; } };
+      return {
+        select: function () {
+          return {
+            eq: function (column, value) {
+              assert.equal(column, 'id');
+              assert.equal(value, 'u1');
+              return {
+                maybeSingle: function () {
+                  return Promise.resolve({ data: { id: 'u1' }, error: null });
+                }
+              };
+            }
+          };
+        }
+      };
     }
   });
-  assert.equal(await Auth.hasProfile(client), true);
+  assert.equal(await Auth.hasProfile(client, 'u1'), true);
 });
 
-test('hasProfile is false when the profiles query returns no row', async () => {
+test('hasProfile is false when the profiles query for this user returns no row', async () => {
   var client = fakeClient({
     from: function () {
-      return { select: function () { return { maybeSingle: function () {
+      return { select: function () { return { eq: function () { return { maybeSingle: function () {
         return Promise.resolve({ data: null, error: null });
-      } }; } };
+      } }; } }; } };
     }
   });
-  assert.equal(await Auth.hasProfile(client), false);
+  assert.equal(await Auth.hasProfile(client, 'u1'), false);
 });
 
-test('hasProfile without a client resolves false, never throws', async () => {
-  assert.equal(await Auth.hasProfile(null), false);
+test('hasProfile is false, never throws, with no client or no userId', async () => {
+  assert.equal(await Auth.hasProfile(null, 'u1'), false);
+  assert.equal(await Auth.hasProfile(fakeClient(), null), false);
+});
+
+test('hasProfile filters by the current user, not the whole workspace', async () => {
+  // A workspace with 2+ members previously made this query multi-row and
+  // broke maybeSingle() — this pins the .eq() filter down explicitly so
+  // that regression can't come back silently.
+  var seenColumn = null, seenValue = null;
+  var client = fakeClient({
+    from: function () {
+      return {
+        select: function () {
+          return {
+            eq: function (column, value) {
+              seenColumn = column; seenValue = value;
+              return { maybeSingle: function () { return Promise.resolve({ data: { id: 'u2' }, error: null }); } };
+            }
+          };
+        }
+      };
+    }
+  });
+  await Auth.hasProfile(client, 'u2');
+  assert.equal(seenColumn, 'id');
+  assert.equal(seenValue, 'u2');
 });
 
 test('listWorkspaceMembers returns the rows from the profiles table', async () => {
