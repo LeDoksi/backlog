@@ -30,6 +30,17 @@ test('signInWithGoogle calls signInWithOAuth with the google provider', async ()
   assert.deepEqual(seen, { provider: 'google' });
 });
 
+test('signInWithGoogle passes redirectTo through when given', async () => {
+  var seen = null;
+  var client = fakeClient({
+    auth: {
+      signInWithOAuth: function (opts) { seen = opts; return Promise.resolve({ data: {}, error: null }); }
+    }
+  });
+  await Auth.signInWithGoogle(client, 'https://example.com/backlog/');
+  assert.deepEqual(seen, { provider: 'google', options: { redirectTo: 'https://example.com/backlog/' } });
+});
+
 test('signInWithGoogle without a client resolves to an error, never throws', async () => {
   var result = await Auth.signInWithGoogle(null);
   assert.equal(result.error.message, 'no client');

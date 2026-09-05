@@ -2666,7 +2666,7 @@
       : null;
 
     document.getElementById('auth-signin').addEventListener('click', function () {
-      Auth.signInWithGoogle(authClient);
+      Auth.signInWithGoogle(authClient, window.location.origin + window.location.pathname);
     });
     document.getElementById('auth-blocked-signout').addEventListener('click', function () {
       Auth.signOut(authClient).then(showGate);

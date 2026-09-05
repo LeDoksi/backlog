@@ -136,12 +136,6 @@ alter table overrides
 
 С этого момента сайт закрыт: вход только через Google, данные принадлежат «пространству» (`workspace`), а не отдельному пользователю — у пары, которая делит бэклог, пространство одно на двоих, у нового человека — своё личное. Подробности решения — `docs/superpowers/specs/2026-09-04-auth-workspaces-design.md`.
 
-### Настройка входа через Google (разовая, вручную)
-
-1. [Google Cloud Console](https://console.cloud.google.com/) → создать OAuth-клиент (тип «Web application»), Authorized redirect URI — взять из Supabase Dashboard → Authentication → Providers → Google (там показан готовый callback URL проекта).
-2. Supabase Dashboard → Authentication → Providers → Google → включить, вставить Client ID/Secret из шага 1.
-3. Authentication → URL Configuration → добавить реальный домен сайта (`https://ledoksi.github.io`) в Redirect URLs.
-
 ### Схема
 
 ```sql
@@ -207,10 +201,10 @@ begin
     return new;
   end if;
   if invite.workspace_id is not null then
-    insert into profiles (id, email, workspace_id) values (new.id, new.email, invite.workspace_id);
+    insert into profiles (id, email, workspace_id) values (new.id, lower(trim(new.email)), invite.workspace_id);
   else
     insert into workspaces default values returning id into new_workspace;
-    insert into profiles (id, email, workspace_id) values (new.id, new.email, new_workspace);
+    insert into profiles (id, email, workspace_id) values (new.id, lower(trim(new.email)), new_workspace);
   end if;
   return new;
 end;
@@ -266,6 +260,23 @@ alter table parts
   alter column workspace_id set default current_workspace_id();
 ```
 
+**Составной первичный ключ.** Эти три таблицы созданы задолго до пространств,
+с глобальным `id text primary key`. Раз каждый тайтл теперь живёт только в
+`drafts` (Task 9), два разных пространства, добавивших один и тот же фильм
+(один и тот же `slug-year` id), столкнутся на `upsert` — и проигравшее
+пространство молча теряет запись навсегда. Смена ключа на составной —
+чисто схемное изменение: PostgREST разрешает конфликт `upsert()` по
+настоящему первичному ключу таблицы, когда `onConflict` не задан явно, а
+`workspace_id` (заполняется через `DEFAULT current_workspace_id()`) уже
+проставлен к моменту проверки `ON CONFLICT` — значит `lib/sync.js` менять
+не нужно.
+
+```sql
+alter table overrides drop constraint overrides_pkey, add primary key (workspace_id, id);
+alter table drafts drop constraint drafts_pkey, add primary key (workspace_id, id);
+alter table parts drop constraint parts_pkey, add primary key (workspace_id, id);
+```
+
 И RLS — с «разрешено всем» на «только своё пространство»:
 
 ```sql
@@ -285,6 +296,18 @@ create policy "workspace members - parts" on parts for all
 ```
 
 **Клиентский код не меняется.** `lib/sync.js` строит вставляемые строки из фиксированного списка полей (`OVERRIDE_FIELDS`/`DRAFT_FIELDS`) — `workspace_id` в этот список никогда не входит, значит клиент никогда не пытается его передать, и `DEFAULT current_workspace_id()` заполняет его на стороне базы для каждой новой строки автоматически, от лица того, кто реально аутентифицирован в момент записи.
+
+**`deleted_titles` больше не нужна вообще.** Task 9 убрал последний код,
+который её читал или писал. Таблица создавалась задолго до пространств с
+`using(true) with check(true)` — то есть сейчас это единственная таблица в
+проекте, которую кто угодно с публичным anon-ключом может свободно читать
+и писать, и в ней лежат реальные личные данные (какие тайтлы владелец
+удалил). `drop table` сам снимает и политику, и RLS, и подписку на
+realtime — отдельно их снимать не нужно.
+
+```sql
+drop table deleted_titles;
+```
 
 ### Приглашение, выход, удаление участника
 
@@ -334,6 +357,19 @@ begin
     select id into target_profile_id from profiles where email = lower(trim(target_email));
     if target_profile_id is not null then
       update profiles set workspace_id = my_workspace where id = target_profile_id;
+    else
+      -- The target may have already signed in once (a row exists in
+      -- auth.users) without ever getting a profiles row — this happens when
+      -- someone signs in before being invited, or was invited under a
+      -- mismatched-case email before this file's lower(trim(...)) fix.
+      -- handle_new_user only ever fires once, on that user's very first
+      -- sign-in, so without this there is no recovery path: they would see
+      -- "not invited" forever after being (correctly) invited a second time.
+      select id into target_profile_id from auth.users where lower(trim(email)) = lower(trim(target_email));
+      if target_profile_id is not null then
+        insert into profiles (id, email, workspace_id) values (target_profile_id, lower(trim(target_email)), my_workspace)
+          on conflict (id) do update set workspace_id = excluded.workspace_id;
+      end if;
     end if;
   end if;
 end;
@@ -409,6 +445,30 @@ alter table drafts add column if not exists parts jsonb;
 alter table drafts add column if not exists airing_status text;
 ```
 
+### Порядок выполнения — важно
+
+Весь SQL из разделов выше можно (и нужно) выполнить в этом порядке, одним
+проходом, ДО настройки входа через Google ниже:
+
+1. «Схема» (Task 1) — таблицы `workspaces`/`profiles`/`allowed_emails`, триггер.
+2. «Существующие таблицы синхронизации» (Task 2) — `workspace_id`, составной ключ, миграция данных, RLS.
+3. «`deleted_titles` больше не нужна вообще» — `drop table`.
+4. «Приглашение, выход, удаление участника» (Task 3) — RPC-функции.
+5. «Каталог как данные пространства» (Task 8) — новые колонки `drafts`.
+6. Разовая миграция каталога (`tools/migrate-catalog.js`, см. ниже) — сверить глазами, что всё на месте.
+
+**Только после этого** — настройка Google-провайдера ниже, и только после
+неё — первый настоящий вход. Вход через Google ДО того, как выполнен пункт 1,
+создаёт `auth.users`-строку без соответствующей `profiles`-строки для
+собственного аккаунта владельца — восстановить это можно только вручную
+через дашборд, ничего в приложении для этого нет.
+
+### Настройка входа через Google (разовая, вручную)
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → создать OAuth-клиент (тип «Web application»), Authorized redirect URI — взять из Supabase Dashboard → Authentication → Providers → Google (там показан готовый callback URL проекта).
+2. Supabase Dashboard → Authentication → Providers → Google → включить, вставить Client ID/Secret из шага 1.
+3. Authentication → URL Configuration → добавить реальный домен сайта (`https://ledoksi.github.io`) в Redirect URLs. Если сайт открывается по под-пути (например, `https://ledoksi.github.io/backlog/`, а не с корня домена), убедитесь, что и Site URL, и Redirect URLs в Supabase указывают на этот полный путь, а не только на корень домена — иначе после входа через Google сессия потеряется.
+
 ## Как добавить новый тайтл
 
 Через форму quick-add в топбаре: ввести название и категорию, выбрать один из предложенных вариантов (автозаполнение по TMDb/RAWG/Shikimori) — год, жанры, синопсис, обложка подставятся сами. Тайтл с известным годом получает id `slug-year` и не может быть добавлен дважды под тем же названием и годом — quick-add откажет с сообщением «Этот тайтл уже есть в бэклоге» (см. `lib/slug.js`, `BacklogSlug.makeId`). Два тайтла с одинаковым названием, но разным годом (например, два разных «Шаман Кинг») — это два разных id, оба добавляются независимо.
@@ -460,7 +520,7 @@ alter table drafts add column if not exists airing_status text;
 
 Ничего при этом не пишется: как и статус, `airingStatus` — это *представление* тайтла на чтении, значение в `data.js`/`backlog-overrides` остаётся нетронутым под ним. `lib/query.js` (`isStillAiring`, фильтр «ещё выходит») и рендер карточки читают уже вычисленное поле и про derivation ничего не знают.
 
-**Тайтлов без `parts` это не касается вообще**: у фильмов, игр и любых сериалов/аниме без списка частей `airingStatus` — по-прежнему поле, которое правится вручную (пока через Claude/`data.js`), и read-path его не трогает.
+**Тайтлов без `parts` это не касается вообще**: у фильмов, игр и любых сериалов/аниме без списка частей `airingStatus` заполняется только один раз, при добавлении тайтла (тем, что нашло автозаполнение, либо `null`) — форма редактирования это поле не показывает и не трогает вовсе (его нет в `EDIT_FIELDS`), и read-path его тоже не трогает.
 
 ### Редактирование карточек
 
@@ -468,7 +528,7 @@ alter table drafts add column if not exists airing_status text;
 
 Поля предзаполняются текущим эффективным значением (`data.js` + уже применённый оверрайд). При сохранении в `backlog-overrides` попадают **только изменившиеся поля** — если ничего не тронуть, оверрайд не запишется вовсе, ровно как и раньше. Ввод грубо проверяется по тем же правилам, что и `lib/validate.js` (категория из списка, год — число или пусто, жанры — список), но неполнота не считается ошибкой: пустой синопсис или отсутствующий год допустимы, как и у черновиков быстрого добавления.
 
-Смена категории саму по себе не трогает `airingStatus` — это поле в форму редактирования не входит, так что, например, при переключении «Кино» → «Сериал» статус выхода придётся поправить отдельно (пока только через Claude/`data.js`). Исключение — сериалы/аниме с заполненным `parts`: у них `airingStatus` вычисляется на чтении и править его вручную незачем (см. «Сезоны и части» выше).
+Смена категории саму по себе не трогает `airingStatus` — это поле в форму редактирования не входит вовсе, так что, например, при переключении «Кино» → «Сериал» статус выхода останется таким, каким был (или `null`), и поправить его через интерфейс сейчас нечем. Исключение — сериалы/аниме с заполненным `parts`: у них `airingStatus` вычисляется на чтении и править его вручную незачем (см. «Сезоны и части» выше).
 
 **Загрузка обложки с устройства (Task 41).** Рядом с текстовым полем URL у поля «Обложка» есть файловый инпут и превью. Выбранный файл читается на клиенте (`FileReader`), уменьшается на `<canvas>` до не более 900px по длинной стороне (апскейл никогда не применяется — файл меньше лимита остаётся как есть) и перекодируется в JPEG (`toDataURL('image/jpeg', 0.82)`); результат — обычная `data:image/jpeg;base64,...` строка — пишется прямо в то же текстовое поле URL и участвует в том же диффе/сохранении, что и обычная ссылка. Отдельного хранилища для картинок нет: `cover` как было, так и остаётся произвольным текстом в `backlog-overrides`/колонке `overrides.cover`. Два поля не мешают друг другу — побеждает то, которое трогали последним. Не-изображение или файл, который не удалось декодировать, показывает короткое сообщение под полями и не ломает форму.
 
@@ -480,16 +540,14 @@ alter table drafts add column if not exists airing_status text;
 
 ### Как устроены id
 
-Есть ровно две конвенции, и они намеренно разные:
+Один и тот же алгоритм для любого способа добавления — деления на «каталог» и «черновики» больше нет, `drafts` — единственный источник тайтлов с самого начала:
 
-- **Каталог `data.js`** — `slug-year` (`dune-3-2026`), т.е. `BacklogSlug.makeId(title, year)`. Так выглядят все записи в каталоге.
-- **Черновики быстрого добавления** — голый слаг без года (`dune-3`), потому что в форме быстрого добавления нет поля года. Генерируются через `BacklogSlug.uniqueId(name, existingIds)`, который при коллизии добавляет числовой суффикс (`dune-3`, `dune-3-2`, …).
-
-Черновик считается «перекрытым» каталогом (`BacklogStorage.isSupersededBy` в `lib/storage.js`), если id каталожной записи либо точно равен id черновика, либо равен ему плюс суффикс из четырёх цифр — года. Поэтому черновик `dune-3` исчезает, когда в `data.js` появляется `dune-3-2026`, но не исчезает из-за не связанного с ним `dune-3000-2020`.
+- **Год известен** (введён вручную или пришёл из автозаполнения TMDb/RAWG/Shikimori/Steam) — id всегда `slug-year` (`dune-3-2026`), т.е. `BacklogSlug.makeId(title, year)`. Повторное добавление того же названия с тем же годом даёт тот же id и отклоняется как дубликат («Этот тайтл уже есть в бэклоге»), а не превращается во вторую запись.
+- **Год неизвестен** — голый слаг без года (`dune-3`), через `BacklogSlug.uniqueId(name, existingIds)`, который при коллизии добавляет числовой суффикс (`dune-3`, `dune-3-2`, …).
 
 ### Быстрое добавление
 
-Также можно быстро добавить тайтл прямо в интерфейсе (только название + категория) — он появится как «черновик» с плейсхолдером, а полные данные (жанры/год/постер/описание/seasonInfo) вы допишете тем же способом, попросив Claude, когда будете готовы — черновик автоматически исчезнет, как только в `data.js` появится тайтл с соответствующим id (см. правило выше).
+Также можно быстро добавить тайтл прямо в интерфейсе (только название + категория) — он появится как «черновик» с плейсхолдером, а полные данные (жанры/год/постер/описание/seasonInfo) дописываются прямо в интерфейсе через «Редактировать» (см. «Редактирование карточек» выше), когда будете готовы. Бейдж «Черновик» после этого не пропадает сам — его снимают вручную тем же чекбоксом в форме редактирования (см. «Ручное снятие пометки «черновик»» выше).
 
 ### Автозаполнение при быстром добавлении
 
