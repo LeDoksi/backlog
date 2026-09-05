@@ -35,13 +35,13 @@ test('uniqueId keeps incrementing past multiple collisions', () => {
   assert.equal(uniqueId('Dune 3', ['dune-3', 'dune-3-2', 'dune-3-3']), 'dune-3-4');
 });
 
-test('uniqueId suffixes when the bare slug would be superseded by an existing slug-year id', () => {
+test('uniqueId no longer suffixes when the bare slug matches an existing slug-year id', () => {
   // A genuinely different work (the original 2001 Shaman King) sharing a
   // franchise name with an already-cataloged entry (the 2021 remake,
-  // shaman-king-2021) must not mint the same bare id — that id would vanish
-  // the moment pruneAdded ran, mistaken for a draft the 2021 entry already
-  // covers. Mirrors BacklogStorage.isSupersededBy's own collision rule.
-  assert.equal(uniqueId('Shaman King', ['shaman-king-2021']), 'shaman-king-2');
+  // shaman-king-2021) mints its own clean id now — there is only one id
+  // source left (the drafts table), so "shaman-king" and "shaman-king-2021"
+  // are simply two different strings, never a collision.
+  assert.equal(uniqueId('Shaman King', ['shaman-king-2021']), 'shaman-king');
 });
 
 test('uniqueId does not treat an unrelated longer id as a collision', () => {

@@ -59,7 +59,6 @@ function rows(list) { return { data: list, error: null }; }
 function fullClient(over) {
   return fakeClient(Object.assign({
     overrides: rows([]),
-    deleted_titles: rows([]),
     drafts: rows([]),
     parts: rows([])
   }, over));
@@ -224,14 +223,6 @@ test('pullState omits an override field the row never set', async () => {
   assert.deepEqual(result.state['backlog-overrides']['fight-club-1999'], { status: 'done' });
 });
 
-test('pullState reshapes deleted_titles into a flat id array', async () => {
-  var client = fullClient({
-    deleted_titles: rows([{ id: 'a', deleted_at: 'x' }, { id: 'b', deleted_at: 'x' }])
-  });
-  var result = await sync.pullState(client);
-  assert.deepEqual(result.state['backlog-deleted'], ['a', 'b']);
-});
-
 test('pullState maps draft rows back to the camelCase title shape', async () => {
   var client = fullClient({
     drafts: rows([{
@@ -277,13 +268,12 @@ test('pullState reshapes parts rows into the backlog-parts index map', async () 
 test('pullState returns the tables that answered when one is missing', async () => {
   var client = fakeClient({
     overrides: rows([{ id: 'a', status: 'done', rating: null }]),
-    deleted_titles: rows([]),
     drafts: rows([])
     // no `parts`
   });
   var result = await sync.pullState(client);
   assert.equal(result.ok, true);
-  assert.deepEqual(Object.keys(result.state).sort(), ['backlog-added', 'backlog-deleted', 'backlog-overrides']);
+  assert.deepEqual(Object.keys(result.state).sort(), ['backlog-added', 'backlog-overrides']);
   assert.equal(result.errors.length, 1);
   assert.equal(result.errors[0].table, 'parts');
 });
@@ -292,7 +282,7 @@ test('pullState returns the tables that answered when one is missing', async () 
 // to load must be absent from `state`, not present-and-empty. Present-and-empty
 // is what would let a failed pull wipe local state on write-back.
 test('pullState omits a failed table rather than reporting it empty', async () => {
-  var client = fakeClient({ overrides: rows([]), deleted_titles: rows([]), parts: rows([]) });
+  var client = fakeClient({ overrides: rows([]), parts: rows([]) });
   var result = await sync.pullState(client);
   assert.equal(Object.prototype.hasOwnProperty.call(result.state, 'backlog-added'), false);
 });
@@ -301,7 +291,7 @@ test('pullState reports not-ok when every table fails', async () => {
   var result = await sync.pullState(fakeClient({}));
   assert.equal(result.ok, false);
   assert.deepEqual(result.state, {});
-  assert.equal(result.errors.length, 4);
+  assert.equal(result.errors.length, 3);
 });
 
 test('pullState resolves rather than rejecting when the client throws', async () => {
@@ -324,12 +314,10 @@ test('applyState writes state that lib/storage.js reads back unchanged', () => {
   var store = fakeStorage();
   sync.applyState(store, {
     'backlog-overrides': { 'a': { status: 'done', rating: 7 } },
-    'backlog-deleted': ['b'],
     'backlog-added': [{ id: 'c', title: 'C' }],
     'backlog-parts': { 'd': [0, 1] }
   });
   assert.deepEqual(storage.getOverrides(store), { 'a': { status: 'done', rating: 7 } });
-  assert.deepEqual(storage.getDeleted(store), ['b']);
   assert.deepEqual(storage.getAdded(store), [{ id: 'c', title: 'C' }]);
   assert.deepEqual(storage.getCheckedParts(store, 'd'), [0, 1]);
 });
@@ -403,10 +391,10 @@ test('applyState without the tables option applies everything present', () => {
   storage.setOverride(store, 'a', { status: 'done' });
   sync.applyState(store, {
     'backlog-overrides': { 'b': { status: 'queue' } },
-    'backlog-deleted': ['gone']
+    'backlog-added': [{ id: 'c', title: 'C' }]
   });
   assert.deepEqual(storage.getOverrides(store)['b'], { status: 'queue' });
-  assert.deepEqual(storage.getDeleted(store), ['gone']);
+  assert.deepEqual(storage.getAdded(store), [{ id: 'c', title: 'C' }]);
 });
 
 // ── applyState: overrides merge, the other three keys replace ──────────
@@ -500,19 +488,16 @@ test('applyState merges concurrent edits to different fields of one title', () =
 // Scope guard. The merge is a property of `backlog-overrides`'s patch shape
 // alone — the other three keys are whole values and a pull still replaces them,
 // which is how a title deleted elsewhere ever becomes un-deleted here.
-test('applyState still replaces deleted/added/parts wholesale', () => {
+test('applyState still replaces added/parts wholesale', () => {
   var store = fakeStorage();
-  storage.deleteTitle(store, 'gone');
   storage.setCheckedParts(store, 'the-boys-2019', [0, 1]);
   storage.addTitle(store, { id: 'local-draft', title: 'Local', category: 'movie' });
 
   sync.applyState(store, {
-    'backlog-deleted': ['other'],
     'backlog-parts': { 'frieren-2023': [2] },
     'backlog-added': [{ id: 'remote-draft', title: 'Remote' }]
   }, { tables: sync.TABLES });
 
-  assert.deepEqual(storage.getDeleted(store), ['other']);
   assert.deepEqual(storage.getCheckedParts(store, 'the-boys-2019'), []);
   assert.deepEqual(storage.getCheckedParts(store, 'frieren-2023'), [2]);
   assert.deepEqual(storage.getAdded(store).map(function (t) { return t.id; }), ['remote-draft']);
@@ -712,23 +697,6 @@ test('pushOverride sends an explicit null rating so un-rating is stored', async 
   assert.equal('rating' in client.log[0].row, true);
 });
 
-// Mirrors BacklogStorage.deleteTitle: a draft is removed, a catalog title is
-// tombstoned. Tombstoning a draft would resurrect the exact bug the comment in
-// lib/storage.js warns about, only now shared across every device.
-test('pushDelete removes a draft instead of tombstoning it', async () => {
-  var client = fullClient();
-  await sync.pushDelete(client, 'dune-3', true);
-  assert.deepEqual(client.log, [{ op: 'delete', table: 'drafts', column: 'id', value: 'dune-3' }]);
-});
-
-test('pushDelete tombstones a catalog title', async () => {
-  var client = fullClient();
-  await sync.pushDelete(client, 'barbie-2023', false);
-  assert.equal(client.log[0].op, 'upsert');
-  assert.equal(client.log[0].table, 'deleted_titles');
-  assert.equal(client.log[0].row.id, 'barbie-2023');
-});
-
 test('pushDraft maps airingStatus onto the airing_status column', async () => {
   var client = fullClient();
   await sync.pushDraft(client, {
@@ -780,7 +748,6 @@ test('pushParts upserts the checked indices', async () => {
 test('push functions resolve to false rather than rejecting when the client throws', async () => {
   var thrower = { from: function () { throw new Error('offline'); } };
   assert.equal(await sync.pushOverride(thrower, 'a', { status: 'done' }), false);
-  assert.equal(await sync.pushDelete(thrower, 'a', false), false);
   assert.equal(await sync.pushDraft(thrower, { id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [], synopsis: '', cover: 'c', draft: true }), false);
   assert.equal(await sync.pushRemoveDraft(thrower, 'a'), false);
   assert.equal(await sync.pushParts(thrower, 'a', [0]), false);
@@ -811,7 +778,6 @@ test('push functions resolve to false when the query returns an error envelope',
 function seededStore() {
   var store = fakeStorage();
   storage.setOverride(store, 'a', { status: 'done' });
-  storage.deleteTitle(store, 'b');
   storage.addTitle(store, { id: 'c', title: 'C', category: 'movie', status: 'queue', genres: [], synopsis: '', cover: 'x', draft: true });
   storage.setCheckedParts(store, 'd', [0, 1]);
   return store;
@@ -822,8 +788,8 @@ test('seedLocal pushes every local row up', async () => {
   var seeded = await sync.seedLocal(client, seededStore());
 
   var byTable = client.log.map(function (e) { return e.table; }).sort();
-  assert.deepEqual(byTable, ['deleted_titles', 'drafts', 'overrides', 'parts']);
-  assert.deepEqual(seeded.slice().sort(), ['deleted_titles', 'drafts', 'overrides', 'parts']);
+  assert.deepEqual(byTable, ['drafts', 'overrides', 'parts']);
+  assert.deepEqual(seeded.slice().sort(), ['drafts', 'overrides', 'parts']);
 });
 
 test('seedLocal seeds only the tables it is asked for', async () => {
@@ -840,7 +806,7 @@ test('seedLocal seeds only the tables it is asked for', async () => {
 // deleted), and it must leave `parts` itself unmarked so it is retried once
 // the table finally exists.
 test('seedLocal reports the tables that worked when one is missing', async () => {
-  var client = fakeClient({ overrides: rows([]), deleted_titles: rows([]), drafts: rows([]) });
+  var client = fakeClient({ overrides: rows([]), drafts: rows([]) });
   client.from = (function (inner) {
     return function (name) {
       var builder = inner(name);
@@ -852,7 +818,7 @@ test('seedLocal reports the tables that worked when one is missing', async () =>
   }(client.from));
 
   var seeded = await sync.seedLocal(client, seededStore());
-  assert.deepEqual(seeded.slice().sort(), ['deleted_titles', 'drafts', 'overrides']);
+  assert.deepEqual(seeded.slice().sort(), ['drafts', 'overrides']);
 });
 
 test('seedLocal batches rows rather than sending one request per row', async () => {
@@ -895,7 +861,7 @@ test('seedLocal sends nothing but marks every table on an empty local store', as
   var client = fullClient();
   var seeded = await sync.seedLocal(client, fakeStorage());
   assert.deepEqual(client.log, []);
-  assert.deepEqual(seeded.slice().sort(), ['deleted_titles', 'drafts', 'overrides', 'parts']);
+  assert.deepEqual(seeded.slice().sort(), ['drafts', 'overrides', 'parts']);
 });
 
 test('seedLocal marks nothing at all when there is no client', async () => {
@@ -915,7 +881,7 @@ test('seedLocal leaves a table unmarked when its rows could not be sent', async 
   var seeded = await sync.seedLocal({ from: function () { throw new Error('offline'); } }, store);
   assert.equal(seeded.indexOf('overrides'), -1);
   assert.equal(seeded.indexOf('parts'), -1);
-  assert.deepEqual(seeded.slice().sort(), ['deleted_titles', 'drafts']);
+  assert.deepEqual(seeded.slice().sort(), ['drafts']);
 });
 
 // ── The outbox ─────────────────────────────────────────────────────────
@@ -968,11 +934,10 @@ test('offline edits of different kinds are all remembered', async () => {
   var dead = { from: function () { throw new Error('offline'); } };
   sync.useOutbox(store);
   await sync.pushOverride(dead, 'a', { status: 'done' });
-  await sync.pushDelete(dead, 'b', false);
   await sync.pushDraft(dead, { id: 'c', title: 'C', category: 'movie', status: 'queue', genres: [], synopsis: '', cover: 'x', draft: true });
   await sync.pushParts(dead, 'd', [0, 1]);
   var queued = JSON.parse(store.getItem('backlog-sync-outbox'));
-  assert.deepEqual(queued.map(function (e) { return e.t; }), ['override', 'delete', 'draft', 'parts']);
+  assert.deepEqual(queued.map(function (e) { return e.t; }), ['override', 'draft', 'parts']);
   sync.useOutbox(null);
 });
 
@@ -986,8 +951,7 @@ test('outboxLength counts what is queued, and reads 0 with no outbox wired up', 
   assert.equal(sync.outboxLength(), 0);
   var dead = { from: function () { throw new Error('offline'); } };
   await sync.pushOverride(dead, 'a', { status: 'done' });
-  await sync.pushDelete(dead, 'b', false);
-  assert.equal(sync.outboxLength(), 2);
+  assert.equal(sync.outboxLength(), 1);
   await sync.flushOutbox(fullClient());
   assert.equal(sync.outboxLength(), 0);
   sync.useOutbox(null);
@@ -1031,16 +995,6 @@ test('flushOutbox is a no-op with an empty queue or no client', async () => {
   sync.useOutbox(store);
   assert.equal(await sync.flushOutbox(fullClient()), 0);
   assert.equal(await sync.flushOutbox(null), 0);
-  sync.useOutbox(null);
-});
-
-test('a draft deleted offline replays as a removal, not a tombstone', async () => {
-  var store = fakeStorage();
-  sync.useOutbox(store);
-  await sync.pushDelete({ from: function () { throw new Error('offline'); } }, 'dune-3', true);
-  var client = fullClient();
-  await sync.flushOutbox(client);
-  assert.deepEqual(client.log, [{ op: 'delete', table: 'drafts', column: 'id', value: 'dune-3' }]);
   sync.useOutbox(null);
 });
 
@@ -1313,7 +1267,7 @@ test('subscribe reads the id off payload.old for a delete event', async () => {
   sync._resetEchoes();
   var channel = fakeChannel();
   var calls = 0;
-  await sync.pushDelete(fullClient(), 'gone', true);
+  await sync.pushRemoveDraft(fullClient(), 'gone');
   sync.subscribe({ channel: function () { return channel; } }, function () { calls += 1; }, { tables: ['drafts'], debounceMs: 0 });
   channel.handlers[0].handler({ old: { id: 'gone' } });
   await new Promise(function (r) { setTimeout(r, 20); });

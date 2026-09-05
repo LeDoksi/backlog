@@ -74,7 +74,6 @@
     },
     applyState: function () { return []; },
     pushOverride: function () { return Promise.resolve(false); },
-    pushDelete: function () { return Promise.resolve(false); },
     pushDraft: function () { return Promise.resolve(false); },
     pushRemoveDraft: function () { return Promise.resolve(false); },
     pushParts: function () { return Promise.resolve(false); },
@@ -86,8 +85,7 @@
   };
 
   function baseTitles() {
-    var combined = BacklogStorage.combineWithAdded(TITLES, window.localStorage);
-    return BacklogStorage.applyOverlay(combined, window.localStorage);
+    return BacklogStorage.applyOverlay(BacklogStorage.getAdded(window.localStorage), window.localStorage);
   }
 
   function titlesForCategory(category) {
@@ -1875,15 +1873,10 @@
     if (!title) return;
     var confirmed = window.confirm('Удалить «' + title.title + '» из бэклога? Это действие нельзя отменить.');
     if (!confirmed) return;
-    // Asked before the delete, because deleteTitle is what makes the answer
-    // stop being true: a draft is removed from `backlog-added` outright, so
-    // afterwards there is no way left to tell it apart from a catalog title.
-    // The remote has to make the same choice — drop the row vs. tombstone it —
-    // and getting it backwards would plant a permanent shared tombstone on a
-    // slug the quick-add form can mint again.
-    var wasDraft = BacklogStorage.getAdded(window.localStorage).some(function (t) { return t.id === id; });
+    // Every title lives in backlog-added now — there is no separate catalog
+    // tombstone to choose between, deleteTitle always removes the row outright.
     BacklogStorage.deleteTitle(window.localStorage, id);
-    Sync.pushDelete(syncClient, id, wasDraft).then(renderSyncStatus);
+    Sync.pushRemoveDraft(syncClient, id).then(renderSyncStatus);
     closeTitleModal();
     refresh();
   });
@@ -1899,7 +1892,7 @@
     var open = !document.body.classList.contains('is-quick-add-open');
     document.body.classList.toggle('is-quick-add-open', open);
     quickAddToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) { document.getElementById('quick-add-title').focus(); return; }
+    if (open) { document.getElementById('quick-add-title').focus(); document.getElementById('quick-add-error').hidden = true; return; }
     // Collapsing only hid the results in CSS, so reopening flashed the previous
     // search's hits until the next keystroke replaced them.
     document.getElementById('quick-add-picker').hidden = true;
@@ -1913,9 +1906,8 @@
     var category = categorySelect.value;
     if (!name || !category) return;
     var existingIds = baseTitles().map(function (t) { return t.id; });
-    // A bare slug with no year — the form has no year field. data.js entries are
-    // `slug-year`, and BacklogStorage.isSupersededBy is what bridges the two so
-    // this draft disappears once the real entry lands. See README, "Как устроены id".
+    // A bare slug with no year — this form has no year field to disambiguate
+    // with, so a genuine collision here just gets the usual numeric suffix.
     var id = BacklogSlug.uniqueId(name, existingIds);
     var draft = {
       id: id,
@@ -2190,37 +2182,38 @@
   function applyQuickAddPick(details) {
     var titleInput = document.getElementById('quick-add-title');
     var categorySelect = document.getElementById('quick-add-category');
+    var quickAddError = document.getElementById('quick-add-error');
     var typed = titleInput.value.trim();
     var category = categorySelect.value;
     if (!typed || !category) return;
     var name = (details.title && 'title' in details) ? details.title : typed;
     var existingIds = baseTitles().map(function (t) { return t.id; });
-    var id = BacklogSlug.uniqueId(name, existingIds);
+    // A known year makes the id `slug-year` (BacklogSlug.makeId) — the exact
+    // same id a re-add of this same title+year would produce, so an existing
+    // match here really is a duplicate, not a false positive, and is rejected
+    // rather than silently minted under a different suffix. No year means
+    // there is nothing to disambiguate on, so this falls back to the old
+    // bare-slug/auto-suffix scheme, same as the plain submit handler below.
+    var id = details.year != null
+      ? BacklogSlug.makeId(name, details.year)
+      : BacklogSlug.uniqueId(name, existingIds);
+    if (details.year != null && existingIds.indexOf(id) !== -1) {
+      quickAddError.textContent = 'Этот тайтл уже есть в бэклоге';
+      quickAddError.hidden = false;
+      return;
+    }
+    quickAddError.hidden = true;
     var draft = {
       id: id,
       title: name,
       category: category,
       status: 'queue',
-      // Left null rather than assumed 'ongoing' — a brand-new draft has no
-      // real signal either way, and a blind 'ongoing' default was showing a
-      // false "Всё ещё выходит" badge on titles nobody had confirmed were
-      // actually still airing (or, once a parts-bearing derivation existed,
-      // a stored guess that outlived being accurate the moment the title
-      // stopped having a parts list to derive from). Claude/the owner sets
-      // the real value once it's actually known.
       airingStatus: null,
       year: details.year != null ? details.year : null,
       genres: details.genres || [],
       rating: null,
       synopsis: ('synopsis' in details) ? details.synopsis : '',
       cover: details.cover || 'images/covers/_placeholder.svg',
-      // Always a draft, same as a plain quick-add: `draft` is the review
-      // signal ("owner/Claude should still sanity-check this"), not a
-      // completeness flag — an API pick can be factually wrong (wrong
-      // edition, wrong franchise entry) even with every field filled in.
-      // The modal's placeholder-synopsis message is gated on actual content
-      // (see openTitleModal), not on this flag, so a fetched synopsis still
-      // displays correctly for a draft.
       draft: true
     };
     if (category === 'game' && details.platforms && details.platforms.length) draft.platforms = details.platforms;
@@ -2317,22 +2310,6 @@
     syncStatus.hidden = false;
   }
 
-  // A draft that the catalog has since absorbed is dropped from `backlog-added`
-  // by pruneAdded, silently, as a side effect of reading. The remote row would
-  // otherwise outlive it and be handed back on every pull — harmless on screen,
-  // since every device prunes on read too, but it accumulates forever. Reaped
-  // here instead, once per pull.
-  function reapSupersededDrafts() {
-    var before = BacklogStorage.getAdded(window.localStorage);
-    if (!before.length) return;
-    var keptIds = BacklogStorage.pruneAdded(window.localStorage, TITLES.map(function (t) { return t.id; }))
-      .map(function (t) { return t.id; });
-    if (keptIds.length === before.length) return;
-    before.forEach(function (t) {
-      if (keptIds.indexOf(t.id) === -1) Sync.pushRemoveDraft(syncClient, t.id).then(renderSyncStatus);
-    });
-  }
-
   // The list of tables this browser has already reconciled with the remote.
   // A malformed or missing value reads as "none", which costs one extra seed
   // rather than skipping one that was needed.
@@ -2373,7 +2350,6 @@
       // stays right for every later pull too, not just the one at startup.
       if (result.ok) {
         Sync.applyState(window.localStorage, result.state, { tables: readSeeded() });
-        reapSupersededDrafts();
       }
       return result;
     });
