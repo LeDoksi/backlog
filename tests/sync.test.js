@@ -245,7 +245,8 @@ test('pullState maps draft rows back to the camelCase title shape', async () => 
   assert.deepEqual(result.state['backlog-added'], [{
     id: 'dune-3', title: 'Dune 3', category: 'movie', status: 'queue',
     airingStatus: null, year: null, genres: [], rating: null,
-    synopsis: '', cover: 'images/covers/_placeholder.svg', draft: true
+    synopsis: '', cover: 'images/covers/_placeholder.svg', draft: true,
+    originalTitle: null, seasonInfo: null, platforms: null, parts: null
   }]);
 });
 
@@ -740,6 +741,25 @@ test('pushDraft maps airingStatus onto the airing_status column', async () => {
   assert.equal(row.airing_status, 'ongoing');
   assert.equal('airingStatus' in row, false);
   assert.deepEqual(row.genres, []);
+});
+
+test('pushDraft maps originalTitle/seasonInfo onto original_title/season_info, and passes platforms/parts through unchanged', async () => {
+  var client = fullClient();
+  await sync.pushDraft(client, {
+    id: 'frieren-2023', title: 'Frieren', category: 'anime', status: 'done',
+    airingStatus: 'ongoing', year: 2023, genres: ['драма'], rating: null,
+    synopsis: '', cover: 'p.jpg', draft: false,
+    originalTitle: "Frieren: Beyond Journey's End",
+    seasonInfo: '2 сезона',
+    platforms: null,
+    parts: [{ name: 'Сезон 1', year: 2023, released: true }]
+  });
+  var row = client.log[0].row;
+  assert.equal(row.original_title, "Frieren: Beyond Journey's End");
+  assert.equal(row.season_info, '2 сезона');
+  assert.deepEqual(row.parts, [{ name: 'Сезон 1', year: 2023, released: true }]);
+  assert.equal('originalTitle' in row, false);
+  assert.equal('seasonInfo' in row, false);
 });
 
 test('pushRemoveDraft deletes by id', async () => {

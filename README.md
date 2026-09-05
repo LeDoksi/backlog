@@ -400,6 +400,18 @@ revoke execute on function leave_workspace() from anon;
 revoke execute on function remove_member(uuid) from anon;
 ```
 
+### Каталог как данные пространства — новые колонки `drafts`
+
+`drafts` существовала раньше квич-адда и несла только поля черновика. Task 9 делает её единственным источником тайтлов вообще — этой таблице не хватает полей, которые уже есть у `overrides` для тех же тайтлов.
+
+```sql
+alter table drafts add column if not exists original_title text;
+alter table drafts add column if not exists season_info text;
+alter table drafts add column if not exists platforms jsonb;
+alter table drafts add column if not exists parts jsonb;
+alter table drafts add column if not exists airing_status text;
+```
+
 ## Как добавить новый тайтл
 
 Просто попросите Claude добавить тайтл по названию — он найдёт год/жанры/синопсис/постер, скачает постер в `images/covers/`, допишет объект в `data.js` по схеме ниже и проверит каталог через `node tools/validate-data.js`.
