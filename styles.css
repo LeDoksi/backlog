@@ -2319,6 +2319,31 @@ body {
   width: min(100%, 680px);
 }
 
+/* Task 7: workspace members panel. */
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  list-style: none;
+  padding: 0;
+  margin: var(--sp-4) 0;
+}
+.members-list__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.members-list__remove {
+  font-size: var(--fs-micro);
+  color: var(--accent-bright);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
 /* Set like the wordmark, because that is what it is: the name of a view. */
 .stats__heading {
   margin: 0 var(--sp-6) var(--sp-5) 0;   /* clear of the × */

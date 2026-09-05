@@ -884,7 +884,7 @@
   var savedBodyOverflow = '';
 
   function syncModalBackground() {
-    var modal = !document.getElementById('title-modal').hidden || !statsModal.hidden || !inviteModal.hidden;
+    var modal = !document.getElementById('title-modal').hidden || !statsModal.hidden || !inviteModal.hidden || !membersModal.hidden;
     // Task 47: the filters sheet drops this same veil at this same blur, so it
     // makes the same "nothing else right now" claim and has to back it the same
     // way. It is the one live layer that is NOT a body child — it stays inside
@@ -1038,6 +1038,73 @@
         return;
       }
       closeInviteModal();
+    });
+  });
+
+  // ── Task 7: workspace members panel ──────────────────────────────────
+  //
+  // Same peer shape as the invite modal just above: open/close toggle
+  // `hidden` and hand off to syncModalBackground. `currentUserId` is declared
+  // and populated in evaluateSession (Task 5), further down this file — read
+  // here as-is, not redeclared. `Auth`, `authClient` and `escapeHtml` are the
+  // same ones the invite modal above already uses.
+  var membersModal = document.getElementById('members-modal');
+  var membersList = document.getElementById('members-list');
+
+  function memberRowHtml(member) {
+    var safeEmail = escapeHtml(member.email);
+    var isSelf = member.id === currentUserId;
+    var actionLabel = isSelf ? 'Выйти' : 'Удалить';
+    return '<li class="members-list__row">' +
+      '<span>' + safeEmail + (isSelf ? ' (вы)' : '') + '</span>' +
+      '<button class="members-list__remove" data-member-id="' + escapeHtml(member.id) + '" data-self="' + (isSelf ? '1' : '0') + '">' +
+      actionLabel + '</button></li>';
+  }
+
+  function renderMembers(members) {
+    // The leave/remove button is hidden entirely when the workspace has
+    // exactly one member — nobody to leave to or remove, and leaving would
+    // just spawn an identical solo workspace (see «Удаление участника и
+    // выход из пространства» in the spec).
+    var soleMember = members.length <= 1;
+    membersList.innerHTML = members.map(function (m) {
+      var row = memberRowHtml(m);
+      return soleMember ? row.replace(/<button[^>]*>.*?<\/button>/, '') : row;
+    }).join('');
+  }
+
+  function openMembersModal() {
+    Auth.listWorkspaceMembers(authClient).then(renderMembers);
+    membersModal.hidden = false;
+    syncModalBackground();
+  }
+
+  function closeMembersModal() {
+    membersModal.hidden = true;
+    syncModalBackground();
+  }
+
+  document.getElementById('members-open').addEventListener('click', openMembersModal);
+  document.getElementById('members-close').addEventListener('click', closeMembersModal);
+  membersModal.querySelector('.modal__backdrop').addEventListener('click', closeMembersModal);
+
+  membersList.addEventListener('click', function (event) {
+    var btn = event.target.closest('.members-list__remove');
+    if (!btn) return;
+    var isSelf = btn.dataset.self === '1';
+    var action = isSelf
+      ? Auth.leaveWorkspace(authClient)
+      : Auth.removeMember(authClient, btn.dataset.memberId);
+    action.then(function (res) {
+      // The RPC already rejected an invalid state (e.g. removing someone
+      // else's membership) — quietly leave the list as-is rather than refresh
+      // it from a call that did not actually change anything.
+      if (res && res.error) return;
+      // Leaving is a workspace-switch, not a sign-out: leaveWorkspace moves
+      // the caller to a new, empty personal workspace rather than ending the
+      // session, so the modal just closes — no Auth.signOut/showGate here.
+      if (isSelf) { closeMembersModal(); return; }
+      Auth.listWorkspaceMembers(authClient).then(renderMembers);
     });
   });
 

@@ -39,6 +39,7 @@
            this is: a polite readout that changes on its own, never a control. -->
       <span id="sync-status" class="sync-status" role="status" hidden></span>
       <button id="invite-open" class="topbar__invite" type="button" aria-haspopup="dialog">Пригласить</button>
+      <button id="members-open" class="topbar__invite" type="button" aria-haspopup="dialog">Участники</button>
     </div>
     <nav id="tabs" class="tabs">
       <button class="tabs__item is-active" data-category="all">Всё <span class="tabs__count" data-count="all"></span></button>
@@ -357,6 +358,20 @@
           <button type="submit" class="edit-form__save">Отправить</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Task 7: workspace members panel, opened from #members-open in the
+       topbar. Same .modal shell as #invite-modal: the outer div carries only
+       `hidden`, the dialog role and label sit on .modal__panel. -->
+  <div id="members-modal" class="modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="members-title">
+      <h2 id="members-title" class="modal__title">Участники пространства</h2>
+      <ul id="members-list" class="members-list"></ul>
+      <div class="modal__actions">
+        <button id="members-close" type="button" class="edit-form__cancel">Закрыть</button>
+      </div>
     </div>
   </div>
   </div>
