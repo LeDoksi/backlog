@@ -1087,6 +1087,10 @@
   document.getElementById('members-open').addEventListener('click', openMembersModal);
   document.getElementById('members-close').addEventListener('click', closeMembersModal);
   membersModal.querySelector('.modal__backdrop').addEventListener('click', closeMembersModal);
+  document.getElementById('account-signout').addEventListener('click', function () {
+    closeMembersModal();
+    Auth.signOut(authClient).then(showGate);
+  });
 
   membersList.addEventListener('click', function (event) {
     var btn = event.target.closest('.members-list__remove');
@@ -1103,7 +1107,22 @@
       // Leaving is a workspace-switch, not a sign-out: leaveWorkspace moves
       // the caller to a new, empty personal workspace rather than ending the
       // session, so the modal just closes — no Auth.signOut/showGate here.
-      if (isSelf) { closeMembersModal(); return; }
+      if (isSelf) {
+        // leaveWorkspace keeps the same auth.uid() and only changes the
+        // server-side workspace_id, so evaluateSession's user-id-based
+        // change detection (see clearLocalMirror's call site) never fires
+        // here. Without an explicit clear, the old workspace's overrides
+        // survive in localStorage — and because backlog-overrides merges
+        // rather than overwrites on pull, they would get silently upserted
+        // into the NEW workspace on the next edit. A full reload is the
+        // simplest way to guarantee a clean re-init against the new
+        // workspace, with no risk of double-subscribing to realtime or
+        // double-flushing the outbox the way calling bootApp() again here
+        // might.
+        clearLocalMirror();
+        window.location.reload();
+        return;
+      }
       Auth.listWorkspaceMembers(authClient).then(renderMembers);
     });
   });
