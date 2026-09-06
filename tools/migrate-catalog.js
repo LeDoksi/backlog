@@ -68,7 +68,7 @@ visible.forEach(function (t) {
     (t.year == null ? 'null' : t.year) + ', ' + sqlJson(t.genres || []) + ', ' + (t.rating == null ? 'null' : t.rating) + ', ' +
     sqlString(t.synopsis || '') + ', ' + sqlString(t.cover || '') + ', ' + (!!t.draft) + ', ' +
     sqlString(t.originalTitle || null) + ', ' + sqlString(t.seasonInfo || null) + ', ' + sqlJson(t.platforms || null) + ', ' +
-    sqlJson(t.parts || null) + ', ' + sqlString(t.airingStatus || null) + ', owner_workspace) on conflict (id) do nothing;');
+    sqlJson(t.parts || null) + ', ' + sqlString(t.airingStatus || null) + ', owner_workspace) on conflict (workspace_id, id) do nothing;');
 });
 console.log('end $$;');
 
