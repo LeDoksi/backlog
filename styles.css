@@ -1385,6 +1385,14 @@ body {
   gap: var(--sp-5);
   width: min(100%, 760px);
   max-height: min(88vh, 640px);
+  /* iOS Safari sizes `vh` off the LARGEST possible viewport (address bar
+     hidden), not what's actually visible — harmless for a short synopsis
+     that never reaches the cap, but a long one pushes the panel to that
+     full height and the absolutely-positioned .modal__close (pinned to its
+     top) ends up rendered above the real visible area, under Safari's own
+     chrome. `dvh` tracks the real visible viewport; browsers that don't
+     know it just keep the `vh` line above. */
+  max-height: min(88dvh, 640px);
   overflow-y: auto;
   padding: var(--sp-5);
   background: var(--surface);
@@ -3052,6 +3060,7 @@ body {
     gap: var(--sp-4);
     padding: var(--sp-5) var(--sp-4) var(--sp-4);
     max-height: 92vh;
+    max-height: 92dvh;   /* see the `dvh` comment on the base .modal__panel rule above */
     width: 100%;
   }
 
