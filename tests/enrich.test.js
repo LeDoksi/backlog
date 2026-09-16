@@ -266,9 +266,10 @@ test('fetchShikimoriDetails resolves to null on a network failure', async () => 
 // ── Steam ────────────────────────────────────────────────────────────────
 //
 // Shapes below are trimmed copies of real responses from
-// `https://proxy.cors.sh/https://store.steampowered.com/api/storesearch/?term=portal&l=russian&cc=US`
+// `https://store.steampowered.com/api/storesearch/?term=portal&l=russian&cc=US`
 // and `.../api/appdetails?appids=620&l=russian&cc=US`, confirmed live during
-// Task 45 (proxy.cors.sh still works with no API key; a direct browser fetch
+// Task 45 via a CORS relay (originally proxy.cors.sh, now a self-hosted
+// Cloudflare Worker — see app.js's CORS_PROXY comment; a direct browser fetch
 // to store.steampowered.com fails, no CORS headers there at all — see
 // lib/enrich.js's header comment). `cc=US` rather than `cc=RU` — see the
 // cc=US comment in lib/enrich.js: the Russian store region is missing a real

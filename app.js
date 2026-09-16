@@ -2343,11 +2343,15 @@
 
   // Task 45: store.steampowered.com sends no CORS headers on either endpoint
   // lib/enrich.js's Steam functions call, so those requests are relayed
-  // through this public proxy instead (confirmed live, no API key needed —
-  // see lib/enrich.js's header comment). This is the one place that base URL
-  // lives, so swapping providers if proxy.cors.sh ever stops working is a
-  // one-line change here, not a search-and-replace.
-  var CORS_PROXY = 'https://proxy.cors.sh/';
+  // through a proxy instead. Also used as TMDb's network-failure fallback
+  // (BL-19). The public proxy.cors.sh this used to point at went fully dead
+  // (DNS no longer resolves, confirmed 2026-09-16) — free public CORS relays
+  // rot without warning, so this now points at a small self-hosted
+  // Cloudflare Worker (source: worker/proxy.js, host allowlist enforced
+  // there) instead of chasing another third-party one. This is the one
+  // place that base URL lives, so swapping it again is a one-line change
+  // here, not a search-and-replace.
+  var CORS_PROXY = 'https://backlog-proxy.shmar-shmar2.workers.dev/';
 
   // Null until the SDK has loaded and a client has been built, and null forever
   // if that never happens. Every BacklogSync function takes null as "local-only
