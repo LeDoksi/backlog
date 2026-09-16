@@ -41,7 +41,7 @@ test('searchTmdb normalizes a movie search result', async () => {
       { id: 346698, title: 'Барби', release_date: '2023-07-19', poster_path: '/kau707eF6UBvrHX3v5BSYckqSXm.jpg' }
     ]
   });
-  var candidates = await searchTmdb(fetchFn, 'k', 'movie', 'barbie');
+  var candidates = await searchTmdb(fetchFn, '', 'k', 'movie', 'barbie');
   assert.deepEqual(candidates, [
     { id: 346698, title: 'Барби', year: 2023, poster: 'https://image.tmdb.org/t/p/w500/kau707eF6UBvrHX3v5BSYckqSXm.jpg' }
   ]);
@@ -50,16 +50,43 @@ test('searchTmdb normalizes a movie search result', async () => {
 test('searchTmdb caps candidates at 5', async () => {
   var results = [];
   for (var i = 0; i < 8; i++) results.push({ id: i, title: 'T' + i, release_date: '2020-01-01', poster_path: null });
-  var candidates = await searchTmdb(okJson({ results: results }), 'k', 'movie', 'x');
+  var candidates = await searchTmdb(okJson({ results: results }), '', 'k', 'movie', 'x');
   assert.equal(candidates.length, 5);
 });
 
-test('searchTmdb resolves to [] on an HTTP error', async () => {
-  assert.deepEqual(await searchTmdb(httpError(401), 'bad-key', 'movie', 'x'), []);
+test('searchTmdb resolves to [] on an HTTP error (no proxy retry — same key, same result)', async () => {
+  assert.deepEqual(await searchTmdb(httpError(401), '', 'bad-key', 'movie', 'x'), []);
 });
 
-test('searchTmdb resolves to [] on a network failure', async () => {
-  assert.deepEqual(await searchTmdb(networkError(), 'k', 'movie', 'x'), []);
+test('searchTmdb resolves to [] on a network failure with no proxyBase configured', async () => {
+  assert.deepEqual(await searchTmdb(networkError(), '', 'k', 'movie', 'x'), []);
+});
+
+// BL-19: a direct connection to api.themoviedb.org can be blocked (ISP/
+// firewall) for one user while working fine for everyone else — the retry
+// below is what makes that recoverable instead of a permanent "no results".
+
+test('searchTmdb falls back to the proxy when the direct request is blocked', async () => {
+  var calls = [];
+  var fetchFn = function (url) {
+    calls.push(url);
+    if (calls.length === 1) return Promise.reject(new Error('net::ERR_CONNECTION_REFUSED'));
+    return Promise.resolve({
+      ok: true,
+      json: function () {
+        return Promise.resolve({ results: [{ id: 1, title: 'Холоп', release_date: '2019-01-01', poster_path: null }] });
+      }
+    });
+  };
+  var candidates = await searchTmdb(fetchFn, 'https://proxy.example/', 'k', 'movie', 'холоп');
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].indexOf('https://api.themoviedb.org'), 0);
+  assert.equal(calls[1], 'https://proxy.example/' + calls[0]);
+  assert.deepEqual(candidates, [{ id: 1, title: 'Холоп', year: 2019, poster: '' }]);
+});
+
+test('searchTmdb resolves to [] when both the direct request and the proxy fail', async () => {
+  assert.deepEqual(await searchTmdb(networkError(), 'https://proxy.example/', 'k', 'movie', 'x'), []);
 });
 
 test('fetchTmdbDetails normalizes a tv details response', async () => {
@@ -71,7 +98,7 @@ test('fetchTmdbDetails normalizes a tv details response', async () => {
     overview: 'Отряд мстителей без суперсил.',
     poster_path: '/3NqlBDpWI83TgQ9nmeFwTVxEmtZ.jpg'
   });
-  var details = await fetchTmdbDetails(fetchFn, 'k', 'series', 76479);
+  var details = await fetchTmdbDetails(fetchFn, '', 'k', 'series', 76479);
   assert.deepEqual(details, {
     title: 'Пацаны',
     year: 2019,
@@ -82,7 +109,22 @@ test('fetchTmdbDetails normalizes a tv details response', async () => {
 });
 
 test('fetchTmdbDetails resolves to null on a 404', async () => {
-  assert.equal(await fetchTmdbDetails(httpError(404), 'k', 'movie', 999999), null);
+  assert.equal(await fetchTmdbDetails(httpError(404), '', 'k', 'movie', 999999), null);
+});
+
+test('fetchTmdbDetails falls back to the proxy when the direct request is blocked', async () => {
+  var calls = 0;
+  var fetchFn = function () {
+    calls++;
+    if (calls === 1) return Promise.reject(new Error('net::ERR_CONNECTION_REFUSED'));
+    return Promise.resolve({
+      ok: true,
+      json: function () { return Promise.resolve({ id: 1, title: 'Холоп', release_date: '2019-01-01', genres: [], overview: '', poster_path: null }); }
+    });
+  };
+  var details = await fetchTmdbDetails(fetchFn, 'https://proxy.example/', 'k', 'movie', 1);
+  assert.equal(calls, 2);
+  assert.equal(details.title, 'Холоп');
 });
 
 // ── RAWG ─────────────────────────────────────────────────────────────────

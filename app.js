@@ -2065,7 +2065,7 @@
     var provider = providerFor(category);
     if (provider === 'tmdb-movie' || provider === 'tmdb-series') {
       if (!TMDB_KEY) return Promise.resolve({ ok: false, reason: 'no-key' });
-      return Enrich.searchTmdb(fetchFn, TMDB_KEY, provider === 'tmdb-series' ? 'series' : 'movie', query)
+      return Enrich.searchTmdb(fetchFn, CORS_PROXY, TMDB_KEY, provider === 'tmdb-series' ? 'series' : 'movie', query)
         .then(function (list) { return { ok: true, provider: provider, candidates: list }; });
     }
     if (provider === 'rawg') {
@@ -2094,8 +2094,8 @@
   function detailsByProvider(provider, id) {
     var fetchFn = nativeFetch();
     if (!fetchFn) return Promise.resolve(null);
-    if (provider === 'tmdb-movie') return Enrich.fetchTmdbDetails(fetchFn, TMDB_KEY, 'movie', id);
-    if (provider === 'tmdb-series') return Enrich.fetchTmdbDetails(fetchFn, TMDB_KEY, 'series', id);
+    if (provider === 'tmdb-movie') return Enrich.fetchTmdbDetails(fetchFn, CORS_PROXY, TMDB_KEY, 'movie', id);
+    if (provider === 'tmdb-series') return Enrich.fetchTmdbDetails(fetchFn, CORS_PROXY, TMDB_KEY, 'series', id);
     if (provider === 'rawg') return Enrich.fetchRawgDetails(fetchFn, RAWG_KEY, id);
     if (provider === 'shikimori') return Enrich.fetchShikimoriDetails(fetchFn, id);
     if (provider === 'steam') return steamDetailsWithPlatformSupplement(fetchFn, id);
