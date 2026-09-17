@@ -195,7 +195,7 @@
     var quickActions = (hasPartsChecklist(title) || title.status === 'unreleased') ? '' : cardStatusHtml(title);
     return (
       '<div class="card__poster">' +
-      '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '"' + COVER_ONERROR + '>' +
+      '<img class="card__cover" src="' + safeCover + '" alt="' + safeTitle + '" loading="lazy"' + COVER_ONERROR + '>' +
       quickActions +
       '</div>' +
       '<div class="card__body">' +
@@ -222,6 +222,10 @@
       card.innerHTML = cardHtml(title);
       grid.appendChild(card);
     });
+    // Visually hidden, so a sighted user never sees it — but a screen reader
+    // user gets no other signal that filtering or search just changed how
+    // many cards are on screen, since the grid itself carries no live region.
+    document.getElementById('grid-count').textContent = 'Показано тайтлов: ' + titles.length;
   }
 
   function getVisibleTitles() {
@@ -304,9 +308,11 @@
     state.sort = e.target.value;
     refresh();
   });
+  var searchDebounceTimer = null;
   document.getElementById('search-input').addEventListener('input', function (e) {
     state.search = e.target.value;
-    refresh();
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(refresh, 150);
   });
 
   // ── Genre filter: a multi-select popover ─────────────────────────────

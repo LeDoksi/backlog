@@ -77,6 +77,21 @@ function isCoverRequest(url) {
   return url.pathname.indexOf('/images/covers/') !== -1;
 }
 
+// ponytail: FIFO cap, not a true LRU — cache.keys() insertion order is
+// implementation-defined but stable in practice (Chrome/Firefox), and a
+// straight cap is enough for a poster wall that grows by tens of covers a
+// year. Upgrade to real LRU (touch-on-hit) if the catalog outgrows this.
+var COVERS_CACHE_LIMIT = 500;
+
+function trimCoversCache(cache) {
+  return cache.keys().then(function (keys) {
+    if (keys.length <= COVERS_CACHE_LIMIT) return;
+    return Promise.all(
+      keys.slice(0, keys.length - COVERS_CACHE_LIMIT).map(function (key) { return cache.delete(key); })
+    );
+  });
+}
+
 // Cache-first: a cached response is used unconditionally. A miss falls
 // through to the network, and a successful response is stashed for next
 // time. An offline miss (no cache, no network) simply fails — there is
@@ -86,7 +101,10 @@ function cacheFirst(request) {
     return cache.match(request).then(function (cached) {
       if (cached) return cached;
       return fetch(request).then(function (response) {
-        if (response && response.ok) cache.put(request, response.clone());
+        if (response && response.ok) {
+          cache.put(request, response.clone());
+          trimCoversCache(cache);
+        }
         return response;
       });
     });
