@@ -849,8 +849,17 @@ body {
 .toolbar__random.toolbar__random--empty:hover .toolbar__random-icon,
 .toolbar__random.toolbar__random--unavailable:hover .toolbar__random-icon { transform: none; }
 
-/* ── BL-18: quick-add category tabs spacing ──────────────────────────────
-   #quick-add-categories reuses .tabs/.tabs__item as-is (same pill look as
+/* ── BL-18: quick-add opener ──────────────────────────────────────────────
+   The shared trigger rule above (.genre-filter__trigger, .filters-trigger,
+   .quick-add-toggle) has no horizontal margin of its own because the other
+   two live inside .toolbar, which already carries the page gutter as
+   padding. #quick-add-open sits directly on the page instead — it used to
+   inherit this same margin from the old .quick-add row's own padding
+   (deleted along with it), and without it the button sat flush against the
+   left edge instead of lining up with the search box above it. */
+#quick-add-open { margin: 0 var(--gutter) var(--sp-4); }
+
+/* #quick-add-categories reuses .tabs/.tabs__item as-is (same pill look as
    the header's category nav) — this is the one rule it needs of its own,
    since inside the modal it sits between the title and the input field
    rather than alone atop the grid. */
@@ -2908,11 +2917,12 @@ body {
   /* A button is shrink-to-fit even as a block-level flex container, and the
      shared trigger rule's `width: 100%` would measure the body rather than the
      gutters it sits inside — so the span is spelled out. It matches the rows
-     above it: every control in this block is a full width or a half cell. */
+     above it: every control in this block is a full width or a half cell.
+     Margin comes from #quick-add-open's own base rule now (same value, every
+     viewport) so it isn't repeated here. */
   .quick-add-toggle {
     display: flex;
     width: calc(100% - var(--gutter) * 2);
-    margin: 0 var(--gutter) var(--sp-4);
   }
 
   /* The one accent out here, on one glyph — the same «+» the submit button
