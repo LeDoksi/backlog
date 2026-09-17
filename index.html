@@ -138,39 +138,17 @@
 
   <div id="genre-chips" class="genre-chips" role="group" aria-label="Выбранные жанры" hidden></div>
 
-  <!-- Task 47: mobile only. The add row is a utility used once in a while, and
-       it was costing ~150px above the first poster on every load. Below 600px
-       it folds behind this disclosure — the same trigger+panel gesture the
-       genre filter established, so there is one way to open a thing in this
-       app, not two. `display:none` above the breakpoint. -->
-  <button id="quick-add-toggle" class="quick-add-toggle" type="button" aria-expanded="false" aria-controls="quick-add-form quick-add-picker">
+  <!-- BL-18: used to be an always-visible text field sitting right below the
+       toolbar's own #search-input — close enough in position and shape that
+       two people in a row typed a new title into the search box instead of
+       here. A modal removes that adjacency outright, and asking for the
+       category first (the tabs below, Кино active by default) means the
+       enrich picker's provider is always known before a single character is
+       typed, instead of only once a category happened to already be picked. -->
+  <button id="quick-add-open" class="quick-add-toggle" type="button" aria-haspopup="dialog">
     <span class="quick-add-toggle__mark" aria-hidden="true">+</span>
     <span class="quick-add-toggle__name">Добавить тайтл</span>
-    <svg class="quick-add-toggle__chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-      <path d="M2.5 4.5 6 8l3.5-3.5"/>
-    </svg>
   </button>
-
-  <form id="quick-add-form" class="quick-add">
-    <input id="quick-add-title" class="quick-add__input" type="text" placeholder="Название нового тайтла…" required>
-    <select id="quick-add-category" class="quick-add__select" required aria-label="Категория нового тайтла">
-      <option value="" disabled selected>Категория…</option>
-      <option value="game">Игра</option>
-      <option value="series">Сериал</option>
-      <option value="movie">Кино</option>
-      <option value="anime">Аниме</option>
-    </select>
-    <!-- Task 40/42: searches TMDb/RAWG/Shikimori (by category) live as you type
-         and opens #quick-add-picker below with candidates to choose from — see
-         wireEnrichPicker in app.js. -->
-    <button type="submit" class="quick-add__submit">+ Добавить</button>
-  </form>
-  <p id="quick-add-error" class="edit-form__error" hidden role="alert"></p>
-  <div id="quick-add-picker" class="enrich-picker" hidden>
-    <button type="button" class="enrich-picker__close" aria-label="Закрыть результаты поиска">×</button>
-    <p class="enrich-picker__message" hidden></p>
-    <ul class="enrich-picker__list"></ul>
-  </div>
 
   <p id="grid-count" class="sr-only" aria-live="polite"></p>
   <main id="grid" class="grid"></main>
@@ -374,6 +352,46 @@
         <button id="account-signout" type="button" class="edit-form__cancel">Выйти из аккаунта</button>
         <button id="members-close" type="button" class="edit-form__cancel">Закрыть</button>
       </div>
+    </div>
+  </div>
+
+  <!-- BL-18: category first, title second. #quick-add-category is a hidden
+       input rather than the old <select> so wireEnrichPicker/the submit
+       handlers (below, in app.js) keep reading/writing `.value` exactly as
+       before — only the picking UI changed, not the storage. Кино leads and
+       is selected on every open; it's what gets added most. -->
+  <div id="quick-add-modal" class="modal" hidden>
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel modal__panel--stats" role="dialog" aria-modal="true" aria-labelledby="quick-add-modal-title">
+      <h2 id="quick-add-modal-title" class="modal__title">Добавить тайтл</h2>
+      <div id="quick-add-categories" class="tabs" role="group" aria-label="Категория">
+        <button type="button" class="tabs__item is-active" data-category="movie" aria-pressed="true">Кино</button>
+        <button type="button" class="tabs__item" data-category="series" aria-pressed="false">Сериал</button>
+        <button type="button" class="tabs__item" data-category="anime" aria-pressed="false">Аниме</button>
+        <button type="button" class="tabs__item" data-category="game" aria-pressed="false">Игра</button>
+      </div>
+      <input type="hidden" id="quick-add-category" value="movie">
+      <form id="quick-add-form">
+        <label class="edit-form__field">
+          <span class="modal__field-label">Название</span>
+          <input id="quick-add-title" class="edit-form__input" type="text" placeholder="Название нового тайтла…" required autocomplete="off">
+        </label>
+        <!-- Task 40/42: searches TMDb/RAWG/Shikimori/Steam (by category) live as
+             you type and opens #quick-add-picker below with candidates to choose
+             from — see wireEnrichPicker in app.js. Nothing found, or nothing
+             worth picking? Пропусти пикер и жми «Добавить» — уходит черновик по
+             одному названию, обогатить его можно потом вручную в карточке. -->
+        <p id="quick-add-error" class="edit-form__error" hidden role="alert"></p>
+        <div id="quick-add-picker" class="enrich-picker" hidden>
+          <button type="button" class="enrich-picker__close" aria-label="Закрыть результаты поиска">×</button>
+          <p class="enrich-picker__message" hidden></p>
+          <ul class="enrich-picker__list"></ul>
+        </div>
+        <div class="edit-form__actions">
+          <button id="quick-add-close" type="button" class="edit-form__cancel">Закрыть</button>
+          <button type="submit" class="edit-form__save">+ Добавить</button>
+        </div>
+      </form>
     </div>
   </div>
   </div>

@@ -786,7 +786,7 @@ body {
 /* The one action in the toolbar, not a filter — pill-shaped like the category
    tabs rather than the rectangular controls beside it, pushed to the far end
    of the row so it reads as its own gesture. Unlike every other outline-accent
-   control in the app (quick-add__submit, modal__delete), which stay cool until
+   control in the app (edit-form__save, modal__delete), which stay cool until
    touched, this one carries its accent-soft fill at rest: it is the button
    meant to be noticed first, an invitation rather than a confirmation. */
 .toolbar__random {
@@ -849,100 +849,24 @@ body {
 .toolbar__random.toolbar__random--empty:hover .toolbar__random-icon,
 .toolbar__random.toolbar__random--unavailable:hover .toolbar__random-icon { transform: none; }
 
-/* ── Quick add ────────────────────────────────────────────────────────── */
-
-/* A small utility row, not a second toolbar: same controls, same height,
-   folded in right below the filters rather than given its own visual weight. */
-.quick-add {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: 0 var(--gutter) var(--sp-4);
-}
-
-.quick-add__input,
-.quick-add__select {
-  background-color: var(--surface-sunken);
-  border: 1px solid var(--border);
-  color: var(--text);
-  height: 36px;
-  padding: 0 var(--sp-3);
-  border-radius: var(--radius-sm);
-  font-family: inherit;
-  font-size: var(--fs-sm);
-  transition:
-    border-color var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out);
-}
-
-.quick-add__input:hover,
-.quick-add__select:hover { border-color: var(--border-strong); }
-
-.quick-add__input:focus-visible,
-.quick-add__select:focus-visible {
-  border-color: rgba(233, 69, 96, 0.6);
-  background-color: var(--surface);
-}
-
-.quick-add__input {
-  flex: 1 1 220px;
-  min-width: 0;
-  max-width: 320px;
-}
-
-.quick-add__input::placeholder { color: var(--text-muted); }
-
-.quick-add__select {
-  -webkit-appearance: none;
-  appearance: none;
-  flex: none;
-  padding-right: 30px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%238a8f9c' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 11px 11px;
-  cursor: pointer;
-}
-
-.quick-add__select option { background: var(--surface); color: var(--text); }
-
-/* Confirming, not destructive: an outlined accent rather than a filled one —
-   the red stays a marker even on the one button that commits something new. */
-.quick-add__submit {
-  flex: none;
-  height: 36px;
-  padding: 0 var(--sp-4);
-  background: transparent;
-  border: 1px solid rgba(233, 69, 96, 0.4);
-  border-radius: var(--radius-sm);
-  color: var(--accent-bright);
-  cursor: pointer;
-  font-family: var(--font-display);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  transition:
-    background-color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
-}
-
-.quick-add__submit:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: #fff;
-}
+/* ── BL-18: quick-add category tabs spacing ──────────────────────────────
+   #quick-add-categories reuses .tabs/.tabs__item as-is (same pill look as
+   the header's category nav) — this is the one rule it needs of its own,
+   since inside the modal it sits between the title and the input field
+   rather than alone atop the grid. */
+#quick-add-categories { margin-bottom: var(--sp-4); }
 
 /* ── Task 40/42: auto-fill search-and-pick ───────────────────────────────
-   Mounts below the quick-add row as #quick-add-picker — same tokens as
-   .edit-form throughout, so it never reads as a different surface from the
-   rest of the page. */
+   Mounts below the title field in the quick-add modal as #quick-add-picker —
+   same tokens as .edit-form throughout, so it never reads as a different
+   surface from the rest of the modal. */
 
 .enrich-picker {
   position: relative;
-  margin: 0 var(--gutter) var(--sp-4);
+  /* BL-18: used to sit directly on the page, flush to its gutters (the
+     comment above used to say so); now it only ever mounts inside the
+     quick-add modal's form, where the panel's own padding is the margin. */
+  margin: 0 0 var(--sp-4);
   padding: var(--sp-3);
   background-color: var(--surface-sunken);
   border: 1px solid var(--border);
@@ -2214,7 +2138,7 @@ body {
     color var(--dur-fast) var(--ease-out);
 }
 
-/* Confirming, same outlined-accent language as .quick-add__submit. */
+/* Confirming, not destructive: an outlined accent rather than a filled one. */
 .edit-form__save {
   background: transparent;
   border: 1px solid rgba(233, 69, 96, 0.4);
@@ -2681,8 +2605,7 @@ body {
 .filters-trigger,
 .toolbar__filters-head,
 .toolbar__filters-section,
-.filters-backdrop,
-.quick-add-toggle { display: none; }
+.filters-backdrop { display: none; }
 
 /* ── Responsive ───────────────────────────────────────────────────────── */
 
@@ -2748,8 +2671,6 @@ body {
    * focused for text entry in them. */
   .toolbar__search,
   .toolbar__select,
-  .quick-add__input,
-  .quick-add__select,
   .edit-form__input,
   .edit-form__select,
   .edit-form__textarea,
@@ -2812,17 +2733,6 @@ body {
     height: 40px;
     margin-left: 0;
   }
-
-  .quick-add {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--sp-2);
-    padding-top: 0;
-  }
-
-  .quick-add__input { grid-column: 1 / -1; max-width: none; height: 40px; }
-  .quick-add__select { grid-column: 1 / -1; height: 40px; min-width: 0; }
-  .quick-add__submit { height: 40px; }
 
   /* ── Task 47: the filters sheet ─────────────────────────────────────── */
 
@@ -2991,7 +2901,9 @@ body {
     border-radius: var(--radius-sm);
   }
 
-  /* ── Task 47: quick-add behind a disclosure ─────────────────────────── */
+  /* ── BL-18: quick-add opener, phone width ─────────────────────────────
+     Was Task 47's disclosure trigger; now just opens #quick-add-modal, on
+     every viewport, so the sizing here is all that survives. */
 
   /* A button is shrink-to-fit even as a block-level flex container, and the
      shared trigger rule's `width: 100%` would measure the body rather than the
@@ -3004,7 +2916,7 @@ body {
   }
 
   /* The one accent out here, on one glyph — the same «+» the submit button
-     inside carries, so the closed row still names what opening it commits to. */
+     inside the modal carries, so the button still names what opening it commits to. */
   .quick-add-toggle__mark {
     flex: none;
     color: var(--accent-bright);
@@ -3013,15 +2925,6 @@ body {
     font-weight: 600;
     line-height: 1;
   }
-
-  .quick-add,
-  #quick-add-picker { display: none; }
-
-  body.is-quick-add-open .quick-add-toggle { margin-bottom: var(--sp-2); }
-  body.is-quick-add-open .quick-add { display: grid; }
-  /* :not([hidden]) so opening the disclosure never overrides the picker's own
-     hidden state — it is the search results' business when they show. */
-  body.is-quick-add-open #quick-add-picker:not([hidden]) { display: block; }
 
   .grid { gap: var(--sp-4) var(--sp-3); }
 

@@ -890,7 +890,7 @@
   var savedBodyOverflow = '';
 
   function syncModalBackground() {
-    var modal = !document.getElementById('title-modal').hidden || !statsModal.hidden || !inviteModal.hidden || !membersModal.hidden;
+    var modal = !document.getElementById('title-modal').hidden || !statsModal.hidden || !inviteModal.hidden || !membersModal.hidden || !quickAddModal.hidden;
     // Task 47: the filters sheet drops this same veil at this same blur, so it
     // makes the same "nothing else right now" claim and has to back it the same
     // way. It is the one live layer that is NOT a body child — it stays inside
@@ -1945,13 +1945,19 @@
   document.querySelector('#title-modal .modal__backdrop').addEventListener('click', closeTitleModal);
 
   // Escape is the only dismissal a keyboard-only user can reach without hunting
-  // for the × — the backdrop is unclickable to them. Both panels answer to it;
-  // opening one closes the other, so at most one branch can ever fire.
+  // for the × — the backdrop is unclickable to them. All panels answer to it;
+  // the background lock (syncModalBackground) keeps them mutually exclusive,
+  // so at most one branch can ever fire.
   document.addEventListener('keydown', function (event) {
     if (event.key !== 'Escape' && event.key !== 'Esc') return;
     if (!statsModal.hidden) {
       event.preventDefault();
       closeStatsModal();
+      return;
+    }
+    if (!quickAddModal.hidden) {
+      event.preventDefault();
+      closeQuickAddModal();
       return;
     }
     if (document.getElementById('title-modal').hidden) return;
@@ -1973,29 +1979,68 @@
     refresh();
   });
 
-  // Task 47: the mobile disclosure over the add row. The class rides on <body>
-  // because the form and its results picker are siblings rather than one
-  // subtree, and because a viewport wide enough to ignore it does exactly that
-  // — the CSS that reads this class only exists below 600px. It stays open
-  // after a successful add: the form clears itself, and adding three titles in
-  // a row is the normal way this gets used.
-  var quickAddToggle = document.getElementById('quick-add-toggle');
-  quickAddToggle.addEventListener('click', function () {
-    var open = !document.body.classList.contains('is-quick-add-open');
-    document.body.classList.toggle('is-quick-add-open', open);
-    quickAddToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) { document.getElementById('quick-add-title').focus(); document.getElementById('quick-add-error').hidden = true; return; }
-    // Collapsing only hid the results in CSS, so reopening flashed the previous
-    // search's hits until the next keystroke replaced them.
-    document.getElementById('quick-add-picker').hidden = true;
+  // ── BL-18: add-title modal ─────────────────────────────────────────────
+  //
+  // Same peer shape as the invite/members modals above: toggle `hidden`,
+  // hand off to syncModalBackground so the page behind it inerts the same
+  // way. #quick-add-category is a hidden input rather than the old <select>
+  // — the tabs are the real control now — so every existing reader/writer of
+  // its `.value` (wireEnrichPicker below, both add paths here) keeps working
+  // unchanged; only the picking UI moved. Reset to 'movie' on every open —
+  // the common case — but left alone after a successful add, so adding a
+  // run of titles in the same category (still the normal way this gets used)
+  // doesn't require re-picking it each time.
+  var quickAddModal = document.getElementById('quick-add-modal');
+  var quickAddForm = document.getElementById('quick-add-form');
+  var quickAddTitleInput = document.getElementById('quick-add-title');
+  var quickAddCategoryInput = document.getElementById('quick-add-category');
+  var quickAddCategoryTabs = document.getElementById('quick-add-categories');
+  var quickAddError = document.getElementById('quick-add-error');
+  var closeQuickAddPicker = function () {}; // replaced once wireEnrichPicker runs, below
+
+  function setQuickAddCategory(category) {
+    quickAddCategoryInput.value = category;
+    Array.prototype.forEach.call(quickAddCategoryTabs.children, function (btn) {
+      var active = btn.dataset.category === category;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
+    // A real <select> would have fired this natively on a value change;
+    // wireEnrichPicker listens for it on this element to re-run the search
+    // under the new category's provider, so the hidden input needs the nudge.
+    quickAddCategoryInput.dispatchEvent(new Event('change'));
+  }
+
+  quickAddCategoryTabs.addEventListener('click', function (event) {
+    var btn = event.target.closest('button[data-category]');
+    if (!btn) return;
+    setQuickAddCategory(btn.dataset.category);
+    quickAddTitleInput.focus();
   });
 
-  document.getElementById('quick-add-form').addEventListener('submit', function (event) {
+  function openQuickAddModal() {
+    quickAddError.hidden = true;
+    quickAddTitleInput.value = '';
+    closeQuickAddPicker();
+    setQuickAddCategory('movie');
+    quickAddModal.hidden = false;
+    syncModalBackground();
+    quickAddTitleInput.focus();
+  }
+
+  function closeQuickAddModal() {
+    quickAddModal.hidden = true;
+    syncModalBackground();
+  }
+
+  document.getElementById('quick-add-open').addEventListener('click', openQuickAddModal);
+  document.getElementById('quick-add-close').addEventListener('click', closeQuickAddModal);
+  quickAddModal.querySelector('.modal__backdrop').addEventListener('click', closeQuickAddModal);
+
+  quickAddForm.addEventListener('submit', function (event) {
     event.preventDefault();
-    var titleInput = document.getElementById('quick-add-title');
-    var categorySelect = document.getElementById('quick-add-category');
-    var name = titleInput.value.trim();
-    var category = categorySelect.value;
+    var name = quickAddTitleInput.value.trim();
+    var category = quickAddCategoryInput.value;
     if (!name || !category) return;
     var existingIds = baseTitles().map(function (t) { return t.id; });
     // A bare slug with no year — this form has no year field to disambiguate
@@ -2023,8 +2068,12 @@
     };
     BacklogStorage.addTitle(window.localStorage, draft);
     Sync.pushDraft(syncClient, draft).then(renderSyncStatus);
-    titleInput.value = '';
-    categorySelect.value = '';
+    quickAddTitleInput.value = '';
+    // A submit that landed while the picker was still showing (a "Ничего не
+    // нашлось" from an earlier query, say) would otherwise leave that stale
+    // panel sitting open over an empty field.
+    closeQuickAddPicker();
+    quickAddTitleInput.focus();
     refresh();
   });
 
@@ -2201,7 +2250,7 @@
           return;
         }
         if (!result.candidates.length) {
-          showMessage('Ничего не нашлось');
+          showMessage('Ничего не нашлось — можно добавить вручную кнопкой «Добавить»');
           return;
         }
         msg.hidden = true;
@@ -2264,6 +2313,8 @@
       clearTimeout(debounceTimer);
       close();
     });
+
+    return { close: close };
   }
 
   // Quick-add has no year/genre/synopsis fields to stage a pick in, so a
@@ -2311,17 +2362,18 @@
     if (category === 'game' && details.platforms && details.platforms.length) draft.platforms = details.platforms;
     BacklogStorage.addTitle(window.localStorage, draft);
     Sync.pushDraft(syncClient, draft).then(renderSyncStatus);
+    // Category is left as picked — see the modal wiring above for why.
     titleInput.value = '';
-    categorySelect.value = '';
+    titleInput.focus();
     refresh();
   }
 
-  wireEnrichPicker(
-    document.getElementById('quick-add-title'),
-    document.getElementById('quick-add-category'),
+  closeQuickAddPicker = wireEnrichPicker(
+    quickAddTitleInput,
+    quickAddCategoryInput,
     document.getElementById('quick-add-picker'),
     applyQuickAddPick
-  );
+  ).close;
 
   // ── Cross-device sync ────────────────────────────────────────────────
   //
