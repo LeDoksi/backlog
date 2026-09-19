@@ -28,7 +28,8 @@
   --text: #e8e9ec;
   --text-muted: #8a8f9c;
   --accent: #e94560;
-  --accent-soft: rgba(233, 69, 96, 0.15);
+  --accent-rgb: 233, 69, 96;            /* channels for one-off alpha values */
+  --accent-soft: rgba(var(--accent-rgb), 0.15);
   --border: #262a34;
   --radius: 10px;
 
@@ -41,9 +42,10 @@
      and 3.57:1 against the box's own --surface-sunken fill. */
   --border-control: #656d7d;
   --accent-bright: #ff5f78;             /* accent as TEXT (6.5:1 on --bg)    */
-  --accent-glow: rgba(233, 69, 96, 0.35);
+  --accent-glow: rgba(var(--accent-rgb), 0.35);
   --signal: #f2c14e;                    /* "waiting for more" — a warm flag  */
-  --signal-soft: rgba(242, 193, 78, 0.13);
+  --signal-rgb: 242, 193, 78;           /* channels for one-off alpha values */
+  --signal-soft: rgba(var(--signal-rgb), 0.13);
 
   /* Trophy gold — deliberately the SAME warm as --signal, not a third hue.
      The room has two colours besides the greys, and "this one is finished"
@@ -142,8 +144,8 @@ body {
      of the accent, at 6% it registers as atmosphere rather than colour. */
   background-image: radial-gradient(
     120% 55% at 50% -12%,
-    rgba(233, 69, 96, 0.09) 0%,
-    rgba(233, 69, 96, 0.03) 40%,
+    rgba(var(--accent-rgb), 0.09) 0%,
+    rgba(var(--accent-rgb), 0.03) 40%,
     transparent 72%
   );
   background-repeat: no-repeat;
@@ -158,7 +160,7 @@ body {
 }
 
 ::selection {
-  background: rgba(233, 69, 96, 0.32);
+  background: rgba(var(--accent-rgb), 0.32);
   color: #fff;
 }
 
@@ -326,8 +328,8 @@ body {
 .tabs__item.is-active {
   color: var(--text);
   background: var(--surface-hover);
-  border-color: rgba(233, 69, 96, 0.55);
-  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.09);
+  border-color: rgba(var(--accent-rgb), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.09);
 }
 
 .tabs__item:focus-visible { outline-offset: 2px; border-radius: var(--radius-pill); }
@@ -365,7 +367,7 @@ body {
   /* background-color, never the shorthand: these controls carry an icon in
      background-image and a shorthand elsewhere would silently erase it. */
   background-color: var(--surface-sunken);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   color: var(--text);
   height: 36px;
   padding: 0 var(--sp-3);
@@ -382,7 +384,7 @@ body {
 
 .toolbar__search:focus-visible,
 .toolbar__select:focus-visible {
-  border-color: rgba(233, 69, 96, 0.6);
+  border-color: rgba(var(--accent-rgb), 0.6);
   background-color: var(--surface);
 }
 
@@ -588,8 +590,8 @@ body {
    a warm rim, never a red fill. */
 .genre-filter.is-filtering .genre-filter__trigger,
 .filters-trigger.is-filtering {
-  border-color: rgba(233, 69, 96, 0.55);
-  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.09);
+  border-color: rgba(var(--accent-rgb), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.09);
 }
 
 /* The count chip is the one place the accent is spent out here — small, tinted
@@ -777,7 +779,7 @@ body {
 
 .genre-chip__remove svg { width: 10px; height: 10px; }
 
-.genre-chip__remove:hover { color: var(--accent-bright); background: rgba(233, 69, 96, 0.14); }
+.genre-chip__remove:hover { color: var(--accent-bright); background: rgba(var(--accent-rgb), 0.14); }
 
 .genre-chip__remove:focus-visible { outline-offset: 1px; }
 
@@ -798,7 +800,7 @@ body {
   margin-left: auto;
   padding: 0 var(--sp-4) 0 var(--sp-3);
   background: var(--accent-soft);
-  border: 1px solid rgba(233, 69, 96, 0.45);
+  border: 1px solid rgba(var(--accent-rgb), 0.45);
   border-radius: var(--radius-pill);
   color: var(--accent-bright);
   cursor: pointer;
@@ -819,10 +821,10 @@ body {
 .toolbar__random-icon { width: 15px; height: 15px; flex: none; transition: transform var(--dur-base) var(--ease-out); }
 
 .toolbar__random:hover {
-  background: rgba(233, 69, 96, 0.28);
+  background: rgba(var(--accent-rgb), 0.28);
   border-color: var(--accent);
   color: #fff;
-  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.09);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.09);
 }
 
 /* A small dice-roll wink on the icon alone — the one bit of playfulness the
@@ -1044,7 +1046,7 @@ body {
   transform: translateY(-6px);
   box-shadow:
     var(--lift-hover),
-    0 0 0 1px rgba(233, 69, 96, 0.28),
+    0 0 0 1px rgba(var(--accent-rgb), 0.28),
     0 12px 40px -18px var(--accent-glow);
   transition-duration: var(--dur-base);
 }
@@ -1086,9 +1088,14 @@ body {
   gap: 2px;
   padding: 3px;
   border-radius: var(--radius-sm);
-  background: rgba(9, 10, 14, 0.78);
-  backdrop-filter: blur(8px) saturate(130%);
-  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  /* BL-15: a saturated poster showing through backdrop-filter's blur — and
+     saturate(130%) was actively boosting that bleed-through — could shift the
+     strip's backdrop enough to fight the status hue drawn on top of it (worst
+     case: a blue-heavy poster behind the cold "в бэклоге" blue). Opaque enough
+     now that no cover can contribute a competing hue underneath the icon. */
+  background: rgba(9, 10, 14, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.09),
     0 8px 20px -10px rgba(0, 0, 0, 0.85);
@@ -1274,7 +1281,7 @@ body {
    the viewer has put it in. */
 .badge--returning {
   background: var(--signal-soft);
-  box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(var(--signal-rgb), 0.28);
   color: var(--signal);
 }
 
@@ -1798,13 +1805,13 @@ body {
   from {
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, var(--star) 75%, transparent),
-      0 0 0 0 rgba(242, 193, 78, 0.55);
+      0 0 0 0 rgba(var(--signal-rgb), 0.55);
     color: var(--star);
   }
   to {
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, var(--sc) 30%, transparent),
-      0 0 24px 7px rgba(242, 193, 78, 0);
+      0 0 24px 7px rgba(var(--signal-rgb), 0);
     color: var(--sc);
   }
 }
@@ -1814,7 +1821,7 @@ body {
   display: block;
   margin-top: var(--sp-2);
   background: transparent;
-  border: 1px solid rgba(233, 69, 96, 0.4);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
   color: var(--accent-bright);
   padding: 0 var(--sp-4);
   height: 36px;
@@ -1943,7 +1950,7 @@ body {
   width: 100%;
   margin-top: var(--sp-1);
   background-color: var(--surface-sunken);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-control);
   color: var(--text);
   padding: 0 var(--sp-3);
   height: 36px;
@@ -1997,7 +2004,7 @@ body {
 .edit-form__input:focus-visible,
 .edit-form__select:focus-visible,
 .edit-form__textarea:focus-visible {
-  border-color: rgba(233, 69, 96, 0.6);
+  border-color: rgba(var(--accent-rgb), 0.6);
   background-color: var(--surface);
 }
 
@@ -2012,6 +2019,11 @@ body {
   background-size: 11px 11px;
   cursor: pointer;
 }
+
+/* BL-15: a long parts list buried inside a collapsed section had no sense of
+   completion — the summary row's counter (.parts__progress) reused here,
+   put on its own line since there's no badge/button beside it to flex with. */
+#edit-parts-field .parts__progress { display: block; margin-top: 2px; }
 
 .edit-parts {
   list-style: none;
@@ -2088,7 +2100,7 @@ body {
   line-height: 1;
 }
 
-.edit-parts__remove:hover { border-color: rgba(233, 69, 96, 0.5); color: var(--accent-bright); }
+.edit-parts__remove:hover { border-color: rgba(var(--accent-rgb), 0.5); color: var(--accent-bright); }
 
 .edit-parts__add {
   margin-top: var(--sp-2);
@@ -2150,7 +2162,7 @@ body {
 /* Confirming, not destructive: an outlined accent rather than a filled one. */
 .edit-form__save {
   background: transparent;
-  border: 1px solid rgba(233, 69, 96, 0.4);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
   color: var(--accent-bright);
 }
 
@@ -2252,9 +2264,9 @@ body {
 
 .toolbar__stats-icon { width: 15px; height: 15px; flex: none; }
 
-/* The title panel is a two-column layout around a poster; this one is a single
-   column of readouts, so it drops the flex row rather than inheriting a gap it
-   has no second column to spend. */
+/* The title panel is a two-column layout around a poster; stats/invite/members
+   are single-column (readouts, a form, a list), so they drop the flex row
+   rather than inheriting a gap they have no second column to spend. */
 .modal__panel--stats {
   display: block;
   width: min(100%, 680px);
@@ -2347,7 +2359,7 @@ body {
 .stats__score-done {
   color: var(--star);
   /* The gold given a light of its own, at the size of the type. */
-  filter: drop-shadow(0 0 22px rgba(242, 193, 78, 0.28));
+  filter: drop-shadow(0 0 22px rgba(var(--signal-rgb), 0.28));
 }
 
 .stats__score-rest {
@@ -2643,8 +2655,6 @@ body {
   :root {
     --card-min: 140px;
     --fs-xl: 21px;
-    /* Chips shrink with the card so "ВСЁ ЕЩЁ ВЫХОДИТ" still sets on one line. */
-    --fs-micro: 10px;
     --track-label: 0.06em;
   }
 
@@ -2700,10 +2710,10 @@ body {
   .toolbar__search {
     grid-column: 1 / -1;
     max-width: none;
-    height: 40px;
+    height: 44px;
   }
 
-  .toolbar__select { height: 40px; width: 100%; min-width: 0; }
+  .toolbar__select { height: 44px; width: 100%; min-width: 0; }
 
   .genre-filter { min-width: 0; }
 
@@ -2712,10 +2722,10 @@ body {
   .quick-add-toggle {
     width: 100%;
     min-width: 0;
-    height: 40px;
+    height: 44px;
   }
 
-  /* Bigger targets on a thumb-driven screen, matching the 40px controls above. */
+  /* Bigger targets on a thumb-driven screen, matching the 44px controls above. */
   .genre-option { padding: 9px var(--sp-2); }
 
   .genre-chips { padding-bottom: var(--sp-3); }
@@ -2725,21 +2735,21 @@ body {
 
   /* Full-width rows inside the sheet now, not toolbar cells. Padding goes so
      the tick lines up with the selects above and below it; the row still
-     answers to a thumb at the 40px this block uses everywhere. */
+     answers to a thumb at the 44px this block uses everywhere. */
   .toolbar__checkbox {
     height: auto;
-    min-height: 40px;
+    min-height: 44px;
     padding: 0;
     font-size: var(--fs-base);
   }
 
   /* The headline action leads the toolbar on a thumb-driven screen, sized like
-     the other 40px touch targets here rather than the 36px desktop pill. */
+     the other 44px touch targets here rather than the 36px desktop pill. */
   .toolbar__random {
     order: -1;
     grid-column: 1 / -1;
     justify-content: center;
-    height: 40px;
+    height: 44px;
     margin-left: 0;
   }
 
@@ -2956,13 +2966,13 @@ body {
     letter-spacing: 0.03em;
   }
 
-  /* Its own row at the 40px this block gives every other thumb target — at
+  /* Its own row at the 44px this block gives every other thumb target — at
      375px it could not share the summary line with the badge and the counter
      without all three being squeezed, and .parts__summary already wraps. */
   .parts__all {
     width: 100%;
     margin-left: 0;
-    height: 40px;
+    height: 44px;
   }
 
   .modal { padding: var(--sp-3); align-items: flex-end; }
@@ -2983,14 +2993,14 @@ body {
   .modal.is-parts .modal__cover { width: 104px; }
   .modal__body { padding-right: 0; width: 100%; }
   .modal__synopsis { font-size: var(--fs-base); }
-  .modal__delete { width: 100%; height: 40px; }
+  .modal__delete { width: 100%; height: 44px; }
 
-  /* Same 40px touch target as .modal__delete and the rest of this block. */
-  .modal__edit { width: 100%; height: 40px; }
+  /* Same 44px touch target as .modal__delete and the rest of this block. */
+  .modal__edit { width: 100%; height: 44px; }
   .edit-form__input,
   .edit-form__select,
   .edit-form__save,
-  .edit-form__cancel { height: 40px; }
+  .edit-form__cancel { height: 44px; }
   .edit-form__actions { flex-direction: column; }
   .edit-form__save,
   .edit-form__cancel { width: 100%; }
@@ -2999,14 +3009,14 @@ body {
      both are "go and look at something", neither is the invitation «Что
      посмотреть?» is, and two half-width cells is what stops the toolbar from
      spending a third full row on a control you touch once a session. Sized to
-     the 40px touch target the rest of this block establishes, not the 36px
+     the 44px touch target the rest of this block establishes, not the 36px
      desktop pill. */
   .filters-trigger,
   .toolbar__stats { order: 2; }
 
   .toolbar__stats {
     justify-content: center;
-    height: 40px;
+    height: 44px;
   }
 
   /* The comb closes up into a solid two-tone meter. At 375px the panel gives the
@@ -3026,9 +3036,6 @@ body {
 
   .stats__tick { border-radius: 0; }
 
-  /* --fs-micro drops to 10px here, so the chips the figures column reserves for
-     are narrower and the meter can have the difference back. */
-  .stats { --stats-figures: 86px; }
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────────── */

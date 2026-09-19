@@ -269,6 +269,7 @@
             </label>
             <div id="edit-parts-field" class="edit-form__field">
               <span class="modal__field-label">Сезоны и части</span>
+              <span id="edit-parts-progress" class="parts__progress" aria-live="polite"></span>
               <ul id="edit-parts-list" class="edit-parts"></ul>
               <button id="edit-parts-add" class="edit-parts__add" type="button">+ Добавить часть</button>
             </div>
@@ -320,7 +321,7 @@
        dialog role and label sit on .modal__panel. -->
   <div id="invite-modal" class="modal" hidden>
     <div class="modal__backdrop"></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-title">
+    <div class="modal__panel modal__panel--stats" role="dialog" aria-modal="true" aria-labelledby="invite-title">
       <h2 id="invite-title" class="modal__title">Пригласить</h2>
       <form id="invite-form">
         <label class="edit-form__field">
@@ -345,7 +346,7 @@
        `hidden`, the dialog role and label sit on .modal__panel. -->
   <div id="members-modal" class="modal" hidden>
     <div class="modal__backdrop"></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="members-title">
+    <div class="modal__panel modal__panel--stats" role="dialog" aria-modal="true" aria-labelledby="members-title">
       <h2 id="members-title" class="modal__title">Участники пространства</h2>
       <ul id="members-list" class="members-list"></ul>
       <div class="modal__actions">

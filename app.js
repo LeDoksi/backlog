@@ -1486,6 +1486,7 @@
   var editSynopsisInput = document.getElementById('edit-synopsis');
   var editPartsField = document.getElementById('edit-parts-field');
   var editPartsList = document.getElementById('edit-parts-list');
+  var editPartsProgress = document.getElementById('edit-parts-progress');
   var editUnreleasedField = document.getElementById('edit-unreleased-field');
   var editUnreleasedInput = document.getElementById('edit-unreleased');
   var editDraftInput = document.getElementById('edit-draft');
@@ -1603,6 +1604,16 @@
     return value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
   }
 
+  // BL-15: a dozen-part checklist buried inside a collapsed section gave no
+  // sense of where the owner had gotten to. Counts rows the same way the
+  // read-only modal's own .parts__progress does, just against "released"
+  // (this form's own field) rather than "watched" (that view's).
+  function updateEditPartsProgress() {
+    var total = editPartsList.children.length;
+    var released = editPartsList.querySelectorAll('.edit-parts__released-box:checked').length;
+    editPartsProgress.textContent = total ? released + ' из ' + total + ' вышло' : '';
+  }
+
   function editPartRowHtml(part) {
     var name = escapeHtml(part && part.name || '');
     var year = part && part.year != null ? escapeHtml(part.year) : '';
@@ -1623,10 +1634,16 @@
     if (!btn) return;
     var row = btn.closest('.edit-parts__row');
     if (row) row.remove();
+    updateEditPartsProgress();
+  });
+
+  editPartsList.addEventListener('change', function (event) {
+    if (event.target.classList.contains('edit-parts__released-box')) updateEditPartsProgress();
   });
 
   document.getElementById('edit-parts-add').addEventListener('click', function () {
     editPartsList.insertAdjacentHTML('beforeend', editPartRowHtml(null));
+    updateEditPartsProgress();
   });
 
   // A row nobody typed anything into (added by "+ Добавить часть" and left
@@ -1693,6 +1710,7 @@
     editSeasonInfoInput.value = editSnapshot.seasonInfo;
     editSynopsisInput.value = editSnapshot.synopsis;
     editPartsList.innerHTML = editSnapshot.parts.map(editPartRowHtml).join('');
+    updateEditPartsProgress();
     editUnreleasedInput.checked = editSnapshot.unreleased;
     editDraftInput.checked = editSnapshot.draft;
     updateEditFieldVisibility(editSnapshot.category, editHasPartsChecklist);
