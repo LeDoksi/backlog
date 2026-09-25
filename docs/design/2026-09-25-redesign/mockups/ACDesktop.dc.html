@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, десктоп</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif; display: flex;">
+  <div style="position: absolute; left: 240px; top: -280px; width: 900px; height: 520px; background: radial-gradient(closest-side, {{t.glow}}, rgba(52,82,255,0) 70%); pointer-events: none;"></div>
+
+  <nav aria-label="Разделы" style="position: relative; width: 96px; flex-shrink: 0; padding: 24px 14px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+    <button type="button" aria-label="Добавить тайтл" style="white-space: nowrap; width: 60px; height: 60px; border-radius: 50%; border: 0; background: {{t.accent}}; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: {{t.fabShadow}}; margin-bottom: 18px;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 36px; background: {{t.glass}}; backdrop-filter: blur(22px); border: 1px solid {{t.glassBorder}}; box-shadow: {{t.softShadow}};">
+      <a href="#" aria-current="page" style="width: 60px; height: 62px; border-radius: 30px; background: {{t.accentSoft}}; color: {{t.accentText}}; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 700;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="2.5"></rect><rect x="13" y="4" width="7" height="7" rx="2.5"></rect><rect x="4" y="13" width="7" height="7" rx="2.5"></rect><rect x="13" y="13" width="7" height="7" rx="2.5"></rect></svg>Бэклог</a>
+      <a href="#" style="position: relative; width: 60px; height: 62px; border-radius: 30px; color: {{t.muted}}; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 500;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="3.5"></circle><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"></path><circle cx="17" cy="8" r="2.5"></circle><path d="M16.5 13.2c2.3.3 3.9 1.9 4.5 4.3"></path></svg>Друзья
+        <span style="position: absolute; top: 8px; right: 10px; min-width: 17px; height: 17px; border-radius: 9px; background: {{t.badge}}; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</span></a>
+      <a href="#" style="width: 60px; height: 62px; border-radius: 30px; color: {{t.muted}}; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 500;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"></path></svg>Итоги</a>
+      <a href="#" style="width: 60px; height: 62px; border-radius: 30px; color: {{t.muted}}; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 500;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="4"></circle><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"></path></svg>Профиль</a>
+    </div>
+    <div style="flex-grow: 1;"></div>
+    <button type="button" aria-label="Сменить тему" style="white-space: nowrap; width: 48px; height: 48px; border-radius: 50%; border: 0; background: {{t.surface}}; color: {{t.muted}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; justify-content: center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path></svg></button>
+  </nav>
+
+  <main style="position: relative; flex-grow: 1; padding: 28px 28px 0 12px; display: flex; flex-direction: column; min-width: 0;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div role="group" aria-label="Доска" style="display: flex; padding: 5px; gap: 4px; border-radius: 999px; background: {{t.surface}}; box-shadow: {{t.softShadow}};">
+        <button type="button" aria-pressed="false" style="white-space: nowrap; height: 42px; padding: 0 22px; border: 0; border-radius: 999px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 15px; font-weight: 600;">Моё</button>
+        <button type="button" aria-pressed="true" style="white-space: nowrap; height: 42px; padding: 0 20px 0 12px; border: 0; border-radius: 999px; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-flex;">
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: #f0a33a; color: #14161b; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px {{t.accent}};">Г</span>
+            <span style="width: 24px; height: 24px; border-radius: 50%; background: #ef7bb0; color: #14161b; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px {{t.accent}}; margin-left: -7px;">Д</span>
+          </span>Общее с Дашей</button>
+      </div>
+      <label style="flex-grow: 1; max-width: 520px; height: 52px; padding: 0 20px; border-radius: 999px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; gap: 10px; color: {{t.muted}};">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+        <input type="search" placeholder="Поиск по бэклогу" style="flex-grow: 1; border: 0; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 15px; outline: none;"></label>
+      <div style="flex-grow: 1;"></div>
+      <button type="button" style="white-space: nowrap; height: 52px; padding: 0 22px 0 16px; border-radius: 999px; border: 0; background: {{t.accentSoft}}; color: {{t.accentText}}; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 9px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="5"></rect><circle cx="9" cy="9" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="15" cy="15" r="1.4" fill="currentColor" stroke="none"></circle></svg>Что посмотреть?</button>
+    </div>
+
+    <nav aria-label="Категории" style="display: flex; gap: 8px; margin-top: 22px;">
+      <sc-for list="{{tabs}}" as="tab" hint-placeholder-count="5">
+        <button type="button" style="white-space: nowrap; flex-shrink: 0; height: 46px; padding: 0 20px; border: 0; border-radius: 999px; font-family: Unbounded, Onest, sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 8px; {{tab.style}}">{{tab.label}}<span style="font-family: Onest, sans-serif; font-size: 13px; font-weight: 600; opacity: 0.6;">{{tab.count}}</span></button>
+      </sc-for>
+    </nav>
+
+    <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+      <button type="button" style="white-space: nowrap; height: 38px; padding: 0 16px; border-radius: 999px; border: 0; background: {{t.surface}}; color: {{t.text2}}; font-family: inherit; font-size: 14px; font-weight: 500;">В процессе 7</button>
+      <button type="button" style="white-space: nowrap; height: 38px; padding: 0 16px; border-radius: 999px; border: 0; background: {{t.surface}}; color: {{t.text2}}; font-family: inherit; font-size: 14px; font-weight: 500;">Ещё выходит</button>
+      <button type="button" style="white-space: nowrap; height: 38px; padding: 0 14px 0 16px; border-radius: 999px; border: 0; background: {{t.surface}}; color: {{t.text2}}; font-family: inherit; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px;">Жанры
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+      <div style="flex-grow: 1;"></div>
+      <span style="font-size: 13px; color: {{t.muted}};">213 тайтлов</span>
+      <button type="button" style="white-space: nowrap; height: 38px; padding: 0 14px; border-radius: 999px; border: 0; background: transparent; color: {{t.text2}}; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"></path></svg>Сначала актуальное</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px 18px; margin-top: 20px;">
+      <sc-for list="{{cards}}" as="c" hint-placeholder-count="10">
+        <div style="display: flex; flex-direction: column; gap: 9px;">
+          <div style="position: relative; aspect-ratio: 2 / 3; border-radius: 22px; overflow: hidden; background: {{t.sunken}}; box-shadow: {{c.shadow}}; transform: {{c.lift}};">
+            <img src="{{c.cover}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+            <div style="position: absolute; left: 8px; top: 8px; height: 28px; padding: 0 11px 0 9px; border-radius: 999px; background: {{t.chipOnPoster}}; backdrop-filter: blur(12px); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: {{c.statusColor}};">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: {{c.statusColor}};"></span>{{c.statusLabel}}</div>
+            <sc-if value="{{c.hover}}" hint-placeholder-val="{{false}}">
+              <div style="position: absolute; left: 8px; right: 8px; bottom: 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 5px; border-radius: 18px; background: {{t.glass}}; backdrop-filter: blur(16px);">
+                <button type="button" style="white-space: nowrap; height: 34px; border: 0; border-radius: 13px; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 12px; font-weight: 700;">Бэклог</button>
+                <button type="button" style="white-space: nowrap; height: 34px; border: 0; border-radius: 13px; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 12px; font-weight: 600;">Смотрю</button>
+                <button type="button" style="white-space: nowrap; height: 34px; border: 0; border-radius: 13px; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 12px; font-weight: 600;">Готово</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{c.hasProgress}}" hint-placeholder-val="{{false}}">
+              <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 26px 12px 12px; background: linear-gradient(to top, rgba(12,14,20,0.88), rgba(12,14,20,0));">
+                <div style="font-size: 11px; font-weight: 500; color: #eef0f4; margin-bottom: 6px;">{{c.progressText}}</div>
+                <div style="height: 5px; border-radius: 5px; background: rgba(255,255,255,0.3);"><div style="height: 5px; border-radius: 5px; width: {{c.pct}}; background: #ffffff;"></div></div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="font-size: 14px; font-weight: 600; line-height: 1.25; padding: 0 3px;">{{c.title}}</div>
+          <div style="font-size: 12px; color: {{t.muted}}; padding: 0 3px; margin-top: -5px;">{{c.meta}}</div>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+
+  <aside aria-label="Друзья" style="position: relative; width: 324px; flex-shrink: 0; margin: 16px 16px 16px 0; padding: 24px 20px; border-radius: 32px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 15px; font-weight: 600;">У друзей</h2>
+      <a href="#" style="font-size: 13px; font-weight: 600; color: {{t.accentText}}; text-decoration: none;">Все</a>
+    </div>
+    <div style="padding: 14px; border-radius: 22px; background: {{t.accentSoft}}; display: flex; gap: 12px; align-items: center;">
+      <img src="../../../../images/covers/the-batman-2022.jpg" alt="" style="width: 46px; height: 69px; border-radius: 12px; object-fit: cover;">
+      <div style="display: flex; flex-direction: column; gap: 4px; font-size: 13px;">
+        <span style="color: {{t.accentText}}; font-weight: 700;">Совпадение</span>
+        <span style="line-height: 1.35;">Вы с Вадимом оба хотите посмотреть «Бэтмена»</span>
+      </div>
+    </div>
+    <sc-for list="{{feed}}" as="f" hint-placeholder-count="4">
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <span style="width: 38px; height: 38px; border-radius: 50%; background: {{f.bg}}; color: #14161b; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{f.initial}}</span>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.35;">
+          <span><b style="font-weight: 600;">{{f.name}}</b> {{f.action}}</span>
+          <span style="color: {{t.muted}}; font-size: 12px;">{{f.when}}</span>
+        </div>
+        <img src="{{f.cover}}" alt="" style="width: 36px; height: 54px; border-radius: 10px; object-fit: cover; flex-shrink: 0;">
+      </div>
+    </sc-for>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+var BLOB = {"47a28cfa07ace4d14c8ca2d38d61d8a1": "frieren-2023.jpg", "48a10700f9e5550b22fa5ef5b6a9a37b": "the-apothecary-diaries-2023.jpg", "6fa7badba28b07b7add55c797deb264b": "the-boys-2019.jpg", "4173040fd583c4e6552347673dc58bb1": "baldurs-gate-3-2023.jpg", "f8c52f057e734315b2d73082f4bc7761": "cyberpunk-edgerunners-2022.jpg", "2f6f1349a97a67b140b50a30098f6141": "spider-man-across-the-spider-verse-2023.jpg", "3612649325ac8f05dd39e34763725454": "clair-obscur-expedition-33-2025.webp", "8882af00bb57f8e973d2d6e61efa7fbf": "the-batman-2022.jpg", "23f94705dd8cc646d61eee2f18aea349": "blue-eye-samurai-2023.jpg", "044006a5fe26f5eef08824d4ba19f45e": "drive-2011.jpg", "514f6bbb89b832ea38dae3ecdb15488c": "stardew-valley-2016.jpg", "4b0b1623205e95554d99f068e08089bb": "ted-lasso-2020.jpg", "0a360cdd76ae256930d3ebfa219dfc47": "suzume-2022.jpg", "6432228812141a5b69c7248072297447": "alien-romulus-2024.jpg", "34e423b8915405b68b292df713061aec": "split-fiction-2025.jpg", "3fa01358b261ec4a8e08b248bca4f332": "the-legend-of-vox-machina-2022.jpg"};
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', surface: '#1b1e27', sunken: '#232734', text: '#f1f2f6', text2: '#d3d7e0', muted: '#9ba1b0',
+      accent: '#4b66ff', accentText: '#b8c3ff', accentSoft: 'rgba(111,134,255,0.2)', glow: 'rgba(75,102,255,0.14)',
+      softShadow: 'none', glass: 'rgba(31,34,48,0.78)', glassBorder: 'rgba(255,255,255,0.08)',
+      fabShadow: '0 16px 30px -12px rgba(75,102,255,0.7)', chipOnPoster: 'rgba(15,17,23,0.74)', badge: '#ff6a4a',
+      activeTab: 'background: #f1f2f6; color: #14161b;', tab: 'background: #1b1e27; color: #d3d7e0;',
+      poster: '0 12px 28px -14px rgba(0,0,0,0.85)', posterHover: '0 28px 50px -18px rgba(0,0,0,0.95), 0 0 0 2px #4b66ff',
+      st: { queue: '#c3c8d4', progress: '#b8c3ff', done: '#8fd6a4' }
+    } : {
+      bg: '#eef0f4', surface: '#ffffff', sunken: '#e3e6ec', text: '#14161b', text2: '#3b404c', muted: '#5d6270',
+      accent: '#3452ff', accentText: '#2b45d8', accentSoft: '#e4e8ff', glow: 'rgba(52,82,255,0.08)',
+      softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', glass: 'rgba(255,255,255,0.86)', glassBorder: 'rgba(20,22,28,0.06)',
+      fabShadow: '0 16px 30px -12px rgba(52,82,255,0.6)', chipOnPoster: 'rgba(255,255,255,0.9)', badge: '#ff5a36',
+      activeTab: 'background: #14161b; color: #ffffff;', tab: 'background: #ffffff; color: #3b404c;',
+      poster: '0 14px 28px -16px rgba(40,50,90,0.6)', posterHover: '0 28px 50px -20px rgba(40,50,90,0.7), 0 0 0 2px #3452ff',
+      st: { queue: '#4b5160', progress: '#2b45d8', done: '#2f7a45' }
+    };
+    var LABEL = { queue: 'В бэклоге', progress: 'Смотрю', done: 'Завершено' };
+    var tabs = [['Всё', 213, true], ['Аниме', 26], ['Кино', 93], ['Сериалы', 35], ['Игры', 31]].map(function (x) {
+      return { label: x[0], count: x[1], style: x[2] ? t.activeTab : t.tab };
+    });
+    var list = [
+      ['Фрирен, провожающая в последний путь', 'Аниме, 2023', '47a28cfa07ace4d14c8ca2d38d61d8a1', 'progress', 'Сезон 2 из 3, ждём 3-й', '66%'],
+      ['Пацаны', 'Сериал, 2019', '6fa7badba28b07b7add55c797deb264b', 'progress', '4 из 5 сезонов', '80%'],
+      ["Baldur's Gate 3", 'Игра, 2023', '4173040fd583c4e6552347673dc58bb1', 'queue', null, null, true],
+      ['Монолог фармацевта', 'Аниме, 2023', '48a10700f9e5550b22fa5ef5b6a9a37b', 'queue'],
+      ['Голубоглазый самурай', 'Сериал, 2023', '23f94705dd8cc646d61eee2f18aea349', 'queue'],
+      ['Clair Obscur: Expedition 33', 'Игра, 2025', '3612649325ac8f05dd39e34763725454', 'queue'],
+      ['Бэтмен', 'Кино, 2022', '8882af00bb57f8e973d2d6e61efa7fbf', 'queue'],
+      ['Легенда о Vox Machina', 'Сериал, 2022', '3fa01358b261ec4a8e08b248bca4f332', 'progress', '2 из 3 сезонов', '66%'],
+      ['Человек-паук: Паутина вселенных', 'Кино, 2023', '2f6f1349a97a67b140b50a30098f6141', 'done'],
+      ['Драйв', 'Кино, 2011', '044006a5fe26f5eef08824d4ba19f45e', 'done']
+    ];
+    var cards = list.map(function (c) {
+      var hover = !!c[6];
+      return {
+        title: c[0], meta: c[1], cover: '../../../../images/covers/' + BLOB[c[2]],
+        statusLabel: LABEL[c[3]], statusColor: t.st[c[3]],
+        hasProgress: !!c[4], progressText: c[4] || '', pct: c[5] || '0%',
+        hover: hover, shadow: hover ? t.posterHover : t.poster, lift: hover ? 'translateY(-4px)' : 'none'
+      };
+    });
+    var feed = [
+      { initial: 'Д', bg: '#ef7bb0', name: 'Даша', action: 'отметила 2-й сезон «Фрирен»', when: 'сегодня', cover: '../../../../images/covers/frieren-2023.jpg' },
+      { initial: 'В', bg: '#7fd18b', name: 'Вадим', action: 'завершил «Драйв»', when: 'вчера', cover: '../../../../images/covers/drive-2011.jpg' },
+      { initial: 'Л', bg: '#f0c05a', name: 'Лёша', action: 'добавил Split Fiction', when: '2 дня назад', cover: '../../../../images/covers/split-fiction-2025.jpg' },
+      { initial: 'В', bg: '#7fd18b', name: 'Вадим', action: 'начал «Тед Лассо»', when: 'на этой неделе', cover: '../../../../images/covers/ted-lasso-2020.jpg' }
+    ];
+    return { t: t, tabs: tabs, cards: cards, feed: feed };
+  }
+}
+</script>
+</body>
+</html>

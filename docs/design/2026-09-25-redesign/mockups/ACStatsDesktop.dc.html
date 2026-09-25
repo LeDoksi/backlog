@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, итоги на десктопе</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif; display: flex;">
+  <div style="position: absolute; left: 240px; top: -280px; width: 900px; height: 520px; background: radial-gradient(closest-side, {{t.glow}}, rgba(52,82,255,0) 70%); pointer-events: none;"></div>
+  <div style="position: relative; width: 96px; height: 900px; flex-shrink: 0;">
+    <dc-import name="DeskRail" active="stats" dark="{{dark}}" hint-size="96px,900px"></dc-import>
+  </div>
+  <main style="position: relative; flex-grow: 1; padding: 28px 28px 0 12px; display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 26px; font-weight: 600;">Итоги</h1>
+      <div role="group" aria-label="Период" style="display: flex; padding: 5px; gap: 4px; border-radius: 999px; background: {{t.surface}}; box-shadow: {{t.softShadow}};">
+        <button type="button" aria-pressed="true" style="white-space: nowrap; height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600;">Месяц</button>
+        <button type="button" aria-pressed="false" style="white-space: nowrap; height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 14px; font-weight: 600;">Год</button>
+        <button type="button" aria-pressed="false" style="white-space: nowrap; height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 14px; font-weight: 600;">Всё время</button>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px;">
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <section style="position: relative; overflow: hidden; padding: 28px; border-radius: 32px; background: {{t.accent}}; color: #fff; display: flex; flex-direction: column; gap: 14px; min-height: 250px; box-sizing: border-box;">
+          <div style="position: absolute; right: 28px; top: -20px; display: flex; gap: 12px; transform: rotate(8deg);">
+            <img src="../../../../images/covers/drive-2011.jpg" alt="" style="width: 96px; height: 144px; border-radius: 18px; object-fit: cover; box-shadow: 0 16px 30px -12px rgba(0,0,0,0.5);">
+            <img src="../../../../images/covers/spider-man-across-the-spider-verse-2023.jpg" alt="" style="width: 96px; height: 144px; border-radius: 18px; object-fit: cover; box-shadow: 0 16px 30px -12px rgba(0,0,0,0.5); margin-top: 30px;">
+            <img src="../../../../images/covers/ted-lasso-2020.jpg" alt="" style="width: 96px; height: 144px; border-radius: 18px; object-fit: cover; box-shadow: 0 16px 30px -12px rgba(0,0,0,0.5);">
+          </div>
+          <span style="font-size: 15px; font-weight: 600; opacity: 0.85;">Сентябрь</span>
+          <div style="display: flex; align-items: baseline; gap: 14px;">
+            <span style="font-family: Unbounded, Onest, sans-serif; font-size: 88px; font-weight: 600; line-height: 1;">7</span>
+            <span style="font-size: 20px; font-weight: 600; line-height: 1.25;">тайтлов<br>завершено</span>
+          </div>
+          <span style="font-size: 14px; opacity: 0.85;">На 3 больше, чем в августе. Ещё 4 ждут новых сезонов.</span>
+        </section>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+          <sc-for list="{{cats}}" as="c" hint-placeholder-count="4">
+            <div style="padding: 18px; border-radius: 24px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 6px;">
+              <span style="font-family: Unbounded, Onest, sans-serif; font-size: 30px; font-weight: 600;">{{c.n}}</span>
+              <span style="font-size: 13px; color: {{t.muted}};">{{c.label}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <section style="padding: 20px; border-radius: 28px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 12px;">
+          <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 14px; font-weight: 600;">Любимые жанры месяца</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <sc-for list="{{genres}}" as="g" hint-placeholder-count="6">
+              <span style="height: 40px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; {{g.style}}">{{g.label}}<span style="opacity: 0.6;">{{g.n}}</span></span>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <section style="padding: 22px; border-radius: 32px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 16px; font-weight: 600;">Лидеры месяца</h2>
+          <span style="font-size: 13px; color: {{t.muted}};">все в Бэклоге</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <sc-for list="{{lbTabs}}" as="tab" hint-placeholder-count="4">
+            <button type="button" style="white-space: nowrap; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 600; {{tab.style}}">{{tab.label}}</button>
+          </sc-for>
+        </div>
+        <sc-for list="{{leaders}}" as="l" hint-placeholder-count="5">
+          <div style="height: 56px; padding: 0 14px; border-radius: 18px; display: flex; align-items: center; gap: 14px; {{l.row}}">
+            <span style="width: 18px; font-family: Unbounded, Onest, sans-serif; font-size: 14px; font-weight: 600; color: {{t.muted}};">{{l.pos}}</span>
+            <span style="width: 38px; height: 38px; border-radius: 50%; background: {{l.bg}}; color: #14161b; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center;">{{l.initial}}</span>
+            <span style="flex-grow: 1; font-size: 16px; font-weight: 600;">{{l.name}}</span>
+            <span style="font-family: Unbounded, Onest, sans-serif; font-size: 16px; font-weight: 600;">{{l.count}}</span>
+          </div>
+        </sc-for>
+        <p style="margin: 4px 0 0; font-size: 13px; color: {{t.muted}}; line-height: 1.4;">В кино считаем фильмы, в сериалах и аниме сезоны, в играх пройденные игры.</p>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', surface: '#1b1e27', text: '#f1f2f6', muted: '#9ba1b0', accent: '#4b66ff', accentSoft: 'rgba(111,134,255,0.2)', accentText: '#b8c3ff',
+      glow: 'rgba(75,102,255,0.14)', softShadow: 'none', on: 'background: #f1f2f6; color: #14161b;', off: 'background: #232734; color: #d3d7e0;'
+    } : {
+      bg: '#eef0f4', surface: '#ffffff', text: '#14161b', muted: '#5d6270', accent: '#3452ff', accentSoft: '#e4e8ff', accentText: '#2b45d8',
+      glow: 'rgba(52,82,255,0.08)', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', on: 'background: #14161b; color: #ffffff;', off: 'background: #f1f2f6; color: #3b404c;'
+    };
+    var cats = [[3, 'фильма'], [2, 'сезона сериалов'], [1, 'сезон аниме'], [1, 'игра']].map(function (c) { return { n: c[0], label: c[1] }; });
+    var genres = [['драма', 4, true], ['фантастика', 3], ['комедия', 2], ['боевик', 2], ['фэнтези', 1], ['триллер', 1]].map(function (g) {
+      return { label: g[0], n: g[1], style: g[2] ? 'background: ' + t.accentSoft + '; color: ' + t.accentText + ';' : t.off };
+    });
+    var lbTabs = [['Кино', true], ['Сериалы'], ['Аниме'], ['Игры']].map(function (x) { return { label: x[0], style: x[1] ? t.on : t.off }; });
+    var leaders = [
+      ['1', 'Вадим', 'В', '#7fd18b', 5], ['2', 'Ты', 'Г', '#f0a33a', 3, true], ['3', 'Катя', 'К', '#8ec5ff', 2], ['4', 'Лёша', 'Л', '#f0c05a', 1], ['5', 'Даша', 'Д', '#ef7bb0', 1]
+    ].map(function (l) { return { pos: l[0], name: l[1], initial: l[2], bg: l[3], count: l[4], row: l[5] ? 'background: ' + t.accentSoft + ';' : '' }; });
+    return { t: t, dark: dark, cats: cats, genres: genres, lbTabs: lbTabs, leaders: leaders };
+  }
+}
+</script>
+</body>
+</html>

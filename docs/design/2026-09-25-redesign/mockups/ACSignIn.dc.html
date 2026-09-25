@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, вход</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="position: absolute; left: -70px; top: 30px; width: 540px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; transform: rotate(-9deg);">
+    <sc-for list="{{wall}}" as="w" hint-placeholder-count="16">
+      <img src="{{w}}" alt="" style="width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 20px; display: block; box-shadow: {{t.posterShadow}};">
+    </sc-for>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 520px; background: linear-gradient(to top, {{t.bg}} 58%, {{t.bgClear}});"></div>
+  <div style="position: absolute; left: 24px; right: 24px; bottom: 44px; display: flex; flex-direction: column; gap: 14px;">
+    <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 40px; font-weight: 600; letter-spacing: -0.02em;">Бэклог</h1>
+    <p style="margin: 0; font-size: 17px; line-height: 1.45; color: {{t.text2}};">Игры, сериалы, кино и аниме, до которых хочется добраться. Для себя и вместе с друзьями.</p>
+    <button type="button" style="white-space: nowrap; margin-top: 12px; height: 58px; border-radius: 22px; border: 0; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 16px; font-weight: 600;">Войти через Google</button>
+    <p style="margin: 0; font-size: 13px; color: {{t.muted}}; text-align: center;">Вход по приглашению</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', bgClear: 'rgba(15,17,23,0)', text: '#f1f2f6', text2: '#d3d7e0', muted: '#9ba1b0', accent: '#4b66ff', posterShadow: '0 12px 28px -14px rgba(0,0,0,0.85)'
+    } : {
+      bg: '#eef0f4', bgClear: 'rgba(238,240,244,0)', text: '#14161b', text2: '#3b404c', muted: '#5d6270', accent: '#3452ff', posterShadow: '0 14px 28px -16px rgba(40,50,90,0.6)'
+    };
+    var ids = ['47a28cfa07ace4d14c8ca2d38d61d8a1', '6fa7badba28b07b7add55c797deb264b', '4173040fd583c4e6552347673dc58bb1', '48a10700f9e5550b22fa5ef5b6a9a37b',
+      '2f6f1349a97a67b140b50a30098f6141', '3612649325ac8f05dd39e34763725454', '8882af00bb57f8e973d2d6e61efa7fbf', '23f94705dd8cc646d61eee2f18aea349',
+      '044006a5fe26f5eef08824d4ba19f45e', '514f6bbb89b832ea38dae3ecdb15488c', '4b0b1623205e95554d99f068e08089bb', '0a360cdd76ae256930d3ebfa219dfc47',
+      'f8c52f057e734315b2d73082f4bc7761', '34e423b8915405b68b292df713061aec', '3fa01358b261ec4a8e08b248bca4f332', '6432228812141a5b69c7248072297447'];
+    return { t: t, wall: ids.map(function (id) { return '../../../../images/covers/' + BLOB[id]; }) };
+  }
+}
+</script>
+</body>
+</html>

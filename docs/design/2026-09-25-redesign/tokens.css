@@ -1,0 +1,190 @@
+/* Бэклог v2: дизайн-токены (гибрид A+C).
+ *
+ * Источник правды для цветов, шрифтов, скруглений, теней и движения нового
+ * интерфейса. Значения сняты с утверждённых макетов (mockups/*.dc.html,
+ * холст https://claude.ai/artifact/QWtTd5XVRdzNFesnYpRUXT) и описаны в
+ * design-system.md. Приложение v2 импортирует этот файл как есть.
+ *
+ * Тема: по умолчанию как в системе (prefers-color-scheme). Ручной выбор
+ * пишется в <html data-theme="light|dark"> и перекрывает системную.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap');
+/* В приложении шрифты self-host (vite + @fontsource/onest, @fontsource/unbounded),
+   @import выше нужен только для просмотра этого файла отдельно. */
+
+:root {
+  /* ── Шрифты ─────────────────────────────────────────────── */
+  --font-display: 'Unbounded', 'Onest', system-ui, sans-serif;  /* заголовки экранов, вкладки, крупные числа */
+  --font-body: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fs-micro: 11px;   /* подписи в панели навигации, плашки на постере */
+  --fs-xs: 12px;      /* мета, счётчики, подсказки */
+  --fs-sm: 13px;      /* вторичный текст, подписи полей */
+  --fs-base: 14px;    /* кнопки, названия на карточках */
+  --fs-md: 15px;      /* основной текст, синопсис */
+  --fs-lg: 17px;      /* крупный текст форм, вход */
+  --fs-title-sm: 18px;/* заголовок панели (Unbounded) */
+  --fs-title: 24px;   /* заголовок экрана (Unbounded) */
+  --fs-hero: 60px;    /* большое число в «Итогах» (88px на десктопе) */
+
+  /* ── Скругления ─────────────────────────────────────────── */
+  --r-xs: 12px;       /* миниатюры постеров в списках, мелкие кнопки */
+  --r-sm: 16px;       /* поля ввода, строки списков */
+  --r-md: 20px;       /* кнопки 52-54px, строки сезонов */
+  --r-poster: 22px;   /* постер в сетке */
+  --r-card: 26px;     /* карточки-секции */
+  --r-sheet: 32px;    /* нижние панели, большие карточки */
+  --r-pill: 999px;    /* вкладки, чипы, капсула навигации */
+
+  /* ── Отступы ────────────────────────────────────────────── */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-7: 32px;
+  --gutter: 18px;           /* поле страницы на телефоне */
+  --gutter-desktop: 28px;
+
+  /* ── Размеры касания ────────────────────────────────────── */
+  --tap-min: 44px;          /* минимум для любой кнопки */
+  --btn-h: 52px;            /* основная кнопка */
+  --btn-h-lg: 58px;         /* кнопка на экране входа и первого запуска */
+  --tabbar-h: 68px;
+
+  /* ── Движение (пружины для Motion) ──────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur-base: 260ms;
+  /* JS: spring { stiffness: 420, damping: 34 } для панелей и нажатий,
+         spring { stiffness: 260, damping: 26 } для перехода карточка → панель тайтла. */
+}
+
+/* ── Светлая тема (по умолчанию) ───────────────────────────── */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef0f4;
+  --bg-clear: rgba(238, 240, 244, 0);
+  --surface: #ffffff;
+  --sunken: #f1f2f6;          /* поля, строки внутри белых карточек */
+  --poster-empty: #e3e6ec;
+  --text: #14161b;
+  --text-2: #3b404c;
+  --muted: #5d6270;
+  --line: rgba(20, 22, 28, 0.08);
+  --dash: #d5d8e0;
+
+  --accent: #3452ff;          /* кобальт: заливки, основные кнопки, активный переключатель */
+  --accent-text: #2b45d8;     /* акцент как текст */
+  --accent-soft: #e4e8ff;     /* тональные кнопки, активный пункт навигации */
+  --accent-glow: rgba(52, 82, 255, 0.10);
+  --on-accent: #ffffff;
+
+  --inverse: #14161b;         /* активная вкладка категории, основная кнопка в панели тайтла */
+  --on-inverse: #ffffff;
+
+  --st-queue: #4b5160;   --st-queue-soft: #eceef3;
+  --st-progress: #2b45d8; --st-progress-soft: #e4e8ff;
+  --st-done: #2f7a45;    --st-done-soft: #e2f3e6;
+  --st-unreleased: #5d6270;
+
+  --badge: #ff5a36;
+  --danger: #c93a1c;     --danger-soft: #ffe6e0;
+
+  --scrim: rgba(20, 24, 40, 0.45);
+  --glass: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(20, 22, 28, 0.07);
+  --chip-on-poster: rgba(255, 255, 255, 0.90);
+
+  --shadow-soft: 0 8px 22px -14px rgba(40, 50, 90, 0.45);
+  --shadow-poster: 0 14px 28px -16px rgba(40, 50, 90, 0.60);
+  --shadow-poster-hover: 0 28px 50px -20px rgba(40, 50, 90, 0.70), 0 0 0 2px var(--accent);
+  --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 18px 40px -16px rgba(40, 50, 90, 0.5);
+  --shadow-fab: 0 16px 30px -12px rgba(52, 82, 255, 0.6);
+}
+
+/* ── Тёмная тема ──────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f1117;
+    --bg-clear: rgba(15, 17, 23, 0);
+    --surface: #1b1e27;
+    --sunken: #232734;
+    --poster-empty: #262a35;
+    --text: #f1f2f6;
+    --text-2: #d3d7e0;
+    --muted: #9ba1b0;
+    --line: rgba(255, 255, 255, 0.08);
+    --dash: #3a3f4d;
+    --accent: #4b66ff;
+    --accent-text: #b8c3ff;
+    --accent-soft: rgba(111, 134, 255, 0.20);
+    --accent-glow: rgba(75, 102, 255, 0.16);
+    --on-accent: #ffffff;
+    --inverse: #f1f2f6;
+    --on-inverse: #14161b;
+    --st-queue: #c3c8d4;   --st-queue-soft: rgba(255, 255, 255, 0.08);
+    --st-progress: #b8c3ff; --st-progress-soft: rgba(111, 134, 255, 0.20);
+    --st-done: #8fd6a4;    --st-done-soft: rgba(92, 184, 120, 0.18);
+    --st-unreleased: #9ba1b0;
+    --badge: #ff6a4a;
+    --danger: #ff8f75;     --danger-soft: rgba(255, 106, 74, 0.16);
+    --scrim: rgba(0, 0, 0, 0.6);
+    --glass: rgba(31, 34, 48, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.10);
+    --chip-on-poster: rgba(15, 17, 23, 0.74);
+    --shadow-soft: none;
+    --shadow-poster: 0 12px 28px -14px rgba(0, 0, 0, 0.85);
+    --shadow-poster-hover: 0 28px 50px -18px rgba(0, 0, 0, 0.95), 0 0 0 2px var(--accent);
+    --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 18px 40px -12px rgba(0, 0, 0, 0.8);
+    --shadow-fab: 0 16px 30px -12px rgba(75, 102, 255, 0.7);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1117;
+  --bg-clear: rgba(15, 17, 23, 0);
+  --surface: #1b1e27;
+  --sunken: #232734;
+  --poster-empty: #262a35;
+  --text: #f1f2f6;
+  --text-2: #d3d7e0;
+  --muted: #9ba1b0;
+  --line: rgba(255, 255, 255, 0.08);
+  --dash: #3a3f4d;
+  --accent: #4b66ff;
+  --accent-text: #b8c3ff;
+  --accent-soft: rgba(111, 134, 255, 0.20);
+  --accent-glow: rgba(75, 102, 255, 0.16);
+  --on-accent: #ffffff;
+  --inverse: #f1f2f6;
+  --on-inverse: #14161b;
+  --st-queue: #c3c8d4;   --st-queue-soft: rgba(255, 255, 255, 0.08);
+  --st-progress: #b8c3ff; --st-progress-soft: rgba(111, 134, 255, 0.20);
+  --st-done: #8fd6a4;    --st-done-soft: rgba(92, 184, 120, 0.18);
+  --st-unreleased: #9ba1b0;
+  --badge: #ff6a4a;
+  --danger: #ff8f75;     --danger-soft: rgba(255, 106, 74, 0.16);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --glass: rgba(31, 34, 48, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --chip-on-poster: rgba(15, 17, 23, 0.74);
+  --shadow-soft: none;
+  --shadow-poster: 0 12px 28px -14px rgba(0, 0, 0, 0.85);
+  --shadow-poster-hover: 0 28px 50px -18px rgba(0, 0, 0, 0.95), 0 0 0 2px var(--accent);
+  --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 18px 40px -12px rgba(0, 0, 0, 0.8);
+  --shadow-fab: 0 16px 30px -12px rgba(75, 102, 255, 0.7);
+}
+
+/* Аватары: цвет выбирается детерминированно от user id из этого набора,
+   текст на них всегда --avatar-ink. */
+:root {
+  --avatar-1: #f0a33a; --avatar-2: #ef7bb0; --avatar-3: #7fd18b;
+  --avatar-4: #f0c05a; --avatar-5: #8ec5ff; --avatar-6: #c9a7ff;
+  --avatar-ink: #14161b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-base: 0ms; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass: var(--surface); }
+}

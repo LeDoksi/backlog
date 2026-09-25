@@ -1,0 +1,60 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-09-25T12:00:00Z" },
+  "title": "Бэклог — визуальные направления",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Дизайн-система" },
+    "TabBar.dc.html": { "x": 1520, "y": 0, "w": 358, "h": 68, "title": "Компонент: нижняя панель" },
+    "DeskRail.dc.html": { "x": 1960, "y": 0, "w": 96, "h": 900, "title": "Компонент: боковая навигация" },
+
+    "ACGrid.dc.html": { "x": 0, "y": 1400, "w": 390, "h": 844, "title": "Бэклог · телефон" },
+    "ACSheet.dc.html": { "x": 470, "y": 1400, "w": 390, "h": 844, "title": "Карточка тайтла" },
+    "ACEdit.dc.html": { "x": 940, "y": 1400, "w": 390, "h": 844, "title": "Редактирование" },
+    "ACGenres.dc.html": { "x": 1410, "y": 1400, "w": 390, "h": 844, "title": "Фильтр по жанрам" },
+    "ACDesktop.dc.html": { "x": 1880, "y": 1400, "w": 1440, "h": 900, "title": "Бэклог · десктоп" },
+
+    "ACGridDark.dc.html": { "x": 0, "y": 2800, "w": 390, "h": 844, "title": "Бэклог · телефон · тёмная" },
+    "ACSheetDark.dc.html": { "x": 470, "y": 2800, "w": 390, "h": 844, "title": "Карточка тайтла · тёмная" },
+    "ACDesktopDark.dc.html": { "x": 940, "y": 2800, "w": 1440, "h": 900, "title": "Бэклог · десктоп · тёмная" },
+
+    "ACFriends.dc.html": { "x": 0, "y": 4200, "w": 390, "h": 844, "title": "Друзья: лента" },
+    "ACFriendProfile.dc.html": { "x": 470, "y": 4200, "w": 390, "h": 844, "title": "Профиль друга" },
+    "ACAddFriend.dc.html": { "x": 940, "y": 4200, "w": 390, "h": 844, "title": "Добавить друга" },
+    "ACFriendsDesktop.dc.html": { "x": 1410, "y": 4200, "w": 1440, "h": 900, "title": "Друзья · десктоп" },
+
+    "ACStats.dc.html": { "x": 0, "y": 5600, "w": 390, "h": 844, "title": "Итоги" },
+    "ACProfile.dc.html": { "x": 470, "y": 5600, "w": 390, "h": 844, "title": "Профиль" },
+    "ACPrivacy.dc.html": { "x": 940, "y": 5600, "w": 390, "h": 844, "title": "Приватность" },
+    "ACStatsDesktop.dc.html": { "x": 1410, "y": 5600, "w": 1440, "h": 900, "title": "Итоги · десктоп" },
+
+    "ACQuickAdd.dc.html": { "x": 0, "y": 7000, "w": 390, "h": 844, "title": "Добавление тайтла (клавиатура открыта)" },
+    "ACSignIn.dc.html": { "x": 470, "y": 7000, "w": 390, "h": 844, "title": "Вход" },
+    "ACNickname.dc.html": { "x": 940, "y": 7000, "w": 390, "h": 844, "title": "Первый вход: ник" },
+    "ACEmpty.dc.html": { "x": 1410, "y": 7000, "w": 390, "h": 844, "title": "Пустая доска" },
+
+    "ACFriendsDark.dc.html": { "x": 0, "y": 8400, "w": 390, "h": 844, "title": "Друзья · тёмная" },
+    "ACStatsDark.dc.html": { "x": 470, "y": 8400, "w": 390, "h": 844, "title": "Итоги · тёмная" },
+    "ACProfileDark.dc.html": { "x": 940, "y": 8400, "w": 390, "h": 844, "title": "Профиль · тёмная" }
+  },
+  "order": [
+    "Main.dc.html", "TabBar.dc.html", "DeskRail.dc.html",
+    "ACGrid.dc.html", "ACSheet.dc.html", "ACEdit.dc.html", "ACGenres.dc.html", "ACDesktop.dc.html",
+    "ACGridDark.dc.html", "ACSheetDark.dc.html", "ACDesktopDark.dc.html",
+    "ACFriends.dc.html", "ACFriendProfile.dc.html", "ACAddFriend.dc.html", "ACFriendsDesktop.dc.html",
+    "ACStats.dc.html", "ACProfile.dc.html", "ACPrivacy.dc.html", "ACStatsDesktop.dc.html",
+    "ACQuickAdd.dc.html", "ACSignIn.dc.html", "ACNickname.dc.html", "ACEmpty.dc.html",
+    "ACFriendsDark.dc.html", "ACStatsDark.dc.html", "ACProfileDark.dc.html"
+  ],
+  "notes": {
+    "rowDS": { "x": 0, "y": -300, "text": "Дизайн-система и общие компоненты", "kind": "title1", "maxW": 2056 },
+    "rowBL": { "x": 0, "y": 1100, "text": "Бэклог: сетка, тайтл, редактирование, фильтры", "kind": "title1", "maxW": 3320 },
+    "rowBLD": { "x": 0, "y": 2500, "text": "Бэклог, тёмная тема", "kind": "title1", "maxW": 2380 },
+    "rowFR": { "x": 0, "y": 3900, "text": "Друзья: лента, профиль друга, добавление", "kind": "title1", "maxW": 2850 },
+    "rowST": { "x": 0, "y": 5300, "text": "Итоги, профиль, приватность", "kind": "title1", "maxW": 2850 },
+    "rowAD": { "x": 0, "y": 6700, "text": "Добавление тайтла, вход, первый запуск", "kind": "title1", "maxW": 1800 },
+    "rowDK": { "x": 0, "y": 8100, "text": "Соцэкраны, тёмная тема", "kind": "title1", "maxW": 1330 }
+  },
+  "designSystems": []
+}

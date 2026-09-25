@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, выбор ника при первом входе</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="position: absolute; left: -60px; top: -140px; width: 510px; height: 380px; background: radial-gradient(closest-side, rgba(240,163,58,0.26), rgba(240,163,58,0) 70%); pointer-events: none;"></div>
+  <div style="position: relative; padding: 96px 24px 0; display: flex; flex-direction: column; gap: 22px;">
+    <span style="width: 92px; height: 92px; border-radius: 50%; background: #f0a33a; color: #14161b; font-family: Unbounded, Onest, sans-serif; font-size: 34px; font-weight: 600; display: flex; align-items: center; justify-content: center;">Г</span>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 26px; font-weight: 600; line-height: 1.2;">Как тебя называть?</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 1.45; color: {{t.text2}};">По нику друзья смогут тебя найти. Поменять его можно позже в профиле.</p>
+    </div>
+    <label style="display: flex; flex-direction: column; gap: 6px;">
+      <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Имя</span>
+      <input type="text" value="Георгий" style="height: 54px; padding: 0 16px; border-radius: 18px; border: 0; background: {{t.surface}}; color: {{t.text}}; font-family: inherit; font-size: 16px; outline: none; box-shadow: {{t.softShadow}};">
+    </label>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <label for="nick" style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Ник</label>
+      <div style="height: 54px; padding: 0 16px; border-radius: 18px; background: {{t.surface}}; box-shadow: inset 0 0 0 2px {{t.accent}}; display: flex; align-items: center; gap: 4px;">
+        <span style="font-size: 16px; color: {{t.muted}};">@</span>
+        <input id="nick" type="text" value="ledoksi" style="flex-grow: 1; border: 0; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 16px; outline: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.okText}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+      </div>
+      <span style="font-size: 13px; color: {{t.okText}};">Ник свободен</span>
+    </div>
+  </div>
+  <div style="position: absolute; left: 24px; right: 24px; bottom: 44px;">
+    <button type="button" style="white-space: nowrap; width: 100%; height: 58px; border-radius: 22px; border: 0; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 16px; font-weight: 600;">Продолжить</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', surface: '#1b1e27', text: '#f1f2f6', text2: '#d3d7e0', muted: '#9ba1b0', accent: '#4b66ff', softShadow: 'none', okText: '#8fd6a4'
+    } : {
+      bg: '#eef0f4', surface: '#ffffff', text: '#14161b', text2: '#3b404c', muted: '#5d6270', accent: '#3452ff', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', okText: '#2f7a45'
+    };
+    return { t: t };
+  }
+}
+</script>
+</body>
+</html>
