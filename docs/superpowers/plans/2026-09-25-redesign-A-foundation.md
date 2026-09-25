@@ -1,5 +1,12 @@
 # A. Фундамент v2 — план реализации
 
+> **Где лежат документы (для любой сессии, в том числе локальной).** Спека, планы, дизайн-система и макеты закоммичены в ветку **`claude/loving-rubin-mh121x`** репозитория `LeDoksi/backlog`. Пока она не слита в `master`, работать нужно от неё:
+> ```bash
+> git fetch origin claude/loving-rubin-mh121x
+> git checkout claude/loving-rubin-mh121x
+> ```
+> Если ветка уже слита, те же файлы лежат в `master`, берите оттуда. Задачи и порядок работ — в канбане: Supabase-проект `kanban` (`qcxfaxgqjzabtrzpsnnm`), проект `backlog`, эпики BL-E5…BL-E8.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Поднять новое приложение `app/` (React + TS) с перенесённой логикой, дизайн-токенами, базовыми компонентами и входом, выкатить его на `/backlog/v2/` рядом с текущей версией, и починить BL-26 в текущей версии.
