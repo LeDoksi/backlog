@@ -200,6 +200,8 @@ function shapeDrafts(rows: any) {
       title.seasonInfo = row.season_info === undefined ? null : row.season_info;
       title.platforms = row.platforms === undefined ? null : row.platforms;
       title.parts = row.parts === undefined ? null : row.parts;
+      title.source = row.source === undefined ? null : row.source;
+      title.sourceId = row.source_id === undefined ? null : row.source_id;
       return title;
     });
 }
@@ -612,6 +614,10 @@ function draftRow(title: any) {
   row.season_info = title.seasonInfo === undefined ? null : title.seasonInfo;
   row.platforms = title.platforms === undefined ? null : title.platforms;
   row.parts = title.parts === undefined ? null : title.parts;
+  // Only sent when known: a row without them leaves the columns untouched,
+  // which is also how v1's upserts coexist with them.
+  if (title.source) row.source = title.source;
+  if (title.sourceId) row.source_id = title.sourceId;
   return row;
 }
 

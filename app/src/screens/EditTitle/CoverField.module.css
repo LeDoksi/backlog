@@ -1,0 +1,7 @@
+.wrap { display: flex; gap: 14px; align-items: center; }
+.preview { width: 72px; height: 108px; border-radius: var(--r-sm); object-fit: cover; flex-shrink: 0; background: var(--poster-empty); }
+.side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.upload, .link { min-height: 44px; padding: 0 14px; border-radius: 14px; border: 0; font-size: var(--fs-sm); font-weight: 600; }
+.upload { background: var(--accent-soft); color: var(--accent-text); }
+.link { background: var(--sunken); color: var(--text); }

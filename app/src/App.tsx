@@ -9,6 +9,7 @@ import { SignIn } from './screens/SignIn';
 import { NotInvited } from './screens/NotInvited';
 import { Backlog } from './screens/Backlog/Backlog';
 import { TitleSheet } from './screens/TitleSheet/TitleSheet';
+import { EditTitle } from './screens/EditTitle/EditTitle';
 import { AppShell } from './ui/AppShell';
 import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
@@ -27,6 +28,7 @@ function Signed() {
         {section === 'backlog' && <Backlog />}
       </AppShell>
       <TitleSheet />
+      <EditTitle />
     </LayoutGroup>
   );
 }

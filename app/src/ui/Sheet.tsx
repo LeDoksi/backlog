@@ -1,26 +1,12 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useHistoryEntry } from './history';
 import s from './Sheet.module.css';
 
 interface Props { open: boolean; onClose: () => void; labelledBy: string; children: ReactNode; footer?: ReactNode }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea, select, [tabindex]:not([tabindex="-1"])';
-
-// Pops this module triggered itself while tearing a sheet down. Their
-// popstate arrives asynchronously, possibly after another sheet (or the same
-// one, remounted by StrictMode) has registered its listener, and must not be
-// read as the user pressing Back.
-let selfPops = 0;
-let lastPopWasSelf = false;
-// Registered at import, so it runs before any sheet's own listener and the
-// count drains even when no sheet is open to hear the pop.
-if (typeof window !== 'undefined') {
-  window.addEventListener('popstate', () => {
-    lastPopWasSelf = selfPops > 0;
-    if (lastPopWasSelf) selfPops -= 1;
-  });
-}
 
 export function Sheet({ open, onClose, labelledBy, children, footer }: Props) {
   const panel = useRef<HTMLDivElement>(null);
@@ -29,23 +15,16 @@ export function Sheet({ open, onClose, labelledBy, children, footer }: Props) {
   close.current = onClose;
   const reduce = useReducedMotion();
 
-  // Keyed on `open` only: callers pass inline `onClose` arrows, and re-running
-  // this on every render would pop and re-push history while the sheet is up.
+  useHistoryEntry(open, () => close.current());
+
   useEffect(() => {
     if (!open) return;
     opener.current = document.activeElement as HTMLElement | null;
     const first = panel.current?.querySelector<HTMLElement>(FOCUSABLE);
     (first ?? panel.current)?.focus();
     document.body.style.overflow = 'hidden';
-    history.pushState({ sheet: true }, '');
-    const onPop = () => {
-      if (!lastPopWasSelf) close.current();
-    };
-    window.addEventListener('popstate', onPop);
     return () => {
-      window.removeEventListener('popstate', onPop);
       document.body.style.overflow = '';
-      if (history.state && history.state.sheet) { selfPops += 1; history.back(); }
       opener.current?.focus();
     };
   }, [open]);
