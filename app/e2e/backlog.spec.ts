@@ -86,3 +86,18 @@ test('«Что посмотреть?» never picks a game on the games tab', asy
   await expect(page.getByText('Игры не смотрят').first()).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+// iOS Safari zooms the page in on focus when a field's text is under 16px.
+test('no field is small enough for iPhone to zoom in on focus', async ({ page }) => {
+  const small = async () => page.evaluate(() => [...document.querySelectorAll('input:not([type=checkbox]):not([type=radio]), textarea')]
+    .filter((el) => (el as HTMLElement).offsetParent !== null)
+    .map((el) => [(el as HTMLInputElement).getAttribute('aria-label') ?? el.tagName, parseFloat(getComputedStyle(el).fontSize)] as const)
+    .filter(([, size]) => size < 16));
+  await page.getByRole('button', { name: 'Поиск', exact: true }).click();
+  expect(await small()).toEqual([]);
+  await page.getByRole('button', { name: 'Закрыть поиск' }).click();
+  await page.locator('article > button').first().click();
+  await page.getByRole('button', { name: 'Редактировать' }).click();
+  await page.getByRole('button', { name: '+ жанр' }).click();
+  expect(await small()).toEqual([]);
+});

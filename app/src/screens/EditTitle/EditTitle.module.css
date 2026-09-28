@@ -8,7 +8,7 @@
 .flat { padding: 0; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .label { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
-.input, .textarea { min-height: 50px; padding: 0 14px; border-radius: var(--r-sm); border: 0; background: var(--sunken); font-size: var(--fs-md); outline: none; width: 100%; }
+.input, .textarea { min-height: 50px; padding: 0 14px; border-radius: var(--r-sm); border: 0; background: var(--sunken); font-size: var(--fs-input); outline: none; width: 100%; }
 .textarea { padding: 12px 14px; resize: vertical; line-height: 1.45; }
 .input:focus-visible, .textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); outline: none; }
 .input[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--danger); }
