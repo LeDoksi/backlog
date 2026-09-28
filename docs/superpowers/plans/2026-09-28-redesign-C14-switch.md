@@ -31,8 +31,8 @@
 
 **Files:** Modify `app/vite.config.ts` (база по умолчанию `/backlog/`; иконки манифеста `images/icon-*.png` от базы), `app/src/config.ts` (`ASSET_ROOT` = `import.meta.env.BASE_URL`, при сборке `/backlog/v2/` — `/backlog/`), `app/playwright.config.ts` (адрес `/backlog/`), `app/e2e/visual.spec.ts` (комментарий).
 
-- [ ] e2e: манифест по `/backlog/manifest.webmanifest` отдаёт иконки, которые открываются (200, `image/png`). Сейчас падает (сборка на `/backlog/v2/`).
-- [ ] Поменять базу и пути. Весь e2e зелёный на новом адресе.
+- [x] e2e: манифест по `/backlog/manifest.webmanifest` отдаёт иконки, которые открываются (200, `image/png`). Сейчас падает (сборка на `/backlog/v2/`).
+- [x] Поменять базу и пути. Весь e2e зелёный на новом адресе.
 
 ### Task S2: Воркер убирает v1
 
@@ -40,28 +40,28 @@
 
 **Interfaces:** `sw-retire-v1.js` — обработчик `activate`: `caches.delete('backlog-shell-v1')`, `caches.delete('backlog-covers-v1')`; если кэш оболочки v1 был, `clients.matchAll({ type: 'window' })` → `client.navigate(client.url)`.
 
-- [ ] Юнит (скрипт выполняется в фейковом `self` с `caches`/`clients`): при кэшах v1 оба удалены и вкладки перезагружены; без кэшей v1 никто не перезагружен.
-- [ ] Реализовать; в собранном `dist/sw.js` есть `importScripts("sw-retire-v1.js")`.
+- [x] Юнит (скрипт выполняется в фейковом `self` с `caches`/`clients`): при кэшах v1 оба удалены и вкладки перезагружены; без кэшей v1 никто не перезагружен.
+- [x] Реализовать; в собранном `dist/sw.js` есть `importScripts("sw-retire-v1.js")`.
 
 ### Task S3: Старый адрес `/backlog/v2/`
 
 **Files:** Create `app/retired-v2/index.html`, `app/retired-v2/sw.js`; Test `app/tests/pwa/retiredV2.test.ts`.
 
-- [ ] Юнит «выключателя»: при активации удаляет кэши, в имени которых есть `/backlog/v2/`, не трогает остальные, снимает регистрацию, уводит вкладки на `/backlog/`.
-- [ ] `index.html`: `location.replace('/backlog/' + location.hash)` и `<meta http-equiv="refresh">` на случай без JS.
+- [x] Юнит «выключателя»: при активации удаляет кэши, в имени которых есть `/backlog/v2/`, не трогает остальные, снимает регистрацию, уводит вкладки на `/backlog/`.
+- [x] `index.html`: `location.replace('/backlog/' + location.hash)` и `<meta http-equiv="refresh">` на случай без JS.
 
 ### Task S4: Выкладка и CI без v1
 
 **Files:** Modify `.github/workflows/deploy.yml`, `.github/workflows/ci.yml`.
 
-- [ ] Deploy: `npm ci && npm test && npm run build` в `app/`; `_site` = `app/dist` + `images/` + `retired-v2/` в `_site/v2/`. Шаг тестов v1 убран. Проверка локально тем же скриптом сборки `_site`.
-- [ ] CI: шаг «v1 tests» убран.
+- [x] Deploy: `npm ci && npm test && npm run build` в `app/`; `_site` = `app/dist` + `images/` + `retired-v2/` в `_site/v2/`. Шаг тестов v1 убран. Проверка локально тем же скриптом сборки `_site`.
+- [x] CI: шаг «v1 tests» убран.
 
 ### Task S5: Удаление v1, README, история схемы
 
 **Files:** Delete `index.html`, `app.js`, `styles.css`, `sw.js`, `manifest.webmanifest`, `data.js`, `lib/`, `tests/`, `tools/`; Create `supabase/migrations/20260925000000_baseline.sql` (SQL-блоки README v1 по порядку их выполнения); Modify `README.md` (v2: что это, как устроено, запуск, тесты, выкладка, где спеки и миграции).
 
-- [ ] Удалить; `grep` по репозиторию не находит ссылок на удалённые файлы вне `docs/`.
+- [x] Удалить; `grep` по репозиторию не находит ссылок на удалённые файлы вне `docs/`.
 
 ## Порядок и проверка
 
@@ -69,4 +69,8 @@ S1 → S2 → S3 → S4 → S5, затем `npm test`, `typecheck`, `build`, `bu
 
 ## Отклонения при реализации
 
-(заполняется по ходу)
+- **S1:** `ASSET_ROOT` оставлен постоянным `/backlog/`, а не `BASE_URL`: обложки лежат по `/backlog/images/` при любой базе, в том числе при сборке `/backlog/v2/`.
+- **S2/S3, найдено проверкой в браузере:** перезагрузка вкладок, запущенная из `activate` и ожидаемая внутри `waitUntil`, зависала навсегда: навигация идёт через тот же воркер, а его `fetch` ждёт конца активации. Теперь перезагрузка запускается без ожидания; фейковый воркер в тестах моделирует этот порядок. Проверка в Chromium на локальном сервере: открытая вкладка v1 после выкладки сама перешла на v2, кэши v1 удалены; вкладка старой `/v2/` после перезагрузки оказалась на `/backlog/`, её кэши и регистрация удалены; новый заход на `/v2/` попадает в корень.
+- **S3:** корневой воркер не отдаёт своё `index.html` на адреса `/backlog/v2/...` (`navigateFallbackDenylist`), иначе после снятия старого воркера v2 открывалась бы по адресу `/v2/`, а не переадресовывалась.
+- **S5:** базовая миграция названа `20260925000000_baseline.sql` (раньше `drafts_source`, как и положено истории), а не `20260926000001`, и снята с живой базы запросами к каталогу Postgres, а не собрана из SQL-блоков README v1 (там были промежуточные шаги и уже удалённая `deleted_titles`).
+- **S5:** комментарии в перенесённых из v1 модулях `app/src/lib/*.ts`, где упоминаются `app.js`/`lib/*.js`, оставлены как история происхождения кода; поправлены только `config.ts` и `worker/proxy.js`.
