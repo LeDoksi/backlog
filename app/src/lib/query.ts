@@ -1,0 +1,83 @@
+// query.ts
+// unreleased sorts last: it is the least actionable state (nothing to do
+// with it yet) and the one worth seeing least of when sorting "by status".
+import type { Category, Status, Title } from './types';
+
+var STATUS_PRIORITY: Record<Status, number> = { in_progress: 0, queue: 1, unreleased: 2, done: 3 };
+
+// "Still airing" is a fact about the title, not about the viewer: the franchise
+// has more coming whether or not you have caught up with it. This used to be
+// `isReturning` — done AND ongoing — which hid the flag on precisely the titles
+// it matters most on, the ones you are part-way through and might be waiting on
+// an episode of. Decoupled from `status`, it is now a plain property of the
+// title, which is also why nothing needs to recompute it when a status changes.
+function isStillAiring(title: Pick<Title, 'airingStatus'>): boolean {
+  return title.airingStatus === 'ongoing';
+}
+
+export interface Filters {
+  category?: Category | 'all';
+  status?: Status | 'all';
+  genre?: string[] | 'all';
+  returning?: boolean;
+}
+
+function matchesFilters(title: Title, filters?: Filters | null): boolean {
+  filters = filters || {};
+  if (filters.category && filters.category !== 'all' && title.category !== filters.category) return false;
+  if (filters.status && filters.status !== 'all' && title.status !== filters.status) return false;
+  // Genres are OR, not AND: picking "комедия" and "драма" asks for everything
+  // that is either one, so each added genre widens the wall rather than
+  // narrowing it to the titles tagged with both. An empty array means "no
+  // genre filter" — the state the app sits in on load and after every
+  // category switch — so it must fall through, not match nothing.
+  if (filters.genre && filters.genre !== 'all' && filters.genre.length) {
+    var wanted = filters.genre;
+    var hit = (wanted as string[]).some(function (genre) { return (title.genres || []).indexOf(genre) !== -1; });
+    if (!hit) return false;
+  }
+  // `returning` is the toolbar checkbox's long-standing state key (and the
+  // #returning-filter id it is bound to); what it selects for is now simply
+  // "still airing".
+  if (filters.returning && !isStillAiring(title)) return false;
+  return true;
+}
+
+function matchesSearch(title: Pick<Title, 'title'>, query?: string | null): boolean {
+  if (!query) return true;
+  return title.title.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+}
+
+function sortTitles<T extends Title>(titles: T[], sortKey?: string): T[] {
+  var copy = titles.slice();
+  switch (sortKey) {
+    case 'name':
+      return copy.sort(function (a, b) { return a.title.localeCompare(b.title); });
+    case 'year':
+      return copy.sort(function (a, b) { return (b.year || 0) - (a.year || 0); });
+    case 'status':
+      return copy.sort(function (a, b) { return STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]; });
+    case 'added':
+    default:
+      return copy;
+  }
+}
+
+function countProgress(titles: Pick<Title, 'status'>[]): { done: number; total: number } {
+  var done = titles.filter(function (t) { return t.status === 'done'; }).length;
+  return { done: done, total: titles.length };
+}
+
+function pickRandom<T>(titles: T[]): T | null {
+  if (!titles.length) return null;
+  return titles[Math.floor(Math.random() * titles.length)] as T;
+}
+
+export {
+  isStillAiring,
+  matchesFilters,
+  matchesSearch,
+  sortTitles,
+  countProgress,
+  pickRandom
+};
