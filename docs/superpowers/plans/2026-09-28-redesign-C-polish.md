@@ -36,18 +36,18 @@
 
 **Interfaces:** Produces `lockScroll(): () => void` — счётчик блокировок; пока он больше нуля, `body` получает `overflow: hidden` (колесо мыши), а `touchmove` на документе отменяется, если палец не внутри элемента, который сам может прокручиваться (`overflow-y: auto|scroll` и `scrollHeight > clientHeight`). Возвращает функцию снятия (повторный вызов безвреден).
 
-- [ ] Тест: `lockScroll()` → `touchmove` на обычном элементе `defaultPrevented === true`; на элементе с прокруткой (`overflow-y: auto`, `scrollHeight` 500 > `clientHeight` 100) — `false`; две блокировки и одно снятие — фон всё ещё заблокирован; второе снятие — `body.style.overflow === ''` и `touchmove` не отменяется.
-- [ ] Прогнать, убедиться, что падает (модуля нет).
-- [ ] Реализовать `scrollLock.ts`; в `Sheet` и `QuickAdd` заменить ручное `overflow` на `const unlock = lockScroll(); return unlock;`.
-- [ ] Тесты зелёные, e2e `backlog`/`quick-add` зелёные. Commit.
+- [x] Тест: `lockScroll()` → `touchmove` на обычном элементе `defaultPrevented === true`; на элементе с прокруткой (`overflow-y: auto`, `scrollHeight` 500 > `clientHeight` 100) — `false`; две блокировки и одно снятие — фон всё ещё заблокирован; второе снятие — `body.style.overflow === ''` и `touchmove` не отменяется.
+- [x] Прогнать, убедиться, что падает (модуля нет).
+- [x] Реализовать `scrollLock.ts`; в `Sheet` и `QuickAdd` заменить ручное `overflow` на `const unlock = lockScroll(); return unlock;`.
+- [x] Тесты зелёные, e2e `backlog`/`quick-add` зелёные. Commit.
 
 ### Task T2 (BL-75): Нет приближения при фокусе на поиске
 
 **Files:** Modify `app/src/design/tokens.css` (`--fs-input: 16px`), CSS полей: `Backlog/BacklogHeader.module.css .input`, `EditTitle/EditTitle.module.css .input,.textarea`, `EditTitle/GenresField.module.css .input`, `EditTitle/PartsEditor.module.css .name,.yearInput`, `Profile/Profile.module.css .input`; Test `app/e2e/backlog.spec.ts`.
 
-- [ ] e2e (phone): открыть поиск, открыть форму редактирования и приглашение — у каждого видимого `input`/`textarea` вычисленный `font-size` ≥ 16px. Сейчас падает на поиске (15px).
-- [ ] Поставить `font-size: var(--fs-input)` во все перечисленные поля.
-- [ ] e2e зелёный. Commit.
+- [x] e2e (phone): открыть поиск, открыть форму редактирования и приглашение — у каждого видимого `input`/`textarea` вычисленный `font-size` ≥ 16px. Сейчас падает на поиске (15px).
+- [x] Поставить `font-size: var(--fs-input)` во все перечисленные поля.
+- [x] e2e зелёный. Commit.
 
 ### Task T3 (BL-76): Сортировка помещается в панели фильтров
 
@@ -55,9 +55,9 @@
 
 **Files:** Modify `app/src/screens/Backlog/FilterPanels.tsx` (сортировка в панели фильтров — переносящиеся чипы, как статусы; `role="radiogroup"`, у кнопок `role="radio"` и `aria-checked`), `FilterPanels.module.css`; Test `app/e2e/backlog.spec.ts`.
 
-- [ ] e2e (phone): открыть «Фильтры» — у тела панели `scrollWidth <= clientWidth`; выбрать «Название» — первая карточка по алфавиту.
-- [ ] Заменить `Segmented` на чипы-радио (стиль `.chip`, выбранный — `selected`).
-- [ ] e2e зелёный. Commit.
+- [x] e2e (phone): открыть «Фильтры» — у тела панели `scrollWidth <= clientWidth`; выбрать «Название» — первая карточка по алфавиту.
+- [x] Заменить `Segmented` на чипы-радио (стиль `.chip`, выбранный — `selected`).
+- [x] e2e зелёный. Commit.
 
 ### Task T4 (BL-78): Больше результатов при открытой клавиатуре
 
@@ -69,15 +69,15 @@
 
 **Поведение:** панель прижата к верху видимой области (8px); при клавиатуре заголовок «Добавить тайтл» скрыт визуально (остаётся для чтеца экрана), крестик переезжает в строку категорий; список результатов продолжается за клавиатурой: у него `padding-bottom = keyboard`, так что любую строку можно поднять над клавиатурой прокруткой; строки результатов компактнее (постер 36×54).
 
-- [ ] Юнит: без клавиатуры (`844, 844, 0`) → `{ top: 8, keyboard: 0, compact: false }`; iOS с клавиатурой (`844, 400, 0`) → `keyboard 444, compact true`; Android (`500, 500, 0`) → `keyboard 0, compact false`.
-- [ ] e2e (phone): подменить `window.visualViewport` (высота 330, `offsetTop` 0) через `addInitScript`, найти «Дюна» с подменёнными ответами TMDb — поле ввода и первые две строки результатов целиком в пределах верхних 330px.
-- [ ] Реализовать. Тесты зелёные, эталоны `quick-add` пересняты и просмотрены. Commit.
+- [x] Юнит: без клавиатуры (`844, 844, 0`) → `{ top: 8, keyboard: 0, compact: false }`; iOS с клавиатурой (`844, 400, 0`) → `keyboard 444, compact true`; Android (`500, 500, 0`) → `keyboard 0, compact false`.
+- [x] e2e (phone): подменить `window.visualViewport` (высота 330, `offsetTop` 0) через `addInitScript`, найти «Дюна» с подменёнными ответами TMDb — поле ввода и первые две строки результатов целиком в пределах верхних 330px.
+- [x] Реализовать. Тесты зелёные, эталоны `quick-add` пересняты и просмотрены. Commit.
 
 ### Task T5 (BL-79): Больше постеров на экране входа (компьютер)
 
 **Files:** Modify `app/src/screens/SignIn.tsx` (стена из 30 обложек из `images/covers/`), `SignIn.module.css` (от 1024px: 10 колонок, ширина `max(1400px, 120vw)`, по центру; на телефоне видны первые 16).
 
-- [ ] Реализовать, пересоздать эталоны `sign-in`, просмотреть desktop и phone. Commit.
+- [x] Реализовать, пересоздать эталоны `sign-in`, просмотреть desktop и phone. Commit.
 
 ### Task T6 (BL-80): Итоги — больше постеров и новый набор при каждом заходе
 
@@ -85,8 +85,8 @@
 
 **Files:** Modify `app/src/data/stats.ts` (убрать `recentDone`; добавить `showcase(titles: Title[], n: number, rand = Math.random): Title[]` — `n` случайных завершённых с настоящей обложкой, без повторов), `app/src/screens/Stats/Stats.tsx` (`useMemo` на время показа экрана: 3 на телефоне, 10 на компьютере двумя рядами), `Stats.module.css`; Test `app/tests/data/stats.test.ts`; `app/e2e/visual.spec.ts` (подмена `Math.random` на детерминированную последовательность).
 
-- [ ] Юнит: только `done`; без заглушки обложки; не больше `n`; разный `rand` → разный набор; меньше `n` завершённых → все.
-- [ ] Реализовать. Эталоны `stats` пересняты и просмотрены. Commit.
+- [x] Юнит: только `done`; без заглушки обложки; не больше `n`; разный `rand` → разный набор; меньше `n` завершённых → все.
+- [x] Реализовать. Эталоны `stats` пересняты и просмотрены. Commit.
 
 ### Task T7 (BL-77): Панель на компьютере закрывается без зависания у края
 
@@ -94,8 +94,8 @@
 
 **Files:** Modify `app/src/ui/Sheet.tsx` (на `useIsDesktop()` вход и выход — `opacity` + `scale 0.96` + `y 16px`, 0.18с, без пружины и без перетаскивания); Test `app/e2e/desktop.spec.ts`.
 
-- [ ] e2e (desktop): открыть тайтл, Esc — через 350мс диалога нет в DOM.
-- [ ] Реализовать. e2e зелёный. Commit.
+- [x] e2e (desktop): открыть тайтл, Esc — через 350мс диалога нет в DOM.
+- [x] Реализовать. e2e зелёный. Commit.
 
 ### Task T8 (BL-81): Закрытие смахиванием без рывка
 
@@ -103,8 +103,8 @@
 
 **Files:** Modify `app/src/data/ui.ts` (поле `sharedTitleId`: ставится в `openTitle`, не сбрасывается в `closeTitle`), `app/src/screens/Backlog/TitleCard.tsx` (`layoutId` только если `sharedTitleId === title.id`); Test `app/tests/data/ui.test.ts`.
 
-- [ ] Юнит: `openTitle('a')` → `sharedTitleId 'a'`; `closeTitle()` → `openTitleId null`, `sharedTitleId 'a'`; `openTitle('b')` → `'b'`.
-- [ ] Реализовать, повторить замер (скрипт вне репозитория), e2e зелёные. Commit.
+- [x] Юнит: `openTitle('a')` → `sharedTitleId 'a'`; `closeTitle()` → `openTitleId null`, `sharedTitleId 'a'`; `openTitle('b')` → `'b'`.
+- [x] Реализовать, повторить замер (скрипт вне репозитория), e2e зелёные. Commit.
 
 ---
 
@@ -114,7 +114,11 @@ T8 → T7 → T1 → T2 → T3 → T4 → T5 → T6, затем полный п�
 
 ## Отклонения при реализации
 
-(заполняется по ходу)
+- **Задачи выполнены в одной сессии, без скриптов task-start/task-done** (у задач идентификаторы T1..T8, а не «Task N»); журнал вёлся вручную.
+- **T2:** эталонные снимки пересняты один раз в конце, после T3–T6, а не после каждой задачи — они всё равно менялись снова.
+- **T5:** 36 обложек и 12 колонок вместо 30 и 10: при повороте стены 30 обложек оставляли пустой угол на экране 1920px.
+- **T6:** на компьютере в ряду 2, 3 или 5 постеров в зависимости от ширины (видно 4, 6 или 10), а не всегда 10: десять постеров закрывали цифры на экранах уже 1700px. На самых узких (1024–1200px) веер сдвигается за правый край.
+- **T8, находка:** «перелёт» постера при открытии карточки и до правки не был виден глазом — постер въезжает вместе с панелью. Замер до и после одинаковый, так что общий постер оставлен только ради закрытия.
 
 ## Self-Review
 
