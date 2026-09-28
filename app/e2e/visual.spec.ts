@@ -72,13 +72,15 @@ for (const theme of ['light', 'dark'] as const) {
 
     test('stats and profile', async ({ page }) => {
       // The whole catalog, so the summary has finished titles and genres.
-      await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(), parts });
+      await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(), parts, sharedTitles: catalogRows(5),
+        sharedWith: [{ id: '00000000-0000-4000-8000-0000000000d1', name: 'Даша', nickname: 'dasha' }] });
       await page.goto('./');
       await nav(page, 'Итоги');
       await expect(page.getByText('За всё время')).toBeVisible();
       await shot(page, `${theme}-stats`);
       await nav(page, 'Профиль');
       await expect(page.getByRole('radio', { name: 'Тёмная' })).toBeVisible();
+      await expect(page.getByText('5 тайтлов, вместе с: Даша')).toBeVisible();
       await shot(page, `${theme}-profile`);
     });
   });

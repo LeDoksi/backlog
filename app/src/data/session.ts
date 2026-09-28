@@ -22,6 +22,14 @@ export function resolveSessionState(x: {
   return 'ready';
 }
 
+// Every profile starts at 'system', so before anyone picks a theme on the
+// new profile the account knows nothing: a light or dark choice this device
+// already made is kept and becomes the account's.
+export function reconcileTheme(account: Auth.Theme, device: Auth.Theme): { apply: Auth.Theme; upload: boolean } {
+  if (account === 'system' && device !== 'system') return { apply: device, upload: true };
+  return { apply: account, upload: false };
+}
+
 // A starting point for the nickname field; the person can change it.
 export function suggestNickname(email: string): string {
   const local = (email.split('@')[0] ?? '').toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 20);
@@ -54,7 +62,11 @@ export function useSession() {
     setProfile(me);
     // The theme follows the account across devices; the local copy only
     // exists so the first paint does not flash.
-    if (me && me.theme && me.theme !== readTheme()) { rememberTheme(me.theme); applyTheme(me.theme); }
+    if (me && me.theme) {
+      const theme = reconcileTheme(me.theme, readTheme());
+      if (theme.upload) { void Auth.setTheme(sb, theme.apply); me.theme = theme.apply; }
+      else if (theme.apply !== readTheme()) { rememberTheme(theme.apply); applyTheme(theme.apply); }
+    }
     setState(resolveSessionState({ hasClient: true, userId: id, signup, profile: me }));
   }, []);
 

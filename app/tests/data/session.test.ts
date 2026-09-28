@@ -1,4 +1,4 @@
-import { resolveSessionState, suggestNickname } from '../../src/data/session';
+import { reconcileTheme, resolveSessionState, suggestNickname } from '../../src/data/session';
 
 const profile = (nickname: string | null) => ({ id: 'u', email: 'u@x', display_name: 'U', nickname, theme: 'system' as const });
 
@@ -21,4 +21,10 @@ test('suggests a nickname from the email', () => {
   expect(suggestNickname('Shakov.Georgy@gmail.com')).toBe('shakov_georgy');
   expect(suggestNickname('a@b.c')).toBe('');
   expect(suggestNickname('very-long-name-that-goes-on-and-on@x.y')).toBe('very_long_name_that_');
+});
+test('the account theme wins unless it is the untouched default and this device chose one', () => {
+  expect(reconcileTheme('dark', 'light')).toEqual({ apply: 'dark', upload: false });
+  expect(reconcileTheme('system', 'dark')).toEqual({ apply: 'dark', upload: true });
+  expect(reconcileTheme('system', 'system')).toEqual({ apply: 'system', upload: false });
+  expect(reconcileTheme('light', 'light')).toEqual({ apply: 'light', upload: false });
 });

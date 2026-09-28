@@ -36,7 +36,7 @@ export const SHARED = '00000000-0000-4000-8000-0000000000b2';
 function withParts(rows: Row[] | undefined, board: string, parts: StubOptions['parts']): Row[] {
   return (rows ?? []).map((r) => {
     const ticks = parts?.find((p) => p.id === r.id)?.indices ?? [];
-    const checked = Object.fromEntries(ticks.map((i) => [String(i), '2026-09-01T00:00:00.000Z']));
+    const checked = Object.fromEntries(ticks.map((i) => [String(i), '2025-01-01T00:00:00.000Z']));
     const m = materialize({ ...(r as unknown as Title), manualStatus: (r.manual_status as Title['manualStatus']) ?? null, airingStatus: (r.airing_status as Title['airingStatus']) ?? null }, ticks);
     return { ...r, workspace_id: board, checked_parts: checked, status: m.status, manual_status: m.manualStatus, airing_status: m.airingStatus };
   });
