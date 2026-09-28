@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, профиль</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="position: absolute; left: -60px; top: -140px; width: 510px; height: 360px; background: radial-gradient(closest-side, rgba(240,163,58,0.26), rgba(240,163,58,0) 70%); pointer-events: none;"></div>
+  <div style="position: relative; padding: 54px 18px 0; display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <span style="width: 76px; height: 76px; border-radius: 50%; background: #f0a33a; color: #14161b; font-family: Unbounded, Onest, sans-serif; font-size: 28px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">Г</span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px;">
+        <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 22px; font-weight: 600;">Георгий</h1>
+        <span style="font-size: 14px; color: {{t.muted}};">@ledoksi</span>
+      </div>
+      <button type="button" aria-label="Изменить профиль" style="white-space: nowrap; width: 44px; height: 44px; border-radius: 50%; border: 0; background: {{t.surface}}; color: {{t.text}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; justify-content: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button>
+    </div>
+
+    <section style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0 4px; font-size: 13px; font-weight: 600; color: {{t.muted}};">Доски</h2>
+      <div style="border-radius: 24px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; overflow: hidden;">
+        <div style="padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="width: 40px; height: 40px; border-radius: 14px; background: {{t.sunken}}; display: flex; align-items: center; justify-content: center; color: {{t.text}};">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="4"></circle><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"></path></svg></span>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 600;">Моё</span><span style="font-size: 13px; color: {{t.muted}};">28 тайтлов, видно только мне</span></div>
+        </div>
+        <div style="height: 1px; background: {{t.line}}; margin: 0 16px;"></div>
+        <div style="padding: 14px 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="display: inline-flex; width: 40px;">
+            <span style="width: 28px; height: 28px; border-radius: 50%; background: #f0a33a; color: #14161b; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px {{t.surface}};">Г</span>
+            <span style="width: 28px; height: 28px; border-radius: 50%; background: #ef7bb0; color: #14161b; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px {{t.surface}}; margin-left: -14px; margin-top: 12px;">Д</span>
+          </span>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 600;">Общее с Дашей</span><span style="font-size: 13px; color: {{t.muted}};">213 тайтлов, видно друзьям</span></div>
+          <button type="button" style="white-space: nowrap; height: 36px; padding: 0 12px; border-radius: 999px; border: 0; background: {{t.accentSoft}}; color: {{t.accentText}}; font-family: inherit; font-size: 13px; font-weight: 600;">Участники</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0 4px; font-size: 13px; font-weight: 600; color: {{t.muted}};">Оформление</h2>
+      <div role="group" aria-label="Тема" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 5px; border-radius: 22px; background: {{t.surface}}; box-shadow: {{t.softShadow}};">
+        <button type="button" aria-pressed="{{t.lightPressed}}" style="white-space: nowrap; height: 44px; border: 0; border-radius: 17px; font-family: inherit; font-size: 14px; font-weight: 600; {{t.lightBtn}}">Светлая</button>
+        <button type="button" aria-pressed="{{t.darkPressed}}" style="white-space: nowrap; height: 44px; border: 0; border-radius: 17px; font-family: inherit; font-size: 14px; font-weight: 600; {{t.darkBtn}}">Тёмная</button>
+        <button type="button" aria-pressed="false" style="white-space: nowrap; height: 44px; border: 0; border-radius: 17px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 14px; font-weight: 600;">Как в системе</button>
+      </div>
+    </section>
+
+    <section style="border-radius: 24px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; overflow: hidden;">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+        <a href="#" style="height: 56px; padding: 0 16px; display: flex; align-items: center; gap: 12px; color: {{r.color}}; text-decoration: none; border-top: {{r.border}};">
+          <span style="flex-grow: 1; font-size: 15px; font-weight: 600;">{{r.label}}</span>
+          <span style="font-size: 13px; color: {{t.muted}};">{{r.value}}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+        </a>
+      </sc-for>
+    </section>
+
+    <button type="button" style="white-space: nowrap; height: 52px; border-radius: 20px; border: 0; background: {{t.dangerSoft}}; color: {{t.danger}}; font-family: inherit; font-size: 15px; font-weight: 600;">Выйти из аккаунта</button>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 150px; background: linear-gradient(to top, {{t.bg}} 35%, {{t.bgClear}}); pointer-events: none;"></div>
+  <div style="position: absolute; left: 16px; bottom: 26px; width: 358px; height: 68px;">
+    <dc-import name="TabBar" active="profile" dark="{{dark}}" hint-size="358px,68px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var on = dark ? 'background: #f1f2f6; color: #14161b;' : 'background: #14161b; color: #ffffff;';
+    var off = 'background: transparent; color: ' + (dark ? '#9ba1b0' : '#5d6270') + ';';
+    var t = dark ? {
+      bg: '#0f1117', bgClear: 'rgba(15,17,23,0)', surface: '#1b1e27', sunken: '#232734', line: 'rgba(255,255,255,0.08)', text: '#f1f2f6', muted: '#9ba1b0',
+      accentSoft: 'rgba(111,134,255,0.2)', accentText: '#b8c3ff', softShadow: 'none', dangerSoft: 'rgba(255,106,74,0.14)', danger: '#ff8f75'
+    } : {
+      bg: '#eef0f4', bgClear: 'rgba(238,240,244,0)', surface: '#ffffff', sunken: '#f1f2f6', line: 'rgba(20,22,28,0.08)', text: '#14161b', muted: '#5d6270',
+      accentSoft: '#e4e8ff', accentText: '#2b45d8', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', dangerSoft: '#ffe6e0', danger: '#c93a1c'
+    };
+    t.lightBtn = dark ? off : on; t.darkBtn = dark ? on : off;
+    t.lightPressed = dark ? 'false' : 'true'; t.darkPressed = dark ? 'true' : 'false';
+    var rows = [['Приватность', 'друзьям'], ['Скрытые тайтлы', '2'], ['Пригласить в Бэклог', '']].map(function (r, i) {
+      return { label: r[0], value: r[1], color: t.text, border: i ? '1px solid ' + t.line : '0' };
+    });
+    return { t: t, dark: dark, rows: rows };
+  }
+}
+</script>
+</body>
+</html>

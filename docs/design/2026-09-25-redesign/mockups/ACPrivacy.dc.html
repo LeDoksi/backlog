@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, приватность</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="padding: 54px 18px 0; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button type="button" aria-label="Назад" style="white-space: nowrap; width: 44px; height: 44px; border-radius: 50%; border: 0; background: {{t.surface}}; color: {{t.text}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></button>
+      <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 20px; font-weight: 600;">Приватность</h1>
+    </div>
+
+    <section style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0 4px; font-size: 13px; font-weight: 600; color: {{t.muted}};">Кто видит доски</h2>
+      <sc-for list="{{boards}}" as="b" hint-placeholder-count="2">
+        <div style="padding: 14px; border-radius: 24px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 2px; padding: 0 2px;">
+            <span style="font-size: 15px; font-weight: 600;">{{b.name}}</span>
+            <span style="font-size: 12px; color: {{t.muted}};">{{b.hint}}</span>
+          </div>
+          <div role="radiogroup" aria-label="{{b.name}}" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px; background: {{t.sunken}};">
+            <sc-for list="{{b.levels}}" as="lv" hint-placeholder-count="3">
+              <button type="button" role="radio" aria-checked="{{lv.checked}}" style="white-space: nowrap; height: 40px; border: 0; border-radius: 14px; font-family: inherit; font-size: 12px; font-weight: 600; {{lv.style}}">{{lv.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 style="margin: 0 4px; font-size: 13px; font-weight: 600; color: {{t.muted}};">Участие</h2>
+      <div style="border-radius: 24px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; overflow: hidden;">
+        <sc-for list="{{toggles}}" as="s" hint-placeholder-count="4">
+          <div style="min-height: 64px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border-top: {{s.border}}; box-sizing: border-box;">
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 15px; font-weight: 600;">{{s.label}}</span>
+              <span style="font-size: 12px; color: {{t.muted}}; line-height: 1.35;">{{s.hint}}</span>
+            </div>
+            <button type="button" role="switch" aria-checked="{{s.checked}}" aria-label="{{s.label}}" style="white-space: nowrap; width: 52px; height: 32px; flex-shrink: 0; border: 0; border-radius: 16px; padding: 3px; display: flex; {{s.track}}">
+              <span style="width: 26px; height: 26px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.25);"></span>
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', surface: '#1b1e27', sunken: '#232734', line: 'rgba(255,255,255,0.08)', text: '#f1f2f6', muted: '#9ba1b0',
+      accent: '#4b66ff', softShadow: 'none', off: '#3a3f4d', onChip: 'background: #f1f2f6; color: #14161b;', offChip: 'background: transparent; color: #9ba1b0;'
+    } : {
+      bg: '#eef0f4', surface: '#ffffff', sunken: '#f1f2f6', line: 'rgba(20,22,28,0.08)', text: '#14161b', muted: '#5d6270',
+      accent: '#3452ff', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', off: '#d5d8e0', onChip: 'background: #14161b; color: #ffffff;', offChip: 'background: transparent; color: #5d6270;'
+    };
+    var LV = ['Только я', 'Друзья', 'Все в Бэклоге'];
+    function levels(sel) { return LV.map(function (l, i) { return { label: l, checked: i === sel ? 'true' : 'false', style: i === sel ? t.onChip : t.offChip }; }); }
+    var boards = [
+      { name: 'Моё', hint: 'Личная доска', levels: levels(0) },
+      { name: 'Общее с Дашей', hint: 'Менять может любой участник', levels: levels(1) }
+    ];
+    var toggles = [
+      ['Лидерборд', 'Показывать меня в «Лидерах» среди всех в Бэклоге', false],
+      ['Активность в ленте', 'Друзья видят, что ты начал и завершил', true],
+      ['Совпадения', 'Считать совпадения вкусов с моей полкой', true],
+      ['Поиск по нику', 'Меня можно найти по @нику', true]
+    ].map(function (s, i) {
+      return {
+        label: s[0], hint: s[1], checked: s[2] ? 'true' : 'false', border: i ? '1px solid ' + t.line : '0',
+        track: 'background: ' + (s[2] ? t.accent : t.off) + '; justify-content: ' + (s[2] ? 'flex-end' : 'flex-start') + ';'
+      };
+    });
+    return { t: t, boards: boards, toggles: toggles };
+  }
+}
+</script>
+</body>
+</html>

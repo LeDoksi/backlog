@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, добавление тайтла с открытой клавиатурой</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="position: absolute; inset: 0; background: {{t.scrim}};"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="qa-title" style="position: absolute; left: 0; right: 0; top: 44px; height: 510px; border-radius: 32px; background: {{t.sheet}}; padding: 18px 18px 0; display: flex; flex-direction: column; gap: 14px; overflow: hidden; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <h2 id="qa-title" style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 18px; font-weight: 600;">Добавить тайтл</h2>
+      <button type="button" aria-label="Закрыть" style="white-space: nowrap; width: 40px; height: 40px; border-radius: 50%; border: 0; background: {{t.sunken}}; color: {{t.text}}; display: flex; align-items: center; justify-content: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <div role="radiogroup" aria-label="Категория" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="4">
+        <button type="button" role="radio" aria-checked="{{c.checked}}" style="white-space: nowrap; height: 44px; border: 0; border-radius: 16px; font-family: inherit; font-size: 14px; font-weight: 600; {{c.style}}">{{c.label}}</button>
+      </sc-for>
+    </div>
+    <div style="height: 54px; padding: 0 16px; border-radius: 18px; background: {{t.sunken}}; box-shadow: inset 0 0 0 2px {{t.accent}}; display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{t.muted}}" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+      <input aria-label="Название" type="text" value="Дюна" style="flex-grow: 1; border: 0; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 17px; outline: none;">
+      <span style="font-size: 12px; color: {{t.muted}};">TMDb</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <sc-for list="{{results}}" as="r" hint-placeholder-count="3">
+        <div style="padding: 8px 8px 8px 8px; border-radius: 20px; background: {{r.bg}}; display: flex; align-items: center; gap: 12px;">
+          <div aria-label="Постер из TMDb" style="width: 44px; height: 66px; border-radius: 12px; flex-shrink: 0; background: {{t.poster}}; color: {{t.muted}}; display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M4 15l4.5-4 3.5 3 3-2.5L20 15"></path></svg></div>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-size: 15px; font-weight: 600;">{{r.title}}</span>
+            <span style="font-size: 12px; color: {{t.muted}};">{{r.meta}}</span>
+          </div>
+          <button type="button" aria-label="Добавить" style="white-space: nowrap; width: 42px; height: 42px; border-radius: 50%; border: 0; background: {{t.accent}}; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+        </div>
+      </sc-for>
+      <button type="button" style="white-space: nowrap; height: 44px; border-radius: 16px; border: 0; background: transparent; color: {{t.accentText}}; font-family: inherit; font-size: 14px; font-weight: 600;">Нет нужного? Добавить «Дюна» вручную</button>
+    </div>
+  </div>
+
+  <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 290px; background: {{t.kb}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: {{t.muted}}; letter-spacing: 0.04em;">место клавиатуры</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+var BLOB = {"47a28cfa07ace4d14c8ca2d38d61d8a1": "frieren-2023.jpg", "48a10700f9e5550b22fa5ef5b6a9a37b": "the-apothecary-diaries-2023.jpg", "6fa7badba28b07b7add55c797deb264b": "the-boys-2019.jpg", "4173040fd583c4e6552347673dc58bb1": "baldurs-gate-3-2023.jpg", "f8c52f057e734315b2d73082f4bc7761": "cyberpunk-edgerunners-2022.jpg", "2f6f1349a97a67b140b50a30098f6141": "spider-man-across-the-spider-verse-2023.jpg", "3612649325ac8f05dd39e34763725454": "clair-obscur-expedition-33-2025.webp", "8882af00bb57f8e973d2d6e61efa7fbf": "the-batman-2022.jpg", "23f94705dd8cc646d61eee2f18aea349": "blue-eye-samurai-2023.jpg", "044006a5fe26f5eef08824d4ba19f45e": "drive-2011.jpg", "514f6bbb89b832ea38dae3ecdb15488c": "stardew-valley-2016.jpg", "4b0b1623205e95554d99f068e08089bb": "ted-lasso-2020.jpg", "0a360cdd76ae256930d3ebfa219dfc47": "suzume-2022.jpg", "6432228812141a5b69c7248072297447": "alien-romulus-2024.jpg", "34e423b8915405b68b292df713061aec": "split-fiction-2025.jpg", "3fa01358b261ec4a8e08b248bca4f332": "the-legend-of-vox-machina-2022.jpg"};
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', scrim: 'rgba(0,0,0,0.6)', sheet: '#171a22', sunken: '#232734', text: '#f1f2f6', muted: '#9ba1b0',
+      accent: '#4b66ff', accentText: '#b8c3ff', kb: '#2a2e3a', poster: '#2c3140', on: 'background: #f1f2f6; color: #14161b;', off: 'background: #232734; color: #d3d7e0;', hl: 'rgba(111,134,255,0.14)'
+    } : {
+      bg: '#eef0f4', scrim: 'rgba(20,24,40,0.45)', sheet: '#ffffff', sunken: '#f1f2f6', text: '#14161b', muted: '#5d6270',
+      accent: '#3452ff', accentText: '#2b45d8', kb: '#d1d4dc', poster: '#dfe2ea', on: 'background: #14161b; color: #ffffff;', off: 'background: #f1f2f6; color: #3b404c;', hl: '#eef1ff'
+    };
+    var cats = [['Кино', true], ['Сериал'], ['Аниме'], ['Игра']].map(function (c) { return { label: c[0], checked: c[1] ? 'true' : 'false', style: c[1] ? t.on : t.off }; });
+    var results = [
+      ['Дюна: Часть вторая', 'Кино, 2024. Фантастика, приключения', '6432228812141a5b69c7248072297447', true],
+      ['Дюна', 'Кино, 2021. Фантастика, драма', '8882af00bb57f8e973d2d6e61efa7fbf'],
+      ['Дюна', 'Кино, 1984. Фантастика', '044006a5fe26f5eef08824d4ba19f45e']
+    ].map(function (r) { return { title: r[0], meta: r[1], cover: '../../../../images/covers/' + BLOB[r[2]], bg: r[3] ? t.hl : 'transparent' }; });
+    return { t: t, cats: cats, results: results };
+  }
+}
+</script>
+</body>
+</html>

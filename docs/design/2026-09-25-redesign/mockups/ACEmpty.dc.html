@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, пустая доска</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="padding: 54px 18px 0; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div role="group" aria-label="Доска" style="flex-grow: 1; display: flex; padding: 5px; gap: 4px; border-radius: 999px; background: {{t.surface}}; box-shadow: {{t.softShadow}};">
+        <button type="button" aria-pressed="true" style="white-space: nowrap; flex: 1; height: 40px; border: 0; border-radius: 999px; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 15px; font-weight: 600;">Моё</button>
+        <button type="button" aria-pressed="false" style="white-space: nowrap; flex: 1.4; height: 40px; border: 0; border-radius: 999px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 15px; font-weight: 600;">Общее</button>
+      </div>
+      <button type="button" aria-label="Поиск" style="white-space: nowrap; width: 50px; height: 50px; border-radius: 50%; border: 0; background: {{t.surface}}; color: {{t.text}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; justify-content: center;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg></button>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 24px; right: 24px; top: 200px; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center;">
+    <div style="position: relative; width: 220px; height: 190px;">
+      <div style="position: absolute; left: 20px; top: 20px; width: 104px; height: 156px; border-radius: 22px; background: {{t.slot}}; transform: rotate(-10deg);"></div>
+      <div style="position: absolute; right: 20px; top: 20px; width: 104px; height: 156px; border-radius: 22px; background: {{t.slot}}; transform: rotate(10deg);"></div>
+      <div style="position: absolute; left: 58px; top: 6px; width: 104px; height: 156px; border-radius: 22px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; border: 2px dashed {{t.dash}}; display: flex; align-items: center; justify-content: center; color: {{t.accentText}}; box-sizing: border-box;">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></div>
+    </div>
+    <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 20px; font-weight: 600;">Здесь пока пусто</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.45; color: {{t.text2}};">Добавь первый фильм, сериал, аниме или игру. Это твоя личная доска, её видишь только ты.</p>
+    <button type="button" style="white-space: nowrap; height: 54px; padding: 0 26px; border-radius: 20px; border: 0; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 15px; font-weight: 600;">Добавить тайтл</button>
+  </div>
+
+  <div style="position: absolute; left: 16px; bottom: 26px; width: 358px; height: 68px;">
+    <dc-import name="TabBar" active="backlog" dark="{{dark}}" badge="{{no}}" hint-size="358px,68px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', surface: '#1b1e27', text: '#f1f2f6', text2: '#d3d7e0', muted: '#9ba1b0', accent: '#4b66ff', accentText: '#b8c3ff', softShadow: 'none', slot: '#1b1e27', dash: '#3a3f4d'
+    } : {
+      bg: '#eef0f4', surface: '#ffffff', text: '#14161b', text2: '#3b404c', muted: '#5d6270', accent: '#3452ff', accentText: '#2b45d8', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', slot: '#e3e6ec', dash: '#c8ccd6'
+    };
+    return { t: t, dark: dark, no: false };
+  }
+}
+</script>
+</body>
+</html>

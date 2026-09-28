@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, добавить друга</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="position: absolute; inset: 0; background: {{t.scrim}};"></div>
+  <div role="dialog" aria-modal="true" aria-labelledby="add-friend-title" style="position: absolute; left: 0; right: 0; bottom: 0; top: 250px; border-radius: 32px 32px 0 0; background: {{t.sheet}}; padding: 10px 20px 0; display: flex; flex-direction: column; gap: 18px;">
+    <div style="width: 44px; height: 5px; border-radius: 3px; background: {{t.handle}}; align-self: center;"></div>
+    <h2 id="add-friend-title" style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 20px; font-weight: 600;">Добавить друга</h2>
+
+    <section style="padding: 16px; border-radius: 24px; background: {{t.accentSoft}}; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-size: 15px; font-weight: 600;">Твоя ссылка</span>
+        <span style="font-size: 13px; color: {{t.text2}}; line-height: 1.4;">Кто откроет её и войдёт, получит заявку в друзья от тебя. Ссылка действует 7 дней.</span>
+      </div>
+      <div style="height: 48px; padding: 0 6px 0 14px; border-radius: 16px; background: {{t.sheet}}; display: flex; align-items: center; gap: 8px;">
+        <span style="flex-grow: 1; font-size: 14px; font-weight: 500; color: {{t.text2}};">ledoksi.github.io/backlog/#f/g7k2q</span>
+        <button type="button" style="white-space: nowrap; height: 36px; padding: 0 12px; border-radius: 12px; border: 0; background: {{t.sunken}}; color: {{t.text}}; font-family: inherit; font-size: 13px; font-weight: 600;">Копировать</button>
+      </div>
+      <button type="button" style="white-space: nowrap; height: 52px; border-radius: 18px; border: 0; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4"></path><path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path></svg>Поделиться ссылкой</button>
+    </section>
+
+    <div style="display: flex; align-items: center; gap: 12px; color: {{t.muted}}; font-size: 13px;">
+      <span style="flex-grow: 1; height: 1px; background: {{t.line}};"></span>или найди по нику<span style="flex-grow: 1; height: 1px; background: {{t.line}};"></span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <label for="nick-search" style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Ник</label>
+      <div style="height: 52px; padding: 0 16px; border-radius: 18px; background: {{t.sunken}}; box-shadow: inset 0 0 0 2px {{t.accent}}; display: flex; align-items: center; gap: 4px;">
+        <span style="font-size: 16px; color: {{t.muted}};">@</span>
+        <input id="nick-search" type="text" value="kat" style="flex-grow: 1; border: 0; background: transparent; color: {{t.text}}; font-family: inherit; font-size: 16px; outline: none;">
+      </div>
+    </div>
+    <div style="padding: 10px 10px 10px 12px; border-radius: 20px; background: {{t.sunken}}; display: flex; align-items: center; gap: 12px;">
+      <span style="width: 42px; height: 42px; border-radius: 50%; background: #8ec5ff; color: #14161b; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center;">К</span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 600;">Катя</span><span style="font-size: 13px; color: {{t.muted}};">@katya</span></div>
+      <button type="button" style="white-space: nowrap; height: 40px; padding: 0 16px; border-radius: 999px; border: 0; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600;">Добавить</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', scrim: 'rgba(0,0,0,0.6)', sheet: '#171a22', handle: 'rgba(255,255,255,0.2)', sunken: '#232734', line: 'rgba(255,255,255,0.08)',
+      text: '#f1f2f6', text2: '#d3d7e0', muted: '#9ba1b0', accent: '#4b66ff', accentSoft: 'rgba(111,134,255,0.16)'
+    } : {
+      bg: '#eef0f4', scrim: 'rgba(20,24,40,0.45)', sheet: '#ffffff', handle: 'rgba(20,22,28,0.16)', sunken: '#f1f2f6', line: 'rgba(20,22,28,0.1)',
+      text: '#14161b', text2: '#3b404c', muted: '#5d6270', accent: '#3452ff', accentSoft: '#e4e8ff'
+    };
+    return { t: t };
+  }
+}
+</script>
+</body>
+</html>

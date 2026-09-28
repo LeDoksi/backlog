@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, профиль друга</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="position: absolute; left: -60px; top: -140px; width: 510px; height: 360px; background: radial-gradient(closest-side, rgba(127,209,139,0.28), rgba(127,209,139,0) 70%); pointer-events: none;"></div>
+  <div style="position: relative; padding: 54px 18px 0; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; justify-content: space-between;">
+      <button type="button" aria-label="Назад" style="white-space: nowrap; width: 44px; height: 44px; border-radius: 50%; border: 0; background: {{t.surface}}; color: {{t.text}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg></button>
+      <button type="button" aria-label="Ещё" style="white-space: nowrap; width: 44px; height: 44px; border-radius: 50%; border: 0; background: {{t.surface}}; color: {{t.text}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; justify-content: center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="18.5" cy="12" r="1.8"></circle></svg></button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <span style="width: 84px; height: 84px; border-radius: 50%; background: #7fd18b; color: #14161b; font-family: Unbounded, Onest, sans-serif; font-size: 32px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">В</span>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 24px; font-weight: 600;">Вадим</h1>
+        <span style="font-size: 14px; color: {{t.muted}};">@vadim, в друзьях с августа</span>
+      </div>
+    </div>
+
+    <section style="padding: 18px; border-radius: 28px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 13px; font-weight: 600; color: {{t.muted}};">Совпадение вкусов</span>
+          <span style="font-family: Unbounded, Onest, sans-serif; font-size: 44px; font-weight: 600; line-height: 1; color: {{t.accentText}};">72%</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 13px; color: {{t.muted}};">
+          <span><b style="color: {{t.text}}; font-weight: 600;">14</b> общих тайтлов</span>
+          <span><b style="color: {{t.text}}; font-weight: 600;">5</b> хотите оба</span>
+        </div>
+      </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+        <span style="font-size: 13px; color: {{t.muted}}; margin-right: 2px;">Общие жанры</span>
+        <span style="height: 32px; padding: 0 12px; border-radius: 999px; background: {{t.accentSoft}}; color: {{t.accentText}}; font-size: 13px; font-weight: 600; display: flex; align-items: center;">фэнтези</span>
+        <span style="height: 32px; padding: 0 12px; border-radius: 999px; background: {{t.accentSoft}}; color: {{t.accentText}}; font-size: 13px; font-weight: 600; display: flex; align-items: center;">драма</span>
+        <span style="height: 32px; padding: 0 12px; border-radius: 999px; background: {{t.accentSoft}}; color: {{t.accentText}}; font-size: 13px; font-weight: 600; display: flex; align-items: center;">боевик</span>
+      </div>
+    </section>
+
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <nav aria-label="Категории" style="display: flex; gap: 6px;">
+        <sc-for list="{{tabs}}" as="tab" hint-placeholder-count="4">
+          <button type="button" style="white-space: nowrap; flex-shrink: 0; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; font-family: Unbounded, Onest, sans-serif; font-size: 11px; font-weight: 600; {{tab.style}}">{{tab.label}}</button>
+        </sc-for>
+      </nav>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <sc-for list="{{posters}}" as="p" hint-placeholder-count="6">
+        <div style="position: relative; aspect-ratio: 2 / 3; border-radius: 18px; overflow: hidden; box-shadow: {{t.posterShadow}};">
+          <img src="{{p.cover}}" alt="" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+          <sc-if value="{{p.common}}" hint-placeholder-val="{{false}}">
+            <span style="position: absolute; left: 6px; top: 6px; height: 24px; padding: 0 9px; border-radius: 999px; background: {{t.accent}}; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center;">общее</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 150px; background: linear-gradient(to top, {{t.bg}} 35%, {{t.bgClear}}); pointer-events: none;"></div>
+  <div style="position: absolute; left: 16px; bottom: 26px; width: 358px; height: 68px;">
+    <dc-import name="TabBar" active="friends" dark="{{dark}}" badge="{{no}}" hint-size="358px,68px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+var BLOB = {"47a28cfa07ace4d14c8ca2d38d61d8a1": "frieren-2023.jpg", "48a10700f9e5550b22fa5ef5b6a9a37b": "the-apothecary-diaries-2023.jpg", "6fa7badba28b07b7add55c797deb264b": "the-boys-2019.jpg", "4173040fd583c4e6552347673dc58bb1": "baldurs-gate-3-2023.jpg", "f8c52f057e734315b2d73082f4bc7761": "cyberpunk-edgerunners-2022.jpg", "2f6f1349a97a67b140b50a30098f6141": "spider-man-across-the-spider-verse-2023.jpg", "3612649325ac8f05dd39e34763725454": "clair-obscur-expedition-33-2025.webp", "8882af00bb57f8e973d2d6e61efa7fbf": "the-batman-2022.jpg", "23f94705dd8cc646d61eee2f18aea349": "blue-eye-samurai-2023.jpg", "044006a5fe26f5eef08824d4ba19f45e": "drive-2011.jpg", "514f6bbb89b832ea38dae3ecdb15488c": "stardew-valley-2016.jpg", "4b0b1623205e95554d99f068e08089bb": "ted-lasso-2020.jpg", "0a360cdd76ae256930d3ebfa219dfc47": "suzume-2022.jpg", "6432228812141a5b69c7248072297447": "alien-romulus-2024.jpg", "34e423b8915405b68b292df713061aec": "split-fiction-2025.jpg", "3fa01358b261ec4a8e08b248bca4f332": "the-legend-of-vox-machina-2022.jpg"};
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', bgClear: 'rgba(15,17,23,0)', surface: '#1b1e27', sunken: '#232734', text: '#f1f2f6', muted: '#9ba1b0',
+      accent: '#4b66ff', accentText: '#b8c3ff', accentSoft: 'rgba(111,134,255,0.2)', softShadow: 'none', posterShadow: '0 12px 28px -14px rgba(0,0,0,0.85)',
+      activeTab: 'background: #f1f2f6; color: #14161b;', tab: 'background: #1b1e27; color: #d3d7e0;'
+    } : {
+      bg: '#eef0f4', bgClear: 'rgba(238,240,244,0)', surface: '#ffffff', sunken: '#f1f2f6', text: '#14161b', muted: '#5d6270',
+      accent: '#3452ff', accentText: '#2b45d8', accentSoft: '#e4e8ff', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', posterShadow: '0 12px 24px -16px rgba(40,50,90,0.6)',
+      activeTab: 'background: #14161b; color: #ffffff;', tab: 'background: #ffffff; color: #3b404c;'
+    };
+    var tabs = [['Завершено', true], ['Смотрит'], ['Хочет']].map(function (x) { return { label: x[0], style: x[1] ? t.activeTab : t.tab }; });
+    var posters = [
+      ['044006a5fe26f5eef08824d4ba19f45e', true], ['4b0b1623205e95554d99f068e08089bb'], ['2f6f1349a97a67b140b50a30098f6141', true],
+      ['f8c52f057e734315b2d73082f4bc7761', true], ['6432228812141a5b69c7248072297447'], ['0a360cdd76ae256930d3ebfa219dfc47']
+    ].map(function (x) { return { cover: '../../../../images/covers/' + BLOB[x[0]], common: !!x[1] }; });
+    return { t: t, dark: dark, no: false, tabs: tabs, posters: posters };
+  }
+}
+</script>
+</body>
+</html>

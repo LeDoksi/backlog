@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, друзья на десктопе</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif; display: flex;">
+  <div style="width: 96px; height: 900px; flex-shrink: 0;">
+    <dc-import name="DeskRail" active="friends" dark="{{dark}}" hint-size="96px,900px"></dc-import>
+  </div>
+  <main style="flex-grow: 1; padding: 28px 28px 0 12px; display: flex; gap: 24px; min-width: 0;">
+    <section style="flex-grow: 1; display: flex; flex-direction: column; gap: 18px; min-width: 0;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 26px; font-weight: 600;">Друзья</h1>
+        <div role="group" aria-label="Раздел" style="display: flex; padding: 5px; gap: 4px; border-radius: 999px; background: {{t.surface}}; box-shadow: {{t.softShadow}};">
+          <button type="button" aria-pressed="true" style="white-space: nowrap; height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600;">Лента</button>
+          <button type="button" aria-pressed="false" style="white-space: nowrap; height: 40px; padding: 0 20px; border: 0; border-radius: 999px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 14px; font-weight: 600;">Совпадения 3</button>
+        </div>
+      </div>
+
+      <h2 style="margin: 4px 0 0; font-size: 13px; font-weight: 600; color: {{t.muted}};">Сегодня</h2>
+      <sc-for list="{{today}}" as="e" hint-placeholder-count="2">
+        <div style="padding: 14px 16px; border-radius: 24px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; gap: 14px; align-items: center;">
+          <span style="width: 44px; height: 44px; border-radius: 50%; background: {{e.bg}}; color: #14161b; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{e.initial}}</span>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; font-size: 15px;">
+            <span><b style="font-weight: 600;">{{e.name}}</b> {{e.action}}</span>
+            <span style="font-size: 13px; color: {{t.muted}};">{{e.when}}</span>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <sc-for list="{{e.covers}}" as="c" hint-placeholder-count="1">
+              <img src="{{c}}" alt="" style="width: 46px; height: 69px; border-radius: 12px; object-fit: cover;">
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+      <h2 style="margin: 4px 0 0; font-size: 13px; font-weight: 600; color: {{t.muted}};">На этой неделе</h2>
+      <sc-for list="{{week}}" as="e" hint-placeholder-count="2">
+        <div style="padding: 14px 16px; border-radius: 24px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; gap: 14px; align-items: center;">
+          <span style="width: 44px; height: 44px; border-radius: 50%; background: {{e.bg}}; color: #14161b; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{e.initial}}</span>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; font-size: 15px;">
+            <span><b style="font-weight: 600;">{{e.name}}</b> {{e.action}}</span>
+            <span style="font-size: 13px; color: {{t.muted}};">{{e.when}}</span>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <sc-for list="{{e.covers}}" as="c" hint-placeholder-count="1">
+              <img src="{{c}}" alt="" style="width: 46px; height: 69px; border-radius: 12px; object-fit: cover;">
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <aside style="width: 360px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px;">
+      <section style="padding: 18px; border-radius: 28px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 12px;">
+        <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 14px; font-weight: 600;">Заявки</h2>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="width: 42px; height: 42px; border-radius: 50%; background: #8ec5ff; color: #14161b; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center;">К</span>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 600;">Катя</span><span style="font-size: 12px; color: {{t.muted}};">совпадение 64%</span></div>
+          <button type="button" aria-label="Отклонить" style="white-space: nowrap; width: 38px; height: 38px; border-radius: 50%; border: 0; background: {{t.sunken}}; color: {{t.text}}; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+          <button type="button" style="white-space: nowrap; height: 38px; padding: 0 14px; border-radius: 999px; border: 0; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 13px; font-weight: 600;">Принять</button>
+        </div>
+      </section>
+      <section style="padding: 18px; border-radius: 28px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 14px; font-weight: 600;">Друзья</h2>
+          <button type="button" style="white-space: nowrap; height: 36px; padding: 0 14px; border-radius: 999px; border: 0; background: {{t.accentSoft}}; color: {{t.accentText}}; font-family: inherit; font-size: 13px; font-weight: 600;">Добавить</button>
+        </div>
+        <sc-for list="{{friends}}" as="f" hint-placeholder-count="3">
+          <a href="#" style="height: 56px; padding: 0 8px; border-radius: 18px; display: flex; align-items: center; gap: 12px; color: {{t.text}}; text-decoration: none;">
+            <span style="width: 40px; height: 40px; border-radius: 50%; background: {{f.bg}}; color: #14161b; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center;">{{f.initial}}</span>
+            <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 15px; font-weight: 600;">{{f.name}}</span><span style="font-size: 12px; color: {{t.muted}};">{{f.nick}}</span></span>
+            <span style="font-family: Unbounded, Onest, sans-serif; font-size: 14px; font-weight: 600; color: {{t.accentText}};">{{f.match}}</span>
+          </a>
+        </sc-for>
+      </section>
+      <section style="padding: 18px; border-radius: 28px; background: {{t.accentSoft}}; display: flex; flex-direction: column; gap: 10px;">
+        <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 14px; font-weight: 600;">Совпадения</h2>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <img src="../../../../images/covers/the-batman-2022.jpg" alt="" style="width: 44px; height: 66px; border-radius: 12px; object-fit: cover;">
+          <span style="font-size: 14px; line-height: 1.35;">Вы с Вадимом оба хотите посмотреть «Бэтмена»</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <img src="../../../../images/covers/split-fiction-2025.jpg" alt="" style="width: 44px; height: 66px; border-radius: 12px; object-fit: cover;">
+          <span style="font-size: 14px; line-height: 1.35;">Лёша тоже ждёт Split Fiction</span>
+        </div>
+      </section>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', surface: '#1b1e27', sunken: '#232734', text: '#f1f2f6', muted: '#9ba1b0', accent: '#4b66ff', accentText: '#b8c3ff', accentSoft: 'rgba(111,134,255,0.18)', softShadow: 'none'
+    } : {
+      bg: '#eef0f4', surface: '#ffffff', sunken: '#f1f2f6', text: '#14161b', muted: '#5d6270', accent: '#3452ff', accentText: '#2b45d8', accentSoft: '#e4e8ff', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)'
+    };
+    function b(id) { return '../../../../images/covers/' + BLOB[id]; }
+    var today = [
+      { initial: 'Д', bg: '#ef7bb0', name: 'Даша', action: 'посмотрела 2 сезона «Фрирен»', when: '14:20, общая доска', covers: [b('47a28cfa07ace4d14c8ca2d38d61d8a1')] },
+      { initial: 'В', bg: '#7fd18b', name: 'Вадим', action: 'добавил 12 тайтлов', when: '11:05', covers: [b('8882af00bb57f8e973d2d6e61efa7fbf'), b('0a360cdd76ae256930d3ebfa219dfc47'), b('514f6bbb89b832ea38dae3ecdb15488c'), b('6432228812141a5b69c7248072297447')] }
+    ];
+    var week = [
+      { initial: 'Л', bg: '#f0c05a', name: 'Лёша', action: 'завершил «Драйв»', when: 'вторник', covers: [b('044006a5fe26f5eef08824d4ba19f45e')] },
+      { initial: 'В', bg: '#7fd18b', name: 'Вадим', action: 'начал «Тед Лассо»', when: 'понедельник', covers: [b('4b0b1623205e95554d99f068e08089bb')] }
+    ];
+    var friends = [['В', '#7fd18b', 'Вадим', '@vadim', '72%'], ['Л', '#f0c05a', 'Лёша', '@lesha', '58%'], ['Д', '#ef7bb0', 'Даша', '@dasha', '81%']].map(function (f) {
+      return { initial: f[0], bg: f[1], name: f[2], nick: f[3], match: f[4] };
+    });
+    return { t: t, dark: dark, today: today, week: week, friends: friends };
+  }
+}
+</script>
+</body>
+</html>

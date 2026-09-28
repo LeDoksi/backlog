@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Нижняя панель</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 358px; height: 68px; display: flex; gap: 10px; align-items: center; font-family: Onest, system-ui, sans-serif;">
+  <nav aria-label="Разделы" style="flex-grow: 1; height: 68px; padding: 6px; border-radius: 999px; background: {{t.glass}}; backdrop-filter: blur(22px) saturate(160%); border: 1px solid {{t.glassBorder}}; box-shadow: {{t.glassShadow}}; display: flex; gap: 2px; box-sizing: border-box;">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="4">
+      <a href="#" style="flex: 1; position: relative; border-radius: 999px; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; {{it.style}}">
+        <sc-if value="{{it.isBacklog}}" hint-placeholder-val="{{true}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="2.5"></rect><rect x="13" y="4" width="7" height="7" rx="2.5"></rect><rect x="4" y="13" width="7" height="7" rx="2.5"></rect><rect x="13" y="13" width="7" height="7" rx="2.5"></rect></svg></sc-if>
+        <sc-if value="{{it.isFriends}}" hint-placeholder-val="{{false}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="3.5"></circle><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"></path><circle cx="17" cy="8" r="2.5"></circle><path d="M16.5 13.2c2.3.3 3.9 1.9 4.5 4.3"></path></svg></sc-if>
+        <sc-if value="{{it.isStats}}" hint-placeholder-val="{{false}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"></path></svg></sc-if>
+        <sc-if value="{{it.isProfile}}" hint-placeholder-val="{{false}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="4"></circle><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"></path></svg></sc-if>
+        {{it.label}}
+        <sc-if value="{{it.hasBadge}}" hint-placeholder-val="{{false}}"><span style="position: absolute; top: 7px; right: 13px; min-width: 17px; height: 17px; border-radius: 9px; background: {{t.badge}}; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;">2</span></sc-if>
+      </a>
+    </sc-for>
+  </nav>
+  <button type="button" aria-label="Добавить тайтл" style="white-space: nowrap; width: 68px; height: 68px; flex-shrink: 0; border-radius: 50%; border: 0; background: {{t.accent}}; color: #fff; box-shadow: {{t.fabShadow}}; display: flex; align-items: center; justify-content: center;">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+  </button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["backlog","friends","stats","profile"],"default":"backlog"},"dark":{"editor":"boolean","default":false},"badge":{"editor":"boolean","default":true},"$preview":{"width":358,"height":68}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var active = this.props.active || 'backlog';
+    var badge = this.props.badge !== false;
+    var t = dark ? {
+      glass: 'rgba(31,34,48,0.72)', glassBorder: 'rgba(255,255,255,0.1)', glassShadow: 'inset 0 1px 0 rgba(255,255,255,0.07), 0 18px 40px -12px rgba(0,0,0,0.8)',
+      accent: '#4b66ff', accentText: '#b8c3ff', accentSoft: 'rgba(111,134,255,0.2)', muted: '#9ba1b0', badge: '#ff6a4a', fabShadow: '0 16px 30px -12px rgba(75,102,255,0.7)'
+    } : {
+      glass: 'rgba(255,255,255,0.78)', glassBorder: 'rgba(20,22,28,0.07)', glassShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 18px 40px -16px rgba(40,50,90,0.5)',
+      accent: '#3452ff', accentText: '#2b45d8', accentSoft: '#e4e8ff', muted: '#5d6270', badge: '#ff5a36', fabShadow: '0 16px 30px -12px rgba(52,82,255,0.6)'
+    };
+    var items = [['backlog', 'Бэклог'], ['friends', 'Друзья'], ['stats', 'Итоги'], ['profile', 'Профиль']].map(function (x) {
+      var on = x[0] === active;
+      return {
+        label: x[1],
+        isBacklog: x[0] === 'backlog', isFriends: x[0] === 'friends', isStats: x[0] === 'stats', isProfile: x[0] === 'profile',
+        hasBadge: x[0] === 'friends' && badge && !on,
+        style: on ? 'background: ' + t.accentSoft + '; color: ' + t.accentText + '; font-weight: 700;' : 'color: ' + t.muted + '; font-weight: 500;'
+      };
+    });
+    return { t: t, items: items };
+  }
+}
+</script>
+</body>
+</html>

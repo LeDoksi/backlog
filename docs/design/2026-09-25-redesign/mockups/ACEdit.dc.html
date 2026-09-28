@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>A+C, редактирование тайтла</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: {{t.bg}}; color: {{t.text}}; font-family: Onest, system-ui, sans-serif;">
+  <div style="padding: 54px 18px 0; display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button type="button" aria-label="Закрыть без сохранения" style="white-space: nowrap; width: 44px; height: 44px; border-radius: 50%; border: 0; background: {{t.surface}}; color: {{t.text}}; box-shadow: {{t.softShadow}}; display: flex; align-items: center; justify-content: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 18px; font-weight: 600;">Редактирование</h1>
+    </div>
+
+    <section style="padding: 16px; border-radius: 26px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; gap: 14px; align-items: center;">
+      <img src="../../../../images/covers/frieren-2023.jpg" alt="Текущая обложка" style="width: 72px; height: 108px; border-radius: 16px; object-fit: cover; flex-shrink: 0;">
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Обложка</span>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" style="white-space: nowrap; height: 40px; padding: 0 14px; border-radius: 14px; border: 0; background: {{t.accentSoft}}; color: {{t.accentText}}; font-family: inherit; font-size: 13px; font-weight: 600;">Загрузить фото</button>
+          <button type="button" style="white-space: nowrap; height: 40px; padding: 0 14px; border-radius: 14px; border: 0; background: {{t.sunken}}; color: {{t.text}}; font-family: inherit; font-size: 13px; font-weight: 600;">По ссылке</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding: 16px; border-radius: 26px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 14px;">
+      <label style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Название</span>
+        <input type="text" value="Фрирен, провожающая в последний путь" style="height: 50px; padding: 0 14px; border-radius: 16px; border: 0; background: {{t.sunken}}; color: {{t.text}}; font-family: inherit; font-size: 15px; box-shadow: inset 0 0 0 2px {{t.accent}}; outline: none;">
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Оригинальное название</span>
+        <input type="text" value="Frieren: Beyond Journey's End" style="height: 50px; padding: 0 14px; border-radius: 16px; border: 0; background: {{t.sunken}}; color: {{t.text}}; font-family: inherit; font-size: 15px; outline: none;">
+      </label>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Категория</span>
+          <div role="radiogroup" aria-label="Категория" style="display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: {{t.sunken}};">
+            <button type="button" role="radio" aria-checked="false" style="white-space: nowrap; flex: 1; height: 40px; border: 0; border-radius: 12px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 13px; font-weight: 600;">Кино</button>
+            <button type="button" role="radio" aria-checked="false" style="white-space: nowrap; flex: 1; height: 40px; border: 0; border-radius: 12px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 13px; font-weight: 600;">Сериал</button>
+            <button type="button" role="radio" aria-checked="true" style="white-space: nowrap; flex: 1; height: 40px; border: 0; border-radius: 12px; {{t.on}} font-family: inherit; font-size: 13px; font-weight: 600;">Аниме</button>
+            <button type="button" role="radio" aria-checked="false" style="white-space: nowrap; flex: 1; height: 40px; border: 0; border-radius: 12px; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 13px; font-weight: 600;">Игра</button>
+          </div>
+        </div>
+        <label style="width: 120px; display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Год</span>
+          <input type="text" inputmode="numeric" value="2023" style="height: 48px; padding: 0 12px; border-radius: 16px; border: 0; background: {{t.sunken}}; color: {{t.text}}; font-family: inherit; font-size: 15px; outline: none; width: 100%; box-sizing: border-box;">
+        </label>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Жанры</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <span style="height: 34px; padding: 0 8px 0 12px; border-radius: 999px; background: {{t.accentSoft}}; color: {{t.accentText}}; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px;">драма<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"></path></svg></span>
+          <span style="height: 34px; padding: 0 8px 0 12px; border-radius: 999px; background: {{t.accentSoft}}; color: {{t.accentText}}; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px;">фэнтези<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"></path></svg></span>
+          <button type="button" style="white-space: nowrap; height: 34px; padding: 0 12px; border-radius: 999px; border: 2px dashed {{t.dash}}; background: transparent; color: {{t.muted}}; font-family: inherit; font-size: 13px; font-weight: 600;">+ жанр</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding: 16px; border-radius: 26px; background: {{t.surface}}; box-shadow: {{t.softShadow}}; display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 13px; font-weight: 600; color: {{t.text2}};">Сезоны и части</span>
+      <div style="height: 48px; padding: 0 8px 0 14px; border-radius: 16px; background: {{t.sunken}}; display: flex; align-items: center; gap: 10px; font-size: 14px;"><span style="flex-grow: 1;">Сезон 1</span><span style="color: {{t.muted}};">2023</span><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: {{t.doneSoft}}; color: {{t.doneText}}; font-size: 12px; font-weight: 600; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0;">вышел</span></div>
+      <div style="height: 48px; padding: 0 8px 0 14px; border-radius: 16px; background: {{t.sunken}}; display: flex; align-items: center; gap: 10px; font-size: 14px;"><span style="flex-grow: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Сезон 3 «Золотые земли»</span><span style="color: {{t.muted}};">2027</span><span style="height: 28px; padding: 0 10px; border-radius: 999px; background: {{t.surface}}; color: {{t.muted}}; font-size: 12px; font-weight: 600; display: flex; align-items: center; white-space: nowrap; flex-shrink: 0; box-shadow: inset 0 0 0 1px {{t.dash}};">не вышел</span></div>
+    </section>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 18px 30px; background: {{t.bar}}; backdrop-filter: blur(20px); border-top: 1px solid {{t.line}}; display: flex; gap: 8px;">
+    <button type="button" style="white-space: nowrap; flex: 1; height: 54px; border-radius: 20px; border: 0; background: {{t.sunken}}; color: {{t.text}}; font-family: inherit; font-size: 15px; font-weight: 600;">Отмена</button>
+    <button type="button" style="white-space: nowrap; flex: 2; height: 54px; border-radius: 20px; border: 0; background: {{t.accent}}; color: #fff; font-family: inherit; font-size: 15px; font-weight: 600;">Сохранить</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var dark = !!this.props.dark;
+    var t = dark ? {
+      bg: '#0f1117', surface: '#1b1e27', sunken: '#232734', line: 'rgba(255,255,255,0.08)', text: '#f1f2f6', text2: '#d3d7e0', muted: '#9ba1b0', dash: '#3a3f4d',
+      accent: '#4b66ff', accentText: '#b8c3ff', accentSoft: 'rgba(111,134,255,0.2)', softShadow: 'none', doneSoft: 'rgba(92,184,120,0.18)', doneText: '#8fd6a4',
+      bar: 'rgba(15,17,23,0.86)', on: 'background: #f1f2f6; color: #14161b;'
+    } : {
+      bg: '#eef0f4', surface: '#ffffff', sunken: '#f1f2f6', line: 'rgba(20,22,28,0.08)', text: '#14161b', text2: '#3b404c', muted: '#5d6270', dash: '#d5d8e0',
+      accent: '#3452ff', accentText: '#2b45d8', accentSoft: '#e4e8ff', softShadow: '0 8px 22px -14px rgba(40,50,90,0.45)', doneSoft: '#e2f3e6', doneText: '#2f7a45',
+      bar: 'rgba(238,240,244,0.9)', on: 'background: #14161b; color: #ffffff;'
+    };
+    return { t: t };
+  }
+}
+</script>
+</body>
+</html>

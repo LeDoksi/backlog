@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Бэклог, дизайн-система</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=Unbounded:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; padding: 48px 56px; background: #eef0f4; color: #14161b; font-family: Onest, system-ui, sans-serif; display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px;">
+  <div style="display: flex; flex-direction: column; gap: 28px;">
+    <h1 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 34px; font-weight: 600;">Бэклог. Дизайн-система</h1>
+
+    <section style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 15px; font-weight: 600;">Цвета: светлая и тёмная тема</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+        <sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+          <div style="padding: 16px; border-radius: 28px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; {{th.frame}}">
+            <sc-for list="{{th.swatches}}" as="s" hint-placeholder-count="12">
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="height: 44px; border-radius: 14px; background: {{s.hex}}; box-shadow: inset 0 0 0 1px rgba(128,128,128,0.25);"></div>
+                <span style="font-size: 11px; font-weight: 600;">{{s.name}}</span>
+                <span style="font-size: 10px; opacity: 0.65;">{{s.hex}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 15px; font-weight: 600;">Шрифты</h2>
+      <div style="padding: 20px; border-radius: 28px; background: #ffffff; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: baseline; gap: 16px;"><span style="font-family: Unbounded, Onest, sans-serif; font-size: 26px; font-weight: 600;">Заголовок экрана</span><span style="font-size: 12px; color: #5d6270;">Unbounded 600, 20–26</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><span style="font-family: Unbounded, Onest, sans-serif; font-size: 13px; font-weight: 600;">Вкладки и цифры</span><span style="font-size: 12px; color: #5d6270;">Unbounded 600, 11–14; крупные числа 44–88</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><span style="font-size: 15px;">Основной текст, синопсис, кнопки</span><span style="font-size: 12px; color: #5d6270;">Onest 400/600, 14–16</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px;"><span style="font-size: 12px; color: #5d6270;">Подписи и мета: «Аниме, 2023»</span><span style="font-size: 12px; color: #5d6270;">Onest 500, 11–13</span></div>
+      </div>
+    </section>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 28px; padding-top: 62px;">
+    <section style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 15px; font-weight: 600;">Скругления</h2>
+      <div style="display: flex; gap: 12px; align-items: flex-end;">
+        <sc-for list="{{radii}}" as="r" hint-placeholder-count="5">
+          <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
+            <div style="width: 76px; height: 76px; background: #ffffff; box-shadow: inset 0 0 0 2px #3452ff; border-radius: {{r.v}};"></div>
+            <span style="font-size: 12px; font-weight: 600;">{{r.v}}</span>
+            <span style="font-size: 11px; color: #5d6270; text-align: center; width: 90px;">{{r.use}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 15px; font-weight: 600;">Кнопки и плашки</h2>
+      <div style="padding: 20px; border-radius: 28px; background: #ffffff; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" style="white-space: nowrap; height: 52px; padding: 0 22px; border-radius: 20px; border: 0; background: #3452ff; color: #fff; font-family: inherit; font-size: 15px; font-weight: 600;">Основная</button>
+          <button type="button" style="white-space: nowrap; height: 52px; padding: 0 22px; border-radius: 20px; border: 0; background: #e4e8ff; color: #2b45d8; font-family: inherit; font-size: 15px; font-weight: 600;">Тональная</button>
+          <button type="button" style="white-space: nowrap; height: 52px; padding: 0 22px; border-radius: 20px; border: 0; background: #f1f2f6; color: #14161b; font-family: inherit; font-size: 15px; font-weight: 600;">Нейтральная</button>
+          <button type="button" style="white-space: nowrap; height: 52px; padding: 0 22px; border-radius: 20px; border: 0; background: #ffe6e0; color: #c93a1c; font-family: inherit; font-size: 15px; font-weight: 600;">Опасная</button>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <span style="height: 28px; padding: 0 11px 0 9px; border-radius: 999px; background: #eceef3; color: #4b5160; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #4b5160;"></span>В бэклоге</span>
+          <span style="height: 28px; padding: 0 11px 0 9px; border-radius: 999px; background: #e4e8ff; color: #2b45d8; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #2b45d8;"></span>Смотрю</span>
+          <span style="height: 28px; padding: 0 11px 0 9px; border-radius: 999px; background: #e2f3e6; color: #2f7a45; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #2f7a45;"></span>Завершено</span>
+          <span style="height: 28px; padding: 0 11px; border-radius: 999px; background: #ffffff; color: #5d6270; font-size: 12px; font-weight: 600; display: flex; align-items: center; box-shadow: inset 0 0 0 1px #d5d8e0;">Ещё не вышло</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" style="white-space: nowrap; height: 42px; padding: 0 16px; border: 0; border-radius: 999px; background: #14161b; color: #fff; font-family: Unbounded, Onest, sans-serif; font-size: 12px; font-weight: 600;">Всё <span style="font-family: Onest, sans-serif; opacity: 0.6;">213</span></button>
+          <button type="button" style="white-space: nowrap; height: 42px; padding: 0 16px; border: 0; border-radius: 999px; background: #f1f2f6; color: #3b404c; font-family: Unbounded, Onest, sans-serif; font-size: 12px; font-weight: 600;">Аниме <span style="font-family: Onest, sans-serif; opacity: 0.6;">26</span></button>
+          <button type="button" style="white-space: nowrap; height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: #e4e8ff; color: #2b45d8; font-family: inherit; font-size: 14px; font-weight: 600;">Что посмотреть?</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 style="margin: 0; font-family: Unbounded, Onest, sans-serif; font-size: 15px; font-weight: 600;">Нижняя панель</h2>
+      <div style="padding: 20px; border-radius: 28px; background: linear-gradient(135deg, #d9def0, #eef0f4);">
+        <div style="width: 358px; height: 68px;">
+          <dc-import name="TabBar" active="backlog" hint-size="358px,68px"></dc-import>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    function sw(list) { return list.map(function (s) { return { name: s[0], hex: s[1] }; }); }
+    var themes = [
+      { frame: 'background: #ffffff; color: #14161b;', swatches: sw([['Фон', '#eef0f4'], ['Поверхность', '#ffffff'], ['Утопленная', '#f1f2f6'], ['Текст', '#14161b'], ['Вторичный', '#5d6270'], ['Акцент', '#3452ff'], ['Акцент, текст', '#2b45d8'], ['Акцент, мягкий', '#e4e8ff'], ['Смотрю', '#2b45d8'], ['Завершено', '#2f7a45'], ['Бейдж', '#ff5a36'], ['Опасное', '#c93a1c']]) },
+      { frame: 'background: #0f1117; color: #f1f2f6;', swatches: sw([['Фон', '#0f1117'], ['Поверхность', '#1b1e27'], ['Утопленная', '#232734'], ['Текст', '#f1f2f6'], ['Вторичный', '#9ba1b0'], ['Акцент', '#4b66ff'], ['Акцент, текст', '#b8c3ff'], ['Акцент, мягкий', '#2a3160'], ['Смотрю', '#b8c3ff'], ['Завершено', '#8fd6a4'], ['Бейдж', '#ff6a4a'], ['Опасное', '#ff8f75']]) }
+    ];
+    var radii = [['12px', 'миниатюры, чипы-кнопки'], ['18px', 'поля ввода, строки'], ['22px', 'постеры, кнопки'], ['32px', 'панели и карточки'], ['999px', 'вкладки, чипы, капсула']].map(function (r) { return { v: r[0], use: r[1] }; });
+    return { themes: themes, radii: radii };
+  }
+}
+</script>
+</body>
+</html>
