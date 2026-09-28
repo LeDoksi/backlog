@@ -20,3 +20,14 @@ test('signed in with a profile reaches the shell with bottom navigation on phone
   await expect(nav.filter({ visible: true })).toBeVisible();
   if (isMobile) await expect(page.getByRole('button', { name: 'Добавить тайтл' }).first()).toBeVisible();
 });
+
+test('the phone sign-in screen only downloads the posters it shows', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'phone only');
+  const covers = new Set<string>();
+  page.on('request', (r) => { if (r.url().includes('images/covers/')) covers.add(r.url()); });
+  await installStub(page, { signedIn: false });
+  await page.goto('./');
+  await expect(page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect(covers.size).toBeLessThanOrEqual(16);
+});

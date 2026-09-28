@@ -1,5 +1,4 @@
 import { memo, useEffect, useRef, useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
 import { DotsThree } from '@phosphor-icons/react';
 import { StatusPill } from '../../ui/StatusPill';
 import { useLongPress } from '../../ui/useLongPress';
@@ -23,7 +22,6 @@ interface Props { title: Title; checked: number[] | undefined; onQuickChange: ()
 export const TitleCard = memo(function TitleCard({ title, checked, onQuickChange }: Props) {
   const [quick, setQuick] = useState(false);
   const root = useRef<HTMLElement>(null);
-  const reduce = useReducedMotion();
   const progress = cardProgress(title, checked);
   const hasQuick = title.status !== 'unreleased' || !!progress;
   const press = useLongPress(() => { if (hasQuick) { navigator.vibrate?.(10); setQuick(true); } });
@@ -41,11 +39,12 @@ export const TitleCard = memo(function TitleCard({ title, checked, onQuickChange
   return (
     <article ref={root} className={`bl-card ${s.card}`} data-id={title.id}>
       <div className={s.posterWrap}>
-        <motion.div layoutId={reduce ? undefined : `poster-${title.id}`} className={s.poster}
-          transition={{ type: 'spring', stiffness: 260, damping: 26 }}>
+        {/* No shared poster with the panel: flying it back on close re-projected
+            the grid and read as the card reloading under the finger. */}
+        <div className={s.poster}>
           <img src={resolveCover(title.cover, ASSET_ROOT)} alt="" loading="lazy" decoding="async" draggable={false}
             onError={(e) => { if (e.currentTarget.src !== PLACEHOLDER) e.currentTarget.src = PLACEHOLDER; }} />
-        </motion.div>
+        </div>
         <div className={s.pill}><StatusPill status={title.status} onPoster /></div>
         {progress && (
           <div className={s.progress} aria-hidden="true">

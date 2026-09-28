@@ -24,6 +24,11 @@ for (const theme of ['light', 'dark'] as const) {
   test.describe(theme, () => {
     test.beforeEach(async ({ page }) => {
       await page.addInitScript((t) => localStorage.setItem('bl2:theme', t), theme);
+      // The stats hero draws a random set of posters; a fixed sequence keeps the shot stable.
+      await page.addInitScript(() => {
+        let seed = 1;
+        Math.random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+      });
     });
 
     test('sign-in', async ({ page }) => {

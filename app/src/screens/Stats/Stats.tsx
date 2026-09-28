@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTitles } from '../../data/titlesStore';
-import { computeStats } from '../../data/stats';
+import { computeStats, showcase } from '../../data/stats';
+import { useIsDesktop } from '../../ui/useMediaQuery';
 import { plural } from '../../data/labels';
 import { resolveCover } from '../../lib/covers';
 import { ASSET_ROOT } from '../../config';
@@ -12,6 +13,10 @@ export function Stats() {
   const checked = useTitles((t) => t.checked);
   const st = useMemo(() => computeStats(titles, (id) => checked[id] ?? []), [titles, checked]);
   const maxGenre = st.genres[0]?.count ?? 1;
+  const desktop = useIsDesktop();
+  // A fresh draw each time the screen opens; it stays put while it is shown
+  // and only redraws when the number of finished titles changes.
+  const fan = useMemo(() => showcase(titles, desktop ? 10 : 3), [desktop, st.done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const tiles = [
     { n: st.byCategory.movie.done, label: plural(st.byCategory.movie.done, 'фильм', 'фильма', 'фильмов') },
@@ -30,7 +35,7 @@ export function Stats() {
         <div className={s.layout}>
           <section className={s.hero} aria-label="Всё время">
             <div className={s.fan} aria-hidden="true">
-              {st.recentDone.map((t) => <img key={t.id} src={resolveCover(t.cover, ASSET_ROOT)} alt="" />)}
+              {fan.map((t) => <img key={t.id} src={resolveCover(t.cover, ASSET_ROOT)} alt="" />)}
             </div>
             <span className={s.period}>За всё время</span>
             <div className={s.big}>

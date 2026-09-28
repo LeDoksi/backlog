@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { Chip } from '../../ui/Chip';
 import { Switch } from '../../ui/Switch';
-import { Segmented } from '../../ui/Segmented';
 import { useFilters, genreCounts, type SortKey } from '../../data/filters';
 import { useTitles } from '../../data/titlesStore';
 import { STATUS_FILTER } from '../../data/labels';
@@ -53,8 +52,13 @@ export function FiltersPanel({ withSort }: { withSort: boolean }) {
       {withSort && (
         <>
           <h3 className={s.section}>Сортировка</h3>
-          <Segmented label="Сортировка" value={f.sort} onChange={(v) => f.set({ sort: v })}
-            options={SORTS.map((v) => ({ value: v, label: SORT_LABEL[v] }))} />
+          {/* Chips that wrap: four segments don't fit a 375px phone. */}
+          <div role="radiogroup" aria-label="Сортировка" className={s.chips}>
+            {SORTS.map((v) => (
+              <Chip key={v} role="radio" aria-pressed={undefined} aria-checked={v === f.sort} selected={v === f.sort}
+                className={s.chip} onClick={() => f.set({ sort: v })}>{SORT_LABEL[v]}</Chip>
+            ))}
+          </div>
         </>
       )}
     </>

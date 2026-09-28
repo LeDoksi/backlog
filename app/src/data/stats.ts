@@ -9,7 +9,6 @@ export interface Stats {
   waiting: number;
   byCategory: Record<Category, { done: number; seasons?: number }>;
   genres: { genre: string; count: number }[];
-  recentDone: Title[];
 }
 
 // Series and anime are counted in seasons, since a long show is many evenings
@@ -34,7 +33,16 @@ export function computeStats(titles: Title[], checked: (id: string) => number[])
   });
   const genres = [...genreMap].map(([genre, count]) => ({ genre, count })).sort((a, b) => b.count - a.count || a.genre.localeCompare(b.genre, 'ru'));
   const queue = titles.filter((t) => t.status === 'queue').length;
-  // Without completion dates "recent" is the latest added of the finished ones.
-  const recentDone = titles.filter((t) => t.status === 'done').slice(-3).reverse();
-  return { done, total: titles.length, inProgress, queue, waiting, byCategory, genres, recentDone };
+  return { done, total: titles.length, inProgress, queue, waiting, byCategory, genres };
+}
+
+/** `n` finished titles with a real cover, drawn at random so each visit shows a new set. */
+export function showcase(titles: Title[], n: number, rand: () => number = Math.random): Title[] {
+  const pool = titles.filter((t) => t.status === 'done' && t.cover && !t.cover.includes('_placeholder'));
+  // Partial Fisher–Yates: only the first n places need shuffling.
+  for (let i = 0; i < Math.min(n, pool.length); i++) {
+    const j = i + Math.floor(rand() * (pool.length - i));
+    [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+  }
+  return pool.slice(0, n);
 }

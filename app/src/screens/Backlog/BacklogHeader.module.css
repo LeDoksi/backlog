@@ -3,7 +3,7 @@
 .round { width: 50px; height: 50px; flex-shrink: 0; border-radius: 50%; border: 0; background: var(--surface); color: var(--text); box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: center; }
 .field { flex: 1; height: 50px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 16px; border-radius: var(--r-pill); background: var(--surface); box-shadow: var(--shadow-soft); }
 .fieldIcon { color: var(--muted); flex-shrink: 0; }
-.input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; font-size: var(--fs-md); outline: none; }
+.input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; font-size: var(--fs-input); outline: none; }
 .input::-webkit-search-cancel-button { display: none; }
 .clear { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--sunken); color: var(--text-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 @media (min-width: 1024px) { .title { font-size: 26px; } }

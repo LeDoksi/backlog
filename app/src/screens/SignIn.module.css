@@ -8,5 +8,6 @@
 .cta { margin-top: 12px; }
 .note { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; }
 @media (min-width: 1024px) {
-  .wall { left: 50%; width: 1100px; margin-left: -550px; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  /* Wider than the screen and rotated, so the corners stay covered too. */
+  .wall { left: 50%; top: -40px; width: max(1400px, 125vw); margin-left: calc(max(1400px, 125vw) / -2); grid-template-columns: repeat(12, minmax(0, 1fr)); }
 }

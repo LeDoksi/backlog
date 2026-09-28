@@ -64,3 +64,28 @@ test('with the keyboard open the field and first result stay visible (BL-25)', a
     expect(box.y + box.height).toBeLessThanOrEqual(vh);
   }
 });
+
+// iOS: the window stays 844px tall and only the visual viewport shrinks to
+// the ~310px above the keyboard (owner's iPhone, 2026-09-28). Chromium can't
+// do that by itself, so visualViewport is replaced before the app loads.
+test('with the iPhone keyboard up, the field and two results fit above it', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'phone only');
+  await page.addInitScript(() => {
+    const vv = Object.assign(new EventTarget(), { height: 310, width: 390, offsetTop: 0, offsetLeft: 0, pageTop: 0, pageLeft: 0, scale: 1 });
+    Object.defineProperty(window, 'visualViewport', { value: vv, configurable: true });
+  });
+  await installStub(page, { signedIn: true, hasProfile: true, drafts: [] });
+  await mockTmdb(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Добавить тайтл' }).first().click();
+  const panel = page.getByRole('dialog', { name: 'Добавить тайтл' });
+  const field = panel.getByRole('textbox', { name: 'Название' });
+  await field.fill('Дюна');
+  const rows = [panel.getByRole('button', { name: 'Добавить «Дюна»', exact: true }), panel.getByRole('button', { name: 'Добавить «Дюна: Часть вторая»', exact: true })];
+  await expect(rows[1]!).toBeVisible();
+  await expect(panel.getByRole('button', { name: 'Закрыть' })).toBeVisible();
+  for (const el of [field, ...rows]) {
+    const box = (await el.boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(310);
+  }
+});

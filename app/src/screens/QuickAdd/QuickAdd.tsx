@@ -9,6 +9,8 @@ import { search, details, providerFor, PROVIDER_LABEL, type Hit } from '../../da
 import { buildTitle } from '../../data/newTitle';
 import { useHistoryEntry } from '../../ui/history';
 import { useVisualViewport } from '../../ui/useVisualViewport';
+import { lockScroll } from '../../ui/scrollLock';
+import { quickAddLayout } from './layout';
 import { useIsDesktop } from '../../ui/useMediaQuery';
 import type { Category } from '../../lib/types';
 import { CATEGORY_OPTIONS } from '../../data/labels';
@@ -53,8 +55,8 @@ function Panel() {
   useEffect(() => {
     busy.enter('quick-add');
     input.current?.focus({ preventScroll: true });
-    document.body.style.overflow = 'hidden';
-    return () => { busy.leave('quick-add'); document.body.style.overflow = ''; };
+    const unlock = lockScroll();
+    return () => { busy.leave('quick-add'); unlock(); };
   }, []);
 
   // Every new query or category supersedes the one in flight; a slow older
@@ -106,24 +108,35 @@ function Panel() {
     add(buildTitle(category, name, {}, useTitles.getState().titles, useTitles.getState().leftoverIds()));
   }
 
-  const style = desktop ? undefined : { top: vv.offsetTop + 44, maxHeight: Math.max(240, vv.height - 56) };
+  const layout = quickAddLayout(vv);
+  const compact = !desktop && layout.compact;
+  // With the keyboard up the panel runs on behind it to the bottom of the
+  // window; the results' bottom padding lets every row scroll up into view.
+  const style = desktop ? undefined : {
+    top: layout.top,
+    maxHeight: compact ? vv.layoutHeight - layout.top : Math.max(240, vv.height - 16)
+  };
+  const closeButton = <button type="button" className={s.close} aria-label="Закрыть" onClick={close}><X size={20} /></button>;
 
   return (
     <>
       <div className={s.scrim} onClick={close} />
-      <motion.div role="dialog" aria-modal="true" aria-labelledby="qa-title" className={s.panel} style={style}
+      <motion.div role="dialog" aria-modal="true" aria-labelledby="qa-title" className={compact ? `${s.panel} ${s.compact}` : s.panel} style={style}
         initial={reduce ? false : { y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 420, damping: 34 }}
         onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } }}>
-        <div className={s.head}>
-          <h2 id="qa-title" className={s.title}>Добавить тайтл</h2>
-          <button type="button" className={s.close} aria-label="Закрыть" onClick={close}><X size={20} /></button>
-        </div>
+        {compact ? <h2 id="qa-title" className="sr-only">Добавить тайтл</h2> : (
+          <div className={s.head}>
+            <h2 id="qa-title" className={s.title}>Добавить тайтл</h2>
+            {closeButton}
+          </div>
+        )}
         <div role="radiogroup" aria-label="Категория" className={s.cats}>
           {CATEGORY_OPTIONS.map((c) => (
             <button key={c.value} type="button" role="radio" aria-checked={c.value === category}
               className={c.value === category ? `${s.cat} ${s.catOn}` : s.cat}
               onClick={() => { setCategory(c.value); input.current?.focus(); }}>{c.label}</button>
           ))}
+          {compact && closeButton}
         </div>
         <form className={s.field} onSubmit={(e) => { e.preventDefault(); manual(); }}>
           <MagnifyingGlass size={20} aria-hidden="true" className={s.fieldIcon} />
@@ -132,7 +145,7 @@ function Panel() {
           <span className={s.provider}>{PROVIDER_LABEL[providerFor(category)]}</span>
         </form>
         <p className={note?.tone === 'error' ? `${s.note} ${s.noteError}` : s.note} role={note?.tone === 'error' ? 'alert' : 'status'}>{note?.text ?? ''}</p>
-        <div className={s.results}>
+        <div className={s.results} style={compact ? { paddingBottom: layout.keyboard + 8 } : undefined}>
           {state.kind === 'loading' && <p className={s.muted}>Ищу…</p>}
           {state.kind === 'error' && <p className={s.muted}>{state.text}</p>}
           {state.kind === 'hits' && state.hits.length === 0 && <p className={s.muted}>Ничего не нашлось.</p>}

@@ -38,3 +38,30 @@ test('the three control rows do not wrap or overlap at 1440', async ({ page }) =
   const sort = (await page.getByRole('button', { name: 'Актуальное' }).boundingBox())!;
   expect(Math.abs(sort.y - boxes[2]!.y)).toBeLessThan(4);
 });
+
+test('the title modal leaves quickly on close instead of parking at the bottom edge', async ({ page }) => {
+  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows(10) });
+  await page.goto('./');
+  await page.locator('article.bl-card').first().locator(':scope > button').first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await page.waitForTimeout(600);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(350);
+  await expect(dialog).toHaveCount(0, { timeout: 1 });
+});
+
+test('the sign-in poster wall fills a wide screen', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1000 });
+  await installStub(page, { signedIn: false });
+  await page.goto('./');
+  await expect(page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  const span = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll('img')].map((i) => i.getBoundingClientRect()).filter((r) => r.width > 0 && r.bottom > 0 && r.top < innerHeight);
+    const left = Math.max(0, Math.min(...boxes.map((r) => r.left)));
+    const right = Math.min(innerWidth, Math.max(...boxes.map((r) => r.right)));
+    return { count: boxes.length, share: (right - left) / innerWidth };
+  });
+  expect(span.share).toBeGreaterThan(0.95);
+  expect(span.count).toBeGreaterThanOrEqual(24);
+});
