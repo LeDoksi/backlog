@@ -7,6 +7,11 @@ export async function activate(file: string, cacheNames: string[], clientUrls: s
   const code = readFileSync(resolve(__dirname, '../..', file), 'utf8');
   const names = new Set(cacheNames);
   const navigated: string[] = [];
+  // A real navigation from a worker's activate step goes through that same
+  // worker, whose fetch events wait until activation finishes, so navigate()
+  // only settles after activation. Awaiting it inside waitUntil deadlocks.
+  let activated!: () => void;
+  const done = new Promise<void>((r) => { activated = r; });
   let unregistered = false;
   const handlers: Record<string, (e: unknown) => void> = {};
   const caches = {
@@ -15,7 +20,7 @@ export async function activate(file: string, cacheNames: string[], clientUrls: s
   };
   const clients = {
     claim: async () => {},
-    matchAll: async () => clientUrls.map((url) => ({ url, navigate: async (to: string) => { navigated.push(to); } }))
+    matchAll: async () => clientUrls.map((url) => ({ url, navigate: (to: string) => { navigated.push(to); return done; } }))
   };
   const self = {
     addEventListener: (type: string, fn: (e: unknown) => void) => { handlers[type] = fn; },
@@ -26,6 +31,8 @@ export async function activate(file: string, cacheNames: string[], clientUrls: s
   new Function('self', 'caches', 'clients', code)(self, caches, clients);
   const waits: Promise<unknown>[] = [];
   handlers.activate?.({ waitUntil: (p: Promise<unknown>) => waits.push(p) });
-  await Promise.all(waits);
+  const settled = await Promise.race([Promise.all(waits).then(() => true), new Promise((r) => setTimeout(() => r(false), 200))]);
+  if (!settled) throw new Error('activation never finished (waits on a navigation that waits on activation)');
+  activated();
   return { caches: [...names], navigated, unregistered };
 }

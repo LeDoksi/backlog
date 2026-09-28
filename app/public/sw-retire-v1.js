@@ -9,7 +9,11 @@ self.addEventListener('activate', function (event) {
       if (!dropped[0]) return;
       return self.clients.claim()
         .then(function () { return self.clients.matchAll({ type: 'window' }); })
-        .then(function (tabs) { return Promise.all(tabs.map(function (tab) { return tab.navigate(tab.url); })); });
+        .then(function (tabs) {
+          // Not awaited: the reload goes through this worker, which can't
+          // answer it until activation (this waitUntil) has finished.
+          tabs.forEach(function (tab) { tab.navigate(tab.url).catch(function () {}); });
+        });
     })
   );
 });

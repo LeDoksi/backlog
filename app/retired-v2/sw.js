@@ -14,7 +14,8 @@ self.addEventListener('activate', function (event) {
       .then(function () { return self.clients.matchAll({ type: 'window' }); })
       .then(function (tabs) {
         return self.registration.unregister().then(function () {
-          return Promise.all(tabs.map(function (tab) { return tab.navigate('/backlog/'); }));
+          // Not awaited: waiting for a navigation inside activation can stall it.
+          tabs.forEach(function (tab) { tab.navigate('/backlog/').catch(function () {}); });
         });
       })
   );
