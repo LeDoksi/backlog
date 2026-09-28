@@ -27,6 +27,7 @@ async function checkProfile(sb: NonNullable<ReturnType<typeof getSupabase>>, use
 export function useSession() {
   const [state, setState] = useState<SessionState>('loading');
   const [userId, setUserId] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   // Evaluations overlap (mount, INITIAL_SESSION, token refresh, sign-out);
   // only the latest one may write, or a slow earlier check could reopen the
   // app for someone who has just signed out.
@@ -38,9 +39,11 @@ export function useSession() {
     if (!sb) { setState('signedOut'); return; }
     const res = await Auth.getSession(sb);
     const id = res?.data?.session?.user?.id ?? null;
+    const mail = res?.data?.session?.user?.email ?? null;
     const ok = id ? await checkProfile(sb, id) : false;
     if (run !== latest.current) return;
     setUserId(id);
+    setEmail(mail);
     setState(resolveSessionState({ hasClient: true, userId: id, hasProfile: ok }));
   }, []);
 
@@ -53,6 +56,7 @@ export function useSession() {
   return {
     state,
     userId,
+    email,
     signIn: () => { void Auth.signInWithGoogle(getSupabase(), window.location.origin + import.meta.env.BASE_URL); },
     signOut: () => { void Auth.signOut(getSupabase()).then(evaluate); }
   };

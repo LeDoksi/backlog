@@ -11,13 +11,16 @@ import { Backlog } from './screens/Backlog/Backlog';
 import { TitleSheet } from './screens/TitleSheet/TitleSheet';
 import { EditTitle } from './screens/EditTitle/EditTitle';
 import { QuickAdd } from './screens/QuickAdd/QuickAdd';
+import { Stats } from './screens/Stats/Stats';
+import { Profile } from './screens/Profile/Profile';
+import { clearMirror } from './data/mirror';
 import { AppShell } from './ui/AppShell';
 import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
 
 const SECTIONS: Section[] = ['backlog', 'stats', 'profile'];
 
-function Signed() {
+function Signed({ userId, email, onSignOut }: { userId: string; email: string; onSignOut: () => void }) {
   const [section, setSection] = useState<Section>('backlog');
   const setQuickAdd = useUi((u) => u.setQuickAdd);
 
@@ -25,8 +28,10 @@ function Signed() {
 
   return (
     <LayoutGroup>
-      <AppShell sections={SECTIONS} section={section} onNavigate={setSection} onAdd={() => setQuickAdd(true)}>
+      <AppShell sections={SECTIONS} section={section} onNavigate={(next) => { setSection(next); window.scrollTo(0, 0); }} onAdd={() => setQuickAdd(true)}>
         {section === 'backlog' && <Backlog />}
+        {section === 'stats' && <Stats />}
+        {section === 'profile' && <Profile userId={userId} email={email} onSignOut={onSignOut} />}
       </AppShell>
       <TitleSheet />
       <EditTitle />
@@ -40,5 +45,8 @@ export function App() {
   if (session.state === 'loading') return <div style={{ padding: 18 }}><Skeleton kind="card" /></div>;
   if (session.state === 'signedOut') return <SignIn onSignIn={session.signIn} />;
   if (session.state === 'blocked') return <NotInvited onSignOut={session.signOut} />;
-  return <Signed />;
+  return (
+    <Signed userId={session.userId ?? ''} email={session.email ?? ''}
+      onSignOut={() => { clearMirror(); useTitles.getState().refresh(true); session.signOut(); }} />
+  );
 }
