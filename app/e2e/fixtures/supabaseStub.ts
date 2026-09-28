@@ -28,7 +28,13 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
         eq(col: string, val: unknown) { rows = rows.filter((r) => r[col] === val); return q; },
         in(col: string, vals: unknown[]) { rows = rows.filter((r) => vals.includes(r[col])); return q; },
         maybeSingle() { return Promise.resolve({ data: rows[0] ?? null, error: null }); },
-        upsert() { return Promise.resolve({ data: null, error: null }); },
+        // Offline answers like a dropped request, so the outbox gets exercised.
+        upsert(row: unknown) {
+          if (!navigator.onLine) return Promise.resolve({ data: null, error: { message: 'offline' } });
+          const w = window as unknown as { __upserts?: unknown[] };
+          (w.__upserts ??= []).push({ table, row });
+          return Promise.resolve({ data: null, error: null });
+        },
         delete() { return q; },
         then(resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) {
           return Promise.resolve({ data: rows, error: null }).then(resolve, reject);

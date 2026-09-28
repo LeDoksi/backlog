@@ -14,6 +14,7 @@ import { QuickAdd } from './screens/QuickAdd/QuickAdd';
 import { Stats } from './screens/Stats/Stats';
 import { Profile } from './screens/Profile/Profile';
 import { clearMirror } from './data/mirror';
+import { SyncStatus } from './ui/SyncStatus';
 import { AppShell } from './ui/AppShell';
 import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
@@ -36,6 +37,7 @@ function Signed({ userId, email, onSignOut }: { userId: string; email: string; o
       <TitleSheet />
       <EditTitle />
       <QuickAdd />
+      <SyncStatus />
     </LayoutGroup>
   );
 }
