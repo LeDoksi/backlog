@@ -10,6 +10,7 @@ import { NotInvited } from './screens/NotInvited';
 import { Backlog } from './screens/Backlog/Backlog';
 import { TitleSheet } from './screens/TitleSheet/TitleSheet';
 import { EditTitle } from './screens/EditTitle/EditTitle';
+import { QuickAdd } from './screens/QuickAdd/QuickAdd';
 import { AppShell } from './ui/AppShell';
 import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
@@ -29,6 +30,7 @@ function Signed() {
       </AppShell>
       <TitleSheet />
       <EditTitle />
+      <QuickAdd />
     </LayoutGroup>
   );
 }
