@@ -53,11 +53,10 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Retires v1's caches and tabs once, after v2 took over /backlog/.
-        importScripts: ['sw-retire-v1.js'],
+        // Root build only: retires v1's caches and tabs once, and answers the
+        // old /backlog/v2/ address with a redirect to the root.
+        importScripts: base === '/backlog/' ? ['sw-retire-v1.js'] : [],
         navigateFallback: 'index.html',
-        // The old /backlog/v2/ address serves a redirect page (retired-v2/).
-        navigateFallbackDenylist: [/\/backlog\/v2\//],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {

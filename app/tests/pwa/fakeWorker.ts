@@ -25,7 +25,7 @@ export async function activate(file: string, cacheNames: string[], clientUrls: s
   const self = {
     addEventListener: (type: string, fn: (e: unknown) => void) => { handlers[type] = fn; },
     skipWaiting: () => {},
-    registration: { unregister: async () => { unregistered = true; return true; } },
+    registration: { scope: 'https://x/backlog/', unregister: async () => { unregistered = true; return true; } },
     caches, clients
   };
   new Function('self', 'caches', 'clients', code)(self, caches, clients);
@@ -34,5 +34,11 @@ export async function activate(file: string, cacheNames: string[], clientUrls: s
   const settled = await Promise.race([Promise.all(waits).then(() => true), new Promise((r) => setTimeout(() => r(false), 200))]);
   if (!settled) throw new Error('activation never finished (waits on a navigation that waits on activation)');
   activated();
-  return { caches: [...names], navigated, unregistered };
+  // Dispatches a navigation fetch to the script's fetch handler, if any.
+  const navigate = (url: string): Response | undefined => {
+    let answer: Response | undefined;
+    handlers.fetch?.({ request: { mode: 'navigate', url }, respondWith: (r: Response) => { answer = r; } });
+    return answer;
+  };
+  return { caches: [...names], navigated, unregistered, navigate };
 }
