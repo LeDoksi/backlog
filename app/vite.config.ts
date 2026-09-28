@@ -5,9 +5,11 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { extname, resolve, sep } from 'node:path';
 import type { Connect, Plugin } from 'vite';
 
-const base = process.env.BL_BASE ?? '/backlog/v2/';
+// The site root since v2 replaced v1. BL_BASE=/backlog/v2/ still builds the
+// old address for a week after the switch (plan C14, step 4).
+const base = process.env.BL_BASE ?? '/backlog/';
 
-// In production the repo's images/ sits at the site root next to v1 (see
+// In production the repo's images/ is copied to /backlog/images/ (see
 // deploy.yml). Locally only app/ is served, so dev and preview (which e2e
 // runs against) serve ../images at the same /backlog/images/ path.
 const IMAGES = resolve(__dirname, '../images');
@@ -46,11 +48,13 @@ export default defineConfig({
         background_color: '#eef0f4',
         theme_color: '#eef0f4',
         icons: [
-          { src: '../images/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '../images/icon-512.png', sizes: '512x512', type: 'image/png' }
+          { src: '/backlog/images/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/backlog/images/icon-512.png', sizes: '512x512', type: 'image/png' }
         ]
       },
       workbox: {
+        // Retires v1's caches and tabs once, after v2 took over /backlog/.
+        importScripts: ['sw-retire-v1.js'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         runtimeCaching: [
