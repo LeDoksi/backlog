@@ -2,3 +2,4 @@ node_modules/
 .superpowers/
 .claude/
 tools/catalog-migration-input/
+app/node_modules
