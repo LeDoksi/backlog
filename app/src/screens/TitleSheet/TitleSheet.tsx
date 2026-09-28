@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
 import { PencilSimple, Trash } from '@phosphor-icons/react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
@@ -24,7 +23,6 @@ export function TitleSheet() {
   const checked = useTitles((t) => (id ? t.checked[id] : undefined)) ?? [];
   const store = useTitles.getState;
   const [confirming, setConfirming] = useState(false);
-  const reduce = useReducedMotion();
   const open = !!id && !!title;
 
   useEffect(() => {
@@ -51,9 +49,9 @@ export function TitleSheet() {
           <div className={s.content}>
             <img className={s.backdrop} src={cover} alt="" aria-hidden="true" />
             <div className={s.hero}>
-              <motion.div layoutId={reduce ? undefined : `poster-${title.id}`} className={s.poster} transition={{ type: 'spring', stiffness: 260, damping: 26 }}>
+              <div className={s.poster}>
                 <img src={cover} alt="" />
-              </motion.div>
+              </div>
               <div className={s.heading}>
                 <h2 id="title-sheet-title" className={s.name}>{title.title}</h2>
                 {title.originalTitle && title.originalTitle !== title.title && <div className={s.original}>{title.originalTitle}</div>}

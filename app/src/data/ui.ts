@@ -4,8 +4,6 @@ import { create } from 'zustand';
 // the Sheet's history entry), so this store is the only place they live.
 interface UiState {
   openTitleId: string | null;
-  /** The one card whose poster is shared with the panel; kept after close so the poster can fly back. */
-  sharedTitleId: string | null;
   editTitleId: string | null;
   quickAddOpen: boolean;
   openTitle(id: string): void;
@@ -17,10 +15,9 @@ interface UiState {
 
 export const useUi = create<UiState>()((set) => ({
   openTitleId: null,
-  sharedTitleId: null,
   editTitleId: null,
   quickAddOpen: false,
-  openTitle: (id) => set({ openTitleId: id, sharedTitleId: id }),
+  openTitle: (id) => set({ openTitleId: id }),
   closeTitle: () => set({ openTitleId: null }),
   openEdit: (id) => set({ editTitleId: id }),
   closeEdit: () => set({ editTitleId: null }),
