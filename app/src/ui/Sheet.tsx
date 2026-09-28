@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useHistoryEntry } from './history';
+import { useIsDesktop } from './useMediaQuery';
 import s from './Sheet.module.css';
 
 interface Props { open: boolean; onClose: () => void; labelledBy: string; children: ReactNode; footer?: ReactNode }
@@ -14,6 +15,14 @@ export function Sheet({ open, onClose, labelledBy, children, footer }: Props) {
   const close = useRef(onClose);
   close.current = onClose;
   const reduce = useReducedMotion();
+  // A centred modal slid down by its own height is still half on screen, so
+  // on desktop the panel fades and settles instead of sliding.
+  const desktop = useIsDesktop();
+  const motionProps = reduce
+    ? { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0 } }
+    : desktop
+      ? { initial: { opacity: 0, scale: 0.96, y: 16 }, animate: { opacity: 1, scale: 1, y: 0 }, exit: { opacity: 0, scale: 0.96, y: 16 }, transition: { duration: 0.18, ease: 'easeOut' as const } }
+      : { initial: { y: '100%' }, animate: { y: 0 }, exit: { y: '100%' }, transition: { type: 'spring' as const, stiffness: 420, damping: 34 } };
 
   useHistoryEntry(open, () => close.current());
 
@@ -46,9 +55,8 @@ export function Sheet({ open, onClose, labelledBy, children, footer }: Props) {
           <motion.div className={s.scrim} onClick={onClose}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduce ? 0 : 0.2 }} />
           <motion.div ref={panel} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1} className={s.panel}
-            initial={reduce ? false : { y: '100%' }} animate={{ y: 0 }} exit={reduce ? { opacity: 0 } : { y: '100%' }}
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-            drag={reduce ? false : 'y'} dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.6 }}
+            {...motionProps}
+            drag={reduce || desktop ? false : 'y'} dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.6 }}
             onDragEnd={(_, info) => { if (info.offset.y > 120) onClose(); }}>
             <div className={s.handle} aria-hidden="true" />
             <div className={s.body}>{children}</div>

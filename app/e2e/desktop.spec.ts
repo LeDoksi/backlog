@@ -38,3 +38,15 @@ test('the three control rows do not wrap or overlap at 1440', async ({ page }) =
   const sort = (await page.getByRole('button', { name: 'Актуальное' }).boundingBox())!;
   expect(Math.abs(sort.y - boxes[2]!.y)).toBeLessThan(4);
 });
+
+test('the title modal leaves quickly on close instead of parking at the bottom edge', async ({ page }) => {
+  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows(10) });
+  await page.goto('./');
+  await page.locator('article.bl-card').first().locator(':scope > button').first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await page.waitForTimeout(600);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(350);
+  await expect(dialog).toHaveCount(0, { timeout: 1 });
+});
