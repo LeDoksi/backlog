@@ -1,10 +1,12 @@
 import { ASSET_ROOT } from '../config';
 import { resolveCover } from '../lib/covers';
 import { Button } from '../ui/Button';
+import { useIsDesktop } from '../ui/useMediaQuery';
 import s from './SignIn.module.css';
 
 // Real posters from the repo, so the first screen already looks like the app.
 // The phone shows the first 16 (four rows of four); desktop shows all 36.
+// Only the shown ones are rendered: a hidden <img> still downloads.
 const WALL = [
   'frieren-2023.jpg', 'the-boys-2019.jpg', 'baldurs-gate-3-2023.jpg', 'the-apothecary-diaries-2023.jpg',
   'spider-man-across-the-spider-verse-2023.jpg', 'clair-obscur-expedition-33-2025.webp', 'the-batman-2022.jpg', 'blue-eye-samurai-2023.jpg',
@@ -18,10 +20,11 @@ const WALL = [
 ];
 
 export function SignIn({ onSignIn }: { onSignIn: () => void }) {
+  const wall = useIsDesktop() ? WALL : WALL.slice(0, 16);
   return (
     <div className={s.screen}>
       <div className={s.wall} aria-hidden="true">
-        {WALL.map((file) => <img key={file} src={resolveCover('images/covers/' + file, ASSET_ROOT)} alt="" className={s.poster} />)}
+        {wall.map((file) => <img key={file} src={resolveCover('images/covers/' + file, ASSET_ROOT)} alt="" className={s.poster} />)}
       </div>
       <div className={s.fade} aria-hidden="true" />
       <div className={s.content}>
