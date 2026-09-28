@@ -42,7 +42,7 @@
 **Interfaces:**
 - Produces: `BacklogStorage.isCaughtUp(title, checkedIndices): boolean` — у тайтла есть чеклист частей, есть хотя бы одна вышедшая и хотя бы одна невышедшая часть, и все вышедшие отмечены. Используется в C6 и B5 (в порте `derive.ts`).
 
-- [ ] **Step 1: Write the failing test** — добавить в конец `tests/storage.test.js` и дописать `isCaughtUp` в деструктуризацию `require('../lib/storage.js')` в первой строке файла.
+- [x] **Step 1: Write the failing test** — добавить в конец `tests/storage.test.js` и дописать `isCaughtUp` в деструктуризацию `require('../lib/storage.js')` в первой строке файла.
 
 ```js
 test('isCaughtUp: every released part watched and more announced', () => {
@@ -64,12 +64,12 @@ test('isCaughtUp: false without pending parts, without released parts, or withou
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `node --test tests/*.test.js`
 Expected: FAIL, `isCaughtUp is not a function`.
 
-- [ ] **Step 3: Write minimal implementation** — в `lib/storage.js` сразу после функции `hasPartsChecklist`:
+- [x] **Step 3: Write minimal implementation** — в `lib/storage.js` сразу после функции `hasPartsChecklist`:
 
 ```js
   // Watched everything that is out, but more is announced: by the numbers the
@@ -84,12 +84,12 @@ Expected: FAIL, `isCaughtUp is not a function`.
 
 и в объект `return { … }` в конце файла добавить `isCaughtUp: isCaughtUp,`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `node --test tests/*.test.js`
 Expected: PASS, 229 tests.
 
-- [ ] **Step 5: Use it in the random pick** — в `app.js` в обработчике `randomBtn.addEventListener('click', …)` заменить строку с `var pool = …` на:
+- [x] **Step 5: Use it in the random pick** — в `app.js` в обработчике `randomBtn.addEventListener('click', …)` заменить строку с `var pool = …` на:
 
 ```js
     var pool = titlesForCategory(state.category).filter(function (t) {
@@ -98,9 +98,9 @@ Expected: PASS, 229 tests.
     });
 ```
 
-- [ ] **Step 6: Verify in the browser** — поднять `python3 -m http.server 8765` в корне, открыть с заглушкой Supabase (как в аудите: подменить `supabase.min.js` через Playwright `context.route`, в `localStorage['backlog-added']` положить тайтлы из `data.js`, у Фрирен отметить сезоны 0 и 1 в `backlog-parts`), на вкладке «Аниме» 30 раз нажать «Что посмотреть?» и убедиться, что Фрирен не открывается ни разу.
+- [x] **Step 6: Verify in the browser** — поднять `python3 -m http.server 8765` в корне, открыть с заглушкой Supabase (как в аудите: подменить `supabase.min.js` через Playwright `context.route`, в `localStorage['backlog-added']` положить тайтлы из `data.js`, у Фрирен отметить сезоны 0 и 1 в `backlog-parts`), на вкладке «Аниме» 30 раз нажать «Что посмотреть?» и убедиться, что Фрирен не открывается ни разу.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add lib/storage.js app.js tests/storage.test.js
@@ -118,7 +118,7 @@ git commit -m "fix: random pick skips titles caught up with every released part 
 **Interfaces:**
 - Produces: команды `npm run dev | build | test | typecheck | e2e` в `app/`; `import.meta.env.BASE_URL` = `/backlog/v2/` в проде.
 
-- [ ] **Step 1: Create `app/package.json`**
+- [x] **Step 1: Create `app/package.json`**
 
 ```json
 {
@@ -163,7 +163,7 @@ git commit -m "fix: random pick skips titles caught up with every released part 
 }
 ```
 
-- [ ] **Step 2: Create `app/tsconfig.json`**
+- [x] **Step 2: Create `app/tsconfig.json`**
 
 ```json
 {
@@ -187,7 +187,7 @@ git commit -m "fix: random pick skips titles caught up with every released part 
 }
 ```
 
-- [ ] **Step 3: Create `app/vite.config.ts`**
+- [x] **Step 3: Create `app/vite.config.ts`**
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -241,7 +241,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 4: Create `app/index.html`** (inline-скрипт темы стоит до CSS, чтобы не было вспышки не той темы)
+- [x] **Step 4: Create `app/index.html`** (inline-скрипт темы стоит до CSS, чтобы не было вспышки не той темы)
 
 ```html
 <!doctype html>
@@ -261,7 +261,7 @@ export default defineConfig({
 </html>
 ```
 
-- [ ] **Step 5: Create `app/src/main.tsx` and `app/src/App.tsx`**
+- [x] **Step 5: Create `app/src/main.tsx` and `app/src/App.tsx`**
 
 ```tsx
 // app/src/main.tsx
@@ -279,7 +279,7 @@ export function App() {
 }
 ```
 
-- [ ] **Step 6: Create test setup and a smoke test**
+- [x] **Step 6: Create test setup and a smoke test**
 
 ```ts
 // app/tests/setup.ts
@@ -297,7 +297,7 @@ test('app renders', () => {
 });
 ```
 
-- [ ] **Step 7: Create `app/.gitignore` and extend the root one**
+- [x] **Step 7: Create `app/.gitignore` and extend the root one**
 
 `app/.gitignore`:
 ```
@@ -309,12 +309,12 @@ playwright-report
 
 В корневой `.gitignore` добавить строку `app/node_modules`.
 
-- [ ] **Step 8: Install and verify**
+- [x] **Step 8: Install and verify**
 
 Run: `cd app && npm install && npm test && npm run build`
 Expected: 1 test PASS; `app/dist/index.html` существует, в нём пути к ассетам начинаются с `/backlog/v2/`.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add .gitignore app/package.json app/package-lock.json app/tsconfig.json app/vite.config.ts app/index.html app/src app/tests app/.gitignore
@@ -341,7 +341,7 @@ git commit -m "chore: scaffold v2 app (Vite + React + TypeScript)"
   - `covers.ts`: `resolveCover(cover: string | undefined, assetRoot: string): string`.
   - `prefixedStorage.ts`: `prefixedStorage(storage: StorageLike, prefix: string): StorageLike`.
 
-- [ ] **Step 1: Create `app/src/lib/types.ts`**
+- [x] **Step 1: Create `app/src/lib/types.ts`**
 
 ```ts
 export type Category = 'game' | 'series' | 'movie' | 'anime';
@@ -381,7 +381,7 @@ export interface StorageLike {
 }
 ```
 
-- [ ] **Step 2: Port each module with one mechanical recipe.** Для `slug`, `query`, `storage`, `validate`:
+- [x] **Step 2: Port each module with one mechanical recipe.** Для `slug`, `query`, `storage`, `validate`:
   1. Скопировать `lib/<name>.js` в `app/src/lib/<name>.ts`.
   2. Удалить обёртку UMD: первые строки до `function () {` включительно и последние `}));` вместе с `return { … };`.
   3. Всё содержимое тела оставить без изменений логики. `var` можно оставить.
@@ -397,19 +397,19 @@ export function slugify(input: string): string { /* body copied verbatim from li
 
 (Выше — форма, не заглушка: тело берётся из исходника буквально.)
 
-- [ ] **Step 3: Port the tests with one recipe.** Для каждого из `tests/{slug,query,storage,validate}.test.js`:
+- [x] **Step 3: Port the tests with one recipe.** Для каждого из `tests/{slug,query,storage,validate}.test.js`:
   1. Скопировать в `app/tests/lib/<name>.test.ts`.
   2. `const test = require('node:test');` → удалить (Vitest `test` глобален).
   3. `const assert = require('node:assert/strict');` → `import assert from 'node:assert/strict';`
   4. `const { … } = require('../lib/<name>.js');` → `import { … } from '../../src/lib/<name>';`
   5. Ожидания не менять.
 
-- [ ] **Step 4: Run the ported tests**
+- [x] **Step 4: Run the ported tests**
 
 Run: `cd app && npx vitest run tests/lib`
 Expected: PASS; число тестов = 10 (slug) + 23 (query) + 51 (storage, с двумя из A1) + 10 (validate) = 94.
 
-- [ ] **Step 5: Write failing tests for `covers.ts` and `prefixedStorage.ts`**
+- [x] **Step 5: Write failing tests for `covers.ts` and `prefixedStorage.ts`**
 
 ```ts
 // app/tests/lib/covers.test.ts
@@ -450,12 +450,12 @@ test('keys are namespaced and never touch unprefixed keys', () => {
 });
 ```
 
-- [ ] **Step 6: Run to verify they fail**
+- [x] **Step 6: Run to verify they fail**
 
 Run: `cd app && npx vitest run tests/lib/covers.test.ts tests/lib/prefixedStorage.test.ts`
 Expected: FAIL, модули не найдены.
 
-- [ ] **Step 7: Implement**
+- [x] **Step 7: Implement**
 
 ```ts
 // app/src/lib/covers.ts
@@ -486,12 +486,12 @@ export function prefixedStorage(storage: StorageLike, prefix: string): StorageLi
 }
 ```
 
-- [ ] **Step 8: Run all lib tests**
+- [x] **Step 8: Run all lib tests**
 
 Run: `cd app && npx vitest run tests/lib && npm run typecheck`
 Expected: PASS (94 + 4); ошибок типов нет.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add app/src/lib app/tests/lib
@@ -515,14 +515,14 @@ git commit -m "feat(v2): port slug/query/storage/validate to TypeScript with the
   - `sync.ts`: `KEYS`, `TABLES`, `createClient`, `pullState`, `applyState`, `pushOverride`, `pushDraft`, `pushRemoveDraft`, `pushParts`, `seedLocal`, `useOutbox`, `outboxLength`, `flushOutbox`, `subscribe`, `consumeEcho`, `_resetEchoes`.
   - `config.ts`: `SUPABASE_URL`, `SUPABASE_KEY`, `TMDB_KEY`, `RAWG_KEY`, `CORS_PROXY`, `ASSET_ROOT`.
 
-- [ ] **Step 1: Port the three modules and their tests** тем же рецептом, что в A3, шаги 2–3. В `sync.ts` параметр `storage` у всех функций остаётся явным: v2 будет передавать `prefixedStorage(localStorage, 'bl2:')`.
+- [x] **Step 1: Port the three modules and their tests** тем же рецептом, что в A3, шаги 2–3. В `sync.ts` параметр `storage` у всех функций остаётся явным: v2 будет передавать `prefixedStorage(localStorage, 'bl2:')`.
 
-- [ ] **Step 2: Run the ported tests**
+- [x] **Step 2: Run the ported tests**
 
 Run: `cd app && npx vitest run tests/lib`
 Expected: PASS; прибавилось 33 (enrich) + 19 (auth) + 83 (sync) = 135, всего 233 в `tests/lib`. Число должно совпасть с числом тестов v1 плюс 2 из A1 и 4 из A3. Если меньше, найти пропущенный тест и перенести.
 
-- [ ] **Step 3: Create `app/src/config.ts`** — значения взять из `app.js` (строки рядом с `var SUPABASE_URL`, `var TMDB_KEY`, `var RAWG_KEY`, `var CORS_PROXY`), это публичные клиентские ключи (README v1, раздел «Ключ намеренно лежит в исходниках»):
+- [x] **Step 3: Create `app/src/config.ts`** — значения взять из `app.js` (строки рядом с `var SUPABASE_URL`, `var TMDB_KEY`, `var RAWG_KEY`, `var CORS_PROXY`), это публичные клиентские ключи (README v1, раздел «Ключ намеренно лежит в исходниках»):
 
 ```ts
 export const SUPABASE_URL = 'https://rjdnpwamcxvhryiigbvt.supabase.co';
@@ -536,7 +536,7 @@ export const ASSET_ROOT = import.meta.env.VITE_ASSET_ROOT ?? '/backlog/';
 
 (Значения те же, что в `app.js`: это публичные ключи, которые браузер обязан предъявить сам.)
 
-- [ ] **Step 4: Typecheck and commit**
+- [x] **Step 4: Typecheck and commit**
 
 Run: `cd app && npm run typecheck && npm test`
 Expected: PASS.
@@ -559,7 +559,7 @@ git commit -m "feat(v2): port enrich/auth/sync to TypeScript with their tests"
 **Interfaces:**
 - Produces: `type ThemePref = 'system' | 'light' | 'dark'`; `readTheme(): ThemePref`; `setTheme(pref: ThemePref): void`; `applyTheme(pref: ThemePref, root?: HTMLElement): void`. Ключ `bl2:theme`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 // app/tests/design/theme.test.ts
@@ -585,12 +585,12 @@ test('garbage in storage reads as system', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `cd app && npx vitest run tests/design`
 Expected: FAIL, модуль не найден.
 
-- [ ] **Step 3: Implement `theme.ts`**
+- [x] **Step 3: Implement `theme.ts`**
 
 ```ts
 export type ThemePref = 'system' | 'light' | 'dark';
@@ -616,7 +616,7 @@ export function setTheme(pref: ThemePref): void {
 }
 ```
 
-- [ ] **Step 4: Create `global.css`**
+- [x] **Step 4: Create `global.css`**
 
 ```css
 @import '@fontsource/onest/400.css';
@@ -643,9 +643,9 @@ img { display: block; max-width: 100%; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 ```
 
-- [ ] **Step 5: Wire it in `main.tsx`** — первой строкой `import './design/global.css';`.
+- [x] **Step 5: Wire it in `main.tsx`** — первой строкой `import './design/global.css';`.
 
-- [ ] **Step 6: Run tests and build, commit**
+- [x] **Step 6: Run tests and build, commit**
 
 Run: `cd app && npm test && npm run build`
 Expected: PASS; в `dist/assets` есть woff2 Onest и Unbounded.
@@ -676,7 +676,7 @@ git commit -m "feat(v2): design tokens, self-hosted fonts, theme preference"
 
 Размеры, отступы и цвета каждого компонента берутся из листа `docs/design/2026-09-25-redesign/mockups/Main.dc.html` и таблицы компонентов в `design-system.md` §5.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```tsx
 // app/tests/ui/Segmented.test.tsx
@@ -735,12 +735,12 @@ test('same user always gets the same color slot, within 1..6', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `cd app && npx vitest run tests/ui`
 Expected: FAIL, модули не найдены.
 
-- [ ] **Step 3: Implement `Segmented`, `Switch`, `Avatar`**
+- [x] **Step 3: Implement `Segmented`, `Switch`, `Avatar`**
 
 ```tsx
 // app/src/ui/Segmented.tsx
@@ -856,7 +856,7 @@ export function Avatar({ userId, name, size = 40 }: { userId: string; name: stri
 .avatar { border-radius: 50%; color: var(--avatar-ink); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 ```
 
-- [ ] **Step 4: Implement `Button`, `Chip`, `StatusPill`, `Skeleton`, `EmptyState`**
+- [x] **Step 4: Implement `Button`, `Chip`, `StatusPill`, `Skeleton`, `EmptyState`**
 
 ```tsx
 // app/src/ui/Button.tsx
@@ -996,12 +996,12 @@ export function EmptyState({ title, text, action }: { title: string; text: strin
 .text { margin: 0; color: var(--text-2); line-height: 1.45; max-width: 32ch; }
 ```
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 Run: `cd app && npx vitest run tests/ui && npm run typecheck`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/src/ui app/tests/ui
@@ -1030,7 +1030,7 @@ git commit -m "feat(v2): base UI components from the A+C design system"
   - `getSupabase(): SupabaseClient | null` — `null`, если не удалось создать; в сборке `--mode e2e` берёт `window.__blSupabaseStub`, если он есть.
   - `useSession(): { state: 'loading' | 'signedOut' | 'blocked' | 'ready'; userId: string | null; signIn(): void; signOut(): void }`.
 
-- [ ] **Step 1: Failing tests for Sheet and session**
+- [x] **Step 1: Failing tests for Sheet and session**
 
 ```tsx
 // app/tests/ui/Sheet.test.tsx
@@ -1085,12 +1085,12 @@ test('signed in without a profile is blocked, with a profile is ready', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `cd app && npx vitest run tests/ui/Sheet.test.tsx tests/data`
 Expected: FAIL, модули не найдены.
 
-- [ ] **Step 3: Implement `Sheet`**
+- [x] **Step 3: Implement `Sheet`**
 
 ```tsx
 // app/src/ui/Sheet.tsx
@@ -1172,7 +1172,7 @@ export function Sheet({ open, onClose, labelledBy, children, footer }: Props) {
 }
 ```
 
-- [ ] **Step 4: Implement session state and the Supabase client**
+- [x] **Step 4: Implement session state and the Supabase client**
 
 ```ts
 // app/src/data/supabase.ts
@@ -1237,7 +1237,7 @@ export function useSession() {
 }
 ```
 
-- [ ] **Step 5: Implement `TabBar`, `DeskRail`, `AppShell`** — по макетам `TabBar.dc.html` (капсула 358×68 + «+» 68×68, стекло `--glass`, `backdrop-filter: blur(22px) saturate(160%)`, отступ снизу `max(26px, env(safe-area-inset-bottom))`) и `DeskRail.dc.html` (96px). Иконки Phosphor: `SquaresFour` (Бэклог), `UsersThree` (Друзья), `ChartBar` (Итоги), `UserCircle` (Профиль), `Plus` (добавить), `Moon`/`Sun` (тема). Секции передаются списком, чтобы до подпроекта D «Друзья» можно было не показывать.
+- [x] **Step 5: Implement `TabBar`, `DeskRail`, `AppShell`** — по макетам `TabBar.dc.html` (капсула 358×68 + «+» 68×68, стекло `--glass`, `backdrop-filter: blur(22px) saturate(160%)`, отступ снизу `max(26px, env(safe-area-inset-bottom))`) и `DeskRail.dc.html` (96px). Иконки Phosphor: `SquaresFour` (Бэклог), `UsersThree` (Друзья), `ChartBar` (Итоги), `UserCircle` (Профиль), `Plus` (добавить), `Moon`/`Sun` (тема). Секции передаются списком, чтобы до подпроекта D «Друзья» можно было не показывать.
 
 ```tsx
 // app/src/ui/TabBar.tsx
@@ -1312,7 +1312,7 @@ export function AppShell({ sections, section, badge, onNavigate, onAdd, children
 @media (min-width: 1024px) { .shell { display: flex; } .main { flex: 1; min-width: 0; padding: 28px var(--gutter-desktop) 40px 12px; } }
 ```
 
-- [ ] **Step 6: Implement `SignIn`, `NotInvited` and wire `App`** — `SignIn` по `ACSignIn.dc.html`: стена постеров (16 файлов `images/covers/*.jpg` из макета через `resolveCover(…, ASSET_ROOT)`), заголовок Unbounded 40, текст, `Button size="lg"` «Войти через Google», подпись «Вход по приглашению». `NotInvited`: заголовок «Этот аккаунт пока не приглашён», `Button variant="neutral"` «Выйти».
+- [x] **Step 6: Implement `SignIn`, `NotInvited` and wire `App`** — `SignIn` по `ACSignIn.dc.html`: стена постеров (16 файлов `images/covers/*.jpg` из макета через `resolveCover(…, ASSET_ROOT)`), заголовок Unbounded 40, текст, `Button size="lg"` «Войти через Google», подпись «Вход по приглашению». `NotInvited`: заголовок «Этот аккаунт пока не приглашён», `Button variant="neutral"` «Выйти».
 
 ```tsx
 // app/src/App.tsx
@@ -1343,12 +1343,12 @@ export function App() {
 
 Удалить `app/tests/smoke.test.tsx` из A2: «Бэклог» теперь рендерится только после входа, а вход покрыт e2e.
 
-- [ ] **Step 7: Run unit tests**
+- [x] **Step 7: Run unit tests**
 
 Run: `cd app && npm test && npm run typecheck`
 Expected: PASS.
 
-- [ ] **Step 8: e2e harness** — `app/playwright.config.ts`:
+- [x] **Step 8: e2e harness** — `app/playwright.config.ts`:
 
 ```ts
 import { defineConfig, devices } from '@playwright/test';
@@ -1411,12 +1411,12 @@ test('v2 never touches v1 localStorage keys', async ({ page }) => {
 });
 ```
 
-- [ ] **Step 9: Run e2e**
+- [x] **Step 9: Run e2e**
 
 Run: `cd app && npm run e2e`
 Expected: PASS в проектах `phone` и `desktop`.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add app/src app/tests app/e2e app/playwright.config.ts
@@ -1434,7 +1434,7 @@ git commit -m "feat(v2): bottom sheet, navigation shell, Supabase session and si
 **Interfaces:**
 - Produces: каждый push в `master` публикует сайт, где корень — v1 (как сейчас), `/v2/` — v2. Каждый PR прогоняет тесты v1, тесты и сборку v2, e2e.
 
-- [ ] **Step 1: Create `.github/workflows/ci.yml`**
+- [x] **Step 1: Create `.github/workflows/ci.yml`**
 
 ```yaml
 name: CI
@@ -1464,7 +1464,7 @@ jobs:
 
 (`playwright install` здесь нужен: это раннер GitHub, а не облачная среда Claude с предустановленными браузерами.)
 
-- [ ] **Step 2: Create `.github/workflows/deploy.yml`**
+- [x] **Step 2: Create `.github/workflows/deploy.yml`**
 
 ```yaml
 name: Deploy
@@ -1513,7 +1513,7 @@ jobs:
   1. GitHub → репозиторий → Settings → Pages → Source: **GitHub Actions**.
   2. Supabase (проект `rjdnpwamcxvhryiigbvt`) → Authentication → URL Configuration → Redirect URLs: добавить `https://ledoksi.github.io/backlog/v2/`.
 
-- [ ] **Step 4: Add the README note** — в начало `README.md`, после первого абзаца:
+- [x] **Step 4: Add the README note** — в начало `README.md`, после первого абзаца:
 
 ```markdown
 > **v2 в разработке.** Новый интерфейс живёт в `app/` (React + Vite) и открывается по адресу `/backlog/v2/`. Спека: `docs/superpowers/specs/2026-09-25-redesign-social-design.md`, планы: `docs/superpowers/plans/2026-09-25-redesign-*.md`. Запуск: `cd app && npm install && npm run dev`.
@@ -1531,6 +1531,19 @@ git commit -m "ci: test both versions and deploy v1 + v2 to GitHub Pages"
   - `https://ledoksi.github.io/backlog/v2/` — экран входа v2; вход через Google возвращает на `/v2/`, открывается оболочка с навигацией.
   - В DevTools → Application → Service Workers два воркера: scope `/backlog/` (v1) и `/backlog/v2/` (v2).
   - Постеры на экране входа v2 грузятся с `/backlog/images/covers/`.
+
+## Отклонения при реализации (2026-09-28, PR #2)
+
+Что пошло не так, как написано выше, и почему. Следующим планам (B–D) стоит опираться на этот список, а не на текст задач.
+
+- **A1.** Кроме фильтра `pool`, «Что посмотреть?» различает пустой пул: если на вкладке остались только досмотренные до конца вышедшего тайтлы, кнопка пишет «Ждём новых серий», а не «Тут всё завершено».
+- **A3/A4.** Перенесённые тест-файлы `app/tests/lib/*.test.ts` начинаются с `// @ts-nocheck`: их фикстуры нарочно неполные или битые, типизация потребовала бы переписать тесты. Модули в `src/lib` типизированы (внешние сигнатуры, внутренности через `any`), `typecheck` чистый. В `types.ts` добавлены `SupabaseLike` и `FetchLike`. `validate.ts` экспортирует и `validateCatalog`, как в v1.
+- **A5–A6.** Сырые `#fff` в `Switch` и бейдже `TabBar` заменены на `var(--on-accent)`. `Chip` склеивает переданный `className`, `Segmented` остаётся доступным с клавиатуры, если `value` нет среди вариантов.
+- **A7 `Sheet`.** Эффект зависит только от `open`, `onClose` лежит в ref: иначе любая перерисовка родителя с инлайн-стрелкой делала `history.back()` и закрывала панель. Собственные `history.back()` помечаются и не считаются нажатием «Назад» (StrictMode монтирует эффект дважды). На десктопе панель центрируется флексом корня, а не `transform`: `transform` принадлежит motion. Тест на Esc ждёт окончания анимации выхода (`waitFor`). Вложенные панели пока не поддерживаются: «Назад» закроет обе.
+- **A7 `useSession`.** Проверка профиля различает «нет профиля» и «запрос не удался» (`hasProfile: null` → `ready`): сбой сети или обновление токена не выкидывает приглашённого человека на экран «не приглашён». Перекрывающиеся вызовы `evaluate` пишут состояние только из последнего.
+- **A7 `DeskRail`.** Внизу быстрая кнопка светлая/тёмная; полный выбор из трёх — в профиле (C).
+- **A7/A8 изображения.** `vite.config.ts` в dev и preview отдаёт `../images` по пути `/backlog/images/`, чтобы постеры и иконки работали локально и в e2e так же, как на Pages.
+- **A8.** `ci.yml` запускается только на `pull_request` (с `push` каждый пуш в PR гонял всё дважды). `sw.js` v1 при активации удаляет только свои кэши `backlog-*`: сайт v1 и v2 — один origin, и старый фильтр стирал прекэш v2. Это единственная правка v1 вне A1.
 
 ## Self-Review (выполнено при написании)
 
