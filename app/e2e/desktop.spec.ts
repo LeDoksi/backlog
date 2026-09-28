@@ -50,3 +50,18 @@ test('the title modal leaves quickly on close instead of parking at the bottom e
   await page.waitForTimeout(350);
   await expect(dialog).toHaveCount(0, { timeout: 1 });
 });
+
+test('the sign-in poster wall fills a wide screen', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1000 });
+  await installStub(page, { signedIn: false });
+  await page.goto('./');
+  await expect(page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  const span = await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll('img')].map((i) => i.getBoundingClientRect()).filter((r) => r.width > 0 && r.bottom > 0 && r.top < innerHeight);
+    const left = Math.max(0, Math.min(...boxes.map((r) => r.left)));
+    const right = Math.min(innerWidth, Math.max(...boxes.map((r) => r.right)));
+    return { count: boxes.length, share: (right - left) / innerWidth };
+  });
+  expect(span.share).toBeGreaterThan(0.95);
+  expect(span.count).toBeGreaterThanOrEqual(24);
+});

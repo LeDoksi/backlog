@@ -1,5 +1,6 @@
 .screen { position: relative; min-height: 100dvh; overflow: hidden; background: var(--bg); }
 .wall { position: absolute; left: -70px; top: 30px; width: 540px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; transform: rotate(-9deg); }
+.poster:nth-child(n + 17) { display: none; }
 .poster { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 20px; box-shadow: var(--shadow-poster); background: var(--poster-empty); }
 .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; background: linear-gradient(to top, var(--bg) 58%, var(--bg-clear)); }
 .content { position: absolute; left: 24px; right: 24px; bottom: max(44px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; max-width: 420px; margin: 0 auto; }
@@ -8,5 +9,7 @@
 .cta { margin-top: 12px; }
 .note { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; }
 @media (min-width: 1024px) {
-  .wall { left: 50%; width: 1100px; margin-left: -550px; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  /* Wider than the screen and rotated, so the corners stay covered too. */
+  .wall { left: 50%; top: -40px; width: max(1400px, 125vw); margin-left: calc(max(1400px, 125vw) / -2); grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .poster:nth-child(n + 17) { display: block; }
 }
