@@ -1,33 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSupabase } from './supabase';
 import * as Auth from '../lib/auth';
+import { applyTheme, readTheme, rememberTheme } from '../design/theme';
 
-export type SessionState = 'loading' | 'signedOut' | 'blocked' | 'ready';
+export type SessionState = 'loading' | 'signedOut' | 'blocked' | 'onboarding' | 'ready';
 
-// `hasProfile: null` means the profile check itself failed (offline, a token
-// refresh mid-flight). That is not evidence of "not invited", and treating it
-// as such would bounce an invited user to a screen whose only button signs
-// them out. Row-level security still guards the data, so letting them in is
-// the safe side of the mistake.
-export function resolveSessionState(x: { hasClient: boolean; userId: string | null; hasProfile: boolean | null }): Exclude<SessionState, 'loading'> {
+// `null` means the check itself failed (offline, a token refresh
+// mid-flight). That is not evidence of "not invited", and treating it as such
+// would bounce an invited user to a screen whose only button signs them out.
+// Row-level security still guards the data, so letting them in is the safe
+// side of the mistake.
+export function resolveSessionState(x: {
+  hasClient: boolean;
+  userId: string | null;
+  signup: Auth.SignupStatus | null;
+  profile: Auth.Profile | null;
+}): Exclude<SessionState, 'loading'> {
   if (!x.hasClient || !x.userId) return 'signedOut';
-  return x.hasProfile === false ? 'blocked' : 'ready';
+  if (x.signup === 'not_invited') return 'blocked';
+  if (x.profile && !x.profile.nickname) return 'onboarding';
+  return 'ready';
 }
 
-async function checkProfile(sb: NonNullable<ReturnType<typeof getSupabase>>, userId: string): Promise<boolean | null> {
-  try {
-    const res = await sb.from('profiles').select('id').eq('id', userId).maybeSingle();
-    if (res.error) return null;
-    return !!res.data;
-  } catch {
-    return null;
-  }
+// A starting point for the nickname field; the person can change it.
+export function suggestNickname(email: string): string {
+  const local = (email.split('@')[0] ?? '').toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 20);
+  return /^[a-z0-9_]{3,20}$/.test(local) ? local : '';
 }
 
 export function useSession() {
   const [state, setState] = useState<SessionState>('loading');
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Auth.Profile | null>(null);
   // Evaluations overlap (mount, INITIAL_SESSION, token refresh, sign-out);
   // only the latest one may write, or a slow earlier check could reopen the
   // app for someone who has just signed out.
@@ -40,16 +45,26 @@ export function useSession() {
     const res = await Auth.getSession(sb);
     const id = res?.data?.session?.user?.id ?? null;
     const mail = res?.data?.session?.user?.email ?? null;
-    const ok = id ? await checkProfile(sb, id) : false;
+    // Sets up profile, personal board and membership if any is missing.
+    const signup = id ? await Auth.completeSignup(sb) : null;
+    const me = id && signup !== 'not_invited' ? await Auth.myProfile(sb) : null;
     if (run !== latest.current) return;
     setUserId(id);
     setEmail(mail);
-    setState(resolveSessionState({ hasClient: true, userId: id, hasProfile: ok }));
+    setProfile(me);
+    // The theme follows the account across devices; the local copy only
+    // exists so the first paint does not flash.
+    if (me && me.theme && me.theme !== readTheme()) { rememberTheme(me.theme); applyTheme(me.theme); }
+    setState(resolveSessionState({ hasClient: true, userId: id, signup, profile: me }));
   }, []);
 
   useEffect(() => {
     void evaluate();
-    const sub = Auth.onAuthStateChange(getSupabase(), () => { void evaluate(); });
+    const sub = Auth.onAuthStateChange(getSupabase(), (event) => {
+      // A token refresh changes nothing about who is signed in.
+      if (event === 'TOKEN_REFRESHED') return;
+      void evaluate();
+    });
     return () => sub.unsubscribe();
   }, [evaluate]);
 
@@ -57,6 +72,9 @@ export function useSession() {
     state,
     userId,
     email,
+    profile,
+    /** After the nickname screen or a profile edit. */
+    setProfile: (p: Auth.Profile) => { setProfile(p); if (p.nickname) setState('ready'); },
     signIn: () => { void Auth.signInWithGoogle(getSupabase(), window.location.origin + import.meta.env.BASE_URL); },
     signOut: (): Promise<void> => Auth.signOut(getSupabase()).then(evaluate)
   };

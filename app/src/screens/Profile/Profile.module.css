@@ -23,3 +23,10 @@
 .member { min-height: 56px; padding: 0 8px 0 10px; border-radius: var(--r-sm); background: var(--sunken); display: flex; align-items: center; gap: 12px; }
 .memberMail { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .memberAction { min-height: 44px; padding: 0 14px; border: 0; border-radius: var(--r-pill); background: var(--danger-soft); color: var(--danger); font-weight: 600; font-size: var(--fs-sm); }
+.board { min-height: 64px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--sunken); display: flex; align-items: center; gap: 12px; }
+.boardAvatars { display: flex; flex-shrink: 0; }
+.boardAvatars > * + * { margin-left: -12px; box-shadow: 0 0 0 2px var(--sunken); }
+.boardText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.invite { display: flex; align-items: center; gap: 12px; }
+.inviteText { flex: 1; min-width: 0; font-size: var(--fs-md); line-height: 1.35; }
+.iconBtn { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: var(--r-pill); background: var(--sunken); color: var(--text-2); display: grid; place-items: center; }

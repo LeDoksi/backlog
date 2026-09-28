@@ -76,30 +76,6 @@ function hasProfile(client: SupabaseLike, userId: string | null | undefined): Pr
   ).then(function (res: any) { return !!(res && res.data); });
 }
 
-function listWorkspaceMembers(client: SupabaseLike): Promise<{ id: string; email: string }[]> {
-  if (!client) return Promise.resolve([]);
-  return guarded(
-    function () { return client.from('profiles').select('id, email'); },
-    function () { return null; }
-  ).then(function (res: any) { return (res && Array.isArray(res.data)) ? res.data : []; });
-}
-
-function leaveWorkspace(client: SupabaseLike): Promise<Result> {
-  if (!client) return Promise.resolve(noClientError());
-  return guarded(
-    function () { return client.rpc('leave_workspace'); },
-    function (e) { return { data: null, error: e || { message: 'unknown' } }; }
-  );
-}
-
-function removeMember(client: SupabaseLike, userId: string): Promise<Result> {
-  if (!client) return Promise.resolve(noClientError());
-  return guarded(
-    function () { return client.rpc('remove_member', { target_user_id: userId }); },
-    function (e) { return { data: null, error: e || { message: 'unknown' } }; }
-  );
-}
-
 // ── Profile and boards (v2 schema) ─────────────────────────────────────
 //
 // Same contract as above: never throws, and "the call failed" is `null`,
@@ -183,8 +159,5 @@ export {
   getSession,
   onAuthStateChange,
   hasProfile,
-  listWorkspaceMembers,
-  inviteEmail,
-  leaveWorkspace,
-  removeMember
+  inviteEmail
 };

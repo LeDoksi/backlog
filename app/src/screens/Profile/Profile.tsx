@@ -1,24 +1,79 @@
-import { useState } from 'react';
-import { CaretRight, EnvelopeSimple, SignOut, UsersThree } from '@phosphor-icons/react';
+import { useEffect, useState } from 'react';
+import { CaretRight, EnvelopeSimple, Plus, SignOut, X } from '@phosphor-icons/react';
 import { Avatar } from '../../ui/Avatar';
+import { Button } from '../../ui/Button';
 import { Segmented } from '../../ui/Segmented';
 import { Confirm } from '../../ui/Confirm';
 import { readTheme, setTheme, type ThemePref } from '../../design/theme';
 import { useTitles } from '../../data/titlesStore';
+import { useBoards } from '../../data/boardsStore';
+import { getSupabase } from '../../data/supabase';
 import { plural } from '../../data/labels';
+import * as Auth from '../../lib/auth';
+import { myBoardInvites, respondBoardInvite, type BoardInvite } from '../../lib/boards';
 import { InviteSheet } from './InviteSheet';
+import { NickInviteSheet } from './NickInviteSheet';
 import { MembersSheet } from './MembersSheet';
+import { EditProfileSheet } from './EditProfileSheet';
+import { boardErrorText, boardLine, boardName } from './boardTexts';
 import s from './Profile.module.css';
 
-interface Props { userId: string; email: string; onSignOut: () => void }
+interface Props { profile: Auth.Profile; onProfile(p: Auth.Profile): void; onSignOut(): void }
 
-export function Profile({ userId, email, onSignOut }: Props) {
+type Panel = 'email' | 'nick' | 'members' | 'edit' | null;
+
+function BoardInvites({ onAccepted }: { onAccepted(): void }) {
+  const [invites, setInvites] = useState<BoardInvite[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { void myBoardInvites(getSupabase()).then(setInvites); }, []);
+
+  async function answer(inv: BoardInvite, accept: boolean) {
+    setError(null);
+    const res = await respondBoardInvite(getSupabase(), inv.id, accept);
+    if (!res.ok) { setError(boardErrorText(res.error, inv.from_nickname ?? '')); return; }
+    setInvites((all) => all.filter((i) => i.id !== inv.id));
+    if (accept) onAccepted();
+  }
+
+  if (!invites.length) return null;
+  return (
+    <section className={s.card} aria-label="Приглашения">
+      {invites.map((inv) => (
+        <div key={inv.id} className={s.invite}>
+          <Avatar userId={inv.from_id} name={inv.from_name} size={40} />
+          <span className={s.inviteText}><b>{inv.from_name}</b> зовёт в общую доску</span>
+          <Button size="md" onClick={() => void answer(inv, true)}>Принять</Button>
+          <button type="button" className={s.iconBtn} aria-label={`Отклонить приглашение от ${inv.from_name}`} onClick={() => void answer(inv, false)}>
+            <X size={18} weight="bold" aria-hidden="true" />
+          </button>
+        </div>
+      ))}
+      {error && <p role="alert" className={s.error}>{error}</p>}
+    </section>
+  );
+}
+
+export function Profile({ profile, onProfile, onSignOut }: Props) {
   const [theme, setThemeState] = useState<ThemePref>(readTheme);
-  const [panel, setPanel] = useState<'invite' | 'members' | null>(null);
+  const [panel, setPanel] = useState<Panel>(null);
   const [leaving, setLeaving] = useState(false);
-  const count = useTitles((t) => t.titles.length);
+  const boards = useBoards((b) => b.boards);
   const pending = useTitles((t) => t.pending);
-  const name = email.split('@')[0] ?? email;
+  const userId = profile.id;
+  const name = profile.display_name || profile.email.split('@')[0] || profile.email;
+  const personal = boards.find((b) => b.kind === 'personal') ?? null;
+  const shared = boards.find((b) => b.kind === 'shared') ?? null;
+  const refresh = () => { void useBoards.getState().refresh(); };
+
+  // Counts on the cards come from the server; the board list is re-read
+  // each time the profile opens so they match what was just added.
+  useEffect(refresh, []);
+
+  function changeTheme(v: ThemePref) {
+    setTheme(v);
+    setThemeState(v);
+    void Auth.setTheme(getSupabase(), v);
+  }
 
   return (
     <div className={s.screen}>
@@ -27,36 +82,59 @@ export function Profile({ userId, email, onSignOut }: Props) {
         <Avatar userId={userId} name={name} size={64} />
         <div className={s.who}>
           <h1 className={s.name}>{name}</h1>
-          <span className={s.email}>{email}</span>
+          <span className={s.email}>{profile.nickname ? `@${profile.nickname}` : profile.email}</span>
         </div>
+        <Button variant="neutral" onClick={() => setPanel('edit')}>Изменить</Button>
       </div>
 
+      <BoardInvites onAccepted={refresh} />
+
       <section className={s.card}>
-        <h2 className={s.h2}>Бэклог</h2>
-        <p className={s.muted}>{count} {plural(count, 'тайтл', 'тайтла', 'тайтлов')} в твоём пространстве</p>
+        <h2 className={s.h2}>Доски</h2>
         <div className={s.rows}>
-          <button type="button" className={s.row} onClick={() => setPanel('invite')}>
-            <EnvelopeSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить по email</span><CaretRight size={18} aria-hidden="true" />
-          </button>
-          <button type="button" className={s.row} onClick={() => setPanel('members')}>
-            <UsersThree size={22} aria-hidden="true" /><span className={s.rowLabel}>Участники</span><CaretRight size={18} aria-hidden="true" />
-          </button>
+          {personal && (
+            <div className={s.board}>
+              <div className={s.boardAvatars}><Avatar userId={userId} name={name} size={36} /></div>
+              <div className={s.boardText}><span className={s.rowLabel}>{boardName(personal)}</span><span className={s.muted}>{boardLine(personal, userId)}</span></div>
+            </div>
+          )}
+          {shared ? (
+            <div className={s.board}>
+              <div className={s.boardAvatars}>
+                {(shared.members ?? []).slice(0, 3).map((m) => <Avatar key={m.id} userId={m.id} name={m.name} size={36} />)}
+              </div>
+              <div className={s.boardText}><span className={s.rowLabel}>{boardName(shared)}</span><span className={s.muted}>{boardLine(shared, userId)}</span></div>
+              <Button variant="tonal" onClick={() => setPanel('members')}>Участники</Button>
+            </div>
+          ) : (
+            <button type="button" className={s.row} onClick={() => setPanel('nick')}>
+              <Plus size={22} aria-hidden="true" /><span className={s.rowLabel}>Создать общую доску</span><CaretRight size={18} aria-hidden="true" />
+            </button>
+          )}
         </div>
       </section>
 
       <section className={s.card}>
         <h2 className={s.h2}>Оформление</h2>
-        <Segmented label="Тема" value={theme} onChange={(v) => { setTheme(v); setThemeState(v); }}
+        <Segmented label="Тема" value={theme} onChange={changeTheme}
           options={[{ value: 'light', label: 'Светлая' }, { value: 'dark', label: 'Тёмная' }, { value: 'system', label: 'Как в системе' }]} />
+      </section>
+
+      <section className={s.card}>
+        <button type="button" className={s.row} onClick={() => setPanel('email')}>
+          <EnvelopeSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить в Бэклог</span><CaretRight size={18} aria-hidden="true" />
+        </button>
       </section>
 
       <button type="button" className={s.signOut} onClick={() => setLeaving(true)}><SignOut size={20} aria-hidden="true" />Выйти из аккаунта</button>
 
-      <InviteSheet open={panel === 'invite'} onClose={() => setPanel(null)} />
-      <MembersSheet open={panel === 'members'} onClose={() => setPanel(null)} userId={userId} />
+      <InviteSheet open={panel === 'email'} onClose={() => setPanel(null)} />
+      <NickInviteSheet open={panel === 'nick'} creating={!shared} onClose={() => { setPanel(null); refresh(); }} />
+      <MembersSheet open={panel === 'members'} board={shared} userId={userId} onClose={() => setPanel(null)} onInvite={() => setPanel('nick')} />
+      <EditProfileSheet open={panel === 'edit'} profile={profile} onSaved={onProfile} onClose={() => setPanel(null)} />
       <Confirm open={leaving} title="Выйти из аккаунта?" text={pending
           ? `Ещё не сохранено в облаке: ${pending} ${plural(pending, 'правка', 'правки', 'правок')}. Если выйти без сети, они пропадут.`
-          : 'Бэклог останется в облаке, войти можно снова в любой момент.'} confirm="Выйти"
+          : 'Доски останутся в облаке, войти можно снова в любой момент.'} confirm="Выйти"
         onCancel={() => setLeaving(false)} onConfirm={() => { setLeaving(false); onSignOut(); }} />
     </div>
   );

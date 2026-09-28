@@ -5,7 +5,7 @@ import { catalogRows, catalogTitles } from './fixtures/catalog';
 const rows = catalogRows();
 
 test.beforeEach(async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: rows });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: rows });
   await page.goto('./');
   await expect(page.locator('article').first()).toBeVisible();
 });

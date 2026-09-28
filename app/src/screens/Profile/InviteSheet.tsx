@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
-import { Switch } from '../../ui/Switch';
 import { getSupabase } from '../../data/supabase';
 import * as Auth from '../../lib/auth';
 import s from './Profile.module.css';
 
+// Lets someone into the app. Boards are joined separately, by nickname.
 export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [email, setEmail] = useState('');
-  const [addToMine, setAddToMine] = useState(false);
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
-  function close() { setEmail(''); setAddToMine(false); setState('idle'); onClose(); }
+  function close() { setEmail(''); setState('idle'); onClose(); }
 
   async function send() {
     const value = email.trim();
@@ -27,7 +26,7 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
         ? <Button className={s.full} onClick={close}>Готово</Button>
         : <Button className={s.full} disabled={state === 'sending'} onClick={() => void send()}>Пригласить</Button>
     }>
-      <h2 id="invite-title" className={s.sheetTitle}>Пригласить по email</h2>
+      <h2 id="invite-title" className={s.sheetTitle}>Пригласить в Бэклог</h2>
       {state === 'sent' ? (
         <p className={s.muted} role="status">Готово. Пусть {email.trim()} войдёт через Google с этой почтой.</p>
       ) : (
@@ -39,7 +38,7 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
               aria-invalid={state === 'error'} aria-describedby={state === 'error' ? 'invite-error' : undefined} />
             {state === 'error' && <span id="invite-error" role="alert" className={s.error}>Не удалось пригласить. Проверь адрес.</span>}
           </label>
-          <Switch label="Добавить в моё пространство" hint="Человек увидит и сможет менять этот бэклог" checked={addToMine} onChange={setAddToMine} />
+          <p className={s.muted}>Человек получит доступ к приложению со своей личной доской.</p>
         </form>
       )}
     </Sheet>

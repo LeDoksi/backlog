@@ -167,44 +167,6 @@ test('hasProfile filters by the current user, not the whole workspace', async ()
   assert.equal(seenValue, 'u2');
 });
 
-test('listWorkspaceMembers returns the rows from the profiles table', async () => {
-  var client = fakeClient({
-    from: function (table) {
-      assert.equal(table, 'profiles');
-      return { select: function () {
-        return Promise.resolve({ data: [{ id: 'u1', email: 'a@x.com' }], error: null });
-      } };
-    }
-  });
-  var members = await Auth.listWorkspaceMembers(client);
-  assert.deepEqual(members, [{ id: 'u1', email: 'a@x.com' }]);
-});
-
-test('listWorkspaceMembers without a client resolves to an empty list', async () => {
-  assert.deepEqual(await Auth.listWorkspaceMembers(null), []);
-});
-
-test('leaveWorkspace calls the leave_workspace RPC with no arguments', async () => {
-  var seenName = null;
-  var client = fakeClient({
-    rpc: function (name) { seenName = name; return Promise.resolve({ data: null, error: null }); }
-  });
-  await Auth.leaveWorkspace(client);
-  assert.equal(seenName, 'leave_workspace');
-});
-
-test('removeMember calls the remove_member RPC with the target id', async () => {
-  var seenName = null, seenArgs = null;
-  var client = fakeClient({
-    rpc: function (name, args) { seenName = name; seenArgs = args; return Promise.resolve({ data: null, error: null }); }
-  });
-  await Auth.removeMember(client, 'u2');
-  assert.equal(seenName, 'remove_member');
-  assert.deepEqual(seenArgs, { target_user_id: 'u2' });
-});
-
-test('inviteEmail/leaveWorkspace/removeMember without a client resolve to an error, never throw', async () => {
-  assert.equal((await Auth.inviteEmail(null, 'x@x.com', false)).error.message, 'no client');
-  assert.equal((await Auth.leaveWorkspace(null)).error.message, 'no client');
-  assert.equal((await Auth.removeMember(null, 'u1')).error.message, 'no client');
+test('inviteEmail without a client resolves to an error, never throws', async () => {
+  assert.equal((await Auth.inviteEmail(null, 'x@x.com')).error.message, 'no client');
 });

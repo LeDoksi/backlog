@@ -6,7 +6,7 @@ import { catalogRows } from './fixtures/catalog';
 // Spec 7: no serious or critical axe violations on the core screens, in both
 // themes. Minor/moderate findings are reported by axe but not gated.
 const rows = catalogRows(24);
-const parts = [{ id: rows.find((r) => r.parts)!.id, indices: [0], updated_at: 'x' }];
+const parts = [{ id: String(rows.find((r) => r.parts)!.id), indices: [0] }];
 
 async function audit(page: Page, where: string) {
   // Let entry animations settle, otherwise contrast is measured mid-fade.
@@ -35,7 +35,7 @@ for (const theme of ['light', 'dark'] as const) {
     });
 
     test('backlog, title panel and edit form', async ({ page }) => {
-      await installStub(page, { signedIn: true, hasProfile: true, drafts: rows, parts });
+      await installStub(page, { signedIn: true, hasProfile: true, titles: rows, parts });
       await page.goto('./');
       await expect(page.locator('article.bl-card').first()).toBeVisible();
       await audit(page, 'backlog');
@@ -48,7 +48,7 @@ for (const theme of ['light', 'dark'] as const) {
     });
 
     test('quick add', async ({ page }) => {
-      await installStub(page, { signedIn: true, hasProfile: true, drafts: rows });
+      await installStub(page, { signedIn: true, hasProfile: true, titles: rows });
       await page.goto('./');
       await page.getByRole('button', { name: 'Добавить тайтл' }).filter({ visible: true }).first().click();
       await expect(page.getByRole('dialog', { name: /Добав/ })).toBeVisible();
@@ -56,7 +56,7 @@ for (const theme of ['light', 'dark'] as const) {
     });
 
     test('stats and profile', async ({ page }) => {
-      await installStub(page, { signedIn: true, hasProfile: true, drafts: rows, parts });
+      await installStub(page, { signedIn: true, hasProfile: true, titles: rows, parts });
       await page.goto('./');
       await nav(page, 'Итоги');
       await expect(page.getByText('За всё время')).toBeVisible();

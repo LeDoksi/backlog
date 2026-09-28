@@ -4,7 +4,7 @@ import { catalogRows, catalogTitles } from './fixtures/catalog';
 
 test('long press offers statuses and does not open the panel', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'touch only');
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   const plain = catalogTitles.find((t) => !t.parts && t.status === 'queue')!;
   const card = page.locator(`article[data-id="${plain.id}"]`);
@@ -23,14 +23,14 @@ test('long press offers statuses and does not open the panel', async ({ page, is
 });
 
 test('a plain tap opens the panel', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   await page.locator('article > button').first().click();
   await expect(page.getByRole('dialog')).toBeVisible();
 });
 
 test('the ⋯ button opens the same menu from the keyboard', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   const plain = catalogTitles.find((t) => !t.parts && t.status === 'queue')!;
   const card = page.locator(`article[data-id="${plain.id}"]`);

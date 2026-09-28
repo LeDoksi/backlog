@@ -3,7 +3,7 @@ import { installStub } from './fixtures/supabaseStub';
 import { catalogRows, catalogTitles } from './fixtures/catalog';
 
 test('editing the name shows on the card', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   const t = catalogTitles.find((x) => !x.parts)!;
   const card = page.locator(`article[data-id="${t.id}"]`);
@@ -19,7 +19,7 @@ test('editing the name shows on the card', async ({ page }) => {
 });
 
 test('leaving with changes asks first, Back included', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   await page.locator('article > button').first().click();
   await page.getByRole('button', { name: 'Редактировать' }).click();
@@ -37,7 +37,7 @@ test('leaving with changes asks first, Back included', async ({ page }) => {
 });
 
 test('switching to Кино hides the parts editor', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   const t = catalogTitles.find((x) => x.parts)!;
   await page.locator(`article[data-id="${t.id}"] > button`).first().click();
@@ -51,7 +51,7 @@ test('switching to Кино hides the parts editor', async ({ page }) => {
 test('removing a watched season keeps the other ticks on their seasons', async ({ page }) => {
   const t = catalogTitles.find((x) => x.parts && x.parts.length >= 2 && x.parts[0]!.released !== false && x.parts[1]!.released !== false)!;
   // Season 2 watched, season 1 not.
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows(), parts: [{ id: t.id, indices: [1], updated_at: 'x' }] });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(), parts: [{ id: t.id, indices: [1] }] });
   await page.goto('./');
   await page.locator(`article[data-id="${t.id}"] > button`).first().click();
   const sheet = page.getByRole('dialog', { name: t.title });

@@ -3,7 +3,7 @@ import { installStub } from './fixtures/supabaseStub';
 import { catalogRows, catalogTitles } from './fixtures/catalog';
 
 test('an edit made offline shows at once and goes out when the network is back', async ({ page, context }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows(12) });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(12) });
   await page.goto('./');
   const plain = catalogTitles.slice(0, 12).find((t) => !t.parts && t.status === 'queue')!;
   const card = page.locator(`article[data-id="${plain.id}"]`);
@@ -17,6 +17,6 @@ test('an edit made offline shows at once and goes out when the network is back',
   await expect(page.getByText('Нет сети, правки сохранятся · 1')).toBeVisible();
   await context.setOffline(false);
   await expect(page.getByRole('status').filter({ hasText: /сети|Не сохранено/ })).toHaveCount(0);
-  const upserts = await page.evaluate(() => (window as unknown as { __upserts?: { table: string; row: { id: string; status?: string } }[] }).__upserts ?? []);
-  expect(upserts.some((u) => u.table === 'overrides' && u.row.id === plain.id && u.row.status === 'done')).toBe(true);
+  const writes = await page.evaluate(() => (window as unknown as { __writes?: { op: string; table: string; id?: string; row?: { status?: string } }[] }).__writes ?? []);
+  expect(writes.some((w) => w.op === 'update' && w.table === 'titles' && w.id === plain.id && w.row?.status === 'done')).toBe(true);
 });
