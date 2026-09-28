@@ -1,0 +1,9 @@
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: var(--r-md); font-weight: 600; font-size: var(--fs-md); padding: 0 22px; transition: transform var(--dur-fast) var(--ease-out); }
+.btn:active { transform: scale(0.97); }
+.md { min-height: var(--btn-h); }
+.lg { min-height: var(--btn-h-lg); border-radius: 22px; font-size: 16px; }
+.primary { background: var(--accent); color: var(--on-accent); }
+.tonal { background: var(--accent-soft); color: var(--accent-text); }
+.neutral { background: var(--sunken); color: var(--text); }
+.danger { background: var(--danger-soft); color: var(--danger); }
+.inverse { background: var(--inverse); color: var(--on-inverse); }

@@ -1,0 +1,4 @@
+.chip { min-height: 38px; padding: 0 14px; border: 0; border-radius: var(--r-pill); background: var(--surface); color: var(--text-2); font-size: var(--fs-base); font-weight: 500; display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.accent { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.selected { background: var(--accent); color: var(--on-accent); }
+.count { font-size: var(--fs-xs); opacity: .6; }

@@ -1,0 +1,8 @@
+.wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; padding: 40px 24px; }
+.stack { position: relative; width: 220px; height: 190px; }
+.stack span { position: absolute; top: 20px; width: 104px; height: 156px; border-radius: var(--r-poster); background: var(--poster-empty); }
+.stack span:nth-child(1) { left: 20px; transform: rotate(-10deg); }
+.stack span:nth-child(2) { right: 20px; transform: rotate(10deg); }
+.front { left: 58px; top: 6px !important; background: var(--surface) !important; border: 2px dashed var(--dash); color: var(--accent-text); font-size: 34px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-soft); }
+.title { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 600; }
+.text { margin: 0; color: var(--text-2); line-height: 1.45; max-width: 32ch; }
