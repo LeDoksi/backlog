@@ -1,0 +1,15 @@
+// Pulled into v2's service worker (workbox importScripts). v2 replaced v1 at
+// /backlog/ and registers the same sw.js URL, so browsers treat it as an
+// update of v1's worker. On activation this drops v1's caches and, the one
+// time they were still there, reloads any tab still running v1 so it picks
+// up v2. Later updates find no v1 cache and reload nothing.
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
+    Promise.all([caches.delete('backlog-shell-v1'), caches.delete('backlog-covers-v1')]).then(function (dropped) {
+      if (!dropped[0]) return;
+      return self.clients.claim()
+        .then(function () { return self.clients.matchAll({ type: 'window' }); })
+        .then(function (tabs) { return Promise.all(tabs.map(function (tab) { return tab.navigate(tab.url); })); });
+    })
+  );
+});
