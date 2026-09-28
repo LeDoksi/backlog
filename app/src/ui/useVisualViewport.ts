@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const read = () => ({
+  layoutHeight: window.innerHeight,
   height: window.visualViewport?.height ?? window.innerHeight,
   offsetTop: window.visualViewport?.offsetTop ?? 0
 });
@@ -8,7 +9,7 @@ const read = () => ({
 // iOS Safari keeps the layout viewport full height when the keyboard opens and
 // only shrinks the visual one, so anything that must stay above the keyboard
 // has to be placed against visualViewport, not against the window.
-export function useVisualViewport(): { height: number; offsetTop: number } {
+export function useVisualViewport(): { layoutHeight: number; height: number; offsetTop: number } {
   const [vv, setVv] = useState(read);
   useEffect(() => {
     const v = window.visualViewport;
