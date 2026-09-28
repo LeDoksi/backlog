@@ -56,6 +56,8 @@ export default defineConfig({
         // Retires v1's caches and tabs once, after v2 took over /backlog/.
         importScripts: ['sw-retire-v1.js'],
         navigateFallback: 'index.html',
+        // The old /backlog/v2/ address serves a redirect page (retired-v2/).
+        navigateFallbackDenylist: [/\/backlog\/v2\//],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
