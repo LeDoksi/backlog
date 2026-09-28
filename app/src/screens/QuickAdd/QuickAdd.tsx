@@ -9,6 +9,7 @@ import { search, details, providerFor, PROVIDER_LABEL, type Hit } from '../../da
 import { buildTitle } from '../../data/newTitle';
 import { useHistoryEntry } from '../../ui/history';
 import { useVisualViewport } from '../../ui/useVisualViewport';
+import { lockScroll } from '../../ui/scrollLock';
 import { useIsDesktop } from '../../ui/useMediaQuery';
 import type { Category } from '../../lib/types';
 import { CATEGORY_OPTIONS } from '../../data/labels';
@@ -53,8 +54,8 @@ function Panel() {
   useEffect(() => {
     busy.enter('quick-add');
     input.current?.focus({ preventScroll: true });
-    document.body.style.overflow = 'hidden';
-    return () => { busy.leave('quick-add'); document.body.style.overflow = ''; };
+    const unlock = lockScroll();
+    return () => { busy.leave('quick-add'); unlock(); };
   }, []);
 
   // Every new query or category supersedes the one in flight; a slow older

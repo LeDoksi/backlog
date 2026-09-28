@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useHistoryEntry } from './history';
 import { useIsDesktop } from './useMediaQuery';
+import { lockScroll } from './scrollLock';
 import s from './Sheet.module.css';
 
 interface Props { open: boolean; onClose: () => void; labelledBy: string; children: ReactNode; footer?: ReactNode }
@@ -31,9 +32,9 @@ export function Sheet({ open, onClose, labelledBy, children, footer }: Props) {
     opener.current = document.activeElement as HTMLElement | null;
     const first = panel.current?.querySelector<HTMLElement>(FOCUSABLE);
     (first ?? panel.current)?.focus();
-    document.body.style.overflow = 'hidden';
+    const unlock = lockScroll();
     return () => {
-      document.body.style.overflow = '';
+      unlock();
       opener.current?.focus();
     };
   }, [open]);
