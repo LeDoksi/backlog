@@ -1,5 +1,5 @@
 // Public client keys: the browser has to present them itself, so they live in
-// the source on purpose (same values and reasoning as v1's app.js).
+// the source on purpose; the data is protected by RLS, not by hiding them.
 export const SUPABASE_URL = 'https://rjdnpwamcxvhryiigbvt.supabase.co';
 export const SUPABASE_KEY = 'sb_publishable_omYttbkLjxA-DDxQAXU9Mw_AguNLqto';
 export const TMDB_KEY = '9affbfce7554a8309e8ea9933431b1ff';
