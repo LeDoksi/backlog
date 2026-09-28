@@ -17,7 +17,7 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
     const value = email.trim();
     if (!/^\S+@\S+\.\S+$/.test(value)) { setState('error'); return; }
     setState('sending');
-    const res = await Auth.inviteEmail(getSupabase(), value, addToMine);
+    const res = await Auth.inviteEmail(getSupabase(), value);
     setState(res && res.error ? 'error' : 'sent');
   }
 

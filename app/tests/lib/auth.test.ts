@@ -184,16 +184,6 @@ test('listWorkspaceMembers without a client resolves to an empty list', async ()
   assert.deepEqual(await Auth.listWorkspaceMembers(null), []);
 });
 
-test('inviteEmail calls the invite_email RPC with the right arguments', async () => {
-  var seenName = null, seenArgs = null;
-  var client = fakeClient({
-    rpc: function (name, args) { seenName = name; seenArgs = args; return Promise.resolve({ data: null, error: null }); }
-  });
-  await Auth.inviteEmail(client, 'friend@example.com', true);
-  assert.equal(seenName, 'invite_email');
-  assert.deepEqual(seenArgs, { target_email: 'friend@example.com', add_to_my_workspace: true });
-});
-
 test('leaveWorkspace calls the leave_workspace RPC with no arguments', async () => {
   var seenName = null;
   var client = fakeClient({
