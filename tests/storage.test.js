@@ -1,7 +1,7 @@
 // tests/storage.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { getOverrides, setOverride, deleteTitle, applyOverlay, addTitle, getAdded, removeAdded, getCheckedParts, setCheckedParts, setPartChecked, deriveStatus, deriveAiringStatus, partsProgress, hasPartsChecklist, effectiveStatus, withDerivedStatus } = require('../lib/storage.js');
+const { getOverrides, setOverride, deleteTitle, applyOverlay, addTitle, getAdded, removeAdded, getCheckedParts, setCheckedParts, setPartChecked, deriveStatus, deriveAiringStatus, partsProgress, hasPartsChecklist, isCaughtUp, effectiveStatus, withDerivedStatus } = require('../lib/storage.js');
 
 function fakeStorage() {
   var data = {};
@@ -571,4 +571,22 @@ test('a derived unreleased title can never carry an ongoing badge', () => {
       });
     });
   });
+});
+
+test('isCaughtUp: every released part watched and more announced', () => {
+  var anime = { id: 'frieren-2023', category: 'anime', status: 'queue', parts: [
+    { name: 'Сезон 1', released: true }, { name: 'Сезон 2', released: true }, { name: 'Сезон 3', released: false }
+  ] };
+  assert.equal(isCaughtUp(anime, [0, 1]), true);
+  assert.equal(isCaughtUp(anime, [0]), false);
+  assert.equal(isCaughtUp(anime, []), false);
+});
+
+test('isCaughtUp: false without pending parts, without released parts, or without a checklist', () => {
+  var finished = { id: 'a', category: 'series', parts: [{ name: 'S1', released: true }] };
+  var future = { id: 'b', category: 'series', parts: [{ name: 'S1', released: false }] };
+  var movie = { id: 'c', category: 'movie', status: 'queue' };
+  assert.equal(isCaughtUp(finished, [0]), false);
+  assert.equal(isCaughtUp(future, []), false);
+  assert.equal(isCaughtUp(movie, []), false);
 });

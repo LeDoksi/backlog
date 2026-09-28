@@ -648,7 +648,10 @@
     // native `disabled`), it just ignores the extra click.
     if (randomBtn.classList.contains('toolbar__random--empty')) return;
     if (randomBtn.classList.contains('toolbar__random--unavailable')) return;
-    var pool = titlesForCategory(state.category).filter(function (t) { return t.status !== 'done' && t.status !== 'unreleased' && t.category !== 'game'; });
+    var pool = titlesForCategory(state.category).filter(function (t) {
+      return t.status !== 'done' && t.status !== 'unreleased' && t.category !== 'game'
+        && !BacklogStorage.isCaughtUp(t, BacklogStorage.getCheckedParts(window.localStorage, t.id));
+    });
     var picked = BacklogQuery.pickRandom(pool);
     if (picked) {
       openTitleModal(picked.id);
