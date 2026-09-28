@@ -76,51 +76,88 @@ function hasProfile(client: SupabaseLike, userId: string | null | undefined): Pr
   ).then(function (res: any) { return !!(res && res.data); });
 }
 
-function listWorkspaceMembers(client: SupabaseLike): Promise<{ id: string; email: string }[]> {
-  if (!client) return Promise.resolve([]);
-  return guarded(
-    function () { return client.from('profiles').select('id, email'); },
-    function () { return null; }
-  ).then(function (res: any) { return (res && Array.isArray(res.data)) ? res.data : []; });
-}
+// ── Profile and boards (v2 schema) ─────────────────────────────────────
+//
+// Same contract as above: never throws, and "the call failed" is `null`,
+// distinct from any answer the server can give, so a network blip is never
+// read as "not invited" or "nickname taken".
 
-function inviteEmail(client: SupabaseLike, email: string, addToMyWorkspace?: boolean): Promise<Result> {
+export type Theme = 'system' | 'light' | 'dark';
+export type SignupStatus = 'created' | 'exists' | 'not_invited';
+export interface Profile {
+  id: string;
+  email: string;
+  display_name: string | null;
+  nickname: string | null;
+  theme: Theme;
+  in_leaderboard?: boolean;
+  share_activity?: boolean;
+  share_matches?: boolean;
+  findable_by_nick?: boolean;
+}
+export interface BoardMember { id: string; name: string; nickname: string | null; email?: string }
+export interface BoardRow { id: string; kind: 'personal' | 'shared'; visibility: string; title_count: number; members: BoardMember[] | null }
+
+function callRpc(client: SupabaseLike, name: string, args?: Record<string, unknown>): Promise<Result> {
   if (!client) return Promise.resolve(noClientError());
   return guarded(
-    function () {
-      return client.rpc('invite_email', {
-        target_email: email,
-        add_to_my_workspace: !!addToMyWorkspace
-      });
-    },
+    function () { return args === undefined ? client.rpc(name) : client.rpc(name, args); },
     function (e) { return { data: null, error: e || { message: 'unknown' } }; }
-  );
+  ).then(function (res: any) { return res || { data: null, error: { message: 'empty response' } }; });
 }
 
-function leaveWorkspace(client: SupabaseLike): Promise<Result> {
-  if (!client) return Promise.resolve(noClientError());
-  return guarded(
-    function () { return client.rpc('leave_workspace'); },
-    function (e) { return { data: null, error: e || { message: 'unknown' } }; }
-  );
+function completeSignup(client: SupabaseLike): Promise<SignupStatus | null> {
+  return callRpc(client, 'complete_signup').then(function (res) {
+    var status = !res.error && res.data ? (res.data as { status?: string }).status : null;
+    return status === 'created' || status === 'exists' || status === 'not_invited' ? status : null;
+  });
 }
 
-function removeMember(client: SupabaseLike, userId: string): Promise<Result> {
-  if (!client) return Promise.resolve(noClientError());
-  return guarded(
-    function () { return client.rpc('remove_member', { target_user_id: userId }); },
-    function (e) { return { data: null, error: e || { message: 'unknown' } }; }
-  );
+function nicknameAvailable(client: SupabaseLike, nickname: string): Promise<boolean | null> {
+  return callRpc(client, 'nickname_available', { p_nickname: nickname }).then(function (res) {
+    return !res.error && typeof res.data === 'boolean' ? res.data : null;
+  });
+}
+
+function setProfile(client: SupabaseLike, displayName: string, nickname: string): Promise<{ ok: boolean; error: string | null }> {
+  return callRpc(client, 'set_profile', { p_display_name: displayName, p_nickname: nickname }).then(function (res) {
+    return res.error ? { ok: false, error: res.error.message || 'unknown' } : { ok: true, error: null };
+  });
+}
+
+function setTheme(client: SupabaseLike, theme: Theme): Promise<boolean> {
+  return callRpc(client, 'set_theme', { p_theme: theme }).then(function (res) { return !res.error; });
+}
+
+function myProfile(client: SupabaseLike): Promise<Profile | null> {
+  return callRpc(client, 'my_profile').then(function (res) {
+    return !res.error && res.data && typeof res.data === 'object' ? res.data as Profile : null;
+  });
+}
+
+function myBoards(client: SupabaseLike): Promise<BoardRow[] | null> {
+  return callRpc(client, 'my_boards').then(function (res) {
+    return !res.error && Array.isArray(res.data) ? res.data as BoardRow[] : null;
+  });
+}
+
+// Grants access to the app only; joining a board is a separate invite.
+function inviteEmail(client: SupabaseLike, email: string): Promise<Result> {
+  return callRpc(client, 'invite_email', { target_email: email });
 }
 
 export {
+  callRpc,
+  completeSignup,
+  nicknameAvailable,
+  setProfile,
+  setTheme,
+  myProfile,
+  myBoards,
   signInWithGoogle,
   signOut,
   getSession,
   onAuthStateChange,
   hasProfile,
-  listWorkspaceMembers,
-  inviteEmail,
-  leaveWorkspace,
-  removeMember
+  inviteEmail
 };

@@ -15,7 +15,11 @@ export function applyTheme(pref: ThemePref, root: HTMLElement = document.documen
   else root.setAttribute('data-theme', pref);
 }
 
-export function setTheme(pref: ThemePref): void {
+export function rememberTheme(pref: ThemePref): void {
   try { localStorage.setItem(KEY, pref); } catch { /* private mode: theme just won't persist */ }
+}
+
+export function setTheme(pref: ThemePref): void {
+  rememberTheme(pref);
   applyTheme(pref);
 }

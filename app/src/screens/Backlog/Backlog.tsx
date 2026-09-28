@@ -15,6 +15,7 @@ import s from './Backlog.module.css';
 export function Backlog() {
   const titles = useTitles((t) => t.titles);
   const loading = useTitles((t) => t.loading);
+  const boardId = useTitles((t) => t.boardId);
   const filters = useFilters();
   const setQuickAdd = useUi((u) => u.setQuickAdd);
   const shown = useMemo(() => visibleTitles(titles, filters), [titles, filters]);
@@ -29,7 +30,7 @@ export function Backlog() {
     content = <EmptyState title="Ничего не нашлось" text="Попробуй другой запрос или сбрось фильтры."
       action={<Button variant="tonal" onClick={() => filters.reset()}>Сбросить фильтры</Button>} />;
   } else {
-    content = <TitleGrid titles={shown} animateKey={filters.category} />;
+    content = <TitleGrid titles={shown} animateKey={`${boardId}:${filters.category}`} />;
   }
 
   return (

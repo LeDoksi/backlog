@@ -12,7 +12,7 @@ async function mockTmdb(page: Page) {
 }
 
 test('search, add with +, stay in the field, and refuse a duplicate', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: [] });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: [] });
   await mockTmdb(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'Добавить тайтл' }).first().click();
@@ -33,7 +33,7 @@ test('search, add with +, stay in the field, and refuse a duplicate', async ({ p
 });
 
 test('manual add when search has nothing', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: [] });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: [] });
   await page.route(/api\.themoviedb\.org/, (r) => r.fulfill({ headers: { 'access-control-allow-origin': '*' }, json: { results: [] } }));
   await page.goto('./');
   await page.getByRole('button', { name: 'Добавить тайтл' }).first().click();
@@ -46,7 +46,7 @@ test('manual add when search has nothing', async ({ page }) => {
 
 test('with the keyboard open the field and first result stay visible (BL-25)', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'phone only');
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: [] });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: [] });
   await mockTmdb(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'Добавить тайтл' }).first().click();
@@ -74,7 +74,7 @@ test('with the iPhone keyboard up, the field and two results fit above it', asyn
     const vv = Object.assign(new EventTarget(), { height: 310, width: 390, offsetTop: 0, offsetLeft: 0, pageTop: 0, pageLeft: 0, scale: 1 });
     Object.defineProperty(window, 'visualViewport', { value: vv, configurable: true });
   });
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: [] });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: [] });
   await mockTmdb(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'Добавить тайтл' }).first().click();

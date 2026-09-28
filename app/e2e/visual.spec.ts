@@ -7,7 +7,7 @@ import { catalogRows } from './fixtures/catalog';
 // the code, or re-accept with `npx playwright test visual --update-snapshots`
 // after looking at the new shot.
 const rows = catalogRows(24);
-const parts = [{ id: rows.find((r) => r.parts)!.id, indices: [0], updated_at: 'x' }];
+const parts = [{ id: String(rows.find((r) => r.parts)!.id), indices: [0] }];
 
 async function shot(page: Page, name: string) {
   // Motion's springs are JS-driven, so CSS animation freezing doesn't cover them.
@@ -45,7 +45,7 @@ for (const theme of ['light', 'dark'] as const) {
     });
 
     test('backlog, genres, title panel, edit', async ({ page }) => {
-      await installStub(page, { signedIn: true, hasProfile: true, drafts: rows, parts });
+      await installStub(page, { signedIn: true, hasProfile: true, titles: rows, parts });
       await page.goto('./');
       await expect(page.locator('article.bl-card').first()).toBeVisible();
       await shot(page, `${theme}-backlog`);
@@ -63,7 +63,7 @@ for (const theme of ['light', 'dark'] as const) {
     });
 
     test('quick add', async ({ page }) => {
-      await installStub(page, { signedIn: true, hasProfile: true, drafts: rows });
+      await installStub(page, { signedIn: true, hasProfile: true, titles: rows });
       await page.goto('./');
       await page.getByRole('button', { name: 'Добавить тайтл' }).filter({ visible: true }).first().click();
       await expect(page.getByRole('heading', { name: 'Добавить тайтл' })).toBeVisible();
@@ -72,13 +72,15 @@ for (const theme of ['light', 'dark'] as const) {
 
     test('stats and profile', async ({ page }) => {
       // The whole catalog, so the summary has finished titles and genres.
-      await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows(), parts });
+      await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(), parts, sharedTitles: catalogRows(5),
+        sharedWith: [{ id: '00000000-0000-4000-8000-0000000000d1', name: 'Даша', nickname: 'dasha' }] });
       await page.goto('./');
       await nav(page, 'Итоги');
       await expect(page.getByText('За всё время')).toBeVisible();
       await shot(page, `${theme}-stats`);
       await nav(page, 'Профиль');
       await expect(page.getByRole('radio', { name: 'Тёмная' })).toBeVisible();
+      await expect(page.getByText('5 тайтлов, вместе с: Даша')).toBeVisible();
       await shot(page, `${theme}-profile`);
     });
   });

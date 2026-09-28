@@ -5,7 +5,7 @@ import { catalogRows } from './fixtures/catalog';
 test.beforeEach(async ({ isMobile }) => { test.skip(isMobile, 'desktop only'); });
 
 test('five columns, a centred title modal and Esc-closing popovers', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   const cards = page.locator('article');
   await expect(cards.nth(9)).toBeVisible();
@@ -29,7 +29,7 @@ test('five columns, a centred title modal and Esc-closing popovers', async ({ pa
 });
 
 test('the three control rows do not wrap or overlap at 1440', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows() });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows() });
   await page.goto('./');
   const rows = [page.getByRole('heading', { name: 'Бэклог' }), page.getByRole('navigation', { name: 'Категории' }), page.getByRole('button', { name: /Что посмотреть/ })];
   const boxes = await Promise.all(rows.map(async (r) => (await r.boundingBox())!));
@@ -40,7 +40,7 @@ test('the three control rows do not wrap or overlap at 1440', async ({ page }) =
 });
 
 test('the title modal leaves quickly on close instead of parking at the bottom edge', async ({ page }) => {
-  await installStub(page, { signedIn: true, hasProfile: true, drafts: catalogRows(10) });
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(10) });
   await page.goto('./');
   await page.locator('article.bl-card').first().locator(':scope > button').first().click();
   const dialog = page.getByRole('dialog');

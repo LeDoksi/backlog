@@ -6,6 +6,8 @@
 >
 > **Перед стартом:** подпроект C завершён, v1 удалена. Запустить `superpowers:writing-plans` для B и развернуть задачи в шаги по 2–5 минут против текущего кода. SQL ниже — целевой, его можно уточнять только если он не применяется к реальной схеме (сверить `list_tables` перед каждой миграцией).
 
+> **Статус (2026-09-28):** B1–B10 сделаны в ветке `claude/redesign-b-data-17z0oy`, миграции применены к боевой базе, тайтлы перенесены в `titles` (270, сверка 0 расхождений). B9: инструмент готов, запуск ждёт среды с доступом к TMDb/Shikimori. B11 — не раньше 2026-10-05 и после подтверждения владельца (BL-59). Что разошлось с текстом задач — в «Отклонениях при реализации» внизу.
+
 **Goal:** Перейти на одну таблицу `titles`, профили с ником, личную и общую доску с переключением, приглашением в общую доску по нику и копированием между досками (BL-24); дозаполнить внешние ID; включить периоды в «Итогах».
 
 **Architecture:** Новые таблицы создаются рядом со старыми, данные переносятся скриптом с проверкой, клиент переключается одним релизом, старые таблицы удаляются через неделю. Все операции со членством — RPC `security definer`; прямой записи в `workspace_members` нет.
@@ -36,9 +38,9 @@
 
 **Files:** Create `supabase/migrations/20261005000000_boards_profiles_titles.sql`, `supabase/tests/board_limits.sql`, `supabase/tests/titles_rls.sql`.
 
-- [ ] **Step 1: Backup** — выгрузить `drafts`, `overrides`, `parts`, `profiles`, `workspaces`, `allowed_emails` в JSON (`select json_agg(t) from <table> t` через MCP `execute_sql`) в файлы вне репозитория, плюс ручной бэкап в дашборде Supabase. Записать дату в задачу канбана.
+- [x] **Step 1: Backup** — выгрузить `drafts`, `overrides`, `parts`, `profiles`, `workspaces`, `allowed_emails` в JSON (`select json_agg(t) from <table> t` через MCP `execute_sql`) в файлы вне репозитория, плюс ручной бэкап в дашборде Supabase. Записать дату в задачу канбана.
 
-- [ ] **Step 2: Migration SQL**
+- [x] **Step 2: Migration SQL**
 
 ```sql
 create extension if not exists citext;
@@ -142,7 +144,7 @@ create policy "see my boards" on public.workspaces for select using (public.is_m
 alter publication supabase_realtime add table public.titles;
 ```
 
-- [ ] **Step 3: SQL tests (pgTAP)** — `supabase/tests/board_limits.sql`: второй `personal` для одного пользователя → ошибка `board_limit`; второй `shared` → ошибка; второй участник в `personal` → ошибка; два участника в одном `shared` → ок. `supabase/tests/titles_rls.sql`: под `set local role authenticated` + `request.jwt.claims` пользователя A — не видит и не пишет `titles` доски B; видит свои.
+- [x] **Step 3: SQL tests (pgTAP)** — `supabase/tests/board_limits.sql`: второй `personal` для одного пользователя → ошибка `board_limit`; второй `shared` → ошибка; второй участник в `personal` → ошибка; два участника в одном `shared` → ок. `supabase/tests/titles_rls.sql`: под `set local role authenticated` + `request.jwt.claims` пользователя A — не видит и не пишет `titles` доски B; видит свои.
 
 Пример формы теста:
 
@@ -167,7 +169,7 @@ select * from finish();
 rollback;
 ```
 
-- [ ] **Step 4: Apply, run tests, commit** — `apply_migration` на проде; тесты на локальном Supabase (`supabase start && supabase test db`), если Docker недоступен — на ветке проекта Supabase. Коммит `feat(db): boards, members and the unified titles table`.
+- [x] **Step 4: Apply, run tests, commit** — `apply_migration` на проде; тесты на локальном Supabase (`supabase start && supabase test db`), если Docker недоступен — на ветке проекта Supabase. Коммит `feat(db): boards, members and the unified titles table`.
 
 ---
 
@@ -541,3 +543,21 @@ drop function if exists public.current_workspace_id();
 - Спека 7.1 — B1, B6; 7.2 — B2, B5; 7.3 (доски и профиль) — B3, B6; 7.5 (даты) — B2, B10; 7.6 — B1 (бэкап), B4, B9, B11; 6.1 (ник) — B7; 6.3 (копирование) — B8; 6.7 — B7; 8 — B1, B3, B6.
 - Соцтаблицы и RPC приватности — в D. `complete_signup` в D получает параметр токена ссылки (пересоздание функции).
 - Имена сверены с C: `titlesStore`, `filters`, `stats`, `TitleActions`, `BacklogHeader`, `DesktopToolbar`.
+
+## Отклонения при реализации (2026-09-28)
+
+Что пошло не так, как написано выше, и почему. План D и B11 стоит сверять с этим списком.
+
+- **Процесс.** Задачи сделаны по `superpowers:executing-plans` в одной сессии; финальное ревью всей ветки — самопроверка автора (субагентов по правилам проекта не запускаем).
+- **Тесты базы.** pgTAP идёт на временном локальном Postgres 16 с заглушкой Supabase (`supabase/tests/support/shim.sql`: `auth.users`, `auth.uid()`, роли, публикация), а не `supabase start`: здесь нет Docker. Прод — Postgres 17. `supabase/tests/support/run-local.sh` проверяет вверх → тесты → откат → сравнение схемы → снова вверх. У каждой миграции есть откат в `supabase/rollbacks/` с тем же именем.
+- **Бэкап.** Копия старых таблиц в схеме `backup_20260928` и JSON-выгрузки в файлах проекта (`backups/backlog-db-2026-09-28-before-B.json`, `…-release-B.json`). Ручного бэкапа из дашборда нет (нет доступа).
+- **B3.** `complete_signup` ещё и чинит профиль, созданный старым триггером `handle_new_user` без личной доски (сейчас это реальный путь входа). `my_profile` отдаёт свою почту. Новые RPC закрыты для `anon`; `invite_email(text)` — один аргумент, приглашение в пространство убрано (доски — только по нику).
+- **B4.** Перенос работает с JSON-выгрузки и генерирует SQL для SQL-редактора или MCP (сервисного ключа здесь нет): `app/tools/migrate-v2.ts` (`dry-run`, `sql`, `verify`), репетиция на локальной базе — `supabase/tests/support/rehearse-migration.sh`. Миграция `boards_data` трогает только пространства, на которые указывает профиль и у которых нет участников. Проверку «глазами» владельца заменяет `verify = 0` и его проверка после релиза.
+- **B6.** `invite_to_shared_board` отклоняет себя и несуществующего (`cannot_invite_self`, `not_found`). Добавлена миграция `rpc_grants`: одного `revoke … from anon` мало, право выполнения есть у `PUBLIC`. Старые функции v1 открыты для `anon` до B11.
+- **B6/Review Focus 2.** Триггер лимита досок берёт advisory-блокировку на человека и на доску (миграция `board_limit_lock`): без неё два одновременных вступления оба проходили проверку. Тест с двумя соединениями — `supabase/tests/support/race-board-limit.sh`.
+- **B7.** Строка общей доски — «213 тайтлов, вместе с: Даша» (имена не склоняем, как в 6.10). До D у личной доски «видно только мне», строка «Пригласить в Бэклог» — приглашение по почте. Тема аккаунта `system` (значение по умолчанию у всех) не перетирает светлую или тёмную, уже выбранную на устройстве: выбор устройства сохраняется в аккаунт.
+- **B8.** Файлов `DesktopToolbar.tsx` и `TitleActions.tsx` в клиенте C нет: переключатель в `BacklogHeader` (общий для телефона и десктопа), копирование — кнопка в подвале панели тайтла. Перед копированием отправляется очередь.
+- **B9.** `app/tools/backfill-sources.ts` готов, но боевой запуск не сделан: прокси облачной среды не пускает к TMDb, Shikimori и CORS-воркеру. Запустить из среды с сетью (см. `app/tools/README.md`), отчёт положить в `docs/superpowers/notes/sources-review.md`.
+- **B10.** «Итоги» открываются на «Месяце», только если в этом месяце что-то завершено или отмечено, иначе на «Всё время» (после переноса у старых тайтлов дат нет). Стор ставит `completed_at`/`started_at` локально (на сервер не отправляет), чтобы завершённое без сети сразу попадало в месяц.
+- **Релиз.** Тайтлы перенесены до выкладки клиента: клиент C пишет в старые таблицы до обновления, поэтому после деплоя сверка повторяется; правки, сделанные в C между переносом и обновлением, придётся перенести отдельно.
+

@@ -1,6 +1,6 @@
 .row { display: flex; align-items: center; gap: 10px; min-height: 50px; }
 .title { flex: 1; margin: 0; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-title); line-height: 1.1; }
-.round { width: 50px; height: 50px; flex-shrink: 0; border-radius: 50%; border: 0; background: var(--surface); color: var(--text); box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: center; }
+.round { margin-left: auto; width: 50px; height: 50px; flex-shrink: 0; border-radius: 50%; border: 0; background: var(--surface); color: var(--text); box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: center; }
 .field { flex: 1; height: 50px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 16px; border-radius: var(--r-pill); background: var(--surface); box-shadow: var(--shadow-soft); }
 .fieldIcon { color: var(--muted); flex-shrink: 0; }
 .input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; font-size: var(--fs-input); outline: none; }

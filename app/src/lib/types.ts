@@ -26,6 +26,13 @@ export interface Title {
   draft?: boolean;
   source?: string | null;
   sourceId?: string | null;
+  // v2 (`titles` table): the hand-set status kept under a derived one, and
+  // what the database stamps.
+  manualStatus?: Status | null;
+  hidden?: boolean;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  createdAt?: string;
 }
 
 export interface StorageLike {
