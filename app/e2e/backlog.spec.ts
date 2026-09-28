@@ -101,3 +101,18 @@ test('no field is small enough for iPhone to zoom in on focus', async ({ page })
   await page.getByRole('button', { name: '+ жанр' }).click();
   expect(await small()).toEqual([]);
 });
+
+test('the phone filter sheet fits the screen, sort options included', async ({ page, isMobile }) => {
+  test.skip(!isMobile, 'phone filter sheet');
+  await page.setViewportSize({ width: 375, height: 740 });
+  await page.getByRole('button', { name: 'Фильтры' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Фильтры' });
+  await expect(sheet).toBeVisible();
+  const overflow = await sheet.evaluate((el) => [...el.querySelectorAll('*')].filter((n) => n.scrollWidth > n.clientWidth + 1 && getComputedStyle(n).overflowX !== 'visible').length);
+  expect(overflow).toBe(0);
+  const byName = sheet.getByRole('radio', { name: 'Название' });
+  const box = (await byName.boundingBox())!;
+  expect(box.x + box.width).toBeLessThanOrEqual(375);
+  await byName.click();
+  await expect(byName).toHaveAttribute('aria-checked', 'true');
+});
