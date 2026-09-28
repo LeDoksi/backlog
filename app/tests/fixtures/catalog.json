@@ -1,0 +1,1506 @@
+[
+ {
+  "id": "frieren-2023",
+  "title": "Фрирен, провожающая в последний путь",
+  "originalTitle": "Frieren: Beyond Journey's End",
+  "category": "anime",
+  "status": "done",
+  "airingStatus": "ongoing",
+  "year": 2023,
+  "genres": [
+   "драма",
+   "фэнтези"
+  ],
+  "rating": null,
+  "cover": "images/covers/frieren-2023.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2026,
+    "released": true
+   },
+   {
+    "name": "Сезон 3 «Золотые земли»",
+    "year": 2027,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "re-zero-starting-life-in-another-world-2016",
+  "title": "Re:ZERO — Жизнь с нуля в альтернативном мире",
+  "originalTitle": "Re:ZERO -Starting Life in Another World-",
+  "category": "anime",
+  "status": "done",
+  "airingStatus": "ongoing",
+  "year": 2016,
+  "genres": [
+   "фэнтези",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/re-zero-starting-life-in-another-world-2016.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2016,
+    "released": true
+   },
+   {
+    "name": "OVA «Memory Snow»",
+    "year": 2018,
+    "released": true
+   },
+   {
+    "name": "OVA «Ледяные узы»",
+    "year": 2019,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2020,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2024,
+    "released": true
+   },
+   {
+    "name": "Сезон 4, часть 1 «Утрата»",
+    "year": 2026,
+    "released": true
+   },
+   {
+    "name": "Сезон 4, часть 2 «Возвращение»",
+    "year": 2026,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "the-apothecary-diaries-2023",
+  "title": "Монолог фармацевта",
+  "originalTitle": "The Apothecary Diaries",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2023,
+  "genres": [
+   "драма",
+   "детектив",
+   "история"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-apothecary-diaries-2023.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2025,
+    "released": true
+   },
+   {
+    "name": "Сезон 3, часть 1",
+    "year": 2026,
+    "released": false
+   },
+   {
+    "name": "Фильм «Сокровище покойной наложницы»",
+    "year": 2026,
+    "released": false
+   },
+   {
+    "name": "Сезон 3, часть 2",
+    "year": 2027,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "the-boys-2019",
+  "title": "Пацаны",
+  "originalTitle": "The Boys",
+  "category": "series",
+  "status": "done",
+  "airingStatus": "completed",
+  "year": 2019,
+  "genres": [
+   "сатира",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-boys-2019.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2019,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2020,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2022,
+    "released": true
+   },
+   {
+    "name": "Сезон 4",
+    "year": 2024,
+    "released": true
+   },
+   {
+    "name": "Сезон 5 (финальный)",
+    "year": 2026,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "ted-lasso-2020",
+  "title": "Тед Лассо",
+  "originalTitle": "Ted Lasso",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2020,
+  "genres": [
+   "комедия",
+   "спорт"
+  ],
+  "rating": null,
+  "cover": "images/covers/ted-lasso-2020.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2020,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 4",
+    "year": 2026,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "fight-club-1999",
+  "title": "Бойцовский клуб",
+  "originalTitle": "Fight Club",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 1999,
+  "genres": [
+   "драма",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/fight-club-1999.jpg"
+ },
+ {
+  "id": "tengen-toppa-gurren-lagann-2007",
+  "title": "Гуррен-Лаганн",
+  "originalTitle": "Tengen Toppa Gurren Lagann",
+  "category": "anime",
+  "status": "done",
+  "airingStatus": "completed",
+  "year": 2007,
+  "genres": [
+   "меха",
+   "приключения",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/tengen-toppa-gurren-lagann-2007.png",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2007,
+    "released": true
+   },
+   {
+    "name": "Фильм 1 «Прорыв в небеса»",
+    "year": 2008,
+    "released": true
+   },
+   {
+    "name": "Фильм 2 «Огни в небе — это звёзды»",
+    "year": 2009,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "demon-slayer-kimetsu-no-yaiba-2019",
+  "title": "Клинок, рассекающий демонов",
+  "originalTitle": "Demon Slayer: Kimetsu no Yaiba",
+  "category": "anime",
+  "status": "done",
+  "airingStatus": "ongoing",
+  "year": 2019,
+  "genres": [
+   "боевик",
+   "фэнтези"
+  ],
+  "rating": null,
+  "cover": "images/covers/demon-slayer-kimetsu-no-yaiba-2019.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2019,
+    "released": true
+   },
+   {
+    "name": "Фильм «Бесконечный поезд»",
+    "year": 2020,
+    "released": true
+   },
+   {
+    "name": "Сезон 2 «Квартал красных фонарей»",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Сезон 3 «Деревня кузнецов»",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 4 «Тренировка столпов»",
+    "year": 2024,
+    "released": true
+   },
+   {
+    "name": "Фильм «Замок Бесконечности», часть 1",
+    "year": 2025,
+    "released": true
+   },
+   {
+    "name": "Фильм «Замок Бесконечности», часть 2",
+    "year": 2027,
+    "released": false
+   },
+   {
+    "name": "Фильм «Замок Бесконечности», часть 3",
+    "year": 2029,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "witch-hat-atelier-2026",
+  "title": "Ателье колдовских колпаков",
+  "originalTitle": "Witch Hat Atelier",
+  "category": "anime",
+  "status": "done",
+  "airingStatus": "ongoing",
+  "year": 2026,
+  "genres": [
+   "фэнтези",
+   "драма",
+   "приключения"
+  ],
+  "rating": null,
+  "cover": "images/covers/witch-hat-atelier-2026.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2026,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": null,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "cyberpunk-edgerunners-2022",
+  "title": "Киберпанк: Бегущие по краю",
+  "originalTitle": "Cyberpunk: Edgerunners",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2022,
+  "genres": [
+   "боевик",
+   "драма",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/cyberpunk-edgerunners-2022.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2022,
+    "released": true
+   },
+   {
+    "name": "«Edgerunners 2»",
+    "year": 2026,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "josee-the-tiger-and-the-fish-2020",
+  "title": "Её заветное желание",
+  "originalTitle": "Josee, the Tiger and the Fish",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2020,
+  "genres": [
+   "драма",
+   "романтика"
+  ],
+  "rating": null,
+  "cover": "images/covers/josee-the-tiger-and-the-fish-2020.jpg"
+ },
+ {
+  "id": "devil-may-cry-2025",
+  "title": "Дьявол может плакать",
+  "originalTitle": "Devil May Cry",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2025,
+  "genres": [
+   "боевик",
+   "фэнтези"
+  ],
+  "rating": null,
+  "cover": "images/covers/devil-may-cry-2025.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2025,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2026,
+    "released": true
+   },
+   {
+    "name": "Сезон 3 «Paradiso»",
+    "year": null,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "shaman-king-2021",
+  "title": "Король шаманов",
+  "originalTitle": "Shaman King",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2021,
+  "genres": [
+   "боевик",
+   "приключения",
+   "сверхъестественное"
+  ],
+  "rating": null,
+  "cover": "images/covers/shaman-king-2021.png",
+  "parts": [
+   {
+    "name": "Сезон 1 (ремейк)",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Сезон 2 «Flowers»",
+    "year": 2024,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "jojo-s-bizarre-adventure-2012",
+  "title": "Невероятные приключения ДжоДжо",
+  "originalTitle": "JoJo's Bizarre Adventure",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2012,
+  "genres": [
+   "боевик",
+   "приключения",
+   "сверхъестественное"
+  ],
+  "rating": null,
+  "cover": "images/covers/jojo-s-bizarre-adventure-2012.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1 «Phantom Blood» / «Battle Tendency»",
+    "year": 2012,
+    "released": true
+   },
+   {
+    "name": "Сезон 2 «Stardust Crusaders»",
+    "year": 2014,
+    "released": true
+   },
+   {
+    "name": "Сезон 3 «Diamond is Unbreakable»",
+    "year": 2016,
+    "released": true
+   },
+   {
+    "name": "Сезон 4 «Golden Wind»",
+    "year": 2018,
+    "released": true
+   },
+   {
+    "name": "Сезон 5 «Stone Ocean»",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Сезон 6 «Steel Ball Run»",
+    "year": 2026,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "noragami-2014",
+  "title": "Бездомный Бог",
+  "originalTitle": "Noragami",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2014,
+  "genres": [
+   "боевик",
+   "сверхъестественное",
+   "комедия"
+  ],
+  "rating": null,
+  "cover": "images/covers/noragami-2014.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2014,
+    "released": true
+   },
+   {
+    "name": "OVA",
+    "year": 2014,
+    "released": true
+   },
+   {
+    "name": "Сезон 2 «Aragoto»",
+    "year": 2015,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "violet-evergarden-2018",
+  "title": "Вайолет Эвергарден",
+  "originalTitle": "Violet Evergarden",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2018,
+  "genres": [
+   "драма",
+   "фэнтези"
+  ],
+  "rating": null,
+  "cover": "images/covers/violet-evergarden-2018.png",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2018,
+    "released": true
+   },
+   {
+    "name": "Фильм-продолжение",
+    "year": 2020,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "that-time-i-got-reincarnated-as-a-slime-2018",
+  "title": "О моём перерождении в слизь",
+  "originalTitle": "That Time I Got Reincarnated as a Slime",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2018,
+  "genres": [
+   "фэнтези",
+   "приключения",
+   "комедия"
+  ],
+  "rating": null,
+  "cover": "images/covers/that-time-i-got-reincarnated-as-a-slime-2018.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2018,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Фильм «Scarlet Bond»",
+    "year": 2022,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2024,
+    "released": true
+   },
+   {
+    "name": "Фильм 2 «Tears of the Azure Sea»",
+    "year": 2026,
+    "released": true
+   },
+   {
+    "name": "Сезон 4",
+    "year": 2026,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "hell-s-paradise-jigokuraku-2023",
+  "title": "Адский рай",
+  "originalTitle": "Hell's Paradise: Jigokuraku",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2023,
+  "genres": [
+   "боевик",
+   "приключения",
+   "сверхъестественное"
+  ],
+  "rating": null,
+  "cover": "images/covers/hell-s-paradise-jigokuraku-2023.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2026,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "chainsmoker-cat-2026",
+  "title": "Табакошка",
+  "originalTitle": "Chainsmoker Cat",
+  "category": "anime",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2026,
+  "genres": [
+   "комедия",
+   "повседневность"
+  ],
+  "rating": null,
+  "cover": "images/covers/chainsmoker-cat-2026.jpg"
+ },
+ {
+  "id": "avatar-the-last-airbender-2005",
+  "title": "Аватар: Легенда об Аанге (2005)",
+  "originalTitle": "Avatar: The Last Airbender",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2005,
+  "genres": [
+   "приключения",
+   "фэнтези",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/avatar-the-last-airbender-2005.jpg",
+  "parts": [
+   {
+    "name": "Книга 1: Вода",
+    "year": 2005,
+    "released": true
+   },
+   {
+    "name": "Книга 2: Земля",
+    "year": 2006,
+    "released": true
+   },
+   {
+    "name": "Книга 3: Огонь",
+    "year": 2007,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "avatar-the-last-airbender-2024",
+  "title": "Аватар: Легенда об Аанге (2024)",
+  "originalTitle": "Avatar: The Last Airbender",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2024,
+  "genres": [
+   "приключения",
+   "фэнтези",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/avatar-the-last-airbender-2024.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2024,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2026,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2027,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "castlevania-2017",
+  "title": "Кастлвания",
+  "originalTitle": "Castlevania",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2017,
+  "genres": [
+   "тёмное фэнтези",
+   "боевик",
+   "ужасы"
+  ],
+  "rating": null,
+  "cover": "images/covers/castlevania-2017.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2017,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2018,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2020,
+    "released": true
+   },
+   {
+    "name": "Сезон 4",
+    "year": 2021,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "castlevania-nocturne-2023",
+  "title": "Кастлвания: Ноктюрн",
+  "originalTitle": "Castlevania: Nocturne",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2023,
+  "genres": [
+   "тёмное фэнтези",
+   "боевик",
+   "ужасы"
+  ],
+  "rating": null,
+  "cover": "images/covers/castlevania-nocturne-2023.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2025,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "the-legend-of-vox-machina-2022",
+  "title": "Легенда о Vox Machina",
+  "originalTitle": "The Legend of Vox Machina",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2022,
+  "genres": [
+   "фэнтези",
+   "приключения",
+   "комедия"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-legend-of-vox-machina-2022.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2022,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2024,
+    "released": true
+   },
+   {
+    "name": "Сезон 4",
+    "year": 2026,
+    "released": true
+   },
+   {
+    "name": "Сезон 5 (финальный)",
+    "year": 2027,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "the-mighty-nein-2025",
+  "title": "Могучая девятка",
+  "originalTitle": "The Mighty Nein",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2025,
+  "genres": [
+   "фэнтези",
+   "приключения",
+   "драма"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-mighty-nein-2025.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2025,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": null,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "money-heist-2017",
+  "title": "Бумажный дом",
+  "originalTitle": "La casa de papel",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2017,
+  "genres": [
+   "криминал",
+   "драма",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/money-heist-2017.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2017,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2018,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2019,
+    "released": true
+   },
+   {
+    "name": "Сезон 4",
+    "year": 2020,
+    "released": true
+   },
+   {
+    "name": "Сезон 5, часть 1",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Сезон 5, часть 2",
+    "year": 2021,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "gen-v-2023",
+  "title": "Поколение «Ви»",
+  "originalTitle": "Gen V",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2023,
+  "genres": [
+   "супергероика",
+   "сатира",
+   "драма"
+  ],
+  "rating": null,
+  "cover": "images/covers/gen-v-2023.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2025,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "masters-of-the-universe-revelation-2021",
+  "title": "Властелины вселенной: Откровение",
+  "originalTitle": "Masters of the Universe: Revelation",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "completed",
+  "year": 2021,
+  "genres": [
+   "фэнтези",
+   "приключения",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/masters-of-the-universe-revelation-2021.jpg",
+  "parts": [
+   {
+    "name": "Часть 1",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Часть 2",
+    "year": 2021,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "the-amazing-spider-man-2-2014",
+  "title": "Новый Человек-паук: Высокое напряжение",
+  "originalTitle": "The Amazing Spider-Man 2",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2014,
+  "genres": [
+   "фантастика",
+   "боевик",
+   "приключения"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-amazing-spider-man-2-2014.jpg"
+ },
+ {
+  "id": "the-man-from-u-n-c-l-e-2015",
+  "title": "Агенты А.Н.К.Л.",
+  "originalTitle": "The Man from U.N.C.L.E.",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2015,
+  "genres": [
+   "боевик",
+   "комедия",
+   "приключения"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-man-from-u-n-c-l-e-2015.jpg"
+ },
+ {
+  "id": "the-hobbit-the-desolation-of-smaug-2013",
+  "title": "Хоббит: Пустошь Смауга",
+  "originalTitle": "The Hobbit: The Desolation of Smaug",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2013,
+  "genres": [
+   "фэнтези",
+   "приключения",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-hobbit-the-desolation-of-smaug-2013.jpg"
+ },
+ {
+  "id": "the-batman-2022",
+  "title": "Бэтмен",
+  "originalTitle": "The Batman",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2022,
+  "genres": [
+   "боевик",
+   "детектив",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-batman-2022.jpg"
+ },
+ {
+  "id": "the-fountain-of-youth-2025",
+  "title": "Источник вечной молодости",
+  "originalTitle": "Fountain of Youth",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2025,
+  "genres": [
+   "приключения",
+   "боевик",
+   "фэнтези"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-fountain-of-youth-2025.jpg"
+ },
+ {
+  "id": "masters-of-the-universe-2026",
+  "title": "Властелины Вселенной",
+  "originalTitle": "Masters of the Universe",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2026,
+  "genres": [
+   "фэнтези",
+   "приключения",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/masters-of-the-universe-2026.jpg"
+ },
+ {
+  "id": "case-39-2009",
+  "title": "Дело №39",
+  "originalTitle": "Case 39",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2009,
+  "genres": [
+   "ужасы",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/case-39-2009.jpg"
+ },
+ {
+  "id": "klaustrofoby-2019",
+  "title": "Клаустрофобы",
+  "originalTitle": "Escape Room",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2019,
+  "genres": [
+   "ужасы",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/klaustrofoby-2019.jpg"
+ },
+ {
+  "id": "hannibal-rising-2007",
+  "title": "Ганнибал: Восхождение",
+  "originalTitle": "Hannibal Rising",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2007,
+  "genres": [
+   "триллер",
+   "драма",
+   "криминал"
+  ],
+  "rating": null,
+  "cover": "images/covers/hannibal-rising-2007.jpg"
+ },
+ {
+  "id": "aliens-1986",
+  "title": "Чужие",
+  "originalTitle": "Aliens",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 1986,
+  "genres": [
+   "фантастика",
+   "ужасы",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/aliens-1986.jpg"
+ },
+ {
+  "id": "prometheus-2012",
+  "title": "Прометей",
+  "originalTitle": "Prometheus",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2012,
+  "genres": [
+   "фантастика",
+   "ужасы",
+   "приключения"
+  ],
+  "rating": null,
+  "cover": "images/covers/prometheus-2012.jpg"
+ },
+ {
+  "id": "alien-earth-2025",
+  "title": "Чужой: Земля",
+  "originalTitle": "Alien: Earth",
+  "category": "series",
+  "status": "queue",
+  "airingStatus": "ongoing",
+  "year": 2025,
+  "genres": [
+   "фантастика",
+   "ужасы",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/alien-earth-2025.jpg",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2025,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2027,
+    "released": false
+   }
+  ]
+ },
+ {
+  "id": "lilo-stitch-2025",
+  "title": "Лило и Стич",
+  "originalTitle": "Lilo & Stitch",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2025,
+  "genres": [
+   "фантастика",
+   "семейный",
+   "комедия"
+  ],
+  "rating": null,
+  "cover": "images/covers/lilo-stitch-2025.jpg"
+ },
+ {
+  "id": "unravel-two-2018",
+  "title": "Unravel Two",
+  "category": "game",
+  "status": "queue",
+  "airingStatus": null,
+  "platforms": [
+   "PC",
+   "PS4",
+   "Xbox One",
+   "Nintendo Switch"
+  ],
+  "year": 2018,
+  "genres": [
+   "кооператив",
+   "платформер",
+   "головоломка"
+  ],
+  "rating": null,
+  "cover": "images/covers/unravel-two-2018.jpg"
+ },
+ {
+  "id": "iron-man-2008",
+  "title": "Железный человек",
+  "originalTitle": "Iron Man",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2008,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/iron-man-2008.jpg"
+ },
+ {
+  "id": "thor-2011",
+  "title": "Тор",
+  "originalTitle": "Thor",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2011,
+  "genres": [
+   "фэнтези",
+   "супергероика",
+   "боевик"
+  ],
+  "rating": null,
+  "cover": "images/covers/thor-2011.jpg"
+ },
+ {
+  "id": "iron-man-3-2013",
+  "title": "Железный человек 3",
+  "originalTitle": "Iron Man 3",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2013,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/iron-man-3-2013.jpg"
+ },
+ {
+  "id": "guardians-of-the-galaxy-2014",
+  "title": "Стражи Галактики",
+  "originalTitle": "Guardians of the Galaxy",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2014,
+  "genres": [
+   "фантастика",
+   "приключения",
+   "комедия"
+  ],
+  "rating": null,
+  "cover": "images/covers/guardians-of-the-galaxy-2014.jpg"
+ },
+ {
+  "id": "captain-america-civil-war-2016",
+  "title": "Первый мститель: Противостояние",
+  "originalTitle": "Captain America: Civil War",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2016,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/captain-america-civil-war-2016.jpg"
+ },
+ {
+  "id": "spider-man-homecoming-2017",
+  "title": "Человек-паук: Возвращение домой",
+  "originalTitle": "Spider-Man: Homecoming",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2017,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "комедия"
+  ],
+  "rating": null,
+  "cover": "images/covers/spider-man-homecoming-2017.jpg"
+ },
+ {
+  "id": "avengers-infinity-war-2018",
+  "title": "Мстители: Война бесконечности",
+  "originalTitle": "Avengers: Infinity War",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2018,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/avengers-infinity-war-2018.jpg"
+ },
+ {
+  "id": "avengers-endgame-2019",
+  "title": "Мстители: Финал",
+  "originalTitle": "Avengers: Endgame",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2019,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/avengers-endgame-2019.jpg"
+ },
+ {
+  "id": "shang-chi-and-the-legend-of-the-ten-rings-2021",
+  "title": "Шан-Чи и легенда десяти колец",
+  "originalTitle": "Shang-Chi and the Legend of the Ten Rings",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2021,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фэнтези"
+  ],
+  "rating": null,
+  "cover": "images/covers/shang-chi-and-the-legend-of-the-ten-rings-2021.jpg"
+ },
+ {
+  "id": "doctor-strange-in-the-multiverse-of-madness-2022",
+  "title": "Доктор Стрэндж: В мультивселенной безумия",
+  "originalTitle": "Doctor Strange in the Multiverse of Madness",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2022,
+  "genres": [
+   "фэнтези",
+   "супергероика",
+   "ужасы"
+  ],
+  "rating": null,
+  "cover": "images/covers/doctor-strange-in-the-multiverse-of-madness-2022.jpg"
+ },
+ {
+  "id": "ant-man-and-the-wasp-quantumania-2023",
+  "title": "Человек-муравей и Оса: Квантомания",
+  "originalTitle": "Ant-Man and the Wasp: Quantumania",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2023,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/ant-man-and-the-wasp-quantumania-2023.jpg"
+ },
+ {
+  "id": "deadpool-wolverine-2024",
+  "title": "Дэдпул и Росомаха",
+  "originalTitle": "Deadpool & Wolverine",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2024,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "комедия"
+  ],
+  "rating": null,
+  "cover": "images/covers/deadpool-wolverine-2024.jpg"
+ },
+ {
+  "id": "the-fantastic-four-first-steps-2025",
+  "title": "Фантастическая четвёрка: Первые шаги",
+  "originalTitle": "The Fantastic Four: First Steps",
+  "category": "movie",
+  "status": "done",
+  "airingStatus": null,
+  "year": 2025,
+  "genres": [
+   "супергероика",
+   "фантастика",
+   "приключения"
+  ],
+  "rating": null,
+  "cover": "images/covers/the-fantastic-four-first-steps-2025.jpg"
+ },
+ {
+  "id": "avengers-secret-wars-2027",
+  "title": "Мстители: Секретные войны",
+  "originalTitle": "Avengers: Secret Wars",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2027,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "фантастика"
+  ],
+  "rating": null,
+  "cover": "images/covers/_placeholder.svg"
+ },
+ {
+  "id": "black-panther-iii-2028",
+  "title": "Чёрная пантера 3",
+  "originalTitle": "Black Panther III",
+  "category": "movie",
+  "status": "queue",
+  "airingStatus": null,
+  "year": 2028,
+  "genres": [
+   "супергероика",
+   "боевик",
+   "драма"
+  ],
+  "rating": null,
+  "cover": "images/covers/_placeholder.svg"
+ },
+ {
+  "id": "loki-2021",
+  "title": "Локи",
+  "originalTitle": "Loki",
+  "category": "series",
+  "status": "done",
+  "airingStatus": "completed",
+  "year": 2021,
+  "genres": [
+   "супергероика",
+   "фантастика",
+   "приключения"
+  ],
+  "rating": null,
+  "cover": "images/covers/loki-2021.webp",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2023,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "what-if-2021",
+  "title": "Что, если...?",
+  "originalTitle": "What If...?",
+  "category": "series",
+  "status": "done",
+  "airingStatus": "completed",
+  "year": 2021,
+  "genres": [
+   "супергероика",
+   "фантастика",
+   "приключения"
+  ],
+  "rating": null,
+  "cover": "images/covers/what-if-2021.webp",
+  "parts": [
+   {
+    "name": "Сезон 1",
+    "year": 2021,
+    "released": true
+   },
+   {
+    "name": "Сезон 2",
+    "year": 2023,
+    "released": true
+   },
+   {
+    "name": "Сезон 3",
+    "year": 2024,
+    "released": true
+   }
+  ]
+ },
+ {
+  "id": "moon-knight-2022",
+  "title": "Лунный рыцарь",
+  "originalTitle": "Moon Knight",
+  "category": "series",
+  "status": "done",
+  "airingStatus": "completed",
+  "year": 2022,
+  "genres": [
+   "супергероика",
+   "мистика",
+   "триллер"
+  ],
+  "rating": null,
+  "cover": "images/covers/moon-knight-2022.webp"
+ }
+]

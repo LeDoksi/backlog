@@ -1,0 +1,4 @@
+.wrap { position: fixed; left: 0; right: 0; top: max(10px, env(safe-area-inset-top)); z-index: 45; display: flex; justify-content: center; pointer-events: none; }
+.pill { height: 32px; padding: 0 14px; border-radius: var(--r-pill); display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 600; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); box-shadow: var(--shadow-glass); }
+.offline { color: var(--text-2); }
+.pending { color: var(--badge); }

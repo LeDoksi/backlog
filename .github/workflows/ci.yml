@@ -16,6 +16,9 @@ jobs:
       - name: v2 unit tests and types
         working-directory: app
         run: npm test && npm run typecheck
+      - name: v2 production build and JS budget
+        working-directory: app
+        run: npm run build && npm run budget
       - name: v2 e2e
         working-directory: app
         run: npx playwright install --with-deps chromium && npm run e2e

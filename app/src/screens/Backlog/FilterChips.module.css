@@ -1,0 +1,11 @@
+.row { display: flex; align-items: center; gap: 12px; }
+.chips { flex: 1; min-width: 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); }
+.chips::-webkit-scrollbar { display: none; }
+.anchor { position: relative; flex-shrink: 0; }
+.dim { opacity: .55; }
+.footBtn { flex: 1; }
+.right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.shown { font-size: var(--fs-sm); color: var(--muted); font-weight: 500; }
+.sortBtn { min-height: 38px; padding: 0 14px; border: 0; border-radius: var(--r-pill); background: var(--surface); color: var(--text-2); font-weight: 600; font-size: var(--fs-base); display: inline-flex; align-items: center; gap: 7px; }
+/* Popovers hang out of the row; on desktop it must not clip them. */
+@media (min-width: 1024px) { .chips { overflow: visible; margin: 0; padding: 0; flex-wrap: nowrap; } }

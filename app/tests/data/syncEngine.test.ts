@@ -1,0 +1,101 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { createTitlesStore } from '../../src/data/titlesStore';
+import { startSync } from '../../src/data/syncEngine';
+import { busy } from '../../src/data/busy';
+import * as Sync from '../../src/lib/sync';
+import { fakeClient, fakeStorage, tick } from './fakes';
+
+beforeEach(() => { busy._reset(); Sync._resetEchoes(); });
+
+async function settle() { for (let i = 0; i < 6; i++) await tick(); }
+
+describe('startSync', () => {
+  it('flushes the queue before it pulls', async () => {
+    const storage = fakeStorage({ 'backlog-sync-outbox': [{ t: 'override', id: 'a', patch: { status: 'done' } }] });
+    const client = fakeClient({ drafts: [{ id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [] }] });
+    const store = createTitlesStore({ storage, client: () => client });
+    const stop = startSync({ store, storage, client: () => client, win: new EventTarget() as unknown as Window });
+    await settle();
+    const firstUpsert = client.log.findIndex((e) => e.op === 'upsert');
+    const firstSelect = client.log.findIndex((e) => e.op === 'select');
+    expect(firstUpsert).toBeGreaterThanOrEqual(0);
+    expect(firstUpsert).toBeLessThan(firstSelect);
+    expect(store.getState().pending).toBe(0);
+    expect(store.getState().loading).toBe(false);
+    expect(client.log.some((e) => e.op === 'subscribe')).toBe(true);
+    stop();
+  });
+
+  it('offline start keeps the mirror and stops loading', async () => {
+    const storage = fakeStorage({ 'backlog-added': [{ id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [] }] });
+    const client = fakeClient();
+    client.state.offline = true;
+    const store = createTitlesStore({ storage, client: () => client });
+    startSync({ store, storage, client: () => client, win: new EventTarget() as unknown as Window });
+    await settle();
+    expect(store.getState().titles).toHaveLength(1);
+    expect(store.getState().loading).toBe(false);
+  });
+
+  it('coming online flushes queued edits and clears pending', async () => {
+    const storage = fakeStorage({ 'backlog-added': [{ id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [] }] });
+    const client = fakeClient({ drafts: [{ id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [] }] });
+    client.state.offline = true;
+    const win = new EventTarget() as unknown as Window;
+    const store = createTitlesStore({ storage, client: () => client });
+    startSync({ store, storage, client: () => client, win });
+    await settle();
+    store.getState().setStatus('a', 'done');
+    win.dispatchEvent(new Event('offline'));
+    await settle();
+    expect(store.getState().pending).toBe(1);
+    expect(store.getState().online).toBe(false);
+    client.state.offline = false;
+    win.dispatchEvent(new Event('online'));
+    await settle();
+    expect(store.getState().pending).toBe(0);
+    expect(store.getState().online).toBe(true);
+    expect(store.getState().titles[0]!.status).toBe('done');
+  });
+
+  it('opened offline, starts realtime once the network is back', async () => {
+    const client = fakeClient({ drafts: [] });
+    client.state.offline = true;
+    const storage = fakeStorage();
+    const win = new EventTarget() as unknown as Window;
+    const store = createTitlesStore({ storage, client: () => client });
+    startSync({ store, storage, client: () => client, win });
+    await settle();
+    expect(client.log.some((e) => e.op === 'subscribe')).toBe(false);
+    client.state.offline = false;
+    win.dispatchEvent(new Event('online'));
+    await settle();
+    expect(client.log.some((e) => e.op === 'subscribe')).toBe(true);
+  });
+
+  it('a remote change does not hide a title whose push is still queued', async () => {
+    const client = fakeClient({ drafts: [] });
+    const storage = fakeStorage();
+    const store = createTitlesStore({ storage, client: () => client });
+    startSync({ store, storage, client: () => client, win: new EventTarget() as unknown as Window });
+    await settle();
+    client.state.failWrites = true;
+    store.getState().addTitle({ id: 'new', title: 'New', category: 'movie', status: 'queue', genres: [] } as never);
+    await settle();
+    client.remoteChange();
+    await new Promise((r) => setTimeout(r, 400));
+    await settle();
+    expect(store.getState().titles.map((t) => t.id)).toEqual(['new']);
+    expect(store.getState().pending).toBe(1);
+  });
+
+  it('a pull that lands after stop does not write the mirror', async () => {
+    const client = fakeClient({ drafts: [{ id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [] }] });
+    const storage = fakeStorage();
+    const store = createTitlesStore({ storage, client: () => client });
+    const stop = startSync({ store, storage, client: () => client, win: new EventTarget() as unknown as Window });
+    stop();
+    await settle();
+    expect(storage.json('backlog-added')).toBeUndefined();
+  });
+});

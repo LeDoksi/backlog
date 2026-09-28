@@ -1,0 +1,8 @@
+.screen { position: relative; isolation: isolate; }
+.glow { position: absolute; left: -80px; top: -170px; width: 550px; height: 360px; background: radial-gradient(closest-side, var(--accent-glow), transparent 70%); pointer-events: none; z-index: -1; }
+.header { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+.skeletons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+@media (min-width: 1024px) {
+  .header { gap: 16px; margin-bottom: 26px; }
+  .skeletons { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 26px 20px; }
+}

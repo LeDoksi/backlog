@@ -1,0 +1,28 @@
+.root { position: fixed; inset: 0; z-index: 60; background: var(--bg); }
+.frame { height: 100%; display: flex; flex-direction: column; }
+.scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: max(24px, env(safe-area-inset-top)) var(--gutter) 24px; display: flex; flex-direction: column; gap: 14px; }
+.head { display: flex; align-items: center; gap: 12px; }
+.close { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 50%; background: var(--surface); color: var(--text); box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: center; }
+.h1 { margin: 0; font-family: var(--font-display); font-size: var(--fs-title-sm); font-weight: 600; }
+.card { padding: 16px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 14px; }
+.flat { padding: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.input, .textarea { min-height: 50px; padding: 0 14px; border-radius: var(--r-sm); border: 0; background: var(--sunken); font-size: var(--fs-md); outline: none; width: 100%; }
+.textarea { padding: 12px 14px; resize: vertical; line-height: 1.45; }
+.input:focus-visible, .textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); outline: none; }
+.input[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--danger); }
+.error { font-size: var(--fs-sm); color: var(--danger); font-weight: 500; }
+.year { width: 140px; }
+.segments { display: flex; gap: 4px; padding: 4px; border-radius: var(--r-sm); background: var(--sunken); }
+.segment { flex: 1; min-height: 44px; border: 0; border-radius: var(--r-xs); background: transparent; color: var(--muted); font-size: var(--fs-sm); font-weight: 600; }
+.segmentOn { background: var(--surface); color: var(--text); box-shadow: var(--shadow-soft); }
+.bar { flex-shrink: 0; display: flex; gap: 8px; padding: 14px var(--gutter) max(30px, env(safe-area-inset-bottom)); background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--line); }
+.cancel { flex: 1; }
+.save { flex: 2; }
+@media (min-width: 1024px) {
+  .root { background: var(--scrim); display: flex; align-items: center; justify-content: center; }
+  .frame { width: min(720px, calc(100vw - 64px)); height: min(900px, calc(100dvh - 64px)); background: var(--bg); border-radius: var(--r-sheet); overflow: hidden; }
+  .scroll { padding: 28px; }
+  .bar { padding: 16px 28px; }
+}

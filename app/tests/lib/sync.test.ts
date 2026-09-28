@@ -238,7 +238,7 @@ test('pullState maps draft rows back to the camelCase title shape', async () => 
     id: 'dune-3', title: 'Dune 3', category: 'movie', status: 'queue',
     airingStatus: null, year: null, genres: [], rating: null,
     synopsis: '', cover: 'images/covers/_placeholder.svg', draft: true,
-    originalTitle: null, seasonInfo: null, platforms: null, parts: null
+    originalTitle: null, seasonInfo: null, platforms: null, parts: null, source: null, sourceId: null
   }]);
 });
 
@@ -1309,4 +1309,19 @@ test('createClient passes url and key through to the SDK', () => {
 test('createClient returns null rather than throwing when the SDK throws', () => {
   var sdk = { createClient: function () { throw new Error('bad url'); } };
   assert.equal(sync.createClient('nonsense', 'key', sdk), null);
+});
+
+test('source and source_id travel both ways, and are left out when unknown', async () => {
+  var client = fullClient({
+    drafts: rows([{ id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [], source: 'tmdb-movie', source_id: '42', created_at: 'x' }])
+  });
+  var result = await sync.pullState(client);
+  assert.equal(result.state['backlog-added'][0].source, 'tmdb-movie');
+  assert.equal(result.state['backlog-added'][0].sourceId, '42');
+  await sync.pushDraft(client, { id: 'b', title: 'B', category: 'movie', status: 'queue', genres: [] });
+  await sync.pushDraft(client, { id: 'c', title: 'C', category: 'movie', status: 'queue', genres: [], source: 'steam', sourceId: '7' });
+  var ups = client.log.filter(function (e) { return e.op === 'upsert'; });
+  assert.equal('source' in ups[0].row, false);
+  assert.equal(ups[1].row.source, 'steam');
+  assert.equal(ups[1].row.source_id, '7');
 });
