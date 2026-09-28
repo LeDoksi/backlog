@@ -28,8 +28,23 @@
   .layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
   .hero { padding: 32px; grid-row: span 2; min-height: 320px; justify-content: flex-end; }
   .bigNum { font-size: 88px; }
-  .fan { right: 20px; top: 20px; }
+  /* Two staggered rows fill the right side of the hero, as many posters a row
+     as leave the numbers their room: two on a small laptop, three on an
+     ordinary one, five on a wide screen. */
+  .fan { right: clamp(-72px, 55vw - 640px, 24px); top: -6px; display: grid; grid-template-columns: repeat(2, 96px); gap: 10px; }
+  .fan img:nth-child(n + 5) { display: none; }
   .fan img { width: 96px; height: 144px; }
+  .fan img:nth-child(2) { margin-top: 0; }
+  .fan img:nth-child(even) { margin-top: 18px; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tile { padding: 18px; }
+}
+@media (min-width: 1340px) {
+  .fan { grid-template-columns: repeat(3, 96px); }
+  .fan img:nth-child(n + 5) { display: block; }
+  .fan img:nth-child(n + 7) { display: none; }
+}
+@media (min-width: 1700px) {
+  .fan { grid-template-columns: repeat(5, 96px); }
+  .fan img:nth-child(n + 7) { display: block; }
 }
