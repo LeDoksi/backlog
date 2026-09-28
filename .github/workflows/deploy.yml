@@ -17,14 +17,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm, cache-dependency-path: app/package-lock.json }
-      - run: node --test tests/*.test.js
       - working-directory: app
         run: npm ci && npm test && npm run build
-      - name: Assemble site (v1 at root, v2 under /v2/)
+      - name: Assemble site (app at root, old /v2/ address redirects)
         run: |
-          mkdir -p _site
-          cp -r index.html app.js styles.css sw.js manifest.webmanifest data.js lib images _site/
-          cp -r app/dist _site/v2
+          cp -r app/dist _site
+          cp -r images _site/images
+          cp -r app/retired-v2 _site/v2
       - uses: actions/upload-pages-artifact@v3
         with: { path: _site }
   deploy:

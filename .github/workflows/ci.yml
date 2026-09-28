@@ -8,17 +8,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm, cache-dependency-path: app/package-lock.json }
-      - name: v1 tests
-        run: node --test tests/*.test.js
-      - name: v2 install
+      - name: install
         working-directory: app
         run: npm ci
-      - name: v2 unit tests and types
+      - name: unit tests and types
         working-directory: app
         run: npm test && npm run typecheck
-      - name: v2 production build and JS budget
+      - name: production build and JS budget
         working-directory: app
         run: npm run build && npm run budget
-      - name: v2 e2e
+      - name: e2e
         working-directory: app
         run: npx playwright install --with-deps chromium && npm run e2e

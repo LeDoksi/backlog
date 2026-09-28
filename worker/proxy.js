@@ -1,6 +1,6 @@
 // Cloudflare Worker — CORS relay for the backlog app's own third-party
-// API calls (TMDb fallback + Steam, see lib/enrich.js / app.js's
-// CORS_PROXY). Deployed by hand via the Cloudflare dashboard's code
+// API calls (TMDb fallback + Steam, see app/src/lib/enrich.ts and
+// CORS_PROXY in app/src/config.ts). Deployed by hand via the Cloudflare dashboard's code
 // editor (Workers & Pages → your worker → Edit code) — this file is the
 // source of truth, paste its contents in whenever it changes.
 //

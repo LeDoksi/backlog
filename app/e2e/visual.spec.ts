@@ -5,8 +5,7 @@ import { catalogRows } from './fixtures/catalog';
 // Screen baselines, checked by eye against docs/design/2026-09-25-redesign/
 // mockups before they were accepted. A diff here means a screen changed: fix
 // the code, or re-accept with `npx playwright test visual --update-snapshots`
-// after looking at the new shot. Covers resolve to the placeholder because
-// the preview server only serves /backlog/v2/, which keeps shots stable.
+// after looking at the new shot.
 const rows = catalogRows(24);
 const parts = [{ id: rows.find((r) => r.parts)!.id, indices: [0], updated_at: 'x' }];
 
