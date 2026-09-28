@@ -1,0 +1,38 @@
+name: Deploy
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: app/package-lock.json }
+      - run: node --test tests/*.test.js
+      - working-directory: app
+        run: npm ci && npm test && npm run build
+      - name: Assemble site (v1 at root, v2 under /v2/)
+        run: |
+          mkdir -p _site
+          cp -r index.html app.js styles.css sw.js manifest.webmanifest data.js lib images _site/
+          cp -r app/dist _site/v2
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
