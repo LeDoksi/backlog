@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { LayoutGroup } from 'motion/react';
 import { useSession } from './data/session';
-import { useTitles, mirror } from './data/titlesStore';
+import { useTitles, mirror, outbox } from './data/titlesStore';
+import { useBoards } from './data/boardsStore';
 import { startSync } from './data/syncEngine';
 import { getSupabase } from './data/supabase';
 import { useUi } from './data/ui';
@@ -25,7 +26,8 @@ function Signed({ userId, email, onSignOut }: { userId: string; email: string; o
   const [section, setSection] = useState<Section>('backlog');
   const setQuickAdd = useUi((u) => u.setQuickAdd);
 
-  useEffect(() => startSync({ store: useTitles, storage: mirror, client: getSupabase }), []);
+  useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase }), []);
+  useEffect(() => { void useBoards.getState().refresh(); }, []);
 
   return (
     <LayoutGroup>
@@ -54,10 +56,8 @@ export function App() {
         // Cleared after signing out, which unmounts Signed and stops sync, so
         // a pull still in flight cannot write the old account back.
         await session.signOut();
-        clearMirror();
         // The next account starts from the skeleton, not an empty board.
-        useTitles.setState({ loading: true });
-        useTitles.getState().refresh(true);
+        clearMirror();
       }} />
   );
 }
