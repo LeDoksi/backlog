@@ -45,6 +45,18 @@ describe('titles store', () => {
     expect(store.getState().pending).toBe(0);
   });
 
+  it('marking done stamps completedAt on this device only; the server sets its own', async () => {
+    const { store, title, client } = setup(true);
+    store.getState().setStatus('drive-2011', 'done');
+    expect(title('drive-2011').completedAt).toBe('2026-09-28T12:00:00.000Z');
+    store.getState().setStatus('drive-2011', 'queue');
+    expect(title('drive-2011').completedAt).toBeNull();
+    client.state.offline = false;
+    await store.getState().flush();
+    const update = client.log.find((e) => e.op === 'update') as { values: Record<string, unknown> } | undefined;
+    expect(update?.values).not.toHaveProperty('completed_at');
+  });
+
   it('a failed send grows pending and keeps the edit', async () => {
     const { store, title } = setup(true);
     store.getState().setStatus('drive-2011', 'done');

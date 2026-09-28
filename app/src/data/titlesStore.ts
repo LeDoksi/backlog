@@ -98,11 +98,22 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
       return readRows(get().boardId).find((r) => r.id === id);
     }
 
+    // The titles_touch trigger's dates, mirrored so «Итоги» count a title
+    // finished offline at once. They stay local: the server stamps its own
+    // and the next pull or echo replaces these.
+    function localDates(r: TitleRow, cols: Record<string, unknown>): Partial<TitleRow> {
+      if (!('status' in cols) || cols.status === r.status) return {};
+      if (cols.status === 'done') return { completed_at: now() };
+      if (r.status === 'done') return { completed_at: null };
+      if (cols.status === 'in_progress' && !r.started_at) return { started_at: now() };
+      return {};
+    }
+
     // Local first, then the queue: the screen never waits for the network.
     function patch(id: string, cols: Record<string, unknown>) {
       const board = get().boardId;
       if (!board || !Object.keys(cols).length) return;
-      writeRows(board, readRows(board).map((r) => (r.id === id ? { ...r, ...cols } as TitleRow : r)));
+      writeRows(board, readRows(board).map((r) => (r.id === id ? { ...r, ...cols, ...localDates(r, cols) } as TitleRow : r)));
       outbox.add({ kind: 'patch', board, id, cols });
       compute();
       void flush();

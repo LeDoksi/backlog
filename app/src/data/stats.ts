@@ -46,3 +46,80 @@ export function showcase(titles: Title[], n: number, rand: () => number = Math.r
   }
   return pool.slice(0, n);
 }
+
+export type Period = 'month' | 'year' | 'all';
+type Ticks = (id: string) => Record<string, string>;
+
+export interface PeriodStats {
+  label: string;
+  done: number;
+  /** Finished in the period before; null for all time. */
+  previous: number | null;
+  byCategory: Stats['byCategory'];
+  genres: Stats['genres'];
+  /** Finished in this period, for the poster fan. */
+  finished: Title[];
+}
+
+const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+// Calendar periods in the device's own time zone: [from, to).
+function range(period: 'month' | 'year', now: Date, back = 0): [number, number] {
+  if (period === 'month') return [new Date(now.getFullYear(), now.getMonth() - back, 1).getTime(), new Date(now.getFullYear(), now.getMonth() - back + 1, 1).getTime()];
+  return [new Date(now.getFullYear() - back, 0, 1).getTime(), new Date(now.getFullYear() - back + 1, 0, 1).getTime()];
+}
+
+const within = (iso: string | null | undefined, [from, to]: [number, number]) => {
+  if (!iso) return false;
+  const t = Date.parse(iso);
+  return t >= from && t < to;
+};
+
+const finishedIn = (titles: Title[], r: [number, number]) => titles.filter((t) => t.status === 'done' && within(t.completedAt, r));
+
+// A month or a year counts by dates: titles by completed_at and seasons by
+// the day each was ticked. Titles migrated without dates count only for all
+// time, since when they were finished is unknown.
+export function periodStats(titles: Title[], ticks: Ticks, period: Period, now: Date = new Date()): PeriodStats {
+  if (period === 'all') {
+    const all = computeStats(titles, (id) => Object.keys(ticks(id)).filter((k) => /^\d+$/.test(k)).map(Number));
+    return { label: 'За всё время', done: all.done, previous: null, byCategory: all.byCategory, genres: all.genres, finished: titles.filter((t) => t.status === 'done') };
+  }
+  const r = range(period, now);
+  const finished = finishedIn(titles, r);
+  const byCategory: Stats['byCategory'] = { movie: { done: 0 }, series: { done: 0, seasons: 0 }, anime: { done: 0, seasons: 0 }, game: { done: 0 } };
+  const genreMap = new Map<string, number>();
+  finished.forEach((t) => {
+    byCategory[t.category].done += 1;
+    (t.genres ?? []).forEach((g) => genreMap.set(g, (genreMap.get(g) ?? 0) + 1));
+  });
+  titles.forEach((t) => {
+    if (t.category !== 'series' && t.category !== 'anime') return;
+    byCategory[t.category].seasons! += hasPartsChecklist(t)
+      ? Object.values(ticks(t.id)).filter((d) => within(d, r)).length
+      : finished.includes(t) ? 1 : 0;
+  });
+  const genres = [...genreMap].map(([genre, count]) => ({ genre, count })).sort((a, b) => b.count - a.count || a.genre.localeCompare(b.genre, 'ru'));
+  return {
+    label: period === 'month' ? MONTHS[now.getMonth()]! : String(now.getFullYear()),
+    done: finished.length,
+    previous: finishedIn(titles, range(period, now, 1)).length,
+    byCategory,
+    genres,
+    finished
+  };
+}
+
+export function comparison(p: { done: number; previous: number | null }, period: Period): string | null {
+  if (p.previous === null || period === 'all') return null;
+  const when = period === 'month' ? 'в прошлом месяце' : 'в прошлом году';
+  const diff = p.done - p.previous;
+  if (diff === 0) return `Столько же, сколько ${when}`;
+  return `На ${Math.abs(diff)} ${diff > 0 ? 'больше' : 'меньше'}, чем ${when}`;
+}
+
+/** The month when anything was finished or ticked in it, otherwise all time. */
+export function defaultPeriod(titles: Title[], ticks: Ticks, now: Date = new Date()): Period {
+  const m = periodStats(titles, ticks, 'month', now);
+  return m.done > 0 || (m.byCategory.series.seasons ?? 0) + (m.byCategory.anime.seasons ?? 0) > 0 ? 'month' : 'all';
+}

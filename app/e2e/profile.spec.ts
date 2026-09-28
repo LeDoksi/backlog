@@ -89,3 +89,19 @@ test('stats show the all-time summary', async ({ page }) => {
   await expect(page.getByText('драма')).toBeVisible();
 });
 
+
+test('stats open on this month when something was finished in it', async ({ page }) => {
+  const now = new Date();
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1, 12).toISOString();
+  await installStub(page, { signedIn: true, hasProfile: true, titles: [
+    { id: 'a', title: 'A', category: 'movie', status: 'done', genres: ['драма'], cover: '', completed_at: thisMonth, created_at: '1' },
+    { id: 'b', title: 'B', category: 'movie', status: 'done', genres: [], cover: '', completed_at: null, created_at: '2' }
+  ] });
+  await page.goto('./');
+  await page.getByRole('navigation', { name: 'Разделы' }).filter({ visible: true }).getByRole('button', { name: 'Итоги' }).click();
+  await expect(page.getByRole('radio', { name: 'Месяц' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByText('На 1 больше, чем в прошлом месяце')).toBeVisible();
+  await page.getByRole('radio', { name: 'Всё время' }).click();
+  await expect(page.getByText('За всё время')).toBeVisible();
+  await expect(page.getByText('Из 2 в бэклоге', { exact: false })).toBeVisible();
+});

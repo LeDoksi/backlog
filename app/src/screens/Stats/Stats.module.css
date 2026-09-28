@@ -48,3 +48,4 @@
   .fan { grid-template-columns: repeat(5, 96px); }
   .fan img:nth-child(n + 7) { display: block; }
 }
+.periods { max-width: 420px; }
