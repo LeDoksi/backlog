@@ -9,16 +9,14 @@ import { useHistoryEntry, rearmHistoryEntry } from '../../ui/history';
 import { useTitles } from '../../data/titlesStore';
 import { useUi } from '../../data/ui';
 import { busy } from '../../data/busy';
-import type { Category, Title } from '../../lib/types';
+import type { Title } from '../../lib/types';
+import { CATEGORY_OPTIONS } from '../../data/labels';
 import { CoverField } from './CoverField';
 import { GenresField } from './GenresField';
 import { PartsEditor } from './PartsEditor';
-import { formFromTitle, patchFromForm, seasonal, validateForm, type EditForm, type FormErrors } from './editForm';
+import { formFromTitle, patchFromForm, remapChecked, seasonal, validateForm, type EditForm, type FormErrors } from './editForm';
 import s from './EditTitle.module.css';
 
-const CATEGORIES: { value: Category; label: string }[] = [
-  { value: 'movie', label: 'Кино' }, { value: 'series', label: 'Сериал' }, { value: 'anime', label: 'Аниме' }, { value: 'game', label: 'Игра' }
-];
 
 export function EditTitle() {
   const id = useUi((u) => u.editTitleId);
@@ -39,9 +37,12 @@ export function EditTitle() {
   );
 }
 
+const NONE: number[] = [];
+
 function EditBody({ title }: { title: Title }) {
   const closeEdit = useUi((u) => u.closeEdit);
   const editTitle = useTitles((t) => t.editTitle);
+  const checked = useTitles((t) => t.checked[title.id]) ?? NONE;
   // The form edits a snapshot: a remote change arriving mid-edit must not
   // rewrite fields under the person typing.
   const initial = useMemo(() => formFromTitle(title), [title.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -79,7 +80,7 @@ function EditBody({ title }: { title: Title }) {
       return;
     }
     const patch = patchFromForm(form, initial);
-    if (Object.keys(patch).length) editTitle(title.id, patch);
+    if (Object.keys(patch).length) editTitle(title.id, patch, patch.parts ? remapChecked(form, checked) ?? undefined : undefined);
     closeEdit();
   }
 
@@ -112,7 +113,7 @@ function EditBody({ title }: { title: Title }) {
           <div className={s.field}>
             <span className={s.label} id="cat-label">Категория</span>
             <div role="radiogroup" aria-labelledby="cat-label" className={s.segments}>
-              {CATEGORIES.map((c) => (
+              {CATEGORY_OPTIONS.map((c) => (
                 <button key={c.value} type="button" role="radio" aria-checked={form.category === c.value}
                   className={form.category === c.value ? `${s.segment} ${s.segmentOn}` : s.segment} onClick={() => set('category', c.value)}>{c.label}</button>
               ))}

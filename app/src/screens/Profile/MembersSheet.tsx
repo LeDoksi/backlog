@@ -3,7 +3,7 @@ import { Sheet } from '../../ui/Sheet';
 import { Avatar } from '../../ui/Avatar';
 import { Confirm } from '../../ui/Confirm';
 import { getSupabase } from '../../data/supabase';
-import { clearMirror } from '../../data/mirror';
+import { clearMirror, flushQueue } from '../../data/mirror';
 import * as Auth from '../../lib/auth';
 import s from './Profile.module.css';
 
@@ -20,6 +20,8 @@ export function MembersSheet({ open, onClose, userId }: { open: boolean; onClose
   async function act(m: Member) {
     setTarget(null);
     const self = m.id === userId;
+    // Queued edits belong to the space being left, so they go before leaving.
+    if (self) await flushQueue();
     const res = self ? await Auth.leaveWorkspace(getSupabase()) : await Auth.removeMember(getSupabase(), m.id);
     if (res && res.error) { setError(true); return; }
     // Leaving swaps this person into a space of their own: the mirror holds

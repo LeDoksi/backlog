@@ -16,8 +16,11 @@ export interface TitlesState {
   setPartChecked(id: string, index: number, checked: boolean): void;
   setAllReleasedChecked(id: string): void;
   addTitle(t: Title): 'ok' | 'duplicate';
-  editTitle(id: string, patch: Partial<Title>): void;
+  /** `checked` carries watched parts across a reorder or removal of parts. */
+  editTitle(id: string, patch: Partial<Title>, checked?: number[]): void;
   deleteTitle(id: string): void;
+  /** Ids a deleted title left overrides or a checklist under. */
+  leftoverIds(): string[];
   /** Re-read the mirror; deferred while `busy` unless forced. */
   refresh(force?: boolean): void;
 }
@@ -113,7 +116,7 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
         return 'ok';
       },
 
-      editTitle(id, patch) {
+      editTitle(id, patch, checked) {
         const current = find(id);
         if (!current) return;
         const changed: Record<string, unknown> = {};
@@ -124,12 +127,19 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
         Storage.setOverride(storage, id, changed as Partial<Title>);
         settle(Sync.pushOverride(deps.client(), id, changed));
         compute();
+        // After the new parts are in, so the derived status reads them.
+        if (checked) commitParts(id, Storage.setCheckedParts(storage, id, checked));
       },
 
       deleteTitle(id) {
         Storage.deleteTitle(storage, id);
         settle(Sync.pushRemoveDraft(deps.client(), id));
         compute();
+      },
+
+      leftoverIds() {
+        const live = new Set(Storage.getAdded(storage).map((t) => t.id));
+        return [...new Set([...Object.keys(Storage.getOverrides(storage)), ...Object.keys(readChecked(storage))])].filter((id) => !live.has(id));
       },
 
       refresh(force) {

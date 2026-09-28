@@ -58,6 +58,6 @@ export function useSession() {
     userId,
     email,
     signIn: () => { void Auth.signInWithGoogle(getSupabase(), window.location.origin + import.meta.env.BASE_URL); },
-    signOut: () => { void Auth.signOut(getSupabase()).then(evaluate); }
+    signOut: (): Promise<void> => Auth.signOut(getSupabase()).then(evaluate)
   };
 }

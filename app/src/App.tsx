@@ -13,7 +13,7 @@ import { EditTitle } from './screens/EditTitle/EditTitle';
 import { QuickAdd } from './screens/QuickAdd/QuickAdd';
 import { Stats } from './screens/Stats/Stats';
 import { Profile } from './screens/Profile/Profile';
-import { clearMirror } from './data/mirror';
+import { clearMirror, flushQueue } from './data/mirror';
 import { SyncStatus } from './ui/SyncStatus';
 import { AppShell } from './ui/AppShell';
 import type { Section } from './ui/TabBar';
@@ -49,6 +49,15 @@ export function App() {
   if (session.state === 'blocked') return <NotInvited onSignOut={session.signOut} />;
   return (
     <Signed userId={session.userId ?? ''} email={session.email ?? ''}
-      onSignOut={() => { clearMirror(); useTitles.getState().refresh(true); session.signOut(); }} />
+      onSignOut={async () => {
+        await flushQueue();
+        // Cleared after signing out, which unmounts Signed and stops sync, so
+        // a pull still in flight cannot write the old account back.
+        await session.signOut();
+        clearMirror();
+        // The next account starts from the skeleton, not an empty board.
+        useTitles.setState({ loading: true });
+        useTitles.getState().refresh(true);
+      }} />
   );
 }

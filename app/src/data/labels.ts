@@ -2,6 +2,8 @@ import type { Category, Status, Title } from '../lib/types';
 import { partsProgress, hasPartsChecklist } from '../lib/storage';
 
 export const CATEGORY_LABEL: Record<Category, string> = { anime: 'Аниме', movie: 'Кино', series: 'Сериал', game: 'Игра' };
+/** Category choices in the order forms offer them. */
+export const CATEGORY_OPTIONS: { value: Category; label: string }[] = (['movie', 'series', 'anime', 'game'] as const).map((value) => ({ value, label: CATEGORY_LABEL[value] }));
 export const CATEGORY_TAB: Record<'all' | Category, string> = { all: 'Всё', anime: 'Аниме', movie: 'Кино', series: 'Сериалы', game: 'Игры' };
 export const STATUS_CARD: Record<Status, string> = { queue: 'В бэклоге', in_progress: 'Смотрю', done: 'Завершено', unreleased: 'Ещё не вышло' };
 export const STATUS_FILTER: Record<Status, string> = { queue: 'В бэклоге', in_progress: 'В процессе', done: 'Завершено', unreleased: 'Ещё не вышло' };

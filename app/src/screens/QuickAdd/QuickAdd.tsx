@@ -11,12 +11,10 @@ import { useHistoryEntry } from '../../ui/history';
 import { useVisualViewport } from '../../ui/useVisualViewport';
 import { useIsDesktop } from '../../ui/useMediaQuery';
 import type { Category } from '../../lib/types';
+import { CATEGORY_OPTIONS } from '../../data/labels';
 import { ResultRow } from './ResultRow';
 import s from './QuickAdd.module.css';
 
-const CATS: { value: Category; label: string }[] = [
-  { value: 'movie', label: 'Кино' }, { value: 'series', label: 'Сериал' }, { value: 'anime', label: 'Аниме' }, { value: 'game', label: 'Игра' }
-];
 const DEBOUNCE_MS = 350;
 
 export function QuickAdd() {
@@ -98,14 +96,14 @@ function Panel() {
     // Details can fail on their own (a proxy hiccup): the hit itself still
     // carries a name, year and poster worth keeping.
     const picked = d ?? { title: hit.title, year: hit.year, cover: hit.poster, source: hit.provider, sourceId: String(hit.id) };
-    add(buildTitle(category, query, picked, useTitles.getState().titles));
+    add(buildTitle(category, query, picked, useTitles.getState().titles, useTitles.getState().leftoverIds()));
   }
 
   function manual() {
     const name = query.trim();
     if (!name) return;
     setNote(null);
-    add(buildTitle(category, name, {}, useTitles.getState().titles));
+    add(buildTitle(category, name, {}, useTitles.getState().titles, useTitles.getState().leftoverIds()));
   }
 
   const style = desktop ? undefined : { top: vv.offsetTop + 44, maxHeight: Math.max(240, vv.height - 56) };
@@ -121,7 +119,7 @@ function Panel() {
           <button type="button" className={s.close} aria-label="Закрыть" onClick={close}><X size={20} /></button>
         </div>
         <div role="radiogroup" aria-label="Категория" className={s.cats}>
-          {CATS.map((c) => (
+          {CATEGORY_OPTIONS.map((c) => (
             <button key={c.value} type="button" role="radio" aria-checked={c.value === category}
               className={c.value === category ? `${s.cat} ${s.catOn}` : s.cat}
               onClick={() => { setCategory(c.value); input.current?.focus(); }}>{c.label}</button>

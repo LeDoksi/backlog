@@ -27,7 +27,7 @@ export function Backlog() {
       action={<Button onClick={() => setQuickAdd(true)}>Добавить тайтл</Button>} />;
   } else if (shown.length === 0) {
     content = <EmptyState title="Ничего не нашлось" text="Попробуй другой запрос или сбрось фильтры."
-      action={<Button variant="tonal" onClick={() => { filters.reset(); filters.set({ search: '' }); }}>Сбросить фильтры</Button>} />;
+      action={<Button variant="tonal" onClick={() => filters.reset()}>Сбросить фильтры</Button>} />;
   } else {
     content = <TitleGrid titles={shown} animateKey={filters.category} />;
   }

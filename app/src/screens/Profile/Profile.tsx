@@ -17,6 +17,7 @@ export function Profile({ userId, email, onSignOut }: Props) {
   const [panel, setPanel] = useState<'invite' | 'members' | null>(null);
   const [leaving, setLeaving] = useState(false);
   const count = useTitles((t) => t.titles.length);
+  const pending = useTitles((t) => t.pending);
   const name = email.split('@')[0] ?? email;
 
   return (
@@ -53,7 +54,9 @@ export function Profile({ userId, email, onSignOut }: Props) {
 
       <InviteSheet open={panel === 'invite'} onClose={() => setPanel(null)} />
       <MembersSheet open={panel === 'members'} onClose={() => setPanel(null)} userId={userId} />
-      <Confirm open={leaving} title="Выйти из аккаунта?" text="Бэклог останется в облаке, войти можно снова в любой момент." confirm="Выйти"
+      <Confirm open={leaving} title="Выйти из аккаунта?" text={pending
+          ? `Ещё не сохранено в облаке: ${pending} ${plural(pending, 'правка', 'правки', 'правок')}. Если выйти без сети, они пропадут.`
+          : 'Бэклог останется в облаке, войти можно снова в любой момент.'} confirm="Выйти"
         onCancel={() => setLeaving(false)} onConfirm={() => { setLeaving(false); onSignOut(); }} />
     </div>
   );

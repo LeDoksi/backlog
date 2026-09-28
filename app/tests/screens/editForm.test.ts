@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formFromTitle, patchFromForm, validateForm } from '../../src/screens/EditTitle/editForm';
+import { formFromTitle, newPart, patchFromForm, remapChecked, validateForm } from '../../src/screens/EditTitle/editForm';
 import type { Title } from '../../src/lib/types';
 
 const t: Title = { id: 'x', title: 'Драйв', category: 'movie', status: 'queue', genres: ['драма'], year: 2011, cover: 'c.jpg', synopsis: '' };
@@ -25,5 +25,23 @@ describe('edit form', () => {
   });
   it('validates the title and year', () => {
     expect(validateForm({ ...formFromTitle(t), title: ' ', year: '20' })).toEqual({ title: 'Нужно название', year: 'Год из четырёх цифр' });
+  });
+});
+
+describe('remapChecked', () => {
+  const t = { id: 's', title: 'S', category: 'series', status: 'in_progress', genres: [], parts: [{ name: 'S1' }, { name: 'S2' }, { name: 'S3' }] } as unknown as Title;
+
+  it('follows watched parts through a reorder', () => {
+    const f = formFromTitle(t);
+    const moved = { ...f, parts: [f.parts[2]!, f.parts[0]!, f.parts[1]!] };
+    expect(remapChecked(moved, [0, 1])).toEqual([1, 2]);
+  });
+  it('drops a removed part and shifts the rest', () => {
+    const f = formFromTitle(t);
+    expect(remapChecked({ ...f, parts: [f.parts[1]!, f.parts[2]!] }, [0, 1])).toEqual([0]);
+  });
+  it('is null when nothing moved', () => {
+    const f = formFromTitle(t);
+    expect(remapChecked({ ...f, parts: [...f.parts, newPart({ name: 'S4' })] }, [1, 0])).toBeNull();
   });
 });

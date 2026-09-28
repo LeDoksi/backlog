@@ -1,6 +1,8 @@
 import type { Category, Part, Title } from '../../lib/types';
 
-export interface FormPart { key: number; name: string; year: string; released: boolean }
+// `from` is the part's index when the form opened: watched progress is stored
+// as part indices, so reordering or removing parts has to carry it along.
+export interface FormPart { key: number; name: string; year: string; released: boolean; from?: number }
 export interface EditForm {
   title: string;
   originalTitle: string;
@@ -16,8 +18,8 @@ export interface EditForm {
 }
 
 let partKey = 1;
-export const newPart = (p?: Partial<Part>): FormPart => ({
-  key: partKey++, name: p?.name ?? '', year: p?.year != null ? String(p.year) : '', released: p?.released !== false
+export const newPart = (p?: Partial<Part>, from?: number): FormPart => ({
+  key: partKey++, name: p?.name ?? '', year: p?.year != null ? String(p.year) : '', released: p?.released !== false, from
 });
 
 export function formFromTitle(t: Title): EditForm {
@@ -31,15 +33,18 @@ export function formFromTitle(t: Title): EditForm {
     platforms: (t.platforms ?? []).join(', '),
     seasonInfo: t.seasonInfo ?? '',
     synopsis: t.synopsis ?? '',
-    parts: (t.parts ?? []).map((p) => newPart(p)),
+    parts: (t.parts ?? []).map((p, i) => newPart(p, i)),
     unreleased: t.status === 'unreleased'
   };
 }
 
 export const seasonal = (c: Category) => c === 'series' || c === 'anime';
 
-// The title fields each form value becomes. A part with neither name nor year
-// is an empty row someone added and never filled, not a part.
+// A part with neither name nor year is an empty row someone added and never
+// filled, not a part.
+const keptParts = (f: EditForm) => f.parts.filter((p) => p.name.trim() || p.year.trim());
+
+// The title fields each form value becomes.
 function values(f: EditForm): Record<string, unknown> {
   return {
     title: f.title.trim(),
@@ -51,8 +56,7 @@ function values(f: EditForm): Record<string, unknown> {
     platforms: f.platforms.split(',').map((s) => s.trim()).filter(Boolean),
     seasonInfo: f.seasonInfo.trim(),
     synopsis: f.synopsis,
-    parts: f.parts
-      .filter((p) => p.name.trim() || p.year.trim())
+    parts: keptParts(f)
       .map((p) => ({ name: p.name.trim(), year: p.year.trim() ? parseInt(p.year, 10) : null, released: p.released })),
     unreleased: f.unreleased
   };
@@ -68,6 +72,13 @@ export function patchFromForm(form: EditForm, initial: EditForm): Partial<Title>
     else patch[k] = now[k];
   });
   return patch as Partial<Title>;
+}
+
+/** The watched indices after the form's parts were reordered or removed; null when they stay the same. */
+export function remapChecked(form: EditForm, checked: number[]): number[] | null {
+  const next = keptParts(form).flatMap((p, i) => (p.from != null && checked.includes(p.from) ? [i] : []));
+  const was = [...new Set(checked)].sort((a, b) => a - b);
+  return next.length === was.length && next.every((v, i) => v === was[i]) ? null : next;
 }
 
 export type FormErrors = Partial<Record<'title' | 'year' | 'parts', string>>;

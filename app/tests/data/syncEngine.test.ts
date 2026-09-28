@@ -57,4 +57,45 @@ describe('startSync', () => {
     expect(store.getState().online).toBe(true);
     expect(store.getState().titles[0]!.status).toBe('done');
   });
+
+  it('opened offline, starts realtime once the network is back', async () => {
+    const client = fakeClient({ drafts: [] });
+    client.state.offline = true;
+    const storage = fakeStorage();
+    const win = new EventTarget() as unknown as Window;
+    const store = createTitlesStore({ storage, client: () => client });
+    startSync({ store, storage, client: () => client, win });
+    await settle();
+    expect(client.log.some((e) => e.op === 'subscribe')).toBe(false);
+    client.state.offline = false;
+    win.dispatchEvent(new Event('online'));
+    await settle();
+    expect(client.log.some((e) => e.op === 'subscribe')).toBe(true);
+  });
+
+  it('a remote change does not hide a title whose push is still queued', async () => {
+    const client = fakeClient({ drafts: [] });
+    const storage = fakeStorage();
+    const store = createTitlesStore({ storage, client: () => client });
+    startSync({ store, storage, client: () => client, win: new EventTarget() as unknown as Window });
+    await settle();
+    client.state.failWrites = true;
+    store.getState().addTitle({ id: 'new', title: 'New', category: 'movie', status: 'queue', genres: [] } as never);
+    await settle();
+    client.remoteChange();
+    await new Promise((r) => setTimeout(r, 400));
+    await settle();
+    expect(store.getState().titles.map((t) => t.id)).toEqual(['new']);
+    expect(store.getState().pending).toBe(1);
+  });
+
+  it('a pull that lands after stop does not write the mirror', async () => {
+    const client = fakeClient({ drafts: [{ id: 'a', title: 'A', category: 'movie', status: 'queue', genres: [] }] });
+    const storage = fakeStorage();
+    const store = createTitlesStore({ storage, client: () => client });
+    const stop = startSync({ store, storage, client: () => client, win: new EventTarget() as unknown as Window });
+    stop();
+    await settle();
+    expect(storage.json('backlog-added')).toBeUndefined();
+  });
 });

@@ -13,11 +13,15 @@ export function fakeStorage(seed: Record<string, unknown> = {}) {
 
 export function fakeClient(tables: Record<string, unknown[]> = {}) {
   const log: { op: string; table?: string; row?: unknown; value?: unknown }[] = [];
-  const state = { offline: false };
-  const answer = () => (state.offline ? { data: null, error: { message: 'offline' } } : { data: null, error: null });
+  const state = { offline: false, failWrites: false };
+  const handlers: (() => void)[] = [];
+  const answer = () => (state.offline || state.failWrites ? { data: null, error: { message: 'offline' } } : { data: null, error: null });
   const client = {
     log,
     state,
+    tables,
+    /** A realtime event from another device. */
+    remoteChange() { handlers.forEach((h) => h()); },
     from(table: string) {
       return {
         select() {
@@ -35,7 +39,7 @@ export function fakeClient(tables: Record<string, unknown[]> = {}) {
       };
     },
     channel() {
-      const ch = { on() { return ch; }, subscribe() { log.push({ op: 'subscribe' }); return ch; } };
+      const ch = { on(_e: unknown, _f: unknown, cb: () => void) { handlers.push(cb); return ch; }, subscribe() { log.push({ op: 'subscribe' }); return ch; } };
       return ch;
     },
     removeChannel() { log.push({ op: 'removeChannel' }); }

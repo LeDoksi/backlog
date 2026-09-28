@@ -23,7 +23,7 @@ export function computeStats(titles: Title[], checked: (id: string) => number[])
     if (t.status === 'done') {
       done += 1;
       byCategory[t.category].done += 1;
-      t.genres.forEach((g) => genreMap.set(g, (genreMap.get(g) ?? 0) + 1));
+      (t.genres ?? []).forEach((g) => genreMap.set(g, (genreMap.get(g) ?? 0) + 1));
     }
     if (t.status === 'in_progress') inProgress += 1;
     if (isCaughtUp(t, checked(t.id))) waiting += 1;

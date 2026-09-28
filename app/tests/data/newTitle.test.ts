@@ -25,3 +25,16 @@ it('keeps the source of a picked hit', () => {
   const t = buildTitle('anime', 'x', { title: 'Фрирен', year: 2023, source: 'shikimori', sourceId: '52991' }, []) as Title;
   expect([t.source, t.sourceId]).toEqual(['shikimori', '52991']);
 });
+it('the same name and year in another category is not a duplicate', () => {
+  const t = buildTitle('game', 'Дюна', { title: 'Дюна', year: 2021 }, [dune]) as Title;
+  expect(t.id).not.toBe(dune.id);
+  expect(t.id.startsWith(dune.id)).toBe(true);
+});
+it('an id a deleted title left behind is not reused', () => {
+  const t = buildTitle('movie', 'Дюна', { title: 'Дюна', year: 2021 }, [], [dune.id]) as Title;
+  expect(t.id).not.toBe(dune.id);
+});
+it('a name slugify cannot read still gets an id', () => {
+  const t = buildTitle('anime', '君の名は', {}, []) as Title;
+  expect(t.id).toBe('anime-title');
+});

@@ -87,6 +87,24 @@ describe('titles store', () => {
     expect(store.getState().titles.find((t) => t.id === 'frieren-2023')!.status).toBe('in_progress');
   });
 
+  it('editTitle carries watched parts across a removed part', () => {
+    const { store, client } = setup();
+    store.getState().setAllReleasedChecked('frieren-2023');
+    client.log.length = 0;
+    // Season 1 removed: season 2 is now index 0 and stays watched.
+    store.getState().editTitle('frieren-2023', { parts: [{ name: 'Сезон 2' }, { name: 'Сезон 3', released: false }] }, [0]);
+    expect(store.getState().checked['frieren-2023']).toEqual([0]);
+    expect(store.getState().titles.find((t) => t.id === 'frieren-2023')!.status).toBe('in_progress');
+    expect(client.log.filter((e) => e.op === 'upsert').map((e) => e.table)).toEqual(['overrides', 'parts', 'overrides']);
+  });
+
+  it('leftoverIds lists ids a deleted title left a checklist under', () => {
+    const { store } = setup();
+    store.getState().setPartChecked('frieren-2023', 0, true);
+    store.getState().deleteTitle('frieren-2023');
+    expect(store.getState().leftoverIds()).toContain('frieren-2023');
+  });
+
   it('deleteTitle removes the row and pushes the delete', () => {
     const { store, client } = setup();
     store.getState().deleteTitle('drive-2011');

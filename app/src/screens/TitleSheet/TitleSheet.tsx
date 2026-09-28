@@ -7,7 +7,7 @@ import { Confirm } from '../../ui/Confirm';
 import { useTitles } from '../../data/titlesStore';
 import { useUi } from '../../data/ui';
 import { busy } from '../../data/busy';
-import { CATEGORY_LABEL } from '../../data/labels';
+import { metaLine } from '../../data/labels';
 import { hasPartsChecklist } from '../../lib/storage';
 import { resolveCover } from '../../lib/covers';
 import { isStillAiring } from '../../lib/query';
@@ -37,7 +37,7 @@ export function TitleSheet() {
   useEffect(() => { if (id && !title) close(); }, [id, title, close]);
 
   const cover = title ? resolveCover(title.cover, ASSET_ROOT) : '';
-  const meta = title ? [[CATEGORY_LABEL[title.category], title.year].filter(Boolean).join(', '), title.genres.join(', ')].filter(Boolean).join('. ') : '';
+  const meta = title ? [metaLine(title), (title.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
 
   return (
     <>
