@@ -6,11 +6,11 @@
 .fan { position: absolute; right: -24px; top: -18px; display: flex; gap: 8px; transform: rotate(8deg); opacity: .9; }
 .fan img { width: 58px; height: 87px; border-radius: var(--r-xs); object-fit: cover; box-shadow: 0 10px 20px -8px rgba(0, 0, 0, .5); }
 .fan img:nth-child(2) { margin-top: 18px; }
-.period { font-size: var(--fs-base); font-weight: 600; opacity: .85; }
+.period { font-size: var(--fs-base); font-weight: 600; }
 .big { display: flex; align-items: baseline; gap: 10px; }
 .bigNum { font-family: var(--font-display); font-size: var(--fs-hero); font-weight: 600; line-height: 1; }
 .bigText { font-size: 16px; font-weight: 600; line-height: 1.25; }
-.sub { font-size: var(--fs-sm); opacity: .9; line-height: 1.4; max-width: 34ch; }
+.sub { font-size: var(--fs-sm); line-height: 1.4; max-width: 34ch; }
 .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .tile { padding: 12px 10px; border-radius: var(--r-md); background: var(--surface); box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 4px; }
 .tileNum { font-family: var(--font-display); font-size: 22px; font-weight: 600; }

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "budget": "node scripts/check-budget.mjs"
   },
   "dependencies": {
     "@fontsource/onest": "^5.1.0",
@@ -23,6 +24,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "1.56.1",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.0",
