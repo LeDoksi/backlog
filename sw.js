@@ -65,7 +65,9 @@ self.addEventListener('activate', function (event) {
       .then(function (keys) {
         return Promise.all(
           keys
-            .filter(function (key) { return CURRENT_CACHES.indexOf(key) === -1; })
+            // v2 is served from the same origin and keeps its own caches;
+            // only this worker's old `backlog-*` caches are ours to drop.
+            .filter(function (key) { return key.indexOf('backlog-') === 0 && CURRENT_CACHES.indexOf(key) === -1; })
             .map(function (key) { return caches.delete(key); })
         );
       })

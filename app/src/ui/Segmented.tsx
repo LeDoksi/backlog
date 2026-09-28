@@ -17,7 +17,8 @@ export function Segmented<T extends string>({ label, options, value, onChange, t
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
     e.preventDefault();
     const step = e.key === 'ArrowRight' ? 1 : -1;
-    const next = (index + step + options.length) % options.length;
+    const from = index === -1 ? (step === 1 ? -1 : 0) : index;
+    const next = (from + step + options.length) % options.length;
     onChange(options[next]!.value);
     refs.current[next]?.focus();
   }
@@ -31,7 +32,7 @@ export function Segmented<T extends string>({ label, options, value, onChange, t
           type="button"
           role="radio"
           aria-checked={o.value === value}
-          tabIndex={o.value === value ? 0 : -1}
+          tabIndex={o.value === value || (index === -1 && i === 0) ? 0 : -1}
           className={o.value === value ? `${s.item} ${s[tone]}` : s.item}
           onClick={() => onChange(o.value)}
         >
