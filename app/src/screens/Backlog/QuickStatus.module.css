@@ -1,0 +1,12 @@
+.quick { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 3; display: flex; gap: 6px; padding: 6px; border-radius: var(--r-md); background: var(--glass); backdrop-filter: blur(18px) saturate(160%); border: 1px solid var(--glass-border); box-shadow: var(--shadow-glass); opacity: 0; visibility: hidden; transform: translateY(6px); transition: opacity var(--dur-fast), transform var(--dur-fast), visibility var(--dur-fast); }
+.column { flex-direction: column; }
+.open { opacity: 1; visibility: visible; transform: none; }
+@media (hover: hover) and (pointer: fine) {
+  :global(.bl-card):hover .quick { opacity: 1; visibility: visible; transform: none; }
+}
+.btn { flex: 1; height: 44px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text-2); display: flex; align-items: center; justify-content: center; }
+.btn:hover { background: var(--sunken); }
+.on { background: var(--accent); color: var(--on-accent); }
+.on:hover { background: var(--accent); }
+.wide { min-height: 44px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--text); font-weight: 600; font-size: var(--fs-sm); display: flex; align-items: center; gap: 8px; padding: 0 10px; }
+.wide:hover { background: var(--sunken); }

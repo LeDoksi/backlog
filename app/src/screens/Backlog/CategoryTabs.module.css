@@ -1,0 +1,7 @@
+.row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); }
+.row::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; height: 42px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--surface); color: var(--text-2); font-family: var(--font-display); font-weight: 600; font-size: var(--fs-xs); display: flex; align-items: center; gap: 7px; transition: transform var(--dur-fast); }
+.tab:active { transform: scale(0.97); }
+.on { background: var(--inverse); color: var(--on-inverse); }
+.count { font-family: var(--font-body); font-weight: 600; font-size: var(--fs-xs); opacity: .6; }
+@media (min-width: 1024px) { .row { margin: 0; padding: 0; } .tab { font-size: var(--fs-sm); } }

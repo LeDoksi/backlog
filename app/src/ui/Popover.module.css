@@ -1,0 +1,4 @@
+.pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 40; width: 380px; max-height: 70vh; display: flex; flex-direction: column; background: var(--surface); border-radius: var(--r-card); box-shadow: var(--shadow-glass); border: 1px solid var(--line); padding: 18px; white-space: normal; }
+.end { left: auto; right: 0; }
+.body { overflow-y: auto; }
+.footer { display: flex; gap: 8px; padding-top: 14px; }
