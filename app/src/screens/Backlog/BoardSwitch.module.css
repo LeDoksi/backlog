@@ -1,0 +1,11 @@
+.group { flex: 1; min-width: 0; max-width: 420px; display: flex; gap: 4px; padding: 5px; border-radius: var(--r-pill); background: var(--surface); box-shadow: var(--shadow-soft); }
+.btn { flex: 1; height: 40px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); font-size: 15px; font-weight: 600; white-space: nowrap;
+  display: flex; align-items: center; justify-content: center; gap: 7px; transition: background-color 180ms ease, color 180ms ease; }
+.shared { flex: 1.4; }
+.btn[aria-pressed='true'] { background: var(--accent); color: var(--on-accent, #fff); }
+.avatars { display: inline-flex; }
+.avatars > * { font-size: 10px !important; }
+.avatars > * + * { margin-left: -7px; }
+.btn[aria-pressed='true'] .avatars > * { box-shadow: 0 0 0 2px var(--accent); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }

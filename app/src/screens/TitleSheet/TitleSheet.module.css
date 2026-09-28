@@ -35,3 +35,4 @@
   .poster { width: 150px; height: 225px; }
   .name { font-size: 24px; }
 }
+.copyNote { margin: 0; padding: 10px 14px; border-radius: var(--r-sm); background: var(--sunken); font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }

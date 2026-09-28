@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useFilters } from '../../data/filters';
+import { useBoards } from '../../data/boardsStore';
+import { BoardSwitch } from './BoardSwitch';
 import s from './BacklogHeader.module.css';
 
 // The field keeps its own value and hands it to the filter store after a
@@ -13,6 +15,7 @@ export function BacklogHeader() {
   const [open, setOpen] = useState(search !== '');
   const [value, setValue] = useState(search);
   const input = useRef<HTMLInputElement>(null);
+  const twoBoards = useBoards((b) => b.boards.length > 1);
   const pushed = useRef(search);
 
   // "Сбросить фильтры" clears the search from outside; the field follows.
@@ -49,7 +52,7 @@ export function BacklogHeader() {
         </div>
       ) : (
         <>
-          <h1 className={s.title}>Бэклог</h1>
+          {twoBoards ? <><h1 className="sr-only">Бэклог</h1><BoardSwitch /></> : <h1 className={s.title}>Бэклог</h1>}
           <button type="button" className={s.round} aria-label="Поиск" onClick={() => setOpen(true)}><MagnifyingGlass size={21} /></button>
         </>
       )}
