@@ -1,0 +1,8 @@
+.card { display: flex; flex-direction: column; gap: 9px; }
+.poster { aspect-ratio: 2 / 3; border-radius: var(--r-poster); }
+.line { height: 14px; border-radius: 7px; width: 90%; }
+.lineShort { height: 12px; border-radius: 6px; width: 55%; }
+.row { height: 64px; border-radius: 22px; }
+.shimmer { background: linear-gradient(100deg, var(--poster-empty) 30%, var(--surface) 50%, var(--poster-empty) 70%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .shimmer { animation: none; } }

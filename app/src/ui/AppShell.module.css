@@ -1,0 +1,3 @@
+.shell { min-height: 100dvh; }
+.main { padding: max(54px, env(safe-area-inset-top)) var(--gutter) 130px; }
+@media (min-width: 1024px) { .shell { display: flex; } .main { flex: 1; min-width: 0; padding: 28px var(--gutter-desktop) 40px 12px; } }

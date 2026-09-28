@@ -1,0 +1,12 @@
+.screen { position: relative; min-height: 100dvh; overflow: hidden; background: var(--bg); }
+.wall { position: absolute; left: -70px; top: 30px; width: 540px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; transform: rotate(-9deg); }
+.poster { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 20px; box-shadow: var(--shadow-poster); background: var(--poster-empty); }
+.fade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; background: linear-gradient(to top, var(--bg) 58%, var(--bg-clear)); }
+.content { position: absolute; left: 24px; right: 24px; bottom: max(44px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; max-width: 420px; margin: 0 auto; }
+.title { margin: 0; font-family: var(--font-display); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; }
+.text { margin: 0; font-size: var(--fs-lg); line-height: 1.45; color: var(--text-2); }
+.cta { margin-top: 12px; }
+.note { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-align: center; }
+@media (min-width: 1024px) {
+  .wall { left: 50%; width: 1100px; margin-left: -550px; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+}

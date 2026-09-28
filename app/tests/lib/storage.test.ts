@@ -1,7 +1,8 @@
-// tests/storage.test.js
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { getOverrides, setOverride, deleteTitle, applyOverlay, addTitle, getAdded, removeAdded, getCheckedParts, setCheckedParts, setPartChecked, deriveStatus, deriveAiringStatus, partsProgress, hasPartsChecklist, isCaughtUp, effectiveStatus, withDerivedStatus } = require('../lib/storage.js');
+// @ts-nocheck — ported verbatim from v1's node:test suite. The fixtures are
+// deliberately partial or malformed to exercise the modules' defensive paths,
+// so they are run, not type-checked.
+import assert from 'node:assert/strict';
+import { getOverrides, setOverride, deleteTitle, applyOverlay, addTitle, getAdded, removeAdded, getCheckedParts, setCheckedParts, setPartChecked, deriveStatus, deriveAiringStatus, partsProgress, hasPartsChecklist, isCaughtUp, effectiveStatus, withDerivedStatus } from '../../src/lib/storage';
 
 function fakeStorage() {
   var data = {};

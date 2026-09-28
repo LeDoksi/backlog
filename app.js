@@ -648,7 +648,12 @@
     // native `disabled`), it just ignores the extra click.
     if (randomBtn.classList.contains('toolbar__random--empty')) return;
     if (randomBtn.classList.contains('toolbar__random--unavailable')) return;
-    var pool = titlesForCategory(state.category).filter(function (t) { return t.status !== 'done' && t.status !== 'unreleased' && t.category !== 'game'; });
+    var waiting = 0;
+    var pool = titlesForCategory(state.category).filter(function (t) {
+      if (t.status === 'done' || t.status === 'unreleased' || t.category === 'game') return false;
+      if (BacklogStorage.isCaughtUp(t, BacklogStorage.getCheckedParts(window.localStorage, t.id))) { waiting += 1; return false; }
+      return true;
+    });
     var picked = BacklogQuery.pickRandom(pool);
     if (picked) {
       openTitleModal(picked.id);
@@ -657,7 +662,9 @@
     if (randomEmptyTimer) clearTimeout(randomEmptyTimer);
     randomBtn.classList.add('toolbar__random--empty');
     randomBtn.setAttribute('aria-disabled', 'true');
-    randomLabel.textContent = 'Тут всё завершено';
+    // Caught-up titles are unfinished, just not watchable yet, so "всё
+    // завершено" would be false while any of them is on this tab.
+    randomLabel.textContent = waiting ? 'Ждём новых серий' : 'Тут всё завершено';
     randomEmptyTimer = setTimeout(function () {
       randomBtn.classList.remove('toolbar__random--empty');
       randomBtn.removeAttribute('aria-disabled');
