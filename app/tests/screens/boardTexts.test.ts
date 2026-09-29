@@ -18,6 +18,8 @@ describe('board texts', () => {
   it('counts titles and says who sees the board', () => {
     expect(boardLine(personal, me)).toBe('1 тайтл, видно только мне');
     expect(boardLine(shared, me)).toBe('213 тайтлов, вместе с: Даша');
+    expect(boardLine({ ...personal, visibility: 'friends' }, me)).toBe('1 тайтл, видят друзья');
+    expect(boardLine({ ...personal, visibility: 'everyone' }, me)).toBe('1 тайтл, видят все в Бэклоге');
   });
 
   it('lists members other than me', () => {

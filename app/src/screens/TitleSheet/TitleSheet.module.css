@@ -36,3 +36,4 @@
   .name { font-size: 24px; }
 }
 .copyNote { margin: 0; padding: 10px 14px; border-radius: var(--r-sm); background: var(--sunken); font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.hiddenNote { align-self: flex-start; display: flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--text-2); background: var(--sunken); border-radius: var(--r-pill); padding: 4px 10px; }

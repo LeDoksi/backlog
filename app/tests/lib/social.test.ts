@@ -77,3 +77,22 @@ describe('social RPC wrappers', () => {
     expect(await Social.myFriends(rpcClient(fail).client)).toBeNull();
   });
 });
+
+describe('privacy wrappers', () => {
+  it('setBoardVisibility and setPrivacy send every value', async () => {
+    const r = rpcClient(ok());
+    expect(await Social.setBoardVisibility(r.client, 'b1', 'friends')).toBe(true);
+    expect(await Social.setPrivacy(r.client, { in_leaderboard: true, share_activity: false, share_matches: true, findable_by_nick: false })).toBe(true);
+    expect(r.calls).toEqual([
+      { name: 'set_board_visibility', args: { p_workspace: 'b1', p_visibility: 'friends' } },
+      { name: 'set_privacy', args: { p_in_leaderboard: true, p_share_activity: false, p_share_matches: true, p_findable_by_nick: false } }
+    ]);
+    expect(await Social.setBoardVisibility(rpcClient(fail).client, 'b1', 'friends')).toBe(false);
+  });
+
+  it('myHiddenTitles lists rows, null on failure', async () => {
+    const rows = [{ workspace_id: 'b1', id: 'x', title: 'X', category: 'movie', year: 2000, cover: null }];
+    expect(await Social.myHiddenTitles(rpcClient(ok(rows)).client)).toEqual(rows);
+    expect(await Social.myHiddenTitles(rpcClient(fail).client)).toBeNull();
+  });
+});

@@ -65,6 +65,9 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       ? [{ id: userId, name: me.display_name, nickname: me.nickname }, ...(opts.sharedWith ?? [])]
       : null;
     let invites = (opts.invites ?? []).slice();
+    const visibility: Record<string, string> = { [personal]: 'private', [shared]: 'private' };
+    const privacy = { in_leaderboard: false, share_activity: true, share_matches: true, findable_by_nick: true };
+    Object.assign(me, privacy);
 
     const offline = () => ({ data: null, error: { message: 'Failed to fetch' } });
     const log = (entry: Row) => { (w.__writes ??= []).push(entry); };
@@ -112,8 +115,8 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
 
     function boards(): Row[] {
       const count = (b: string) => titles.filter((t) => t.workspace_id === b).length;
-      const list: Row[] = [{ id: personal, kind: 'personal', visibility: 'private', title_count: count(personal), members: [{ id: userId, name: me.display_name, nickname: me.nickname }] }];
-      if (sharedMembers) list.push({ id: shared, kind: 'shared', visibility: 'private', title_count: count(shared), members: sharedMembers });
+      const list: Row[] = [{ id: personal, kind: 'personal', visibility: visibility[personal], title_count: count(personal), members: [{ id: userId, name: me.display_name, nickname: me.nickname }] }];
+      if (sharedMembers) list.push({ id: shared, kind: 'shared', visibility: visibility[shared], title_count: count(shared), members: sharedMembers });
       return list;
     }
 
@@ -138,6 +141,12 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       },
       leave_shared_board: () => { sharedMembers = null; return { data: null, error: null }; },
       remove_board_member: (a) => { sharedMembers = sharedMembers?.filter((m) => m.id !== a.p_user) ?? null; return { data: null, error: null }; },
+      set_board_visibility: (a) => { visibility[String(a.p_workspace)] = String(a.p_visibility); return { data: null, error: null }; },
+      set_privacy: (a) => {
+        Object.assign(me, { in_leaderboard: a.p_in_leaderboard, share_activity: a.p_share_activity, share_matches: a.p_share_matches, findable_by_nick: a.p_findable_by_nick });
+        return { data: null, error: null };
+      },
+      my_hidden_titles: () => ({ data: titles.filter((t) => t.hidden).map((t) => ({ workspace_id: t.workspace_id, id: t.id, title: t.title, category: t.category, year: t.year, cover: t.cover })), error: null }),
       copy_title: (a) => {
         const src = titles.find((t) => t.workspace_id === a.p_from && t.id === a.p_title_id);
         if (!src) return fail('not_found');

@@ -67,3 +67,25 @@ export async function myFriends(client: SupabaseLike): Promise<Friend[] | null> 
   const rows = data<Friend[]>(await callRpc(client, 'my_friends'));
   return Array.isArray(rows) ? rows : null;
 }
+
+// ── Privacy ────────────────────────────────────────────────────────────
+
+export type Visibility = 'private' | 'friends' | 'everyone';
+export interface PrivacySwitches { in_leaderboard: boolean; share_activity: boolean; share_matches: boolean; findable_by_nick: boolean }
+export interface HiddenTitle { workspace_id: string; id: string; title: string; category: string; year: number | null; cover: string | null }
+
+export async function setBoardVisibility(client: SupabaseLike, boardId: string, visibility: Visibility): Promise<boolean> {
+  return !(await callRpc(client, 'set_board_visibility', { p_workspace: boardId, p_visibility: visibility })).error;
+}
+
+export async function setPrivacy(client: SupabaseLike, p: PrivacySwitches): Promise<boolean> {
+  return !(await callRpc(client, 'set_privacy', {
+    p_in_leaderboard: p.in_leaderboard, p_share_activity: p.share_activity,
+    p_share_matches: p.share_matches, p_findable_by_nick: p.findable_by_nick
+  })).error;
+}
+
+export async function myHiddenTitles(client: SupabaseLike): Promise<HiddenTitle[] | null> {
+  const rows = data<HiddenTitle[]>(await callRpc(client, 'my_hidden_titles'));
+  return Array.isArray(rows) ? rows : null;
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Copy, PencilSimple, Trash } from '@phosphor-icons/react';
+import { Copy, Eye, EyeSlash, PencilSimple, Trash } from '@phosphor-icons/react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
 import { Confirm } from '../../ui/Confirm';
@@ -70,6 +70,9 @@ export function TitleSheet() {
           {target && (
             <Button variant="neutral" className={s.iconBtn} aria-label={`Копировать в «${targetName}»`} aria-busy={copying} onClick={() => { if (!copying) void copy(); }}><Copy size={20} /></Button>
           )}
+          <Button variant="neutral" className={s.iconBtn} aria-label={title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'} onClick={() => store().editTitle(title.id, { hidden: !title.hidden })}>
+            {title.hidden ? <Eye size={20} /> : <EyeSlash size={20} />}
+          </Button>
           <Button variant="danger" className={s.iconBtn} aria-label="Удалить тайтл" onClick={() => setConfirming(true)}><Trash size={20} /></Button>
         </>
       )}>
@@ -85,6 +88,7 @@ export function TitleSheet() {
                 {title.originalTitle && title.originalTitle !== title.title && <div className={s.original}>{title.originalTitle}</div>}
                 <div className={s.meta}>{meta}</div>
                 {isStillAiring(title) && <div className={s.airing}>Всё ещё выходит</div>}
+                {title.hidden && <div className={s.hiddenNote}><EyeSlash size={14} aria-hidden="true" />Скрыт от друзей</div>}
               </div>
             </div>
 

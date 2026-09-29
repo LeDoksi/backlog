@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CaretRight, EnvelopeSimple, Plus, SignOut, X } from '@phosphor-icons/react';
+import { CaretRight, EnvelopeSimple, EyeSlash, LockSimple, Plus, SignOut, X } from '@phosphor-icons/react';
 import { Avatar } from '../../ui/Avatar';
 import { Button } from '../../ui/Button';
 import { Segmented } from '../../ui/Segmented';
@@ -15,12 +15,15 @@ import { InviteSheet } from './InviteSheet';
 import { NickInviteSheet } from './NickInviteSheet';
 import { MembersSheet } from './MembersSheet';
 import { EditProfileSheet } from './EditProfileSheet';
+import { Privacy } from '../Privacy/Privacy';
+import { HiddenTitles } from '../Privacy/HiddenTitles';
+import { myHiddenTitles } from '../../lib/social';
 import { boardErrorText, boardLine, boardName } from './boardTexts';
 import s from './Profile.module.css';
 
 interface Props { profile: Auth.Profile; onProfile(p: Auth.Profile): void; onSignOut(): void }
 
-type Panel = 'email' | 'nick' | 'members' | 'edit' | null;
+type Panel = 'email' | 'nick' | 'members' | 'edit' | 'privacy' | 'hidden' | null;
 
 function BoardInvites({ onAccepted }: { onAccepted(): void }) {
   const [invites, setInvites] = useState<BoardInvite[]>([]);
@@ -65,9 +68,12 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
   const shared = boards.find((b) => b.kind === 'shared') ?? null;
   const refresh = () => { void useBoards.getState().refresh(); };
 
+  const [hiddenCount, setHiddenCount] = useState<number | null>(null);
+
   // Counts on the cards come from the server; the board list is re-read
   // each time the profile opens so they match what was just added.
   useEffect(refresh, []);
+  useEffect(() => { void myHiddenTitles(getSupabase()).then((r) => { if (r) setHiddenCount(r.length); }); }, []);
 
   function changeTheme(v: ThemePref) {
     setTheme(v);
@@ -121,6 +127,13 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
       </section>
 
       <section className={s.card}>
+        <button type="button" className={s.row} onClick={() => setPanel('privacy')}>
+          <LockSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Приватность</span><CaretRight size={18} aria-hidden="true" />
+        </button>
+        <button type="button" className={s.row} onClick={() => setPanel('hidden')}>
+          <EyeSlash size={22} aria-hidden="true" /><span className={s.rowLabel}>Скрытые тайтлы</span>
+          {hiddenCount !== null && <span className={s.count}>{hiddenCount}</span>}<CaretRight size={18} aria-hidden="true" />
+        </button>
         <button type="button" className={s.row} onClick={() => setPanel('email')}>
           <EnvelopeSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить в Бэклог</span><CaretRight size={18} aria-hidden="true" />
         </button>
@@ -131,6 +144,8 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
       <InviteSheet open={panel === 'email'} onClose={() => setPanel(null)} />
       <NickInviteSheet open={panel === 'nick'} creating={!shared} onClose={() => { setPanel(null); refresh(); }} />
       <MembersSheet open={panel === 'members'} board={shared} userId={userId} onClose={() => setPanel(null)} onInvite={() => setPanel('nick')} />
+      <Privacy open={panel === 'privacy'} profile={profile} onProfile={onProfile} onClose={() => setPanel(null)} />
+      <HiddenTitles open={panel === 'hidden'} onCount={setHiddenCount} onClose={() => setPanel(null)} />
       <EditProfileSheet open={panel === 'edit'} profile={profile} onSaved={onProfile} onClose={() => setPanel(null)} />
       <Confirm open={leaving} title="Выйти из аккаунта?" text={pending
           ? `Ещё не сохранено в облаке: ${pending} ${plural(pending, 'правка', 'правки', 'правок')}. Если выйти без сети, они пропадут.`
