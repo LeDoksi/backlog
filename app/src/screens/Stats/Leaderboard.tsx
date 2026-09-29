@@ -28,7 +28,7 @@ export function Leaderboard({ period }: { period: Period }) {
 
   if (board && board !== 'loading' && board.status === 'off') {
     return (
-      <section className={s.card} aria-labelledby="leaders">
+      <section className={`${s.card} ${s.lbCard}`} aria-labelledby="leaders">
         <h2 id="leaders" className={s.h2}>{HEADING[period]}</h2>
         <p className={s.lbNote}>Включи участие в лидерборде в приватности, и здесь появятся лидеры среди всех в Бэклоге.</p>
         <button type="button" className={s.lbLink} onClick={openPrivacy}>Открыть приватность</button>
@@ -40,7 +40,7 @@ export function Leaderboard({ period }: { period: Period }) {
   const rows = board && board !== 'loading' && board.status === 'ok' ? board.rows : [];
   const meListed = rows.some((r) => r.is_me);
   return (
-    <section className={s.card} aria-labelledby="leaders">
+    <section className={`${s.card} ${s.lbCard}`} aria-labelledby="leaders">
       <div className={s.lbHead}>
         <h2 id="leaders" className={s.h2}>{HEADING[period]}</h2>
         <span className={s.lbScope}>все в Бэклоге</span>

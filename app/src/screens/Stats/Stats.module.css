@@ -38,6 +38,8 @@
   .fan img:nth-child(even) { margin-top: 18px; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tile { padding: 18px; }
+  /* Under the genres, so the hero keeps the left side to itself. */
+  .lbCard { grid-column: 2; }
 }
 @media (min-width: 1340px) {
   .fan { grid-template-columns: repeat(3, 96px); }

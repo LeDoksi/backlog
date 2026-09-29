@@ -59,11 +59,38 @@ for (const theme of ['light', 'dark'] as const) {
       await installStub(page, { signedIn: true, hasProfile: true, titles: rows, parts });
       await page.goto('./');
       await nav(page, 'Итоги');
-      await expect(page.getByText('За всё время')).toBeVisible();
+      await expect(page.getByText('За всё время', { exact: true })).toBeVisible();
       await audit(page, 'stats');
       await nav(page, 'Профиль');
       await expect(page.getByRole('radio', { name: 'Тёмная' })).toBeVisible();
       await audit(page, 'profile');
+      await page.getByRole('button', { name: 'Приватность' }).click();
+      await expect(page.getByRole('dialog', { name: 'Приватность' })).toBeVisible();
+      await audit(page, 'privacy');
+    });
+
+    test('friends, a friend\'s page and adding a friend', async ({ page }) => {
+      const vadim = { id: '00000000-0000-4000-8000-0000000000e2', name: 'Вадим', nickname: 'vadim', since: '2026-08-14T10:00:00Z' };
+      const cover = 'images/covers/drive-2011.jpg';
+      await installStub(page, {
+        signedIn: true, hasProfile: true, titles: rows, friends: [vadim],
+        friendRequests: [{ id: 7, user_id: '00000000-0000-4000-8000-0000000000e4', name: 'Катя', nickname: 'katya' }],
+        feed: [{ actor_id: vadim.id, actor_name: 'Вадим', kind: 'completed', title_id: 'd', workspace_id: 'w', title: 'Драйв', category: 'movie', cover, count: 1, covers: null, at: new Date().toISOString(), on_shared_board: false }],
+        matches: [{ friend_id: vadim.id, friend_name: 'Вадим', title_key: 'k', title: 'Драйв', category: 'movie', cover, my_status: 'queue', friend_status: 'queue' }],
+        shelves: { [vadim.id]: { done: [{ id: 'd', title: 'Драйв', category: 'movie', year: 2011, cover, common: true }] } },
+        taste: { [vadim.id]: { status: 'ok', percent: 72, common: 14, both_want: 5, genres: ['драма'] } }
+      });
+      await page.goto('./');
+      await nav(page, 'Друзья');
+      await expect(page.getByRole('button', { name: /Вадим · завершено «Драйв»/ })).toBeVisible();
+      await audit(page, 'friends');
+      await page.getByRole('button', { name: /Вадим · завершено «Драйв»/ }).click();
+      await expect(page.getByRole('region', { name: 'Совпадение вкусов' })).toBeVisible();
+      await audit(page, 'friend page');
+      await page.keyboard.press('Escape');
+      await page.getByRole('button', { name: 'Добавить', exact: true }).first().click();
+      await expect(page.getByRole('dialog', { name: 'Добавить друга' })).toBeVisible();
+      await audit(page, 'add friend');
     });
   });
 }

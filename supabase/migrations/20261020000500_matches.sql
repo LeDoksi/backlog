@@ -16,6 +16,8 @@ language sql stable security definer set search_path = public as $$
   cross join lateral visible_titles(f) th
   join visible_titles(auth.uid()) m on title_key(m.source, m.source_id, m.id) = title_key(th.source, th.source_id, th.id)
   where coalesce((select share_matches from profiles where id = auth.uid()), false)
+    -- My hidden titles stay out too, so both sides see the same matches.
+    and not m.hidden
     and m.status in ('queue', 'unreleased', 'in_progress') and th.status in ('queue', 'unreleased', 'in_progress')
   order by th.updated_at desc
   limit 50;
