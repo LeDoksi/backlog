@@ -14,6 +14,8 @@ export interface SocialState {
   matches: Social.Match[] | null;
   /** Friends on the open board's titles, by title key. */
   friendsOn: Record<string, Social.FriendOn[]>;
+  /** Taste match per friend, read once per session for the friends list. */
+  taste: Record<string, Social.Taste>;
   /** The last read failed; what is shown may be stale. */
   failed: boolean;
   refreshBadge(): Promise<void>;
@@ -26,6 +28,7 @@ export interface SocialState {
   loadPeek(): Promise<void>;
   /** One request for a whole board's keys; the same set is not asked twice in a row. */
   loadFriendsOn(keys: string[]): Promise<void>;
+  loadTaste(ids: string[]): Promise<void>;
   reset(): void;
 }
 
@@ -35,6 +38,7 @@ const pendingOf = (inbox: Social.Inbox | null) => (inbox ? inbox.friend_requests
 
 export function createSocialStore(deps: SocialDeps): UseBoundStore<StoreApi<SocialState>> {
   let lastKeys = '';
+  const tasteAsked = new Set<string>();
   return create<SocialState>()((set, get) => ({
     badge: 0,
     feed: null,
@@ -42,6 +46,7 @@ export function createSocialStore(deps: SocialDeps): UseBoundStore<StoreApi<Soci
     friends: null,
     matches: null,
     friendsOn: {},
+    taste: {},
     failed: false,
 
     async refreshBadge() {
@@ -90,7 +95,21 @@ export function createSocialStore(deps: SocialDeps): UseBoundStore<StoreApi<Soci
       else lastKeys = '';
     },
 
-    reset() { lastKeys = ''; set({ badge: 0, feed: null, inbox: null, friends: null, matches: null, friendsOn: {}, failed: false }); }
+    async loadTaste(ids) {
+      const fresh = ids.filter((id) => !tasteAsked.has(id));
+      fresh.forEach((id) => tasteAsked.add(id));
+      await Promise.all(fresh.map(async (id) => {
+        const t = await Social.tasteMatch(deps.client(), id);
+        if (t) set((st) => ({ taste: { ...st.taste, [id]: t } }));
+        else tasteAsked.delete(id);
+      }));
+    },
+
+    reset() {
+      lastKeys = '';
+      tasteAsked.clear();
+      set({ badge: 0, feed: null, inbox: null, friends: null, matches: null, friendsOn: {}, taste: {}, failed: false });
+    }
   }));
 }
 

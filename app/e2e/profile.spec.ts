@@ -85,7 +85,7 @@ test('stats show the all-time summary', async ({ page }) => {
   ] });
   await page.goto('./');
   await page.getByRole('navigation', { name: 'Разделы' }).filter({ visible: true }).getByRole('button', { name: 'Итоги' }).click();
-  await expect(page.getByText('За всё время')).toBeVisible();
+  await expect(page.getByText('За всё время', { exact: true })).toBeVisible();
   await expect(page.getByText('Из 2 в бэклоге', { exact: false })).toBeVisible();
   await expect(page.getByText('драма')).toBeVisible();
 });
@@ -103,6 +103,6 @@ test('stats open on this month when something was finished in it', async ({ page
   await expect(page.getByRole('radio', { name: 'Месяц' })).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByText('На 1 больше, чем в прошлом месяце')).toBeVisible();
   await page.getByRole('radio', { name: 'Всё время' }).click();
-  await expect(page.getByText('За всё время')).toBeVisible();
+  await expect(page.getByText('За всё время', { exact: true })).toBeVisible();
   await expect(page.getByText('Из 2 в бэклоге', { exact: false })).toBeVisible();
 });

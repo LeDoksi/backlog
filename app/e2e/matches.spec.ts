@@ -45,7 +45,10 @@ test('Friends lists matches; a match opens the friend on the wanted shelf', asyn
   await installStub(page, { signedIn: true, hasProfile: true, friends: [vadim], matches: [match] });
   await page.goto('./');
   await nav(page).getByRole('button', { name: /Друзья/ }).click();
-  const matches = page.getByRole('region', { name: 'Совпадения' });
+  // On a phone matches are a tab; on a desktop they sit beside the feed.
+  const tabs = page.getByRole('radiogroup', { name: 'Раздел' });
+  if (await tabs.isVisible()) await tabs.getByRole('radio', { name: 'Совпадения 1' }).click();
+  const matches = page.getByRole('list', { name: 'Совпадения' });
   await matches.getByRole('button', { name: 'Совпадение: Ты и Вадим оба хотите «Бэтмен»' }).click();
   await expect(page.getByRole('dialog', { name: 'Вадим' }).getByRole('button', { name: 'Хочет' })).toHaveAttribute('aria-pressed', 'true');
 });

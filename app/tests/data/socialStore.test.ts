@@ -59,4 +59,17 @@ describe('social store', () => {
     expect(f.store.getState().feed).toHaveLength(1);
     expect(f.store.getState().badge).toBe(3);
   });
+
+  it('taste for the friends list: asked once per friend for the session, failures retried later', async () => {
+    const f = fake({ taste_match: { status: 'ok', percent: 72, common: 5, both_want: 1, genres: [] } });
+    await f.store.getState().loadTaste(['a', 'b']);
+    await f.store.getState().loadTaste(['a', 'b']);
+    expect(f.calls.filter((c) => c === 'taste_match')).toHaveLength(2);
+    expect(f.store.getState().taste.a).toMatchObject({ status: 'ok', percent: 72 });
+    const bad = fake({}, ['taste_match']);
+    await bad.store.getState().loadTaste(['a']);
+    await bad.store.getState().loadTaste(['a']);
+    expect(bad.calls.filter((c) => c === 'taste_match')).toHaveLength(2);
+    expect(bad.store.getState().taste.a).toBeUndefined();
+  });
 });

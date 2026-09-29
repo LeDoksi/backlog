@@ -23,8 +23,8 @@ export function MatchCard({ match }: { match: Match }) {
 
 export function Matches({ matches }: { matches: Match[] }) {
   return (
-    <section className={s.list} aria-label="Совпадения">
-      {matches.map((m) => <MatchCard key={`${m.friend_id}:${m.title_key}`} match={m} />)}
-    </section>
+    <ul className={s.list} aria-label="Совпадения">
+      {matches.map((m) => <li key={`${m.friend_id}:${m.title_key}`}><MatchCard match={m} /></li>)}
+    </ul>
   );
 }

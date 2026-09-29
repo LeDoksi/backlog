@@ -23,3 +23,17 @@
 .requestText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-base); line-height: 1.35; }
 .requestText b { font-weight: 600; }
 .decline { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 50%; background: var(--sunken); color: var(--text); display: grid; place-items: center; }
+.h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-base); }
+.friendList { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.friendRow { width: 100%; min-height: 64px; padding: 10px 14px 10px 12px; border: 0; border-radius: 22px; background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text); display: flex; align-items: center; gap: 12px; text-align: left; font: inherit; }
+.friendText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-md); }
+.friendText b { font-weight: 600; }
+.friendMatch { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-base); color: var(--accent-text); }
+.screenWide { max-width: none; }
+.deskLayout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+.deskMain { display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
+.deskAside { position: sticky; top: 28px; display: flex; flex-direction: column; gap: 16px; }
+.panel { display: flex; flex-direction: column; gap: 12px; }
+.panelHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* Inside the aside the rows sit flat on one surface, as in the mockup. */
+.deskAside .friendRow { box-shadow: none; }
