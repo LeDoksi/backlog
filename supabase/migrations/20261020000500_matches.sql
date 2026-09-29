@@ -18,6 +18,8 @@ language sql stable security definer set search_path = public as $$
   where coalesce((select share_matches from profiles where id = auth.uid()), false)
     -- My hidden titles stay out too, so both sides see the same matches.
     and not m.hidden
+    -- A board we are both on is one row, not two people agreeing.
+    and not on_common_board(th.workspace_id, f, auth.uid())
     and m.status in ('queue', 'unreleased', 'in_progress') and th.status in ('queue', 'unreleased', 'in_progress')
   order by th.updated_at desc
   limit 50;
@@ -31,7 +33,8 @@ language sql stable security definer set search_path = public as $$
   from my_friend_ids() f
   join profiles p on p.id = f
   cross join lateral visible_titles(f) th
-  where title_key(th.source, th.source_id, th.id) = any (p_keys[1:500]);
+  where title_key(th.source, th.source_id, th.id) = any (p_keys[1:500])
+    and not on_common_board(th.workspace_id, f, auth.uid());
 $$;
 
 do $$

@@ -3,6 +3,15 @@
 -- private. Films and games count finished titles, series and anime count
 -- ticked seasons (a finished title without parts is one season). A title on
 -- both of someone's boards counts once; a shared board counts for each member.
+-- A tick date, or null when the stored value is not a valid date.
+create or replace function public.safe_timestamptz(v text) returns timestamptz
+language plpgsql stable as $$
+begin
+  return v::timestamptz;
+exception when others then
+  return null;
+end $$;
+
 create or replace function public.leaderboard(p_category text, p_period text) returns json
 language sql stable security definer set search_path = public as $$
 with since as (
@@ -30,7 +39,7 @@ seasons as (
   cross join lateral jsonb_each_text(case when jsonb_typeof(o.checked_parts) = 'object' then o.checked_parts else '{}'::jsonb end) cp
   cross join since
   where p_category in ('series', 'anime')
-    and (since.ts is null or (case when cp.value ~ '^\d{4}-\d{2}-\d{2}' then cp.value::timestamptz end) >= since.ts)
+    and (since.ts is null or safe_timestamptz(cp.value) >= since.ts)
   group by o.uid
 ),
 scores as (
@@ -51,3 +60,4 @@ $$;
 
 revoke execute on function public.leaderboard(text, text) from public, anon;
 grant execute on function public.leaderboard(text, text) to authenticated, service_role;
+revoke execute on function public.safe_timestamptz(text) from public, anon, authenticated;

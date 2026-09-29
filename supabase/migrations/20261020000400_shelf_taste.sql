@@ -32,6 +32,7 @@ language sql stable security definer set search_path = public as $$
   order by t.completed_at desc nulls last, t.updated_at desc;
 $$;
 
+-- A board both are on is left out on both sides: one row is not two tastes.
 -- Decision 52: 60% shared finished titles, 30% genres, 10% "want". Each
 -- side is what the other may see of it, hidden titles never count (spec 7.4).
 create or replace function public.taste_match(p_user uuid) returns json
@@ -50,10 +51,10 @@ begin
   end if;
   select count(*), coalesce(array_agg(title_key(x.source, x.source_id, x.id)) filter (where x.status = 'done'), '{}'),
          coalesce(array_agg(title_key(x.source, x.source_id, x.id)) filter (where x.status = 'queue'), '{}')
-    into n1, d1, w1 from visible_titles_for(me, p_user) x where not x.hidden;
+    into n1, d1, w1 from visible_titles_for(me, p_user) x where not x.hidden and not on_common_board(x.workspace_id, me, p_user);
   select count(*), coalesce(array_agg(title_key(x.source, x.source_id, x.id)) filter (where x.status = 'done'), '{}'),
          coalesce(array_agg(title_key(x.source, x.source_id, x.id)) filter (where x.status = 'queue'), '{}')
-    into n2, d2, w2 from visible_titles_for(p_user, me) x where not x.hidden;
+    into n2, d2, w2 from visible_titles_for(p_user, me) x where not x.hidden and not on_common_board(x.workspace_id, me, p_user);
   if n1 < 5 or n2 < 5 then return json_build_object('status', 'not_enough'); end if;
 
   common := cardinality(array(select unnest(d1) intersect select unnest(d2)));
@@ -66,9 +67,9 @@ begin
 
   -- G: cosine of genre counts over finished and in-progress titles.
   with a as (select gg, count(*)::numeric c from visible_titles_for(me, p_user) x, jsonb_array_elements_text(x.genres) gg
-             where not x.hidden and x.status in ('done', 'in_progress') group by gg),
+             where not x.hidden and not on_common_board(x.workspace_id, me, p_user) and x.status in ('done', 'in_progress') group by gg),
        b as (select gg, count(*)::numeric c from visible_titles_for(p_user, me) x, jsonb_array_elements_text(x.genres) gg
-             where not x.hidden and x.status in ('done', 'in_progress') group by gg),
+             where not x.hidden and not on_common_board(x.workspace_id, me, p_user) and x.status in ('done', 'in_progress') group by gg),
        na as (select sqrt(sum(c * c)) n from a), nb as (select sqrt(sum(c * c)) n from b)
   select coalesce((select sum(a.c * b.c) from a join b using (gg)), 0) / nullif((select n from na) * (select n from nb), 0),
          (select array_agg(gg order by m desc, gg) from (select a.gg, least(a.c, b.c) m from a join b using (gg) order by m desc, a.gg limit 3) z)

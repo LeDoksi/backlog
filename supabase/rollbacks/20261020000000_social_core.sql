@@ -7,6 +7,8 @@ begin
   end if;
 end $$;
 drop function if exists public.display_name_of(public.profiles);
+drop function if exists public.on_common_board(uuid, uuid, uuid);
+drop function if exists public.is_app_user(uuid);
 drop function if exists public.visible_titles(uuid);
 drop function if exists public.visible_titles_for(uuid, uuid);
 drop function if exists public.title_key(text, text, text);

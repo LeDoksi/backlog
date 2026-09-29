@@ -85,6 +85,23 @@ language sql stable security definer set search_path = public as $$
   select * from visible_titles_for(p_owner, auth.uid());
 $$;
 
+-- Someone who was let into the app has a personal board. A Google sign-in
+-- that got «не приглашён» has a session but no board, and social RPCs
+-- treat such a caller as nobody.
+create or replace function public.is_app_user(p_user uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from workspace_members m join workspaces w on w.id = m.workspace_id
+                 where m.user_id = p_user and w.kind = 'personal');
+$$;
+
+-- A board both people are on: its titles are one row with one status, so
+-- they say nothing about how two people's tastes compare.
+create or replace function public.on_common_board(p_workspace uuid, a uuid, b uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from workspace_members x join workspace_members y on y.workspace_id = x.workspace_id
+                 where x.workspace_id = p_workspace and x.user_id = a and y.user_id = b);
+$$;
+
 create or replace function public.display_name_of(p public.profiles) returns text
 language sql stable as $$
   select coalesce(nullif(trim(p.display_name), ''), p.nickname::text, 'Без имени');
@@ -96,7 +113,8 @@ do $$
 declare f text;
 begin
   foreach f in array array['public.are_friends(uuid,uuid)', 'public.visible_titles_for(uuid,uuid)', 'public.visible_titles(uuid)',
-                           'public.display_name_of(public.profiles)'] loop
+                           'public.display_name_of(public.profiles)', 'public.is_app_user(uuid)',
+                           'public.on_common_board(uuid,uuid,uuid)'] loop
     execute format('revoke execute on function %s from public, anon, authenticated', f);
     execute format('grant execute on function %s to service_role', f);
   end loop;

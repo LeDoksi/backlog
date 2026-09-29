@@ -30,7 +30,11 @@ begin
       insert into activity_events (actor_id, workspace_id, title_id, kind) values (actor, new.workspace_id, new.id, k);
     end if;
   end if;
-  select count(*) into fresh from jsonb_object_keys(new.checked_parts) as key where not (coalesce(old.checked_parts, '{}'::jsonb) ? key);
+  -- A malformed checklist (not an object) is not news, and must not block the write.
+  if jsonb_typeof(new.checked_parts) = 'object' then
+    select count(*) into fresh from jsonb_object_keys(new.checked_parts) as key
+      where not (case when jsonb_typeof(old.checked_parts) = 'object' then old.checked_parts else '{}'::jsonb end ? key);
+  end if;
   if fresh > 0 then
     insert into activity_events (actor_id, workspace_id, title_id, kind, payload)
     values (actor, new.workspace_id, new.id, 'parts', jsonb_build_object('count', fresh));
@@ -108,7 +112,8 @@ $$;
 create or replace function public.badge_count() returns int
 language sql stable security definer set search_path = public as $$
   select (select count(*) from feed(now(), 200) f where f.at > coalesce((select feed_seen_at from profiles where id = auth.uid()), '-infinity'))::int
-       + (select count(*) from friend_requests where to_user = auth.uid())::int
+       -- Counted the way my_inbox lists them: only from people with a profile.
+       + (select count(*) from friend_requests r join profiles p on p.id = r.from_user where r.to_user = auth.uid())::int
        + (select count(*) from board_invites where to_user = auth.uid())::int;
 $$;
 

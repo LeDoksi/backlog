@@ -61,7 +61,9 @@ begin
   select u.email, u.raw_user_meta_data->>'full_name' into em, full_name from auth.users u where u.id = uid;
   select * into allowed from allowed_emails a where lower(a.email) = lower(trim(em));
   if invite_token is not null then
-    select created_by into inviter from invite_links where token = lower(trim(invite_token)) and expires_at > now();
+    -- Only a link made by someone already in the app opens the door.
+    select created_by into inviter from invite_links
+     where token = lower(trim(invite_token)) and expires_at > now() and created_by <> uid and is_app_user(created_by);
   end if;
   if not had_profile and allowed is null and inviter is null then
     if invite_token is null then return json_build_object('status', 'not_invited'); end if;
@@ -96,6 +98,7 @@ declare
   raw bytea;
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = 'P0001'; end if;
+  if not is_app_user(auth.uid()) then raise exception 'not_invited' using errcode = 'P0001'; end if;
   select token, expires_at into tok, exp from invite_links
     where created_by = auth.uid() and expires_at > now() + interval '1 day' order by created_at desc limit 1;
   if tok is not null then return json_build_object('token', tok, 'expires_at', exp); end if;
@@ -124,7 +127,7 @@ language sql stable security definer set search_path = public as $$
          exists (select 1 from friend_requests r where r.from_user = auth.uid() and r.to_user = p.id),
          exists (select 1 from friend_requests r where r.from_user = p.id and r.to_user = auth.uid())
   from profiles p
-  where auth.uid() is not null and p.findable_by_nick and p.nickname is not null and p.id <> auth.uid()
+  where auth.uid() is not null and is_app_user(auth.uid()) and p.findable_by_nick and p.nickname is not null and p.id <> auth.uid()
     and length(trim(ltrim(p_prefix, '@'))) >= 2
     and starts_with(p.nickname::text, lower(trim(ltrim(trim(p_prefix), '@'))))
   order by p.nickname
@@ -135,6 +138,7 @@ create or replace function public.send_friend_request(p_user uuid) returns json
 language plpgsql security definer set search_path = public as $$
 begin
   if auth.uid() is null then raise exception 'not_authenticated' using errcode = 'P0001'; end if;
+  if not is_app_user(auth.uid()) then raise exception 'not_invited' using errcode = 'P0001'; end if;
   if not exists (select 1 from profiles where id = p_user) then return json_build_object('status', 'not_found'); end if;
   return json_build_object('status', request_friendship(auth.uid(), p_user));
 end $$;
