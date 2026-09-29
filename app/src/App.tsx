@@ -15,6 +15,8 @@ import { EditTitle } from './screens/EditTitle/EditTitle';
 import { QuickAdd } from './screens/QuickAdd/QuickAdd';
 import { Stats } from './screens/Stats/Stats';
 import { Profile } from './screens/Profile/Profile';
+import { Friends } from './screens/Friends/Friends';
+import { useSocial } from './data/socialStore';
 import { clearMirror, flushQueue } from './data/mirror';
 import { SyncStatus } from './ui/SyncStatus';
 import { AppShell } from './ui/AppShell';
@@ -22,7 +24,10 @@ import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
 import type { Profile as ProfileData } from './lib/auth';
 
-const SECTIONS: Section[] = ['backlog', 'stats', 'profile'];
+const SECTIONS: Section[] = ['backlog', 'friends', 'stats', 'profile'];
+// The badge is the only notification (decision 38); it is re-read when the
+// app comes back to the foreground and every few minutes while it is open.
+const BADGE_EVERY_MS = 3 * 60 * 1000;
 
 interface SignedProps { profile: ProfileData; onProfile(p: ProfileData): void; onSignOut(): void }
 
@@ -32,11 +37,20 @@ function Signed({ profile, onProfile, onSignOut }: SignedProps) {
 
   useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase }), []);
   useEffect(() => { void useBoards.getState().refresh(); }, []);
+  const badge = useSocial((st) => st.badge);
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') void useSocial.getState().refreshBadge(); };
+    refresh();
+    const timer = window.setInterval(refresh, BADGE_EVERY_MS);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh); useSocial.getState().reset(); };
+  }, []);
 
   return (
     <LayoutGroup>
-      <AppShell sections={SECTIONS} section={section} onNavigate={(next) => { setSection(next); window.scrollTo(0, 0); }} onAdd={() => setQuickAdd(true)}>
+      <AppShell sections={SECTIONS} section={section} badge={badge} onNavigate={(next) => { setSection(next); window.scrollTo(0, 0); }} onAdd={() => setQuickAdd(true)}>
         {section === 'backlog' && <Backlog />}
+        {section === 'friends' && <Friends />}
         {section === 'stats' && <Stats />}
         {section === 'profile' && <Profile profile={profile} onProfile={onProfile} onSignOut={onSignOut} />}
       </AppShell>

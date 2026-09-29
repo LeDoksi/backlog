@@ -96,3 +96,18 @@ describe('privacy wrappers', () => {
     expect(await Social.myHiddenTitles(rpcClient(fail).client)).toBeNull();
   });
 });
+
+describe('feed wrappers', () => {
+  it('feed passes the time zone and limit', async () => {
+    const r = rpcClient(ok([]));
+    expect(await Social.feed(r.client, 'Europe/Moscow', '2026-10-01T00:00:00.000Z')).toEqual([]);
+    expect(r.calls[0]).toEqual({ name: 'feed', args: { p_before: '2026-10-01T00:00:00.000Z', p_limit: 60, p_tz: 'Europe/Moscow' } });
+    expect(await Social.feed(rpcClient(fail).client, 'UTC')).toBeNull();
+  });
+
+  it('badgeCount is a number or null; markFeedSeen reports success', async () => {
+    expect(await Social.badgeCount(rpcClient(ok(3)).client)).toBe(3);
+    expect(await Social.badgeCount(rpcClient(fail).client)).toBeNull();
+    expect(await Social.markFeedSeen(rpcClient(ok()).client)).toBe(true);
+  });
+});

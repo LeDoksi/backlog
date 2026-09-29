@@ -25,6 +25,12 @@ export interface StubOptions {
   users?: StubUser[];
   /** Incoming shared-board invites. */
   invites?: StubInvite[];
+  /** Rows feed() returns (see data/feedFormat.ts). */
+  feed?: Row[];
+  /** Incoming friend requests. */
+  friendRequests?: { id: number; user_id: string; name: string; nickname: string }[];
+  /** Friends my_friends() returns. */
+  friends?: { id: string; name: string; nickname: string; since: string }[];
 }
 
 export const E2E_USER = '00000000-0000-4000-8000-000000000001';
@@ -68,6 +74,13 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
     const visibility: Record<string, string> = { [personal]: 'private', [shared]: 'private' };
     const privacy = { in_leaderboard: false, share_activity: true, share_matches: true, findable_by_nick: true };
     Object.assign(me, privacy);
+    let feedSeen = false;
+    let friendRequests = (opts.friendRequests ?? []).map((r) => ({ ...r, at: new Date().toISOString() }));
+    let friends = (opts.friends ?? []).slice();
+    const inbox = () => ({
+      friend_requests: friendRequests,
+      board_invites: invites.map((i) => ({ id: i.id, user_id: i.from_id, name: i.from_name, nickname: i.from_nickname, at: new Date().toISOString() }))
+    });
 
     const offline = () => ({ data: null, error: { message: 'Failed to fetch' } });
     const log = (entry: Row) => { (w.__writes ??= []).push(entry); };
@@ -147,6 +160,11 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
         return { data: null, error: null };
       },
       my_hidden_titles: () => ({ data: titles.filter((t) => t.hidden).map((t) => ({ workspace_id: t.workspace_id, id: t.id, title: t.title, category: t.category, year: t.year, cover: t.cover })), error: null }),
+      feed: () => ({ data: opts.feed ?? [], error: null }),
+      mark_feed_seen: () => { feedSeen = true; return { data: null, error: null }; },
+      badge_count: () => ({ data: (feedSeen ? 0 : (opts.feed ?? []).length) + friendRequests.length + invites.length, error: null }),
+      my_inbox: () => ({ data: inbox(), error: null }),
+      my_friends: () => ({ data: friends, error: null }),
       copy_title: (a) => {
         const src = titles.find((t) => t.workspace_id === a.p_from && t.id === a.p_title_id);
         if (!src) return fail('not_found');

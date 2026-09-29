@@ -5,6 +5,7 @@
 import { callRpc, type SignupStatus } from './auth';
 import { normalizeNick } from './boards';
 import type { SupabaseLike } from './types';
+import type { FeedRow } from '../data/feedFormat';
 
 export type InviteStatus = 'requested' | 'friends' | 'already_friends' | 'self' | 'expired';
 export interface InviteOutcome { status: InviteStatus; from_name?: string | null }
@@ -88,4 +89,21 @@ export async function setPrivacy(client: SupabaseLike, p: PrivacySwitches): Prom
 export async function myHiddenTitles(client: SupabaseLike): Promise<HiddenTitle[] | null> {
   const rows = data<HiddenTitle[]>(await callRpc(client, 'my_hidden_titles'));
   return Array.isArray(rows) ? rows : null;
+}
+
+// ── Feed and badge ─────────────────────────────────────────────────────
+
+
+export async function feed(client: SupabaseLike, tz: string, before?: string): Promise<FeedRow[] | null> {
+  const rows = data<FeedRow[]>(await callRpc(client, 'feed', { p_before: before ?? new Date().toISOString(), p_limit: 60, p_tz: tz }));
+  return Array.isArray(rows) ? rows : null;
+}
+
+export async function markFeedSeen(client: SupabaseLike): Promise<boolean> {
+  return !(await callRpc(client, 'mark_feed_seen')).error;
+}
+
+export async function badgeCount(client: SupabaseLike): Promise<number | null> {
+  const n = data<number>(await callRpc(client, 'badge_count'));
+  return typeof n === 'number' ? n : null;
 }

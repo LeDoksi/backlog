@@ -1,0 +1,17 @@
+.screen { position: relative; isolation: isolate; display: flex; flex-direction: column; gap: 16px; max-width: 720px; }
+.glow { position: absolute; left: -80px; top: -170px; width: 550px; height: 380px; background: radial-gradient(closest-side, var(--accent-glow), transparent 70%); pointer-events: none; z-index: -1; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; }
+.h1 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-title); }
+.add { min-height: 44px; padding: 0 16px 0 12px; border: 0; border-radius: var(--r-pill); background: var(--surface); color: var(--text); box-shadow: var(--shadow-soft); font-size: var(--fs-base); font-weight: 600; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+.group { display: flex; flex-direction: column; gap: 10px; }
+.groupTitle { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+.item { width: 100%; padding: 12px 12px 12px 14px; border: 0; border-radius: 22px; background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text); display: flex; flex-direction: column; gap: 10px; text-align: left; font: inherit; }
+.itemRow { display: flex; gap: 12px; align-items: center; }
+.itemText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: var(--fs-base); line-height: 1.35; }
+.itemText b { font-weight: 600; }
+.when { font-size: var(--fs-xs); color: var(--muted); }
+.cover { width: 42px; height: 63px; border-radius: var(--r-xs); object-fit: cover; flex-shrink: 0; background: var(--poster-empty); }
+.strip { display: flex; gap: 6px; overflow: hidden; }
+.strip img { width: 48px; height: 72px; border-radius: var(--r-xs); object-fit: cover; flex-shrink: 0; background: var(--poster-empty); }
+.note { margin: 0; padding: 18px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text-2); font-size: var(--fs-md); line-height: 1.45; }
+.error { margin: 0; color: var(--danger); font-size: var(--fs-sm); font-weight: 500; }
