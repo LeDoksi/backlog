@@ -15,3 +15,8 @@
 .strip img { width: 48px; height: 72px; border-radius: var(--r-xs); object-fit: cover; flex-shrink: 0; background: var(--poster-empty); }
 .note { margin: 0; padding: 18px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text-2); font-size: var(--fs-md); line-height: 1.45; }
 .error { margin: 0; color: var(--danger); font-size: var(--fs-sm); font-weight: 500; }
+.requests { display: flex; flex-direction: column; gap: 8px; }
+.request { padding: 12px 12px 12px 14px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 12px; }
+.requestText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-base); line-height: 1.35; }
+.requestText b { font-weight: 600; }
+.decline { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 50%; background: var(--sunken); color: var(--text); display: grid; place-items: center; }

@@ -29,6 +29,10 @@ export interface StubOptions {
   feed?: Row[];
   /** Incoming friend requests. */
   friendRequests?: { id: number; user_id: string; name: string; nickname: string }[];
+  /** People search_users() knows (with their flags). */
+  people?: { id: string; name: string; nickname: string; is_friend?: boolean; requested?: boolean; incoming?: boolean }[];
+  /** What complete_signup says the invite link did, when called with one. */
+  inviteOutcome?: Row;
   /** Friends my_friends() returns. */
   friends?: { id: string; name: string; nickname: string; since: string }[];
 }
@@ -135,7 +139,7 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
 
     const fail = (message: string) => ({ data: null, error: { message, code: 'P0001' } });
     const rpcs: Record<string, (a: Row) => { data: unknown; error: unknown }> = {
-      complete_signup: () => ({ data: { status: invited ? 'exists' : 'not_invited' }, error: null }),
+      complete_signup: (a) => ({ data: { status: invited ? 'exists' : 'not_invited', ...(a.invite_token && opts.inviteOutcome ? { invite: opts.inviteOutcome } : {}) }, error: null }),
       my_profile: () => ({ data: me, error: null }),
       my_boards: () => ({ data: boards(), error: null }),
       nickname_available: (a) => ({ data: a.p_nickname !== 'taken', error: null }),
@@ -160,6 +164,24 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
         return { data: null, error: null };
       },
       my_hidden_titles: () => ({ data: titles.filter((t) => t.hidden).map((t) => ({ workspace_id: t.workspace_id, id: t.id, title: t.title, category: t.category, year: t.year, cover: t.cover })), error: null }),
+      create_invite_link: () => ({ data: { token: 'g7k2q4m9x1', expires_at: new Date(Date.now() + 7 * 864e5).toISOString() }, error: null }),
+      search_users: (a) => ({
+        data: (opts.people ?? []).filter((p) => p.nickname.startsWith(String(a.p_prefix)))
+          .map((p) => ({ is_friend: false, requested: false, incoming: false, ...p })), error: null
+      }),
+      send_friend_request: (a) => {
+        const p = (opts.people ?? []).find((x) => x.id === a.p_user);
+        if (!p) return { data: { status: 'not_found' }, error: null };
+        if (p.incoming) { friends.push({ id: p.id, name: p.name, nickname: p.nickname, since: new Date().toISOString() }); return { data: { status: 'friends' }, error: null }; }
+        return { data: { status: 'requested' }, error: null };
+      },
+      respond_friend_request: (a) => {
+        const r = friendRequests.find((x) => x.id === a.p_id);
+        friendRequests = friendRequests.filter((x) => x !== r);
+        if (r && a.p_accept) friends.push({ id: r.user_id, name: r.name, nickname: r.nickname, since: new Date().toISOString() });
+        return { data: null, error: null };
+      },
+      remove_friend: (a) => { friends = friends.filter((f) => f.id !== a.p_user); return { data: null, error: null }; },
       feed: () => ({ data: opts.feed ?? [], error: null }),
       mark_feed_seen: () => { feedSeen = true; return { data: null, error: null }; },
       badge_count: () => ({ data: (feedSeen ? 0 : (opts.feed ?? []).length) + friendRequests.length + invites.length, error: null }),

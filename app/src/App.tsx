@@ -19,6 +19,7 @@ import { Friends } from './screens/Friends/Friends';
 import { useSocial } from './data/socialStore';
 import { clearMirror, flushQueue } from './data/mirror';
 import { SyncStatus } from './ui/SyncStatus';
+import { Toast } from './ui/Toast';
 import { AppShell } from './ui/AppShell';
 import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
@@ -58,6 +59,7 @@ function Signed({ profile, onProfile, onSignOut }: SignedProps) {
       <EditTitle />
       <QuickAdd />
       <SyncStatus />
+      <Toast />
     </LayoutGroup>
   );
 }
@@ -66,7 +68,7 @@ export function App() {
   const session = useSession();
   if (session.state === 'loading') return <div style={{ padding: 18 }}><Skeleton kind="card" /></div>;
   if (session.state === 'signedOut') return <SignIn onSignIn={session.signIn} />;
-  if (session.state === 'blocked') return <NotInvited onSignOut={session.signOut} />;
+  if (session.state === 'blocked') return <NotInvited onSignOut={session.signOut} linkExpired={session.linkExpired} />;
   // A missing profile (the server did not answer) still opens the app with
   // what the session knows; the nickname can be set once it is reachable.
   const profile: ProfileData = session.profile ?? { id: session.userId ?? '', email: session.email ?? '', display_name: null, nickname: null, theme: 'system' };

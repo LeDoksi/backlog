@@ -11,6 +11,9 @@ interface UiState {
   openEdit(id: string): void;
   closeEdit(): void;
   setQuickAdd(open: boolean): void;
+  /** A short note at the bottom of the screen (the invite link outcome). */
+  toast: string | null;
+  showToast(text: string | null): void;
 }
 
 export const useUi = create<UiState>()((set) => ({
@@ -21,7 +24,9 @@ export const useUi = create<UiState>()((set) => ({
   closeTitle: () => set({ openTitleId: null }),
   openEdit: (id) => set({ editTitleId: id }),
   closeEdit: () => set({ editTitleId: null }),
-  setQuickAdd: (open) => set({ quickAddOpen: open })
+  setQuickAdd: (open) => set({ quickAddOpen: open }),
+  toast: null,
+  showToast: (text) => set({ toast: text })
 }));
 
 export const openTitle = (id: string) => useUi.getState().openTitle(id);

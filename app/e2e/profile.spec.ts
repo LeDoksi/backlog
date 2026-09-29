@@ -26,8 +26,8 @@ test('inviting by email only lets the person into the app', async ({ page }) => 
   await installStub(page, { signedIn: true, hasProfile: true });
   await page.goto('./');
   await openProfile(page);
-  await page.getByRole('button', { name: 'Пригласить в Бэклог' }).click();
-  const sheet = page.getByRole('dialog', { name: 'Пригласить в Бэклог' });
+  await page.getByRole('button', { name: 'Пригласить по почте' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Пригласить по почте' });
   await sheet.getByRole('textbox', { name: 'Почта Google' }).fill('friend@example.com');
   await sheet.getByRole('button', { name: 'Пригласить' }).click();
   await expect(sheet.getByRole('status')).toContainText('Готово');
@@ -65,14 +65,15 @@ test('creating a shared board invites someone by exact nickname', async ({ page 
   expect(await rpcCalls(page)).toContainEqual({ name: 'invite_to_shared_board', args: { p_user: dasha.id } });
 });
 
-test('accepting an incoming invite adds the shared board', async ({ page }) => {
+test('accepting an incoming invite (in «Друзья») adds the shared board', async ({ page }) => {
   await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(2),
     invites: [{ id: 7, from_id: dasha.id, from_name: 'Даша', from_nickname: 'dasha' }] });
   await page.goto('./');
-  await openProfile(page);
+  await page.getByRole('navigation', { name: 'Разделы' }).filter({ visible: true }).getByRole('button', { name: /Друзья/ }).click();
   await expect(page.getByText('зовёт в общую доску')).toBeVisible();
-  await page.getByRole('button', { name: 'Принять' }).click();
+  await page.getByRole('button', { name: 'Принять: Даша' }).click();
   await expect(page.getByText('зовёт в общую доску')).toHaveCount(0);
+  await openProfile(page);
   await expect(page.getByText('0 тайтлов, вместе с: Даша')).toBeVisible();
   expect(await rpcCalls(page)).toContainEqual({ name: 'respond_board_invite', args: { p_id: 7, p_accept: true } });
 });
