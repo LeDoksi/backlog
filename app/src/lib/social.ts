@@ -107,3 +107,28 @@ export async function badgeCount(client: SupabaseLike): Promise<number | null> {
   const n = data<number>(await callRpc(client, 'badge_count'));
   return typeof n === 'number' ? n : null;
 }
+
+// ── A friend's page ────────────────────────────────────────────────────
+
+export interface FriendPage { id: string; name: string; nickname: string | null; is_friend: boolean; since: string | null }
+export interface ShelfItem { id: string; title: string; category: string; year: number | null; cover: string | null; common: boolean }
+export type Taste =
+  | { status: 'ok'; percent: number; common: number; both_want: number; genres: string[] }
+  | { status: 'not_enough' | 'disabled' };
+
+/** `null` when the call failed; `'none'` when there is no page to show. */
+export async function friendProfile(client: SupabaseLike, userId: string): Promise<FriendPage | 'none' | null> {
+  const res = await callRpc(client, 'friend_profile', { p_user: userId });
+  if (res.error) return null;
+  return res.data && typeof res.data === 'object' ? res.data as FriendPage : 'none';
+}
+
+export async function friendShelf(client: SupabaseLike, userId: string, tab: 'done' | 'watching' | 'want'): Promise<ShelfItem[] | null> {
+  const rows = data<ShelfItem[]>(await callRpc(client, 'friend_shelf', { p_user: userId, p_status: tab }));
+  return Array.isArray(rows) ? rows : null;
+}
+
+export async function tasteMatch(client: SupabaseLike, userId: string): Promise<Taste | null> {
+  const t = data<Taste>(await callRpc(client, 'taste_match', { p_user: userId }));
+  return t && typeof t.status === 'string' ? t : null;
+}

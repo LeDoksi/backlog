@@ -61,20 +61,28 @@ language sql immutable as $$
 $$;
 
 -- The one place privacy is decided; every social read goes through it.
--- The owner and members of a board see all of it, hidden titles included.
--- Anyone else sees non-hidden titles of boards opened to them. A title on
--- both of the owner's boards comes back once, preferring the personal copy.
-create or replace function public.visible_titles(p_owner uuid) returns setof public.titles
+-- What of p_owner's shelf p_viewer may see: all of it to the owner and to
+-- members of a board (hidden titles included); to anyone else the titles
+-- not hidden on boards opened to them. A title on both of the owner's
+-- boards comes back once, preferring the personal copy.
+create or replace function public.visible_titles_for(p_owner uuid, p_viewer uuid) returns setof public.titles
 language sql stable security definer set search_path = public as $$
   select distinct on (title_key(t.source, t.source_id, t.id)) t.*
   from titles t
   join workspace_members m on m.workspace_id = t.workspace_id and m.user_id = p_owner
   join workspaces w on w.id = t.workspace_id
-  where auth.uid() is not null and (
-    p_owner = auth.uid() or is_member(t.workspace_id)
-    or (not t.hidden and (w.visibility = 'everyone' or (w.visibility = 'friends' and are_friends(p_owner, auth.uid()))))
+  where p_viewer is not null and (
+    p_owner = p_viewer
+    or exists (select 1 from workspace_members v where v.workspace_id = t.workspace_id and v.user_id = p_viewer)
+    or (not t.hidden and (w.visibility = 'everyone' or (w.visibility = 'friends' and are_friends(p_owner, p_viewer))))
   )
   order by title_key(t.source, t.source_id, t.id), (w.kind = 'shared');
+$$;
+
+-- The same, seen by the caller.
+create or replace function public.visible_titles(p_owner uuid) returns setof public.titles
+language sql stable security definer set search_path = public as $$
+  select * from visible_titles_for(p_owner, auth.uid());
 $$;
 
 create or replace function public.display_name_of(p public.profiles) returns text
@@ -87,7 +95,8 @@ $$;
 do $$
 declare f text;
 begin
-  foreach f in array array['public.are_friends(uuid,uuid)', 'public.visible_titles(uuid)', 'public.display_name_of(public.profiles)'] loop
+  foreach f in array array['public.are_friends(uuid,uuid)', 'public.visible_titles_for(uuid,uuid)', 'public.visible_titles(uuid)',
+                           'public.display_name_of(public.profiles)'] loop
     execute format('revoke execute on function %s from public, anon, authenticated', f);
     execute format('grant execute on function %s to service_role', f);
   end loop;

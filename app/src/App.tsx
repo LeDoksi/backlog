@@ -16,6 +16,7 @@ import { QuickAdd } from './screens/QuickAdd/QuickAdd';
 import { Stats } from './screens/Stats/Stats';
 import { Profile } from './screens/Profile/Profile';
 import { Friends } from './screens/Friends/Friends';
+import { FriendProfile } from './screens/FriendProfile/FriendProfile';
 import { useSocial } from './data/socialStore';
 import { clearMirror, flushQueue } from './data/mirror';
 import { SyncStatus } from './ui/SyncStatus';
@@ -58,6 +59,7 @@ function Signed({ profile, onProfile, onSignOut }: SignedProps) {
       <TitleSheet />
       <EditTitle />
       <QuickAdd />
+      <FriendProfile />
       <SyncStatus />
       <Toast />
     </LayoutGroup>

@@ -33,6 +33,10 @@ export interface StubOptions {
   people?: { id: string; name: string; nickname: string; is_friend?: boolean; requested?: boolean; incoming?: boolean }[];
   /** What complete_signup says the invite link did, when called with one. */
   inviteOutcome?: Row;
+  /** friend_shelf rows by user and tab. */
+  shelves?: Record<string, Partial<Record<'done' | 'watching' | 'want', Row[]>>>;
+  /** taste_match answers by user. */
+  taste?: Record<string, Row>;
   /** Friends my_friends() returns. */
   friends?: { id: string; name: string; nickname: string; since: string }[];
 }
@@ -182,6 +186,12 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
         return { data: null, error: null };
       },
       remove_friend: (a) => { friends = friends.filter((f) => f.id !== a.p_user); return { data: null, error: null }; },
+      friend_profile: (a) => {
+        const f = friends.find((x) => x.id === a.p_user);
+        return { data: f ? { id: f.id, name: f.name, nickname: f.nickname, is_friend: true, since: f.since } : null, error: null };
+      },
+      friend_shelf: (a) => ({ data: opts.shelves?.[String(a.p_user)]?.[a.p_status as 'done'] ?? [], error: null }),
+      taste_match: (a) => ({ data: opts.taste?.[String(a.p_user)] ?? { status: 'not_enough' }, error: null }),
       feed: () => ({ data: opts.feed ?? [], error: null }),
       mark_feed_seen: () => { feedSeen = true; return { data: null, error: null }; },
       badge_count: () => ({ data: (feedSeen ? 0 : (opts.feed ?? []).length) + friendRequests.length + invites.length, error: null }),

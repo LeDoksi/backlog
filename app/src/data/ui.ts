@@ -11,6 +11,10 @@ interface UiState {
   openEdit(id: string): void;
   closeEdit(): void;
   setQuickAdd(open: boolean): void;
+  /** A friend's page, over whatever section is open. */
+  friend: { id: string; tab: 'done' | 'watching' | 'want' } | null;
+  openFriend(id: string, tab?: 'done' | 'watching' | 'want'): void;
+  closeFriend(): void;
   /** A short note at the bottom of the screen (the invite link outcome). */
   toast: string | null;
   showToast(text: string | null): void;
@@ -25,6 +29,9 @@ export const useUi = create<UiState>()((set) => ({
   openEdit: (id) => set({ editTitleId: id }),
   closeEdit: () => set({ editTitleId: null }),
   setQuickAdd: (open) => set({ quickAddOpen: open }),
+  friend: null,
+  openFriend: (id, tab = 'done') => set({ friend: { id, tab } }),
+  closeFriend: () => set({ friend: null }),
   toast: null,
   showToast: (text) => set({ toast: text })
 }));

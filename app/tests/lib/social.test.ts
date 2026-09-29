@@ -111,3 +111,20 @@ describe('feed wrappers', () => {
     expect(await Social.markFeedSeen(rpcClient(ok()).client)).toBe(true);
   });
 });
+
+describe('friend page wrappers', () => {
+  it('friendProfile tells a failed call from no page', async () => {
+    const page = { id: 'u', name: 'В', nickname: 'v', is_friend: true, since: 't' };
+    expect(await Social.friendProfile(rpcClient(ok(page)).client, 'u')).toEqual(page);
+    expect(await Social.friendProfile(rpcClient(ok(null)).client, 'u')).toBe('none');
+    expect(await Social.friendProfile(rpcClient(fail).client, 'u')).toBeNull();
+  });
+
+  it('friendShelf sends user and tab; tasteMatch returns the status object', async () => {
+    const r = rpcClient(ok([]));
+    expect(await Social.friendShelf(r.client, 'u', 'want')).toEqual([]);
+    expect(r.calls[0]).toEqual({ name: 'friend_shelf', args: { p_user: 'u', p_status: 'want' } });
+    expect(await Social.tasteMatch(rpcClient(ok({ status: 'not_enough' })).client, 'u')).toEqual({ status: 'not_enough' });
+    expect(await Social.tasteMatch(rpcClient(fail).client, 'u')).toBeNull();
+  });
+});

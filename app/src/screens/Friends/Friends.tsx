@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { UserPlus } from '@phosphor-icons/react';
 import { useSocial } from '../../data/socialStore';
 import { Skeleton } from '../../ui/Skeleton';
-import type { FeedRow } from '../../data/feedFormat';
+import { shelfTabFor, type FeedRow } from '../../data/feedFormat';
+import { useUi } from '../../data/ui';
 import { FeedList } from './FeedList';
 import { Requests } from './Requests';
 import { AddFriendSheet } from './AddFriendSheet';
@@ -16,7 +17,8 @@ export function Friends() {
 
   useEffect(() => { void useSocial.getState().openFriends(); }, []);
 
-  function open(_row: FeedRow) { /* the friend's profile arrives with it */ }
+  const openFriend = useUi((u) => u.openFriend);
+  const open = (row: FeedRow) => openFriend(row.actor_id, shelfTabFor(row.kind));
 
   return (
     <div className={s.screen}>
