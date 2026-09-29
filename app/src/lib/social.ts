@@ -1,0 +1,69 @@
+// social.ts — friends, invite links, privacy and the social reads.
+// Wrappers over security-definer RPCs with the auth.ts contract: they never
+// throw, and a failed call is `null` (or `false`), never mistaken for an
+// empty answer from the server.
+import { callRpc, type SignupStatus } from './auth';
+import { normalizeNick } from './boards';
+import type { SupabaseLike } from './types';
+
+export type InviteStatus = 'requested' | 'friends' | 'already_friends' | 'self' | 'expired';
+export interface InviteOutcome { status: InviteStatus; from_name?: string | null }
+export interface Signup { status: SignupStatus; invite: InviteOutcome | null }
+export interface InviteLink { token: string; expires_at: string }
+export interface FoundPerson { id: string; name: string; nickname: string; is_friend: boolean; requested: boolean; incoming: boolean }
+export type RequestStatus = 'requested' | 'friends' | 'already_friends' | 'self' | 'not_found';
+export interface InboxItem { id: number; user_id: string; name: string; nickname: string | null; at: string }
+export interface Inbox { friend_requests: InboxItem[]; board_invites: InboxItem[] }
+export interface Friend { id: string; name: string; nickname: string | null; since: string }
+
+const SIGNUP: SignupStatus[] = ['created', 'exists', 'not_invited'];
+
+function data<T>(res: { data: unknown; error: unknown }): T | null {
+  return !res.error && res.data !== null && res.data !== undefined ? res.data as T : null;
+}
+
+export async function completeSignup(client: SupabaseLike, token?: string | null): Promise<Signup | null> {
+  const res = await callRpc(client, 'complete_signup', token ? { invite_token: token } : undefined);
+  const body = data<{ status?: string; invite?: InviteOutcome }>(res);
+  if (!body || !SIGNUP.includes(body.status as SignupStatus)) return null;
+  return { status: body.status as SignupStatus, invite: body.invite ?? null };
+}
+
+export async function createInviteLink(client: SupabaseLike): Promise<InviteLink | null> {
+  const link = data<InviteLink>(await callRpc(client, 'create_invite_link'));
+  return link && typeof link.token === 'string' ? link : null;
+}
+
+export async function redeemInvite(client: SupabaseLike, token: string): Promise<InviteOutcome | null> {
+  return data<InviteOutcome>(await callRpc(client, 'redeem_invite', { p_token: token }));
+}
+
+/** Searches from two characters; shorter input is answered locally with nobody. */
+export async function searchUsers(client: SupabaseLike, raw: string): Promise<FoundPerson[] | null> {
+  const prefix = normalizeNick(raw);
+  if (prefix.length < 2) return [];
+  const rows = data<FoundPerson[]>(await callRpc(client, 'search_users', { p_prefix: prefix }));
+  return Array.isArray(rows) ? rows : null;
+}
+
+export async function sendFriendRequest(client: SupabaseLike, userId: string): Promise<RequestStatus | null> {
+  return data<{ status: RequestStatus }>(await callRpc(client, 'send_friend_request', { p_user: userId }))?.status ?? null;
+}
+
+export async function respondFriendRequest(client: SupabaseLike, id: number, accept: boolean): Promise<boolean> {
+  return !(await callRpc(client, 'respond_friend_request', { p_id: id, p_accept: accept })).error;
+}
+
+export async function removeFriend(client: SupabaseLike, userId: string): Promise<boolean> {
+  return !(await callRpc(client, 'remove_friend', { p_user: userId })).error;
+}
+
+export async function myInbox(client: SupabaseLike): Promise<Inbox | null> {
+  const inbox = data<Inbox>(await callRpc(client, 'my_inbox'));
+  return inbox && Array.isArray(inbox.friend_requests) ? inbox : null;
+}
+
+export async function myFriends(client: SupabaseLike): Promise<Friend[] | null> {
+  const rows = data<Friend[]>(await callRpc(client, 'my_friends'));
+  return Array.isArray(rows) ? rows : null;
+}
