@@ -1,0 +1,4 @@
+.column { position: sticky; top: 28px; width: 324px; padding: 24px 20px; border-radius: 32px; background: var(--surface); box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 16px; }
+.head { display: flex; justify-content: space-between; align-items: center; }
+.h2 { margin: 0; font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; }
+.all { min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--accent-text); font: inherit; font-size: var(--fs-sm); font-weight: 600; }

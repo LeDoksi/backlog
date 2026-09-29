@@ -25,11 +25,11 @@ describe('social store', () => {
   });
 
   it('opening Friends reads feed, inbox and friends, marks the feed seen, badge = waiting requests', async () => {
-    const f = fake({ feed: [], my_inbox: inbox, my_friends: [], badge_count: 9 });
+    const f = fake({ feed: [], my_inbox: inbox, my_friends: [], matches: [], badge_count: 9 });
     f.store.setState({ badge: 9 });
     await f.store.getState().openFriends();
-    expect(f.calls.slice(0, 3).sort()).toEqual(['feed', 'my_friends', 'my_inbox']);
-    expect(f.calls[3]).toBe('mark_feed_seen');
+    expect(f.calls.slice(0, 4).sort()).toEqual(['feed', 'matches', 'my_friends', 'my_inbox']);
+    expect(f.calls[4]).toBe('mark_feed_seen');
     expect(f.store.getState().badge).toBe(1);
     expect(f.store.getState().failed).toBe(false);
   });
@@ -41,5 +41,22 @@ describe('social store', () => {
     expect(f.calls).not.toContain('mark_feed_seen');
     expect(f.store.getState().badge).toBe(5);
     expect(f.store.getState().failed).toBe(true);
+  });
+
+  it('friends on titles: one call per set of keys, grouped by key', async () => {
+    const f = fake({ friends_on_titles: [{ title_key: 'k1', friend_id: 'a', friend_name: 'А', status: 'done' }] });
+    await f.store.getState().loadFriendsOn(['k1', 'k2']);
+    await f.store.getState().loadFriendsOn(['k2', 'k1']);
+    expect(f.calls.filter((c) => c === 'friends_on_titles')).toHaveLength(1);
+    expect(Object.keys(f.store.getState().friendsOn)).toEqual(['k1']);
+  });
+
+  it('the desktop column reads feed and matches without marking the feed seen', async () => {
+    const f = fake({ feed: [{ kind: 'added' }], matches: [] });
+    f.store.setState({ badge: 3 });
+    await f.store.getState().loadPeek();
+    expect(f.calls.sort()).toEqual(['feed', 'matches']);
+    expect(f.store.getState().feed).toHaveLength(1);
+    expect(f.store.getState().badge).toBe(3);
   });
 });

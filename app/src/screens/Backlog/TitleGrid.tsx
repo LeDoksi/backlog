@@ -3,6 +3,8 @@ import { motion, useReducedMotion } from 'motion/react';
 import { useTitles } from '../../data/titlesStore';
 import type { Title } from '../../lib/types';
 import { TitleCard } from './TitleCard';
+import { useSocial } from '../../data/socialStore';
+import { byPriority, titleKey } from '../../data/friendsOn';
 import s from './TitleGrid.module.css';
 
 // A quick status change can move a card (the default sort is by status), and
@@ -12,6 +14,7 @@ import s from './TitleGrid.module.css';
 export function TitleGrid({ titles, animateKey }: { titles: Title[]; animateKey: string }) {
   const all = useTitles((t) => t.titles);
   const checked = useTitles((t) => t.checked);
+  const friendsOn = useSocial((st) => st.friendsOn);
   const [held, setHeld] = useState<string[] | null>(null);
   const grid = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
@@ -48,7 +51,7 @@ export function TitleGrid({ titles, animateKey }: { titles: Title[]; animateKey:
       {shown.map((t, i) => (
         <motion.div key={t.id} initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.26, delay: Math.min(i, 12) * 0.02 }}>
-          <TitleCard title={t} checked={checked[t.id]} onQuickChange={hold} />
+          <TitleCard title={t} checked={checked[t.id]} friend={byPriority(friendsOn[titleKey(t)])[0]} onQuickChange={hold} />
         </motion.div>
       ))}
     </div>

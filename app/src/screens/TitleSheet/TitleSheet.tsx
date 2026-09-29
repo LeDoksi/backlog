@@ -17,6 +17,7 @@ import { isStillAiring } from '../../lib/query';
 import { ASSET_ROOT } from '../../config';
 import { StatusControl } from './StatusControl';
 import { PartsChecklist } from './PartsChecklist';
+import { FriendsOnTitle } from './FriendsOnTitle';
 import s from './TitleSheet.module.css';
 
 export function TitleSheet() {
@@ -104,6 +105,7 @@ export function TitleSheet() {
             )}
 
             {copyNote && <p role="status" className={s.copyNote}>{copyNote}</p>}
+            <FriendsOnTitle title={title} />
             {title.synopsis && <p className={s.synopsis}>{title.synopsis}</p>}
             {title.seasonInfo && <p className={s.seasonInfo}>{title.seasonInfo}</p>}
             {title.category === 'game' && title.platforms && title.platforms.length > 0 && (

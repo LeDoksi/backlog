@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTitles } from '../../data/titlesStore';
 import { useFilters, visibleTitles } from '../../data/filters';
 import { useUi } from '../../data/ui';
@@ -10,6 +10,10 @@ import { BacklogHeader } from './BacklogHeader';
 import { CategoryTabs } from './CategoryTabs';
 import { FilterChips } from './FilterChips';
 import { TitleGrid } from './TitleGrid';
+import { FriendsColumn } from './FriendsColumn';
+import { useSocial } from '../../data/socialStore';
+import { titleKey } from '../../data/friendsOn';
+import { useMediaQuery } from '../../ui/useMediaQuery';
 import s from './Backlog.module.css';
 
 export function Backlog() {
@@ -19,6 +23,10 @@ export function Backlog() {
   const filters = useFilters();
   const setQuickAdd = useUi((u) => u.setQuickAdd);
   const shown = useMemo(() => visibleTitles(titles, filters), [titles, filters]);
+  const wide = useMediaQuery('(min-width: 1280px)');
+  // One request for the whole board, not per filter: the store skips a key set it already has.
+  const keys = useMemo(() => titles.map(titleKey), [titles]);
+  useEffect(() => { if (keys.length) void useSocial.getState().loadFriendsOn(keys); }, [keys]);
 
   let content;
   if (loading && titles.length === 0) {
@@ -33,7 +41,7 @@ export function Backlog() {
     content = <TitleGrid titles={shown} animateKey={`${boardId}:${filters.category}`} />;
   }
 
-  return (
+  const main = (
     <div className={s.screen}>
       <div className={s.glow} aria-hidden="true" />
       <header className={s.header}>
@@ -45,4 +53,6 @@ export function Backlog() {
       {content}
     </div>
   );
+  if (!wide) return main;
+  return <div className={s.layout}><div className={s.main}>{main}</div><FriendsColumn /></div>;
 }

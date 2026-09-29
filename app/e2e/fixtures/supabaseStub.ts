@@ -39,6 +39,10 @@ export interface StubOptions {
   taste?: Record<string, Row>;
   /** Friends my_friends() returns. */
   friends?: { id: string; name: string; nickname: string; since: string }[];
+  /** Rows matches() returns. */
+  matches?: Row[];
+  /** friends_on_titles rows; the stub returns those whose title_key was asked for. */
+  friendsOn?: Row[];
 }
 
 export const E2E_USER = '00000000-0000-4000-8000-000000000001';
@@ -197,6 +201,8 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       badge_count: () => ({ data: (feedSeen ? 0 : (opts.feed ?? []).length) + friendRequests.length + invites.length, error: null }),
       my_inbox: () => ({ data: inbox(), error: null }),
       my_friends: () => ({ data: friends, error: null }),
+      matches: () => ({ data: opts.matches ?? [], error: null }),
+      friends_on_titles: (a) => ({ data: (opts.friendsOn ?? []).filter((r) => (a.p_keys as string[]).includes(String(r.title_key))), error: null }),
       copy_title: (a) => {
         const src = titles.find((t) => t.workspace_id === a.p_from && t.id === a.p_title_id);
         if (!src) return fail('not_found');

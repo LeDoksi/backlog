@@ -132,3 +132,19 @@ export async function tasteMatch(client: SupabaseLike, userId: string): Promise<
   const t = data<Taste>(await callRpc(client, 'taste_match', { p_user: userId }));
   return t && typeof t.status === 'string' ? t : null;
 }
+
+// ── Matches and friends on a title ─────────────────────────────────────
+
+export interface Match { friend_id: string; friend_name: string; title_key: string; title: string; category: string; cover: string | null; my_status: string; friend_status: string }
+export interface FriendOn { title_key: string; friend_id: string; friend_name: string; status: string }
+
+export async function matches(client: SupabaseLike): Promise<Match[] | null> {
+  const rows = data<Match[]>(await callRpc(client, 'matches'));
+  return Array.isArray(rows) ? rows : null;
+}
+
+export async function friendsOnTitles(client: SupabaseLike, keys: string[]): Promise<FriendOn[] | null> {
+  if (!keys.length) return [];
+  const rows = data<FriendOn[]>(await callRpc(client, 'friends_on_titles', { p_keys: keys }));
+  return Array.isArray(rows) ? rows : null;
+}

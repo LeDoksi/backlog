@@ -34,7 +34,8 @@ const BADGE_EVERY_MS = 3 * 60 * 1000;
 interface SignedProps { profile: ProfileData; onProfile(p: ProfileData): void; onSignOut(): void }
 
 function Signed({ profile, onProfile, onSignOut }: SignedProps) {
-  const [section, setSection] = useState<Section>('backlog');
+  const section = useUi((u) => u.section);
+  const setSection = useUi((u) => u.setSection);
   const setQuickAdd = useUi((u) => u.setQuickAdd);
 
   useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase }), []);
@@ -50,7 +51,7 @@ function Signed({ profile, onProfile, onSignOut }: SignedProps) {
 
   return (
     <LayoutGroup>
-      <AppShell sections={SECTIONS} section={section} badge={badge} onNavigate={(next) => { setSection(next); window.scrollTo(0, 0); }} onAdd={() => setQuickAdd(true)}>
+      <AppShell sections={SECTIONS} section={section} badge={badge} onNavigate={setSection} onAdd={() => setQuickAdd(true)}>
         {section === 'backlog' && <Backlog />}
         {section === 'friends' && <Friends />}
         {section === 'stats' && <Stats />}

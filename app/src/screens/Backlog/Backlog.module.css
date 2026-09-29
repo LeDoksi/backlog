@@ -6,3 +6,6 @@
   .header { gap: 16px; margin-bottom: 26px; }
   .skeletons { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 26px 20px; }
 }
+.layout { display: flex; gap: 24px; align-items: flex-start; }
+/* A container, so the grid can drop to four columns beside the friends column. */
+.main { flex: 1; min-width: 0; container: backlog / inline-size; }

@@ -6,6 +6,7 @@ import { shelfTabFor, type FeedRow } from '../../data/feedFormat';
 import { useUi } from '../../data/ui';
 import { FeedList } from './FeedList';
 import { Requests } from './Requests';
+import { Matches } from './Matches';
 import { AddFriendSheet } from './AddFriendSheet';
 import s from './Friends.module.css';
 
@@ -13,6 +14,7 @@ export function Friends() {
   const feed = useSocial((st) => st.feed);
   const friends = useSocial((st) => st.friends);
   const failed = useSocial((st) => st.failed);
+  const matches = useSocial((st) => st.matches);
   const [adding, setAdding] = useState(false);
 
   useEffect(() => { void useSocial.getState().openFriends(); }, []);
@@ -28,6 +30,7 @@ export function Friends() {
         <button type="button" className={s.add} onClick={() => setAdding(true)}><UserPlus size={20} aria-hidden="true" />Добавить</button>
       </div>
       <Requests />
+      {matches && matches.length > 0 && <Matches matches={matches} />}
       {failed && <p role="alert" className={s.error}>Не всё загрузилось. Проверь сеть.</p>}
       {feed === null && !failed && <><Skeleton kind="row" /><Skeleton kind="row" /><Skeleton kind="row" /></>}
       {feed && feed.length > 0 && <FeedList rows={feed} onOpen={open} />}

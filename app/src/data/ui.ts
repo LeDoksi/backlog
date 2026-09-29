@@ -1,8 +1,11 @@
 import { create } from 'zustand';
+import type { Section } from '../ui/TabBar';
 
 // Which overlay is up. Panels have no URL of their own (Back closes them via
 // the Sheet's history entry), so this store is the only place they live.
 interface UiState {
+  section: Section;
+  setSection(section: Section): void;
   openTitleId: string | null;
   editTitleId: string | null;
   quickAddOpen: boolean;
@@ -21,6 +24,8 @@ interface UiState {
 }
 
 export const useUi = create<UiState>()((set) => ({
+  section: 'backlog',
+  setSection: (section) => { set({ section }); window.scrollTo(0, 0); },
   openTitleId: null,
   editTitleId: null,
   quickAddOpen: false,
