@@ -127,4 +127,13 @@ describe('friend page wrappers', () => {
     expect(await Social.tasteMatch(rpcClient(ok({ status: 'not_enough' })).client, 'u')).toEqual({ status: 'not_enough' });
     expect(await Social.tasteMatch(rpcClient(fail).client, 'u')).toBeNull();
   });
+
+  it('leaderboard passes category and period; off and failure are told apart', async () => {
+    const board = { status: 'ok', rows: [{ user_id: 'u', name: 'Вадим', score: 5, place: 1, is_me: false }], me: { score: 0, place: null } };
+    const r = rpcClient(ok(board));
+    expect(await Social.leaderboard(r.client, 'movie', 'month')).toEqual(board);
+    expect(r.calls[0]).toEqual({ name: 'leaderboard', args: { p_category: 'movie', p_period: 'month' } });
+    expect(await Social.leaderboard(rpcClient(ok({ status: 'off' })).client, 'game', 'all')).toEqual({ status: 'off' });
+    expect(await Social.leaderboard(rpcClient(fail).client, 'game', 'all')).toBeNull();
+  });
 });

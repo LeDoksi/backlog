@@ -43,6 +43,8 @@ export interface StubOptions {
   matches?: Row[];
   /** friends_on_titles rows; the stub returns those whose title_key was asked for. */
   friendsOn?: Row[];
+  /** leaderboard answers by category; missing categories are an empty board. `off` when I do not take part. */
+  leaderboard?: Record<string, Row> | 'off';
 }
 
 export const E2E_USER = '00000000-0000-4000-8000-000000000001';
@@ -201,6 +203,11 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       badge_count: () => ({ data: (feedSeen ? 0 : (opts.feed ?? []).length) + friendRequests.length + invites.length, error: null }),
       my_inbox: () => ({ data: inbox(), error: null }),
       my_friends: () => ({ data: friends, error: null }),
+      leaderboard: (a) => {
+        if (opts.leaderboard === 'off' && !(me as Row).in_leaderboard) return { data: { status: 'off' }, error: null };
+        const board = opts.leaderboard && opts.leaderboard !== 'off' ? opts.leaderboard[String(a.p_category)] : undefined;
+        return { data: board ?? { status: 'ok', rows: [], me: { score: 0, place: null } }, error: null };
+      },
       matches: () => ({ data: opts.matches ?? [], error: null }),
       friends_on_titles: (a) => ({ data: (opts.friendsOn ?? []).filter((r) => (a.p_keys as string[]).includes(String(r.title_key))), error: null }),
       copy_title: (a) => {

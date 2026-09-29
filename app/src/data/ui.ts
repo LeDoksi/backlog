@@ -21,6 +21,10 @@ interface UiState {
   /** A short note at the bottom of the screen (the invite link outcome). */
   toast: string | null;
   showToast(text: string | null): void;
+  /** Asked from elsewhere (the leaderboard): Profile opens its privacy panel and clears this. */
+  privacyRequested: boolean;
+  openPrivacy(): void;
+  clearPrivacyRequest(): void;
 }
 
 export const useUi = create<UiState>()((set) => ({
@@ -38,7 +42,10 @@ export const useUi = create<UiState>()((set) => ({
   openFriend: (id, tab = 'done') => set({ friend: { id, tab } }),
   closeFriend: () => set({ friend: null }),
   toast: null,
-  showToast: (text) => set({ toast: text })
+  showToast: (text) => set({ toast: text }),
+  privacyRequested: false,
+  openPrivacy: () => { set({ section: 'profile', privacyRequested: true }); window.scrollTo(0, 0); },
+  clearPrivacyRequest: () => set({ privacyRequested: false })
 }));
 
 export const openTitle = (id: string) => useUi.getState().openTitle(id);

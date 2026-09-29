@@ -148,3 +148,16 @@ export async function friendsOnTitles(client: SupabaseLike, keys: string[]): Pro
   const rows = data<FriendOn[]>(await callRpc(client, 'friends_on_titles', { p_keys: keys }));
   return Array.isArray(rows) ? rows : null;
 }
+
+// ── Leaderboard ────────────────────────────────────────────────────────
+
+export interface Leader { user_id: string; name: string; score: number; place: number; is_me: boolean }
+export type Leaderboard =
+  | { status: 'ok'; rows: Leader[]; me: { score: number; place: number | null } | null }
+  | { status: 'off' };
+
+/** `{status: 'off'}` when I do not take part; `null` when the call failed. */
+export async function leaderboard(client: SupabaseLike, category: string, period: 'month' | 'year' | 'all'): Promise<Leaderboard | null> {
+  const b = data<Leaderboard>(await callRpc(client, 'leaderboard', { p_category: category, p_period: period }));
+  return b && (b.status === 'off' || (b.status === 'ok' && Array.isArray(b.rows))) ? b : null;
+}

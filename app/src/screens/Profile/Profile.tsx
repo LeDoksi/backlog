@@ -15,6 +15,7 @@ import { NickInviteSheet } from './NickInviteSheet';
 import { MembersSheet } from './MembersSheet';
 import { EditProfileSheet } from './EditProfileSheet';
 import { Privacy } from '../Privacy/Privacy';
+import { useUi } from '../../data/ui';
 import { HiddenTitles } from '../Privacy/HiddenTitles';
 import { myHiddenTitles } from '../../lib/social';
 import { boardLine, boardName } from './boardTexts';
@@ -28,6 +29,12 @@ type Panel = 'email' | 'link' | 'nick' | 'members' | 'edit' | 'privacy' | 'hidde
 export function Profile({ profile, onProfile, onSignOut }: Props) {
   const [theme, setThemeState] = useState<ThemePref>(readTheme);
   const [panel, setPanel] = useState<Panel>(null);
+  const privacyRequested = useUi((u) => u.privacyRequested);
+  useEffect(() => {
+    if (!privacyRequested) return;
+    useUi.getState().clearPrivacyRequest();
+    setPanel('privacy');
+  }, [privacyRequested]);
   const [leaving, setLeaving] = useState(false);
   const boards = useBoards((b) => b.boards);
   const pending = useTitles((t) => t.pending);
