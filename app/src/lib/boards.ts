@@ -1,4 +1,4 @@
-// boards.ts — shared-board invites, membership and copying between boards.
+// boards.ts — shared-board invites, membership and copying from a friend's shelf.
 // Wrappers over security-definer RPCs; like auth.ts they never throw, and
 // a failure comes back as the server's reason (`target_has_shared`,
 // `duplicate`, …) for the screen to translate.
@@ -43,6 +43,7 @@ export async function removeBoardMember(client: SupabaseLike, userId: string): P
   return outcome(await callRpc(client, 'remove_board_member', { p_user: userId }));
 }
 
-export async function copyTitle(client: SupabaseLike, titleId: string, from: string, to: string): Promise<Outcome> {
-  return outcome(await callRpc(client, 'copy_title', { p_title_id: titleId, p_from: from, p_to: to }));
+/** A title from what a friend shows me onto one of my boards, as «хочу». */
+export async function copyFromFriend(client: SupabaseLike, owner: string, titleId: string, to: string): Promise<Outcome> {
+  return outcome(await callRpc(client, 'copy_from_friend', { p_owner: owner, p_title_id: titleId, p_to: to }));
 }

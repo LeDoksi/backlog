@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Copy, Eye, EyeSlash, PencilSimple, Trash } from '@phosphor-icons/react';
+import { Eye, EyeSlash, PencilSimple, Trash } from '@phosphor-icons/react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
 import { Confirm } from '../../ui/Confirm';
 import { useTitles } from '../../data/titlesStore';
 import { useUi } from '../../data/ui';
-import { useBoards } from '../../data/boardsStore';
-import { flushQueue } from '../../data/mirror';
-import { getSupabase } from '../../data/supabase';
-import { copyTitle } from '../../lib/boards';
 import { busy } from '../../data/busy';
 import { metaLine } from '../../data/labels';
 import { hasPartsChecklist } from '../../lib/storage';
@@ -28,29 +24,7 @@ export function TitleSheet() {
   const checked = useTitles((t) => (id ? t.checked[id] : undefined)) ?? [];
   const store = useTitles.getState;
   const [confirming, setConfirming] = useState(false);
-  const [copyNote, setCopyNote] = useState<string | null>(null);
-  const [copying, setCopying] = useState(false);
   const open = !!id && !!title;
-  // The other board, if there is one: copying goes there.
-  const target = useBoards((b) => b.boards.find((x) => x.id !== b.activeId) ?? null);
-  const fromId = useTitles((t) => t.boardId);
-  const targetName = target ? (target.kind === 'personal' ? 'Моё' : 'Общее') : '';
-
-  useEffect(() => { setCopyNote(null); }, [id]);
-
-  async function copy() {
-    if (!title || !target || !fromId) return;
-    setCopying(true);
-    setCopyNote(null);
-    // A title added offline has to reach the server before it can be copied.
-    await flushQueue();
-    const res = await copyTitle(getSupabase(), title.id, fromId, target.id);
-    setCopying(false);
-    setCopyNote(res.ok ? `Скопировано в «${targetName}»` : res.error === 'duplicate' ? `Уже есть в «${targetName}»`
-      : 'Не получилось скопировать. Проверь сеть и попробуй ещё раз.');
-    if (res.ok) void useBoards.getState().refresh();
-  }
-
   useEffect(() => {
     if (!open) return;
     busy.enter('sheet');
@@ -68,9 +42,6 @@ export function TitleSheet() {
       <Sheet open={open} onClose={close} labelledBy="title-sheet-title" footer={title && (
         <>
           <Button variant="inverse" className={s.edit} icon={<PencilSimple size={20} aria-hidden="true" />} onClick={() => openEdit(title.id)}>Редактировать</Button>
-          {target && (
-            <Button variant="neutral" className={s.iconBtn} aria-label={`Копировать в «${targetName}»`} aria-busy={copying} onClick={() => { if (!copying) void copy(); }}><Copy size={20} /></Button>
-          )}
           <Button variant="neutral" className={s.iconBtn} aria-label={title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'} onClick={() => store().editTitle(title.id, { hidden: !title.hidden })}>
             {title.hidden ? <Eye size={20} /> : <EyeSlash size={20} />}
           </Button>
@@ -104,7 +75,6 @@ export function TitleSheet() {
               </>
             )}
 
-            {copyNote && <p role="status" className={s.copyNote}>{copyNote}</p>}
             <FriendsOnTitle title={title} />
             {title.synopsis && <p className={s.synopsis}>{title.synopsis}</p>}
             {title.seasonInfo && <p className={s.seasonInfo}>{title.seasonInfo}</p>}

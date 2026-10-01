@@ -11,6 +11,7 @@ import { resolveCover } from '../../lib/covers';
 import { ASSET_ROOT } from '../../config';
 import type { ShelfTab } from '../../data/feedFormat';
 import { TasteCard } from './TasteCard';
+import { CopyFromFriend } from './CopyFromFriend';
 import s from './FriendProfile.module.css';
 
 const TABS: { value: ShelfTab; label: string }[] = [
@@ -34,11 +35,12 @@ export function FriendProfile() {
   const [failed, setFailed] = useState(false);
   const [menu, setMenu] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [picked, setPicked] = useState<ShelfItem | null>(null);
   const id = target?.id ?? null;
 
   useEffect(() => {
     if (!target) return;
-    setPage(null); setTaste(null); setMenu(false); setFailed(false); setTab(target.tab);
+    setPage(null); setTaste(null); setMenu(false); setFailed(false); setPicked(null); setTab(target.tab);
     const client = getSupabase();
     void friendProfile(client, target.id).then((p) => { setPage(p); if (p === null) setFailed(true); });
     void tasteMatch(client, target.id).then(setTaste);
@@ -92,11 +94,13 @@ export function FriendProfile() {
               <ul className={s.grid} aria-label={TABS.find((t) => t.value === tab)!.label}>
                 {shelf.map((t) => (
                   <li key={t.id}>
-                    <div className={s.poster}>
-                      <img src={resolveCover(t.cover ?? undefined, ASSET_ROOT)} alt="" loading="lazy" decoding="async" />
-                      {t.common && <span className={s.common}>общее</span>}
-                    </div>
-                    <div className={s.caption}>{t.title}</div>
+                    <button type="button" className={s.item} aria-label={t.title} onClick={() => setPicked(t)}>
+                      <div className={s.poster}>
+                        <img src={resolveCover(t.cover ?? undefined, ASSET_ROOT)} alt="" loading="lazy" decoding="async" />
+                        {t.common && <span className={s.common}>общее</span>}
+                      </div>
+                      <div className={s.caption}>{t.title}</div>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -104,6 +108,7 @@ export function FriendProfile() {
           </>
         )}
       </Sheet>
+      {id && <CopyFromFriend owner={id} item={picked} onClose={() => setPicked(null)} />}
       <Confirm open={confirming} danger confirm="Удалить" title={`Удалить ${title} из друзей?`}
         text="Вы перестанете видеть ленту и полки друг друга. Добавиться снова можно в любой момент."
         onCancel={() => setConfirming(false)} onConfirm={() => void remove()} />

@@ -3,7 +3,7 @@ import { Sheet } from '../../ui/Sheet';
 import { Switch } from '../../ui/Switch';
 import { useBoards, type Board } from '../../data/boardsStore';
 import { getSupabase } from '../../data/supabase';
-import { setBoardVisibility, setPrivacy, type PrivacySwitches, type Visibility } from '../../lib/social';
+import { setBoardLeaderboard, setBoardVisibility, setPrivacy, type PrivacySwitches, type Visibility } from '../../lib/social';
 import type { Profile } from '../../lib/auth';
 import { otherMembers } from '../Profile/boardTexts';
 import s from './Privacy.module.css';
@@ -14,7 +14,7 @@ const LEVELS: { value: Visibility; label: string }[] = [
   { value: 'private', label: 'Только я' }, { value: 'friends', label: 'Друзья' }, { value: 'everyone', label: 'Все в Бэклоге' }
 ];
 const SWITCHES: { key: keyof PrivacySwitches; label: string; hint: string }[] = [
-  { key: 'in_leaderboard', label: 'Лидерборд', hint: 'Показывать меня в «Лидерах» среди всех в Бэклоге' },
+  { key: 'in_leaderboard', label: 'Лидерборд', hint: 'Показывать мою личную доску в «Лидерах» среди всех в Бэклоге' },
   { key: 'share_activity', label: 'Активность в ленте', hint: 'Друзья видят в ленте, что ты начинаешь и завершаешь' },
   { key: 'share_matches', label: 'Совпадения', hint: 'Считать совпадения вкусов с моей полкой' },
   { key: 'findable_by_nick', label: 'Поиск по нику', hint: 'Меня можно найти по @нику' }
@@ -38,7 +38,7 @@ function boardTitle(b: Board, userId: string): string {
   return names.length ? `Общее с: ${names.join(', ')}` : 'Общее';
 }
 
-function Levels({ board, userId, onChange }: { board: Board; userId: string; onChange(v: Visibility): void }) {
+function Levels({ board, userId, onChange, onLeaderboard }: { board: Board; userId: string; onChange(v: Visibility): void; onLeaderboard(on: boolean): void }) {
   const name = boardTitle(board, userId);
   return (
     <div className={s.board}>
@@ -55,6 +55,10 @@ function Levels({ board, userId, onChange }: { board: Board; userId: string; onC
           </button>
         ))}
       </div>
+      {board.kind === 'shared' && (
+        <Switch label="Общая доска в лидерах" hint="Отдельной строкой рядом с личными досками"
+          checked={board.in_leaderboard ?? false} onChange={onLeaderboard} />
+      )}
     </div>
   );
 }
@@ -70,6 +74,13 @@ export function Privacy({ open, onClose, profile, onProfile }: Props) {
     useBoards.setState((st) => ({ boards: st.boards.map((b) => (b.id === board.id ? { ...b, visibility } : b)) }));
     const ok = await setBoardVisibility(getSupabase(), board.id, visibility);
     if (!ok) setError(FAILED);
+    await useBoards.getState().refresh();
+  }
+
+  async function changeLeaderboard(board: Board, on: boolean) {
+    setError(null);
+    useBoards.setState((st) => ({ boards: st.boards.map((b) => (b.id === board.id ? { ...b, in_leaderboard: on } : b)) }));
+    if (!(await setBoardLeaderboard(getSupabase(), board.id, on))) setError(FAILED);
     await useBoards.getState().refresh();
   }
 
@@ -89,7 +100,8 @@ export function Privacy({ open, onClose, profile, onProfile }: Props) {
       {error && <p role="alert" className={s.error}>{error}</p>}
       <section className={s.section}>
         <h3 className={s.h3}>Кто видит доски</h3>
-        {boards.map((b) => <Levels key={b.id} board={b} userId={profile.id} onChange={(v) => void changeLevel(b, v)} />)}
+        {boards.map((b) => <Levels key={b.id} board={b} userId={profile.id} onChange={(v) => void changeLevel(b, v)}
+          onLeaderboard={(on) => void changeLeaderboard(b, on)} />)}
       </section>
       <section className={s.section}>
         <h3 className={s.h3}>Участие</h3>

@@ -13,7 +13,20 @@ const TABS = [
 ] as const;
 const HEADING: Record<Period, string> = { month: 'Лидеры месяца', year: 'Лидеры года', all: 'Лидеры за всё время' };
 
-/** Everyone in Backlog who switched it on: top ten, and my own line under it when I am not there. */
+function Faces({ members, name }: { members: string[]; name: string }) {
+  const names = name.split(' + ');
+  return (
+    <span className={s.lbFaces}>
+      {members.slice(0, 2).map((m, i) => <Avatar key={m} userId={m} name={names[i] ?? name} size={32} />)}
+    </span>
+  );
+}
+
+/**
+ * Everyone in Backlog who switched it on, one row per board: a personal
+ * board under its owner's name, a shared one as «Гоша + Даша». My boards are
+ * marked; one of mine outside the top ten gets its own line under it.
+ */
 export function Leaderboard({ period }: { period: Period }) {
   const [category, setCategory] = useState<(typeof TABS)[number]['value']>('movie');
   const [board, setBoard] = useState<Social.Leaderboard | null | 'loading'>('loading');
@@ -36,9 +49,10 @@ export function Leaderboard({ period }: { period: Period }) {
     );
   }
 
-  const me = board && board !== 'loading' && board.status === 'ok' ? board.me : null;
   const rows = board && board !== 'loading' && board.status === 'ok' ? board.rows : [];
-  const meListed = rows.some((r) => r.is_me);
+  const listed = new Set(rows.map((r) => r.board_id));
+  const below = board && board !== 'loading' && board.status === 'ok'
+    ? (board.mine ?? []).filter((m) => m.place !== null && !listed.has(m.board_id)) : [];
   return (
     <section className={`${s.card} ${s.lbCard}`} aria-labelledby="leaders">
       <div className={s.lbHead}>
@@ -56,23 +70,23 @@ export function Leaderboard({ period }: { period: Period }) {
       {rows.length > 0 && (
         <ol className={s.lbList} aria-label="Лидеры">
           {rows.map((r) => (
-            <li key={r.user_id} className={`${s.lbRow} ${r.is_me ? s.lbMe : ''}`}>
+            <li key={r.board_id} data-mine={r.mine ? '' : undefined} className={`${s.lbRow} ${r.mine ? s.lbMe : ''}`}>
               <span className={s.lbPlace}>{r.place}</span>
-              <Avatar userId={r.user_id} name={r.name} size={32} />
-              <span className={s.lbName}>{r.is_me ? 'Ты' : r.name}</span>
+              <Faces members={r.members} name={r.name} />
+              <span className={s.lbName}>{r.name}</span>
               <span className={s.lbScore}>{r.score}</span>
             </li>
           ))}
         </ol>
       )}
-      {me && !meListed && rows.length > 0 && (
-        <p className={`${s.lbRow} ${s.lbMe}`}>
-          <span className={s.lbPlace}>{me.place ?? '—'}</span>
-          <span className={s.lbName}>Ты</span>
-          <span className={s.lbScore}>{me.score}</span>
+      {rows.length > 0 && below.map((m) => (
+        <p key={m.board_id} data-mine="" className={`${s.lbRow} ${s.lbMe}`}>
+          <span className={s.lbPlace}>{m.place}</span>
+          <span className={s.lbName}>{m.name}</span>
+          <span className={s.lbScore}>{m.score}</span>
         </p>
-      )}
-      <p className={s.lbHint}>В кино считаем фильмы, в сериалах и аниме сезоны, в играх пройденные игры.</p>
+      ))}
+      <p className={s.lbHint}>Личные и общие доски считаются отдельно. В кино считаем фильмы, в сериалах и аниме сезоны, в играх пройденные игры.</p>
     </section>
   );
 }
