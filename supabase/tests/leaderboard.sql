@@ -1,7 +1,7 @@
 -- leaderboard(): one row per board, personal and shared never mixed,
 -- hidden titles and non-participants left out, seasons by tick dates.
 begin;
-select plan(17);
+select plan(19);
 \ir support/social_fixture.sql
 update public.profiles set in_leaderboard = true
  where id in ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000a4');
@@ -66,6 +66,13 @@ select is(public.leaderboard('movie', 'month')::jsonb, '{"status": "off"}'::json
 select pg_temp.login('00000000-0000-0000-0000-0000000000a3');
 select is(public.leaderboard('movie', 'month')::jsonb, '{"status": "off"}'::jsonb, 'not taking part: off, no rows');
 reset role;
+-- A change of members switches the shared board off: a newcomer never lands in the leaders unasked.
+update public.workspaces set in_leaderboard = true where id = '00000000-0000-0000-0000-0000000000b5';
+insert into public.workspace_members (workspace_id, user_id) values ('00000000-0000-0000-0000-0000000000b5', '00000000-0000-0000-0000-0000000000a5');
+select is((select in_leaderboard from public.workspaces where id = '00000000-0000-0000-0000-0000000000b5'), false, 'someone joining switches it off');
+update public.workspaces set in_leaderboard = true where id = '00000000-0000-0000-0000-0000000000b5';
+delete from public.workspace_members where workspace_id = '00000000-0000-0000-0000-0000000000b5' and user_id = '00000000-0000-0000-0000-0000000000a5';
+select is((select in_leaderboard from public.workspaces where id = '00000000-0000-0000-0000-0000000000b5'), false, 'someone leaving switches it off');
 select is((select count(*)::int from pg_proc p where proname = 'leaderboard' and has_function_privilege('anon', p.oid, 'execute')), 0, 'anon cannot call it');
 select is((select count(*)::int from pg_proc p where proname = 'set_board_leaderboard' and has_function_privilege('anon', p.oid, 'execute')), 0, 'anon cannot flip it');
 select * from finish();

@@ -2,6 +2,8 @@
 -- without the switch, no copying from friends.
 drop function if exists public.copy_from_friend(uuid, text, uuid);
 drop function if exists public.set_board_leaderboard(uuid, boolean);
+drop trigger if exists workspace_members_leaderboard_reset on public.workspace_members;
+drop function if exists public.shared_board_leaderboard_reset();
 drop function public.my_boards();
 create function public.my_boards() returns table (id uuid, kind text, visibility text, title_count int, members json)
 language sql stable security definer set search_path = public as $$

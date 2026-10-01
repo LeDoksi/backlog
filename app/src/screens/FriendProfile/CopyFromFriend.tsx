@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
 import { useBoards, type Board } from '../../data/boardsStore';
@@ -16,14 +16,18 @@ export function CopyFromFriend({ owner, item, onClose }: { owner: string; item: 
   const boards = useBoards((b) => b.boards);
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Bumped per title and per request: an answer for an earlier one is dropped.
+  const ticket = useRef(0);
 
-  useEffect(() => { setNote(null); }, [item]);
+  useEffect(() => { ticket.current += 1; setNote(null); setBusy(false); }, [item]);
 
   async function copy(board: Board) {
     if (!item || busy) return;
+    const mine = ++ticket.current;
     setBusy(true);
     setNote(null);
     const res = await copyFromFriend(getSupabase(), owner, item.id, board.id);
+    if (mine !== ticket.current) return;
     setBusy(false);
     setNote(res.ok ? `Добавлено в «${nameOf(board)}»` : res.error === 'duplicate' ? `Уже есть в «${nameOf(board)}»`
       : 'Не получилось добавить. Проверь сеть и попробуй ещё раз.');

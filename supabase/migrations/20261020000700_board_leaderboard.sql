@@ -15,6 +15,18 @@ begin
   update workspaces set in_leaderboard = p_on where id = p_workspace;
 end $$;
 
+-- Whoever joins or leaves a shared board, its switch goes off: a newcomer
+-- never lands in the leaders without having said so.
+create or replace function public.shared_board_leaderboard_reset() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  update workspaces set in_leaderboard = false
+   where id = coalesce(new.workspace_id, old.workspace_id) and kind = 'shared' and in_leaderboard;
+  return null;
+end $$;
+create trigger workspace_members_leaderboard_reset after insert or delete on public.workspace_members
+  for each row execute function public.shared_board_leaderboard_reset();
+
 -- my_boards() gains the shared board's switch.
 drop function public.my_boards();
 create function public.my_boards() returns table (id uuid, kind text, visibility text, title_count int, members json, in_leaderboard boolean)
@@ -92,19 +104,26 @@ $$;
 -- (or «не вышло»). Only titles visible_titles_for lets me see qualify.
 create or replace function public.copy_from_friend(p_owner uuid, p_title_id text, p_to uuid) returns void
 language plpgsql security definer set search_path = public as $$
-declare src titles;
+declare src titles; new_id text; n int := 1;
 begin
   if not is_member(p_to) then raise exception 'not_member' using errcode = 'P0001'; end if;
   select * into src from visible_titles_for(p_owner, auth.uid()) v
    where v.id = p_title_id and p_owner <> auth.uid() limit 1;
   if not found then raise exception 'not_found' using errcode = 'P0001'; end if;
-  if exists (select 1 from titles t where t.workspace_id = p_to and (t.id = src.id
-      or (src.source is not null and t.source = src.source and t.source_id = src.source_id))) then
+  -- The same title is the same key; an id that is merely taken by another
+  -- title gets a suffix, as the client does for new titles.
+  if exists (select 1 from titles t where t.workspace_id = p_to
+             and title_key(t.source, t.source_id, t.id) = title_key(src.source, src.source_id, src.id)) then
     raise exception 'duplicate' using errcode = 'P0001';
   end if;
+  new_id := src.id;
+  while exists (select 1 from titles t where t.workspace_id = p_to and t.id = new_id) loop
+    n := n + 1;
+    new_id := src.id || '-' || n;
+  end loop;
   insert into titles (workspace_id, id, title, original_title, category, status, airing_status, year, genres, synopsis,
                       cover, season_info, platforms, parts, source, source_id)
-  values (p_to, src.id, src.title, src.original_title, src.category,
+  values (p_to, new_id, src.title, src.original_title, src.category,
           case when src.status = 'unreleased' then 'unreleased' else 'queue' end,
           src.airing_status, src.year, src.genres, src.synopsis, src.cover, src.season_info, src.platforms, src.parts,
           src.source, src.source_id);
@@ -119,3 +138,4 @@ begin
     execute format('grant execute on function %s to authenticated, service_role', f);
   end loop;
 end $$;
+revoke execute on function public.shared_board_leaderboard_reset() from public, anon, authenticated;
