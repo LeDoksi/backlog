@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getSupabase } from './supabase';
 import * as Auth from '../lib/auth';
+import * as Social from '../lib/social';
+import { clearInvite, inviteMessage, readInvite } from './inviteLink';
+import { mirror } from './titlesStore';
+import { useUi } from './ui';
 import { applyTheme, readTheme, rememberTheme } from '../design/theme';
 
 export type SessionState = 'loading' | 'signedOut' | 'blocked' | 'onboarding' | 'ready';
@@ -41,6 +45,7 @@ export function useSession() {
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [profile, setProfile] = useState<Auth.Profile | null>(null);
+  const [linkExpired, setLinkExpired] = useState(false);
   // Evaluations overlap (mount, INITIAL_SESSION, token refresh, sign-out);
   // only the latest one may write, or a slow earlier check could reopen the
   // app for someone who has just signed out.
@@ -53,13 +58,20 @@ export function useSession() {
     const res = await Auth.getSession(sb);
     const id = res?.data?.session?.user?.id ?? null;
     const mail = res?.data?.session?.user?.email ?? null;
-    // Sets up profile, personal board and membership if any is missing.
-    const signup = id ? await Auth.completeSignup(sb) : null;
+    // Sets up profile, personal board and membership if any is missing, and
+    // uses a friend's link the page was opened with.
+    const token = id ? readInvite(mirror) : null;
+    const done = id ? await Social.completeSignup(sb, token) : null;
+    const signup = done ? done.status : null;
+    // Kept until the server has answered, so a failed call retries it.
+    if (token && done) clearInvite(mirror);
     const me = id && signup !== 'not_invited' ? await Auth.myProfile(sb) : null;
     if (run !== latest.current) return;
     setUserId(id);
     setEmail(mail);
     setProfile(me);
+    setLinkExpired(signup === 'not_invited' && done?.invite?.status === 'expired');
+    if (done?.invite && signup !== 'not_invited') useUi.getState().showToast(inviteMessage(done.invite));
     // The theme follows the account across devices; the local copy only
     // exists so the first paint does not flash.
     if (me && me.theme) {
@@ -85,6 +97,8 @@ export function useSession() {
     userId,
     email,
     profile,
+    /** Sign-in came through a friend's link that has run out. */
+    linkExpired,
     /** After the nickname screen or a profile edit. */
     setProfile: (p: Auth.Profile) => { setProfile(p); if (p.nickname) setState('ready'); },
     signIn: () => { void Auth.signInWithGoogle(getSupabase(), window.location.origin + import.meta.env.BASE_URL); },

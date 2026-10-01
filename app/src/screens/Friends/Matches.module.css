@@ -1,0 +1,5 @@
+.list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.card { width: 100%; padding: 14px; border: 0; border-radius: 22px; background: var(--accent-soft); color: var(--text); display: flex; gap: 12px; align-items: center; text-align: left; font: inherit; }
+.cover { width: 46px; height: 69px; border-radius: var(--r-xs); object-fit: cover; flex-shrink: 0; background: var(--poster-empty); }
+.text { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-sm); line-height: 1.35; min-width: 0; }
+.kicker { color: var(--accent-text); font-weight: 700; }

@@ -2,3 +2,4 @@
 @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 900px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (min-width: 1024px) { .grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 26px 20px; } }
+@container backlog (max-width: 820px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

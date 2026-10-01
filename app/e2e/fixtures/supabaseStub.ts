@@ -25,6 +25,26 @@ export interface StubOptions {
   users?: StubUser[];
   /** Incoming shared-board invites. */
   invites?: StubInvite[];
+  /** Rows feed() returns (see data/feedFormat.ts). */
+  feed?: Row[];
+  /** Incoming friend requests. */
+  friendRequests?: { id: number; user_id: string; name: string; nickname: string }[];
+  /** People search_users() knows (with their flags). */
+  people?: { id: string; name: string; nickname: string; is_friend?: boolean; requested?: boolean; incoming?: boolean }[];
+  /** What complete_signup says the invite link did, when called with one. */
+  inviteOutcome?: Row;
+  /** friend_shelf rows by user and tab. */
+  shelves?: Record<string, Partial<Record<'done' | 'watching' | 'want', Row[]>>>;
+  /** taste_match answers by user. */
+  taste?: Record<string, Row>;
+  /** Friends my_friends() returns. */
+  friends?: { id: string; name: string; nickname: string; since: string }[];
+  /** Rows matches() returns. */
+  matches?: Row[];
+  /** friends_on_titles rows; the stub returns those whose title_key was asked for. */
+  friendsOn?: Row[];
+  /** leaderboard answers by category; missing categories are an empty board. `off` when I do not take part. */
+  leaderboard?: Record<string, Row> | 'off';
 }
 
 export const E2E_USER = '00000000-0000-4000-8000-000000000001';
@@ -65,6 +85,16 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       ? [{ id: userId, name: me.display_name, nickname: me.nickname }, ...(opts.sharedWith ?? [])]
       : null;
     let invites = (opts.invites ?? []).slice();
+    const visibility: Record<string, string> = { [personal]: 'private', [shared]: 'private' };
+    const privacy = { in_leaderboard: false, share_activity: true, share_matches: true, findable_by_nick: true };
+    Object.assign(me, privacy);
+    let feedSeen = false;
+    let friendRequests = (opts.friendRequests ?? []).map((r) => ({ ...r, at: new Date().toISOString() }));
+    let friends = (opts.friends ?? []).slice();
+    const inbox = () => ({
+      friend_requests: friendRequests,
+      board_invites: invites.map((i) => ({ id: i.id, user_id: i.from_id, name: i.from_name, nickname: i.from_nickname, at: new Date().toISOString() }))
+    });
 
     const offline = () => ({ data: null, error: { message: 'Failed to fetch' } });
     const log = (entry: Row) => { (w.__writes ??= []).push(entry); };
@@ -112,14 +142,14 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
 
     function boards(): Row[] {
       const count = (b: string) => titles.filter((t) => t.workspace_id === b).length;
-      const list: Row[] = [{ id: personal, kind: 'personal', visibility: 'private', title_count: count(personal), members: [{ id: userId, name: me.display_name, nickname: me.nickname }] }];
-      if (sharedMembers) list.push({ id: shared, kind: 'shared', visibility: 'private', title_count: count(shared), members: sharedMembers });
+      const list: Row[] = [{ id: personal, kind: 'personal', visibility: visibility[personal], title_count: count(personal), members: [{ id: userId, name: me.display_name, nickname: me.nickname }] }];
+      if (sharedMembers) list.push({ id: shared, kind: 'shared', visibility: visibility[shared], title_count: count(shared), members: sharedMembers });
       return list;
     }
 
     const fail = (message: string) => ({ data: null, error: { message, code: 'P0001' } });
     const rpcs: Record<string, (a: Row) => { data: unknown; error: unknown }> = {
-      complete_signup: () => ({ data: { status: invited ? 'exists' : 'not_invited' }, error: null }),
+      complete_signup: (a) => ({ data: { status: invited ? 'exists' : 'not_invited', ...(a.invite_token && opts.inviteOutcome ? { invite: opts.inviteOutcome } : {}) }, error: null }),
       my_profile: () => ({ data: me, error: null }),
       my_boards: () => ({ data: boards(), error: null }),
       nickname_available: (a) => ({ data: a.p_nickname !== 'taken', error: null }),
@@ -138,6 +168,48 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       },
       leave_shared_board: () => { sharedMembers = null; return { data: null, error: null }; },
       remove_board_member: (a) => { sharedMembers = sharedMembers?.filter((m) => m.id !== a.p_user) ?? null; return { data: null, error: null }; },
+      set_board_visibility: (a) => { visibility[String(a.p_workspace)] = String(a.p_visibility); return { data: null, error: null }; },
+      set_privacy: (a) => {
+        Object.assign(me, { in_leaderboard: a.p_in_leaderboard, share_activity: a.p_share_activity, share_matches: a.p_share_matches, findable_by_nick: a.p_findable_by_nick });
+        return { data: null, error: null };
+      },
+      my_hidden_titles: () => ({ data: titles.filter((t) => t.hidden).map((t) => ({ workspace_id: t.workspace_id, id: t.id, title: t.title, category: t.category, year: t.year, cover: t.cover })), error: null }),
+      create_invite_link: () => ({ data: { token: 'g7k2q4m9x1', expires_at: new Date(Date.now() + 7 * 864e5).toISOString() }, error: null }),
+      search_users: (a) => ({
+        data: (opts.people ?? []).filter((p) => p.nickname.startsWith(String(a.p_prefix)))
+          .map((p) => ({ is_friend: false, requested: false, incoming: false, ...p })), error: null
+      }),
+      send_friend_request: (a) => {
+        const p = (opts.people ?? []).find((x) => x.id === a.p_user);
+        if (!p) return { data: { status: 'not_found' }, error: null };
+        if (p.incoming) { friends.push({ id: p.id, name: p.name, nickname: p.nickname, since: new Date().toISOString() }); return { data: { status: 'friends' }, error: null }; }
+        return { data: { status: 'requested' }, error: null };
+      },
+      respond_friend_request: (a) => {
+        const r = friendRequests.find((x) => x.id === a.p_id);
+        friendRequests = friendRequests.filter((x) => x !== r);
+        if (r && a.p_accept) friends.push({ id: r.user_id, name: r.name, nickname: r.nickname, since: new Date().toISOString() });
+        return { data: null, error: null };
+      },
+      remove_friend: (a) => { friends = friends.filter((f) => f.id !== a.p_user); return { data: null, error: null }; },
+      friend_profile: (a) => {
+        const f = friends.find((x) => x.id === a.p_user);
+        return { data: f ? { id: f.id, name: f.name, nickname: f.nickname, is_friend: true, since: f.since } : null, error: null };
+      },
+      friend_shelf: (a) => ({ data: opts.shelves?.[String(a.p_user)]?.[a.p_status as 'done'] ?? [], error: null }),
+      taste_match: (a) => ({ data: opts.taste?.[String(a.p_user)] ?? { status: 'not_enough' }, error: null }),
+      feed: () => ({ data: opts.feed ?? [], error: null }),
+      mark_feed_seen: () => { feedSeen = true; return { data: null, error: null }; },
+      badge_count: () => ({ data: (feedSeen ? 0 : (opts.feed ?? []).length) + friendRequests.length + invites.length, error: null }),
+      my_inbox: () => ({ data: inbox(), error: null }),
+      my_friends: () => ({ data: friends, error: null }),
+      leaderboard: (a) => {
+        if (opts.leaderboard === 'off' && !(me as Row).in_leaderboard) return { data: { status: 'off' }, error: null };
+        const board = opts.leaderboard && opts.leaderboard !== 'off' ? opts.leaderboard[String(a.p_category)] : undefined;
+        return { data: board ?? { status: 'ok', rows: [], me: { score: 0, place: null } }, error: null };
+      },
+      matches: () => ({ data: opts.matches ?? [], error: null }),
+      friends_on_titles: (a) => ({ data: (opts.friendsOn ?? []).filter((r) => (a.p_keys as string[]).includes(String(r.title_key))), error: null }),
       copy_title: (a) => {
         const src = titles.find((t) => t.workspace_id === a.p_from && t.id === a.p_title_id);
         if (!src) return fail('not_found');

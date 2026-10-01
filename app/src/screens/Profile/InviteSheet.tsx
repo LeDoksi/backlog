@@ -26,7 +26,7 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
         ? <Button className={s.full} onClick={close}>Готово</Button>
         : <Button className={s.full} disabled={state === 'sending'} onClick={() => void send()}>Пригласить</Button>
     }>
-      <h2 id="invite-title" className={s.sheetTitle}>Пригласить в Бэклог</h2>
+      <h2 id="invite-title" className={s.sheetTitle}>Пригласить по почте</h2>
       {state === 'sent' ? (
         <p className={s.muted} role="status">Готово. Пусть {email.trim()} войдёт через Google с этой почтой.</p>
       ) : (

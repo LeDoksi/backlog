@@ -9,11 +9,13 @@ export function otherMembers(b: BoardRow, userId: string): BoardMember[] {
   return (b.members ?? []).filter((m) => m.id !== userId);
 }
 
+const VISIBILITY_LINE: Record<string, string> = { private: 'видно только мне', friends: 'видят друзья', everyone: 'видят все в Бэклоге' };
+
 // Names are listed as they are, not declined: "с Дашей" would need a guess
 // at the name's case forms.
 export function boardLine(b: BoardRow, userId: string): string {
   const count = `${b.title_count} ${plural(b.title_count, 'тайтл', 'тайтла', 'тайтлов')}`;
-  if (b.kind === 'personal') return `${count}, видно только мне`;
+  if (b.kind === 'personal') return `${count}, ${VISIBILITY_LINE[b.visibility] ?? VISIBILITY_LINE.private}`;
   const names = otherMembers(b, userId).map((m) => m.name);
   return names.length ? `${count}, вместе с: ${names.join(', ')}` : `${count}, пока только ты`;
 }

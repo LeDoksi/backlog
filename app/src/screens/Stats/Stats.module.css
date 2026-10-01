@@ -38,6 +38,8 @@
   .fan img:nth-child(even) { margin-top: 18px; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tile { padding: 18px; }
+  /* Under the genres, so the hero keeps the left side to itself. */
+  .lbCard { grid-column: 2; }
 }
 @media (min-width: 1340px) {
   .fan { grid-template-columns: repeat(3, 96px); }
@@ -49,3 +51,17 @@
   .fan img:nth-child(n + 7) { display: block; }
 }
 .periods { max-width: 420px; }
+.lbHead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.lbScope { font-size: var(--fs-xs); color: var(--muted); }
+.lbTabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.lbTab { min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--r-pill); background: var(--sunken); color: var(--text-2); font: inherit; font-size: var(--fs-sm); font-weight: 600; }
+.lbTab[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.lbList { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.lbRow { margin: 0; min-height: 48px; padding: 0 12px; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
+.lbMe { background: var(--accent-soft); }
+.lbPlace { width: 18px; font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+.lbName { flex: 1; min-width: 0; font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lbScore { font-family: var(--font-display); font-size: var(--fs-md); font-weight: 600; }
+.lbNote { margin: 0; font-size: var(--fs-sm); color: var(--text-2); line-height: 1.45; }
+.lbHint { margin: 0; font-size: var(--fs-xs); color: var(--muted); line-height: 1.4; }
+.lbLink { align-self: flex-start; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-text); font: inherit; font-size: var(--fs-base); font-weight: 600; }

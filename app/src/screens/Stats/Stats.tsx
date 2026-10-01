@@ -7,6 +7,7 @@ import { plural } from '../../data/labels';
 import { resolveCover } from '../../lib/covers';
 import { ASSET_ROOT } from '../../config';
 import { EmptyState } from '../../ui/EmptyState';
+import { Leaderboard } from './Leaderboard';
 import s from './Stats.module.css';
 
 export function Stats() {
@@ -77,6 +78,7 @@ export function Stats() {
               </ul>
             </section>
           )}
+          <Leaderboard period={period} />
         </div>
         </>
       )}

@@ -1,0 +1,139 @@
+import { describe, expect, it } from 'vitest';
+import * as Social from '../../src/lib/social';
+
+function rpcClient(reply: (name: string, args: unknown) => unknown) {
+  const calls: { name: string; args: unknown }[] = [];
+  return {
+    calls,
+    client: { rpc(name: string, args?: unknown) { calls.push({ name, args }); return Promise.resolve(reply(name, args)); } }
+  };
+}
+const ok = (data: unknown = null) => () => ({ data, error: null });
+const fail = () => ({ data: null, error: { message: 'Failed to fetch' } });
+
+describe('social RPC wrappers', () => {
+  it('completeSignup passes the token and returns status with the invite outcome', async () => {
+    const r = rpcClient(ok({ status: 'created', invite: { status: 'requested', from_name: 'Георгий' } }));
+    expect(await Social.completeSignup(r.client, 'abc123xyz0')).toEqual({ status: 'created', invite: { status: 'requested', from_name: 'Георгий' } });
+    expect(r.calls[0]).toEqual({ name: 'complete_signup', args: { invite_token: 'abc123xyz0' } });
+  });
+
+  it('completeSignup without a token calls with no arguments; failures are null', async () => {
+    const r = rpcClient(ok({ status: 'exists' }));
+    expect(await Social.completeSignup(r.client)).toEqual({ status: 'exists', invite: null });
+    expect(r.calls[0]).toEqual({ name: 'complete_signup', args: undefined });
+    expect(await Social.completeSignup(rpcClient(fail).client)).toBeNull();
+    expect(await Social.completeSignup(rpcClient(ok({ status: 'weird' })).client)).toBeNull();
+    expect(await Social.completeSignup(null)).toBeNull();
+  });
+
+  it('createInviteLink returns token and expiry, null on failure', async () => {
+    expect(await Social.createInviteLink(rpcClient(ok({ token: 'abc', expires_at: 'x' })).client)).toEqual({ token: 'abc', expires_at: 'x' });
+    expect(await Social.createInviteLink(rpcClient(fail).client)).toBeNull();
+  });
+
+  it('redeemInvite returns the outcome', async () => {
+    const r = rpcClient(ok({ status: 'already_friends', from_name: 'Г' }));
+    expect(await Social.redeemInvite(r.client, 'tok')).toEqual({ status: 'already_friends', from_name: 'Г' });
+    expect(r.calls[0]).toEqual({ name: 'redeem_invite', args: { p_token: 'tok' } });
+    expect(await Social.redeemInvite(rpcClient(fail).client, 'tok')).toBeNull();
+  });
+
+  it('searchUsers sends the normalized prefix and skips short input without a call', async () => {
+    const rows = [{ id: 'u', name: 'Катя', nickname: 'katya', is_friend: false, requested: false, incoming: false }];
+    const r = rpcClient(ok(rows));
+    expect(await Social.searchUsers(r.client, ' @Kat ')).toEqual(rows);
+    expect(r.calls[0]).toEqual({ name: 'search_users', args: { p_prefix: 'kat' } });
+    const short = rpcClient(ok(rows));
+    expect(await Social.searchUsers(short.client, '@k')).toEqual([]);
+    expect(short.calls).toEqual([]);
+    expect(await Social.searchUsers(rpcClient(fail).client, 'kat')).toBeNull();
+  });
+
+  it('sendFriendRequest returns the status or null', async () => {
+    const r = rpcClient(ok({ status: 'friends' }));
+    expect(await Social.sendFriendRequest(r.client, 'u2')).toBe('friends');
+    expect(r.calls[0]).toEqual({ name: 'send_friend_request', args: { p_user: 'u2' } });
+    expect(await Social.sendFriendRequest(rpcClient(fail).client, 'u2')).toBeNull();
+  });
+
+  it('respondFriendRequest and removeFriend report success', async () => {
+    const r = rpcClient(ok());
+    expect(await Social.respondFriendRequest(r.client, 5, false)).toBe(true);
+    expect(await Social.removeFriend(r.client, 'u9')).toBe(true);
+    expect(r.calls).toEqual([
+      { name: 'respond_friend_request', args: { p_id: 5, p_accept: false } },
+      { name: 'remove_friend', args: { p_user: 'u9' } }
+    ]);
+    expect(await Social.removeFriend(rpcClient(fail).client, 'u9')).toBe(false);
+  });
+
+  it('myInbox and myFriends read lists, null on failure', async () => {
+    const inbox = { friend_requests: [{ id: 1, user_id: 'u', name: 'К', nickname: 'k', at: 't' }], board_invites: [] };
+    expect(await Social.myInbox(rpcClient(ok(inbox)).client)).toEqual(inbox);
+    expect(await Social.myInbox(rpcClient(fail).client)).toBeNull();
+    const friends = [{ id: 'u', name: 'К', nickname: 'k', since: 't' }];
+    expect(await Social.myFriends(rpcClient(ok(friends)).client)).toEqual(friends);
+    expect(await Social.myFriends(rpcClient(fail).client)).toBeNull();
+  });
+});
+
+describe('privacy wrappers', () => {
+  it('setBoardVisibility and setPrivacy send every value', async () => {
+    const r = rpcClient(ok());
+    expect(await Social.setBoardVisibility(r.client, 'b1', 'friends')).toBe(true);
+    expect(await Social.setPrivacy(r.client, { in_leaderboard: true, share_activity: false, share_matches: true, findable_by_nick: false })).toBe(true);
+    expect(r.calls).toEqual([
+      { name: 'set_board_visibility', args: { p_workspace: 'b1', p_visibility: 'friends' } },
+      { name: 'set_privacy', args: { p_in_leaderboard: true, p_share_activity: false, p_share_matches: true, p_findable_by_nick: false } }
+    ]);
+    expect(await Social.setBoardVisibility(rpcClient(fail).client, 'b1', 'friends')).toBe(false);
+  });
+
+  it('myHiddenTitles lists rows, null on failure', async () => {
+    const rows = [{ workspace_id: 'b1', id: 'x', title: 'X', category: 'movie', year: 2000, cover: null }];
+    expect(await Social.myHiddenTitles(rpcClient(ok(rows)).client)).toEqual(rows);
+    expect(await Social.myHiddenTitles(rpcClient(fail).client)).toBeNull();
+  });
+});
+
+describe('feed wrappers', () => {
+  it('feed passes the time zone and limit', async () => {
+    const r = rpcClient(ok([]));
+    expect(await Social.feed(r.client, 'Europe/Moscow', '2026-10-01T00:00:00.000Z')).toEqual([]);
+    expect(r.calls[0]).toEqual({ name: 'feed', args: { p_before: '2026-10-01T00:00:00.000Z', p_limit: 60, p_tz: 'Europe/Moscow' } });
+    expect(await Social.feed(rpcClient(fail).client, 'UTC')).toBeNull();
+  });
+
+  it('badgeCount is a number or null; markFeedSeen reports success', async () => {
+    expect(await Social.badgeCount(rpcClient(ok(3)).client)).toBe(3);
+    expect(await Social.badgeCount(rpcClient(fail).client)).toBeNull();
+    expect(await Social.markFeedSeen(rpcClient(ok()).client)).toBe(true);
+  });
+});
+
+describe('friend page wrappers', () => {
+  it('friendProfile tells a failed call from no page', async () => {
+    const page = { id: 'u', name: 'В', nickname: 'v', is_friend: true, since: 't' };
+    expect(await Social.friendProfile(rpcClient(ok(page)).client, 'u')).toEqual(page);
+    expect(await Social.friendProfile(rpcClient(ok(null)).client, 'u')).toBe('none');
+    expect(await Social.friendProfile(rpcClient(fail).client, 'u')).toBeNull();
+  });
+
+  it('friendShelf sends user and tab; tasteMatch returns the status object', async () => {
+    const r = rpcClient(ok([]));
+    expect(await Social.friendShelf(r.client, 'u', 'want')).toEqual([]);
+    expect(r.calls[0]).toEqual({ name: 'friend_shelf', args: { p_user: 'u', p_status: 'want' } });
+    expect(await Social.tasteMatch(rpcClient(ok({ status: 'not_enough' })).client, 'u')).toEqual({ status: 'not_enough' });
+    expect(await Social.tasteMatch(rpcClient(fail).client, 'u')).toBeNull();
+  });
+
+  it('leaderboard passes category and period; off and failure are told apart', async () => {
+    const board = { status: 'ok', rows: [{ user_id: 'u', name: 'Вадим', score: 5, place: 1, is_me: false }], me: { score: 0, place: null } };
+    const r = rpcClient(ok(board));
+    expect(await Social.leaderboard(r.client, 'movie', 'month')).toEqual(board);
+    expect(r.calls[0]).toEqual({ name: 'leaderboard', args: { p_category: 'movie', p_period: 'month' } });
+    expect(await Social.leaderboard(rpcClient(ok({ status: 'off' })).client, 'game', 'all')).toEqual({ status: 'off' });
+    expect(await Social.leaderboard(rpcClient(fail).client, 'game', 'all')).toBeNull();
+  });
+});

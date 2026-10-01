@@ -76,12 +76,34 @@ for (const theme of ['light', 'dark'] as const) {
         sharedWith: [{ id: '00000000-0000-4000-8000-0000000000d1', name: 'Даша', nickname: 'dasha' }] });
       await page.goto('./');
       await nav(page, 'Итоги');
-      await expect(page.getByText('За всё время')).toBeVisible();
+      await expect(page.getByText('За всё время', { exact: true })).toBeVisible();
       await shot(page, `${theme}-stats`);
       await nav(page, 'Профиль');
       await expect(page.getByRole('radio', { name: 'Тёмная' })).toBeVisible();
       await expect(page.getByText('5 тайтлов, вместе с: Даша')).toBeVisible();
       await shot(page, `${theme}-profile`);
+    });
+
+    test('friends', async ({ page }) => {
+      const vadim = { id: '00000000-0000-4000-8000-0000000000e2', name: 'Вадим', nickname: 'vadim', since: '2026-08-14T10:00:00Z' };
+      const dasha = { id: '00000000-0000-4000-8000-0000000000d1', name: 'Даша', nickname: 'dasha', since: '2026-08-20T10:00:00Z' };
+      // Fixed times today, so the lines read the same on every run.
+      const at = (h: number) => { const d = new Date(); d.setHours(h, 0, 0, 0); return d.toISOString(); };
+      const covers = ['images/covers/the-batman-2022.jpg', 'images/covers/drive-2011.jpg', 'images/covers/frieren-2023.jpg'];
+      await installStub(page, {
+        signedIn: true, hasProfile: true, titles: rows, friends: [vadim, dasha],
+        friendRequests: [{ id: 7, user_id: '00000000-0000-4000-8000-0000000000e4', name: 'Катя', nickname: 'katya' }],
+        feed: [
+          { actor_id: dasha.id, actor_name: 'Даша', kind: 'parts', title_id: 'f', workspace_id: 'w', title: 'Фрирен', category: 'anime', cover: covers[2], count: 2, covers: null, at: at(0), on_shared_board: true },
+          { actor_id: vadim.id, actor_name: 'Вадим', kind: 'added', title_id: 'b', workspace_id: 'w', title: 'Бэтмен', category: 'movie', cover: covers[0], count: 3, covers, at: at(0), on_shared_board: false }
+        ],
+        matches: [{ friend_id: vadim.id, friend_name: 'Вадим', title_key: 'k', title: 'Бэтмен', category: 'movie', cover: covers[0], my_status: 'queue', friend_status: 'queue' }],
+        taste: { [vadim.id]: { status: 'ok', percent: 72, common: 14, both_want: 5, genres: [] }, [dasha.id]: { status: 'ok', percent: 81, common: 9, both_want: 2, genres: [] } }
+      });
+      await page.goto('./');
+      await nav(page, 'Друзья');
+      await expect(page.getByRole('button', { name: /Даша · 2 сезона «Фрирен»/ })).toBeVisible();
+      await shot(page, `${theme}-friends`);
     });
   });
 }

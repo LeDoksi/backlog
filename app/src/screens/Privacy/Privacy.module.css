@@ -1,0 +1,21 @@
+.title { margin: 0 0 16px; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-title-sm); }
+.section { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.h3 { margin: 0 4px; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
+.board { padding: 14px; border-radius: var(--r-card); background: var(--sunken); display: flex; flex-direction: column; gap: 10px; }
+.boardHead { display: flex; flex-direction: column; gap: 2px; padding: 0 2px; }
+.boardName { font-size: var(--fs-md); font-weight: 600; }
+.hint { font-size: var(--fs-xs); color: var(--muted); line-height: 1.35; }
+.levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px; background: var(--surface); }
+.level { min-height: 44px; padding: 0 6px; border: 0; border-radius: 14px; background: transparent; color: var(--muted); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.levelOn { background: var(--inverse); color: var(--on-inverse); }
+.switches { border-radius: var(--r-card); background: var(--sunken); overflow: hidden; }
+.switches > * + * { border-top: 1px solid var(--line); }
+.note { margin: 0 4px; font-size: var(--fs-xs); color: var(--muted); line-height: 1.4; }
+.error { margin: 0 0 12px; color: var(--danger); font-size: var(--fs-sm); font-weight: 500; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.item { min-height: 64px; padding: 8px 8px 8px 8px; border-radius: var(--r-sm); background: var(--sunken); display: flex; align-items: center; gap: 12px; }
+.thumb { width: 36px; height: 54px; border-radius: 10px; object-fit: cover; background: var(--poster-empty); flex-shrink: 0; }
+.itemText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.itemName { font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.show { min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; }
+.empty { margin: 0; color: var(--muted); font-size: var(--fs-md); line-height: 1.45; }

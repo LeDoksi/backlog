@@ -8,18 +8,23 @@ import { ASSET_ROOT } from '../../config';
 import { openTitle } from '../../data/ui';
 import { cardProgress, metaLine, STATUS_CARD } from '../../data/labels';
 import type { Title } from '../../lib/types';
+import type { FriendOn } from '../../lib/social';
+import { Avatar } from '../../ui/Avatar';
+import { statusWord } from '../../data/friendsOn';
 import { QuickStatus } from './QuickStatus';
 import s from './TitleCard.module.css';
 
 const PLACEHOLDER = resolveCover(undefined, ASSET_ROOT);
 
-export function cardLabel(t: Title): string {
-  return [t.title, STATUS_CARD[t.status], isStillAiring(t) ? 'всё ещё выходит' : ''].filter(Boolean).join(' — ');
+export function cardLabel(t: Title, friend?: FriendOn): string {
+  return [t.title, STATUS_CARD[t.status], isStillAiring(t) ? 'всё ещё выходит' : '',
+    friend ? `${friend.friend_name} ${statusWord(friend.status, t.category)}` : ''].filter(Boolean).join(' — ');
 }
 
-interface Props { title: Title; checked: number[] | undefined; onQuickChange: () => void }
+/** `friend` is the one friend shown on the card: the first by byPriority. */
+interface Props { title: Title; checked: number[] | undefined; friend?: FriendOn; onQuickChange: () => void }
 
-export const TitleCard = memo(function TitleCard({ title, checked, onQuickChange }: Props) {
+export const TitleCard = memo(function TitleCard({ title, checked, friend, onQuickChange }: Props) {
   const [quick, setQuick] = useState(false);
   const root = useRef<HTMLElement>(null);
   const progress = cardProgress(title, checked);
@@ -56,9 +61,12 @@ export const TitleCard = memo(function TitleCard({ title, checked, onQuickChange
       </div>
       <div className={s.body}>
         <div className={s.title}>{title.title}</div>
-        <div className={s.meta}>{metaLine(title)}</div>
+        <div className={s.metaRow}>
+          <span className={s.meta}>{metaLine(title)}</span>
+          {friend && <span className={s.friend} aria-hidden="true"><Avatar userId={friend.friend_id} name={friend.friend_name} size={18} /><span className={s.friendName}>{friend.friend_name}</span></span>}
+        </div>
       </div>
-      <button type="button" className={s.hit} aria-label={cardLabel(title)} onClick={() => openTitle(title.id)} {...press} />
+      <button type="button" className={s.hit} aria-label={cardLabel(title, friend)} onClick={() => openTitle(title.id)} {...press} />
       {hasQuick && (
         <button type="button" className={s.more} aria-label={`Быстрые действия: ${title.title}`} aria-expanded={quick}
           onClick={() => setQuick((q) => !q)}><DotsThree size={20} weight="bold" /></button>

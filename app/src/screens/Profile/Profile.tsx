@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CaretRight, EnvelopeSimple, Plus, SignOut, X } from '@phosphor-icons/react';
+import { CaretRight, EnvelopeSimple, EyeSlash, LinkSimple, LockSimple, Plus, SignOut } from '@phosphor-icons/react';
 import { Avatar } from '../../ui/Avatar';
 import { Button } from '../../ui/Button';
 import { Segmented } from '../../ui/Segmented';
@@ -10,52 +10,31 @@ import { useBoards } from '../../data/boardsStore';
 import { getSupabase } from '../../data/supabase';
 import { plural } from '../../data/labels';
 import * as Auth from '../../lib/auth';
-import { myBoardInvites, respondBoardInvite, type BoardInvite } from '../../lib/boards';
 import { InviteSheet } from './InviteSheet';
 import { NickInviteSheet } from './NickInviteSheet';
 import { MembersSheet } from './MembersSheet';
 import { EditProfileSheet } from './EditProfileSheet';
-import { boardErrorText, boardLine, boardName } from './boardTexts';
+import { Privacy } from '../Privacy/Privacy';
+import { useUi } from '../../data/ui';
+import { HiddenTitles } from '../Privacy/HiddenTitles';
+import { myHiddenTitles } from '../../lib/social';
+import { boardLine, boardName } from './boardTexts';
+import { AddFriendSheet } from '../Friends/AddFriendSheet';
 import s from './Profile.module.css';
 
 interface Props { profile: Auth.Profile; onProfile(p: Auth.Profile): void; onSignOut(): void }
 
-type Panel = 'email' | 'nick' | 'members' | 'edit' | null;
-
-function BoardInvites({ onAccepted }: { onAccepted(): void }) {
-  const [invites, setInvites] = useState<BoardInvite[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  useEffect(() => { void myBoardInvites(getSupabase()).then(setInvites); }, []);
-
-  async function answer(inv: BoardInvite, accept: boolean) {
-    setError(null);
-    const res = await respondBoardInvite(getSupabase(), inv.id, accept);
-    if (!res.ok) { setError(boardErrorText(res.error, inv.from_nickname ?? '')); return; }
-    setInvites((all) => all.filter((i) => i.id !== inv.id));
-    if (accept) onAccepted();
-  }
-
-  if (!invites.length) return null;
-  return (
-    <section className={s.card} aria-label="Приглашения">
-      {invites.map((inv) => (
-        <div key={inv.id} className={s.invite}>
-          <Avatar userId={inv.from_id} name={inv.from_name} size={40} />
-          <span className={s.inviteText}><b>{inv.from_name}</b> зовёт в общую доску</span>
-          <Button size="md" onClick={() => void answer(inv, true)}>Принять</Button>
-          <button type="button" className={s.iconBtn} aria-label={`Отклонить приглашение от ${inv.from_name}`} onClick={() => void answer(inv, false)}>
-            <X size={18} weight="bold" aria-hidden="true" />
-          </button>
-        </div>
-      ))}
-      {error && <p role="alert" className={s.error}>{error}</p>}
-    </section>
-  );
-}
+type Panel = 'email' | 'link' | 'nick' | 'members' | 'edit' | 'privacy' | 'hidden' | null;
 
 export function Profile({ profile, onProfile, onSignOut }: Props) {
   const [theme, setThemeState] = useState<ThemePref>(readTheme);
   const [panel, setPanel] = useState<Panel>(null);
+  const privacyRequested = useUi((u) => u.privacyRequested);
+  useEffect(() => {
+    if (!privacyRequested) return;
+    useUi.getState().clearPrivacyRequest();
+    setPanel('privacy');
+  }, [privacyRequested]);
   const [leaving, setLeaving] = useState(false);
   const boards = useBoards((b) => b.boards);
   const pending = useTitles((t) => t.pending);
@@ -65,9 +44,12 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
   const shared = boards.find((b) => b.kind === 'shared') ?? null;
   const refresh = () => { void useBoards.getState().refresh(); };
 
+  const [hiddenCount, setHiddenCount] = useState<number | null>(null);
+
   // Counts on the cards come from the server; the board list is re-read
   // each time the profile opens so they match what was just added.
   useEffect(refresh, []);
+  useEffect(() => { void myHiddenTitles(getSupabase()).then((r) => { if (r) setHiddenCount(r.length); }); }, []);
 
   function changeTheme(v: ThemePref) {
     setTheme(v);
@@ -86,8 +68,6 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
         </div>
         <Button variant="neutral" onClick={() => setPanel('edit')}>Изменить</Button>
       </div>
-
-      <BoardInvites onAccepted={refresh} />
 
       <section className={s.card}>
         <h2 className={s.h2}>Доски</h2>
@@ -121,16 +101,29 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
       </section>
 
       <section className={s.card}>
+        <button type="button" className={s.row} onClick={() => setPanel('privacy')}>
+          <LockSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Приватность</span><CaretRight size={18} aria-hidden="true" />
+        </button>
+        <button type="button" className={s.row} onClick={() => setPanel('hidden')}>
+          <EyeSlash size={22} aria-hidden="true" /><span className={s.rowLabel}>Скрытые тайтлы</span>
+          {hiddenCount !== null && <span className={s.count}>{hiddenCount}</span>}<CaretRight size={18} aria-hidden="true" />
+        </button>
+        <button type="button" className={s.row} onClick={() => setPanel('link')}>
+          <LinkSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить в Бэклог</span><CaretRight size={18} aria-hidden="true" />
+        </button>
         <button type="button" className={s.row} onClick={() => setPanel('email')}>
-          <EnvelopeSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить в Бэклог</span><CaretRight size={18} aria-hidden="true" />
+          <EnvelopeSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить по почте</span><CaretRight size={18} aria-hidden="true" />
         </button>
       </section>
 
       <button type="button" className={s.signOut} onClick={() => setLeaving(true)}><SignOut size={20} aria-hidden="true" />Выйти из аккаунта</button>
 
+      <AddFriendSheet open={panel === 'link'} onClose={() => setPanel(null)} />
       <InviteSheet open={panel === 'email'} onClose={() => setPanel(null)} />
       <NickInviteSheet open={panel === 'nick'} creating={!shared} onClose={() => { setPanel(null); refresh(); }} />
       <MembersSheet open={panel === 'members'} board={shared} userId={userId} onClose={() => setPanel(null)} onInvite={() => setPanel('nick')} />
+      <Privacy open={panel === 'privacy'} profile={profile} onProfile={onProfile} onClose={() => setPanel(null)} />
+      <HiddenTitles open={panel === 'hidden'} onCount={setHiddenCount} onClose={() => setPanel(null)} />
       <EditProfileSheet open={panel === 'edit'} profile={profile} onSaved={onProfile} onClose={() => setPanel(null)} />
       <Confirm open={leaving} title="Выйти из аккаунта?" text={pending
           ? `Ещё не сохранено в облаке: ${pending} ${plural(pending, 'правка', 'правки', 'правок')}. Если выйти без сети, они пропадут.`
