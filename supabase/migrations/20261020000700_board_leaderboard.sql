@@ -27,8 +27,10 @@ end $$;
 create trigger workspace_members_leaderboard_reset after insert or delete on public.workspace_members
   for each row execute function public.shared_board_leaderboard_reset();
 
--- my_boards() gains the shared board's switch.
-drop function public.my_boards();
+-- my_boards() gains the shared board's switch. The old one is renamed, not
+-- dropped, and closed to everyone: the rollback renames it back.
+alter function public.my_boards() rename to my_boards_before_leaderboard;
+revoke execute on function public.my_boards_before_leaderboard() from public, anon, authenticated;
 create function public.my_boards() returns table (id uuid, kind text, visibility text, title_count int, members json, in_leaderboard boolean)
 language sql stable security definer set search_path = public as $$
   select w.id, w.kind, w.visibility,

@@ -5,18 +5,8 @@ drop function if exists public.set_board_leaderboard(uuid, boolean);
 drop trigger if exists workspace_members_leaderboard_reset on public.workspace_members;
 drop function if exists public.shared_board_leaderboard_reset();
 drop function public.my_boards();
-create function public.my_boards() returns table (id uuid, kind text, visibility text, title_count int, members json)
-language sql stable security definer set search_path = public as $$
-  select w.id, w.kind, w.visibility,
-    (select count(*)::int from titles t where t.workspace_id = w.id),
-    (select json_agg(json_build_object('id', p.id, 'name', coalesce(p.display_name, split_part(p.email, '@', 1)), 'nickname', p.nickname, 'email', p.email) order by m2.joined_at)
-       from workspace_members m2 join profiles p on p.id = m2.user_id where m2.workspace_id = w.id)
-  from workspaces w join workspace_members m on m.workspace_id = w.id
-  where m.user_id = auth.uid()
-  order by (w.kind = 'shared');
-$$;
-revoke execute on function public.my_boards() from public, anon;
-grant execute on function public.my_boards() to authenticated, service_role;
+alter function public.my_boards_before_leaderboard() rename to my_boards;
+grant execute on function public.my_boards() to authenticated;
 
 create or replace function public.leaderboard(p_category text, p_period text) returns json
 language sql stable security definer set search_path = public as $$
