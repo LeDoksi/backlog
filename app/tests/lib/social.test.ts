@@ -79,12 +79,14 @@ describe('social RPC wrappers', () => {
 });
 
 describe('privacy wrappers', () => {
-  it('setBoardVisibility and setPrivacy send every value', async () => {
+  it('setBoardVisibility, setBoardLeaderboard and setPrivacy send every value', async () => {
     const r = rpcClient(ok());
     expect(await Social.setBoardVisibility(r.client, 'b1', 'friends')).toBe(true);
+    expect(await Social.setBoardLeaderboard(r.client, 'b5', true)).toBe(true);
     expect(await Social.setPrivacy(r.client, { in_leaderboard: true, share_activity: false, share_matches: true, findable_by_nick: false })).toBe(true);
     expect(r.calls).toEqual([
       { name: 'set_board_visibility', args: { p_workspace: 'b1', p_visibility: 'friends' } },
+      { name: 'set_board_leaderboard', args: { p_workspace: 'b5', p_on: true } },
       { name: 'set_privacy', args: { p_in_leaderboard: true, p_share_activity: false, p_share_matches: true, p_findable_by_nick: false } }
     ]);
     expect(await Social.setBoardVisibility(rpcClient(fail).client, 'b1', 'friends')).toBe(false);
@@ -129,7 +131,8 @@ describe('friend page wrappers', () => {
   });
 
   it('leaderboard passes category and period; off and failure are told apart', async () => {
-    const board = { status: 'ok', rows: [{ user_id: 'u', name: 'Вадим', score: 5, place: 1, is_me: false }], me: { score: 0, place: null } };
+    const board = { status: 'ok', rows: [{ board_id: 'b', kind: 'shared', name: 'Вадим + Лёша', members: ['u', 'v'], score: 5, place: 1, mine: false }],
+      mine: [{ board_id: 'm', kind: 'personal', name: 'Я', score: 0, place: null }] };
     const r = rpcClient(ok(board));
     expect(await Social.leaderboard(r.client, 'movie', 'month')).toEqual(board);
     expect(r.calls[0]).toEqual({ name: 'leaderboard', args: { p_category: 'movie', p_period: 'month' } });

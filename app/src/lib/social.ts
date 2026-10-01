@@ -79,6 +79,10 @@ export async function setBoardVisibility(client: SupabaseLike, boardId: string, 
   return !(await callRpc(client, 'set_board_visibility', { p_workspace: boardId, p_visibility: visibility })).error;
 }
 
+export async function setBoardLeaderboard(client: SupabaseLike, boardId: string, on: boolean): Promise<boolean> {
+  return !(await callRpc(client, 'set_board_leaderboard', { p_workspace: boardId, p_on: on })).error;
+}
+
 export async function setPrivacy(client: SupabaseLike, p: PrivacySwitches): Promise<boolean> {
   return !(await callRpc(client, 'set_privacy', {
     p_in_leaderboard: p.in_leaderboard, p_share_activity: p.share_activity,
@@ -151,9 +155,11 @@ export async function friendsOnTitles(client: SupabaseLike, keys: string[]): Pro
 
 // ── Leaderboard ────────────────────────────────────────────────────────
 
-export interface Leader { user_id: string; name: string; score: number; place: number; is_me: boolean }
+/** One board: a personal one is its owner, a shared one «Гоша + Даша». */
+export interface Leader { board_id: string; kind: 'personal' | 'shared'; name: string; members: string[]; score: number; place: number; mine: boolean }
+export interface MyLeaderBoard { board_id: string; kind: 'personal' | 'shared'; name: string; score: number; place: number | null }
 export type Leaderboard =
-  | { status: 'ok'; rows: Leader[]; me: { score: number; place: number | null } | null }
+  | { status: 'ok'; rows: Leader[]; mine: MyLeaderBoard[] | null }
   | { status: 'off' };
 
 /** `{status: 'off'}` when I do not take part; `null` when the call failed. */

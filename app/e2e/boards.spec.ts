@@ -31,21 +31,13 @@ test('the switch changes the grid and the tab counts', async ({ page }) => {
   await expect(page.locator('article')).toHaveCount(6);
 });
 
-test('copying puts the title into the other board as «В бэклоге», and a second copy is refused', async ({ page }) => {
-  const src = ours.find((r) => r.status === 'done' && !r.parts) ?? ours.find((r) => !r.parts)!;
+test('a title of my own boards has no copy button: copying is from friends only', async ({ page }) => {
   await installStub(page, { signedIn: true, hasProfile: true, titles: mine, sharedTitles: ours, sharedWith: [dasha] });
   await page.goto('./');
-  const sw = page.getByRole('group', { name: 'Доска' });
-  await sw.getByRole('button', { name: /Общее/ }).click();
-  const card = page.locator(`article[data-id="${String(src.id)}"]`);
-  await card.locator(':scope > button').first().click();
+  await page.getByRole('group', { name: 'Доска' }).getByRole('button', { name: /Общее/ }).click();
+  const src = ours[0]!;
+  await page.locator(`article[data-id="${String(src.id)}"]`).locator(':scope > button').first().click();
   const sheet = page.getByRole('dialog', { name: String(src.title) });
-  await sheet.getByRole('button', { name: 'Копировать в «Моё»' }).click();
-  await expect(sheet.getByRole('status')).toHaveText('Скопировано в «Моё»');
-  await sheet.getByRole('button', { name: 'Копировать в «Моё»' }).click();
-  await expect(sheet.getByRole('status')).toHaveText('Уже есть в «Моё»');
-  await page.keyboard.press('Escape');
-  await sw.getByRole('button', { name: 'Моё' }).click();
-  await expect(page.locator('article')).toHaveCount(5);
-  await expect(page.locator(`article[data-id="${String(src.id)}"]`)).toContainText('В бэклоге');
+  await expect(sheet.getByRole('button', { name: 'Редактировать' })).toBeVisible();
+  await expect(sheet.getByRole('button', { name: /Копировать/ })).toHaveCount(0);
 });

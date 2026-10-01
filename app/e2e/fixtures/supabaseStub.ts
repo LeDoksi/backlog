@@ -89,6 +89,7 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
     const privacy = { in_leaderboard: false, share_activity: true, share_matches: true, findable_by_nick: true };
     Object.assign(me, privacy);
     let feedSeen = false;
+    let sharedInLeaderboard = false;
     let friendRequests = (opts.friendRequests ?? []).map((r) => ({ ...r, at: new Date().toISOString() }));
     let friends = (opts.friends ?? []).slice();
     const inbox = () => ({
@@ -142,8 +143,8 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
 
     function boards(): Row[] {
       const count = (b: string) => titles.filter((t) => t.workspace_id === b).length;
-      const list: Row[] = [{ id: personal, kind: 'personal', visibility: visibility[personal], title_count: count(personal), members: [{ id: userId, name: me.display_name, nickname: me.nickname }] }];
-      if (sharedMembers) list.push({ id: shared, kind: 'shared', visibility: visibility[shared], title_count: count(shared), members: sharedMembers });
+      const list: Row[] = [{ id: personal, kind: 'personal', visibility: visibility[personal], title_count: count(personal), members: [{ id: userId, name: me.display_name, nickname: me.nickname }], in_leaderboard: false }];
+      if (sharedMembers) list.push({ id: shared, kind: 'shared', visibility: visibility[shared], title_count: count(shared), members: sharedMembers, in_leaderboard: sharedInLeaderboard });
       return list;
     }
 
@@ -169,6 +170,7 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       leave_shared_board: () => { sharedMembers = null; return { data: null, error: null }; },
       remove_board_member: (a) => { sharedMembers = sharedMembers?.filter((m) => m.id !== a.p_user) ?? null; return { data: null, error: null }; },
       set_board_visibility: (a) => { visibility[String(a.p_workspace)] = String(a.p_visibility); return { data: null, error: null }; },
+      set_board_leaderboard: (a) => { sharedInLeaderboard = !!a.p_on; return { data: null, error: null }; },
       set_privacy: (a) => {
         Object.assign(me, { in_leaderboard: a.p_in_leaderboard, share_activity: a.p_share_activity, share_matches: a.p_share_matches, findable_by_nick: a.p_findable_by_nick });
         return { data: null, error: null };
@@ -204,17 +206,18 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       my_inbox: () => ({ data: inbox(), error: null }),
       my_friends: () => ({ data: friends, error: null }),
       leaderboard: (a) => {
-        if (opts.leaderboard === 'off' && !(me as Row).in_leaderboard) return { data: { status: 'off' }, error: null };
+        if (opts.leaderboard === 'off' && !(me as Row).in_leaderboard && !sharedInLeaderboard) return { data: { status: 'off' }, error: null };
         const board = opts.leaderboard && opts.leaderboard !== 'off' ? opts.leaderboard[String(a.p_category)] : undefined;
-        return { data: board ?? { status: 'ok', rows: [], me: { score: 0, place: null } }, error: null };
+        return { data: board ?? { status: 'ok', rows: [], mine: [{ board_id: personal, kind: 'personal', name: me.display_name, score: 0, place: null }] }, error: null };
       },
       matches: () => ({ data: opts.matches ?? [], error: null }),
       friends_on_titles: (a) => ({ data: (opts.friendsOn ?? []).filter((r) => (a.p_keys as string[]).includes(String(r.title_key))), error: null }),
-      copy_title: (a) => {
-        const src = titles.find((t) => t.workspace_id === a.p_from && t.id === a.p_title_id);
+      copy_from_friend: (a) => {
+        const shelf = opts.shelves?.[String(a.p_owner)] ?? {};
+        const src = [...(shelf.done ?? []), ...(shelf.watching ?? []), ...(shelf.want ?? [])].find((r) => r.id === a.p_title_id);
         if (!src) return fail('not_found');
         if (titles.some((t) => t.workspace_id === a.p_to && t.id === src.id)) return fail('duplicate');
-        titles.push({ ...src, workspace_id: a.p_to, status: src.status === 'unreleased' ? 'unreleased' : 'queue', manual_status: null, checked_parts: {} });
+        titles.push({ id: src.id, workspace_id: a.p_to, title: src.title, category: src.category, year: src.year, cover: src.cover, status: 'queue', genres: [], hidden: false, checked_parts: {}, manual_status: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
         return { data: null, error: null };
       }
     };

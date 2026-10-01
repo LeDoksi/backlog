@@ -1,18 +1,21 @@
 import { test, expect, type Page } from '@playwright/test';
-import { installStub, E2E_USER } from './fixtures/supabaseStub';
+import { installStub, E2E_USER, PERSONAL, SHARED } from './fixtures/supabaseStub';
 import { catalogRows } from './fixtures/catalog';
 
 const rpcCalls = (page: Page) => page.evaluate(() => (window as unknown as { __rpcCalls: { name: string; args: Record<string, unknown> }[] }).__rpcCalls);
 const nav = (page: Page) => page.getByRole('navigation', { name: 'Разделы' }).filter({ visible: true });
-const row = (n: number, name: string, score: number, me = false) => ({ user_id: `00000000-0000-4000-8000-00000000${String(n).padStart(4, '0')}`, name, score, place: n, is_me: me });
+const id = (n: number) => `00000000-0000-4000-8000-00000000${String(n).padStart(4, '0')}`;
+const row = (n: number, name: string, score: number) => ({ board_id: id(n), kind: 'personal', name, members: [id(n)], score, place: n, mine: false });
+const DASHA = '00000000-0000-4000-8000-0000000000d1';
 
-test('top ten by category; my line under it when I am not there; period changes the heading', async ({ page }) => {
+test('rows are boards: personal and shared apart, mine marked, mine outside the top ten under it', async ({ page }) => {
   const top = Array.from({ length: 10 }, (_, i) => row(i + 1, `Игрок ${i + 1}`, 20 - i));
+  const ours = { board_id: SHARED, kind: 'shared', name: 'E2E + Даша', members: [E2E_USER, DASHA], score: 3, place: 2, mine: true };
   await installStub(page, {
     signedIn: true, hasProfile: true, titles: catalogRows(6),
     leaderboard: {
-      movie: { status: 'ok', rows: top, me: { score: 2, place: 14 } },
-      anime: { status: 'ok', rows: [row(1, 'Вадим', 5), { ...row(2, 'E2E', 3, true), user_id: E2E_USER }], me: { score: 3, place: 2 } }
+      movie: { status: 'ok', rows: top, mine: [{ board_id: PERSONAL, kind: 'personal', name: 'E2E', score: 2, place: 14 }] },
+      anime: { status: 'ok', rows: [row(1, 'Вадим', 5), ours], mine: [{ board_id: PERSONAL, kind: 'personal', name: 'E2E', score: 0, place: null }, { ...ours, mine: undefined }] }
     }
   });
   await page.goto('./');
@@ -20,15 +23,20 @@ test('top ten by category; my line under it when I am not there; period changes 
   const board = page.getByRole('region', { name: /^Лидеры/ });
   await board.scrollIntoViewIfNeeded();
   await expect(board.getByRole('list', { name: 'Лидеры' }).getByRole('listitem')).toHaveCount(10);
-  const mine = board.locator('p', { hasText: 'Ты' });
-  await expect(mine).toContainText('14');
-  await expect(mine).toContainText('2');
+  const outside = board.locator('p[data-mine]');
+  await expect(outside).toHaveCount(1);
+  await expect(outside).toContainText('14');
+  await expect(outside).toContainText('E2E');
   await board.getByRole('button', { name: 'Аниме' }).click();
   await expect(board.getByRole('button', { name: 'Аниме' })).toHaveAttribute('aria-pressed', 'true');
   const list = board.getByRole('list', { name: 'Лидеры' });
   await expect(list.getByRole('listitem')).toHaveCount(2);
-  await expect(list.getByRole('listitem').nth(1)).toContainText('Ты');
-  await expect(mine).toHaveCount(0);
+  await expect(list.getByRole('listitem').nth(1)).toContainText('E2E + Даша');
+  await expect(list.getByRole('listitem').nth(1)).toHaveAttribute('data-mine', '');
+  await expect(list.getByRole('listitem').nth(0)).not.toHaveAttribute('data-mine', '');
+  await expect(board.getByText('Ты', { exact: true })).toHaveCount(0);
+  // A board of mine with nothing done has no place and is not repeated under the list.
+  await expect(outside).toHaveCount(0);
   await page.getByRole('radiogroup', { name: 'Период' }).getByRole('radio', { name: 'Всё время' }).click();
   await expect(page.getByRole('heading', { name: 'Лидеры за всё время' })).toBeVisible();
   expect(await rpcCalls(page)).toContainEqual({ name: 'leaderboard', args: { p_category: 'anime', p_period: 'all' } });

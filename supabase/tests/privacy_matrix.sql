@@ -105,12 +105,12 @@ select is((select count(*)::int from public.matches() where friend_id = '0000000
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')::jsonb, '{"status": "disabled"}'::jsonb, 'matches off: no taste match');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a3');
 select is((select count(*)::int from public.search_users('me_')), 0, 'not findable: search does not find me');
-select is((select count(*)::int from json_array_elements(public.leaderboard('movie', 'all')->'rows') r where r->>'user_id' = '00000000-0000-0000-0000-0000000000a1'), 0,
+select is((select count(*)::int from json_array_elements(public.leaderboard('movie', 'all')->'rows') r where (r->'members')::jsonb ? '00000000-0000-0000-0000-0000000000a1' and r->>'kind' = 'personal'), 0,
   'the stranger is not taking part: they see no board at all');
 reset role;
 update public.profiles set in_leaderboard = true where id = '00000000-0000-0000-0000-0000000000a3';
 set local role authenticated;
-select is((select count(*)::int from json_array_elements(public.leaderboard('movie', 'all')->'rows') r where r->>'user_id' = '00000000-0000-0000-0000-0000000000a1'), 1,
+select is((select count(*)::int from json_array_elements(public.leaderboard('movie', 'all')->'rows') r where (r->'members')::jsonb ? '00000000-0000-0000-0000-0000000000a1' and r->>'kind' = 'personal'), 1,
   'taking part shows my number to everyone taking part, even with my board private');
 reset role;
 update public.profiles set findable_by_nick = true where id = '00000000-0000-0000-0000-0000000000a1';

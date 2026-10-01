@@ -96,7 +96,7 @@ export interface Profile {
   findable_by_nick?: boolean;
 }
 export interface BoardMember { id: string; name: string; nickname: string | null; email?: string }
-export interface BoardRow { id: string; kind: 'personal' | 'shared'; visibility: string; title_count: number; members: BoardMember[] | null }
+export interface BoardRow { id: string; kind: 'personal' | 'shared'; visibility: string; title_count: number; members: BoardMember[] | null; in_leaderboard?: boolean }
 
 function callRpc(client: SupabaseLike, name: string, args?: Record<string, unknown>): Promise<Result> {
   if (!client) return Promise.resolve(noClientError());

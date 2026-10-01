@@ -46,9 +46,9 @@ describe('board RPC wrappers', () => {
     ]);
   });
 
-  it('copyTitle maps duplicate', async () => {
+  it('copyFromFriend maps duplicate', async () => {
     const r = rpcClient(() => ({ data: null, error: { message: 'duplicate' } }));
-    expect(await Boards.copyTitle(r.client, 't1', 'b1', 'b2')).toEqual({ ok: false, error: 'duplicate' });
-    expect(r.calls[0]).toEqual({ name: 'copy_title', args: { p_title_id: 't1', p_from: 'b1', p_to: 'b2' } });
+    expect(await Boards.copyFromFriend(r.client, 'u2', 't1', 'b2')).toEqual({ ok: false, error: 'duplicate' });
+    expect(r.calls[0]).toEqual({ name: 'copy_from_friend', args: { p_owner: 'u2', p_title_id: 't1', p_to: 'b2' } });
   });
 });

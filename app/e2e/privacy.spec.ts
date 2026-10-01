@@ -21,11 +21,16 @@ test('board levels and switches go to the server with every value', async ({ pag
   await sheet.getByRole('switch', { name: 'Лидерборд' }).click();
   await expect(sheet.getByRole('switch', { name: 'Лидерборд' })).toHaveAttribute('aria-checked', 'true');
   await sheet.getByRole('switch', { name: 'Поиск по нику' }).click();
+  await expect(sheet.getByRole('switch', { name: 'Общая доска в лидерах' })).toHaveAttribute('aria-checked', 'false');
+  await sheet.getByRole('switch', { name: 'Общая доска в лидерах' }).click();
+  await expect(sheet.getByRole('switch', { name: 'Общая доска в лидерах' })).toHaveAttribute('aria-checked', 'true');
+  await expect(sheet.getByRole('switch', { name: 'Моё в лидерах' })).toHaveCount(0);
   const calls = await rpcCalls(page);
   expect(calls).toContainEqual({ name: 'set_board_visibility', args: { p_workspace: PERSONAL, p_visibility: 'friends' } });
   expect(calls).toContainEqual({ name: 'set_board_visibility', args: { p_workspace: SHARED, p_visibility: 'everyone' } });
   expect(calls).toContainEqual({ name: 'set_privacy', args: { p_in_leaderboard: true, p_share_activity: true, p_share_matches: true, p_findable_by_nick: true } });
   expect(calls).toContainEqual({ name: 'set_privacy', args: { p_in_leaderboard: true, p_share_activity: true, p_share_matches: true, p_findable_by_nick: false } });
+  expect(calls).toContainEqual({ name: 'set_board_leaderboard', args: { p_workspace: SHARED, p_on: true } });
   await page.keyboard.press('Escape');
   await expect(page.getByText('2 тайтла, видят друзья')).toBeVisible();
 });
