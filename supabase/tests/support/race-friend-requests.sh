@@ -12,5 +12,16 @@ sleep 0.3
 ask $b $a & q=$!
 wait $p; wait $q
 res=$(psql -tA -c "select (select count(*) from public.friendships where user_a = '$a' and user_b = '$b') || '/' || (select count(*) from public.friend_requests where from_user in ('$a', '$b'))")
+psql -q -c "delete from public.friendships where user_a = '$a'; delete from public.friend_requests where from_user in ('$a', '$b');" >/dev/null
+if [ "$res" = 1/0 ]; then echo "ok - crossing friend requests: one friendship"; else echo "not ok - crossing friend requests left friendships/requests = $res"; fail=1; fi
+
+# B accepts A's request while A sends it again: friends, nothing left pending.
+id=$(psql -qtA -c "insert into public.friend_requests (from_user, to_user) values ('$a', '$b') returning id")
+psql -q -v ON_ERROR_STOP=1 -c "begin; set local request.jwt.claims = '{\"sub\":\"$b\"}'; select public.respond_friend_request($id, true); select pg_sleep(1); commit;" >/dev/null 2>&1 & p=$!
+sleep 0.3
+ask $a $b & q=$!
+wait $p; wait $q
+res=$(psql -tA -c "select (select count(*) from public.friendships where user_a = '$a' and user_b = '$b') || '/' || (select count(*) from public.friend_requests where from_user in ('$a', '$b'))")
 psql -q -c "delete from public.friendships where user_a = '$a'; delete from public.friend_requests where from_user in ('$a', '$b'); delete from auth.users where id in ('$a', '$b');" >/dev/null
-if [ "$res" = 1/0 ]; then echo "ok - crossing friend requests: one friendship"; else echo "not ok - crossing friend requests left friendships/requests = $res"; exit 1; fi
+if [ "$res" = 1/0 ]; then echo "ok - accepting while the other asks again: one friendship"; else echo "not ok - accept vs ask left friendships/requests = $res"; fail=1; fi
+exit ${fail:-0}

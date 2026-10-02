@@ -1,6 +1,6 @@
 -- Loose ends of phase D (plan D, «Отклонения при реализации»):
 -- two people asking each other at once got two requests instead of a
--- friendship; taste_match told a stranger's match setting to anyone; a link
+-- friendship (now every friendship change locks the pair); taste_match told a stranger's match setting to anyone; a link
 -- did not record who followed it (spec 8); feed() scanned pg_timezone_names
 -- (75-860 ms on the live project) on every call.
 
@@ -11,14 +11,17 @@ create table public.invite_redemptions (
   redeemed_at timestamptz not null default now(),
   primary key (token, user_id)
 );
+create index invite_redemptions_user_idx on public.invite_redemptions (user_id);
 alter table public.invite_redemptions enable row level security;
 revoke all on table public.invite_redemptions from anon, authenticated;
 
--- A time zone the server knows, else UTC. Trying it is cheap; listing them all is not.
+-- An IANA zone name the server knows ('Europe/Moscow'), else UTC. Trying it
+-- is cheap; listing them all is not. Names without a slash ('MSK', 'UTC+3')
+-- are fixed offsets or POSIX rules with the sign flipped, so they are refused.
 create function public.safe_tz(p_tz text) returns text
 language plpgsql stable set search_path = public as $$
 begin
-  if p_tz is null then return 'UTC'; end if;
+  if p_tz is null or position('/' in p_tz) = 0 then return 'UTC'; end if;
   perform now() at time zone p_tz;
   return p_tz;
 exception when others then
@@ -27,13 +30,21 @@ end $$;
 revoke execute on function public.safe_tz(text) from public, anon, authenticated;
 grant execute on function public.safe_tz(text) to service_role;
 
+-- Everything that changes the friendship of two people goes one pair at a
+-- time: two people acting on each other at the same moment would otherwise
+-- each miss the other's uncommitted change.
+create function public.lock_pair(a uuid, b uuid) returns void
+language sql volatile set search_path = public as $$
+  select pg_advisory_xact_lock(hashtextextended(least(a, b)::text || greatest(a, b)::text, 0));
+$$;
+revoke execute on function public.lock_pair(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.lock_pair(uuid, uuid) to service_role;
+
 create or replace function public.request_friendship(p_from uuid, p_to uuid) returns text
 language plpgsql security definer set search_path = public as $$
 begin
   if p_from = p_to then return 'self'; end if;
-  -- One pair at a time: two people asking each other at the same moment
-  -- would otherwise each miss the other's uncommitted request.
-  perform pg_advisory_xact_lock(hashtextextended(least(p_from, p_to)::text || greatest(p_from, p_to)::text, 0));
+  perform lock_pair(p_from, p_to);
   if are_friends(p_from, p_to) then return 'already_friends'; end if;
   if exists (select 1 from friend_requests where from_user = p_to and to_user = p_from) then
     insert into friendships (user_a, user_b) values (least(p_from, p_to), greatest(p_from, p_to)) on conflict do nothing;
@@ -42,6 +53,29 @@ begin
   end if;
   insert into friend_requests (from_user, to_user) values (p_from, p_to) on conflict (from_user, to_user) do nothing;
   return 'requested';
+end $$;
+
+create or replace function public.respond_friend_request(p_id bigint, p_accept boolean) returns void
+language plpgsql security definer set search_path = public as $$
+declare r friend_requests;
+begin
+  select * into r from friend_requests where id = p_id and to_user = auth.uid();
+  if not found then return; end if;
+  perform lock_pair(r.from_user, r.to_user);
+  delete from friend_requests where id = p_id;
+  if not found then return; end if;
+  if p_accept then
+    insert into friendships (user_a, user_b) values (least(r.from_user, r.to_user), greatest(r.from_user, r.to_user)) on conflict do nothing;
+    delete from friend_requests where from_user = r.to_user and to_user = r.from_user;
+  end if;
+end $$;
+
+create or replace function public.remove_friend(p_user uuid) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return; end if;
+  perform lock_pair(p_user, auth.uid());
+  delete from friendships where user_a = least(p_user, auth.uid()) and user_b = greatest(p_user, auth.uid());
 end $$;
 
 create or replace function public.redeem_invite(p_token text) returns json
@@ -128,7 +162,7 @@ create or replace function public.feed(p_before timestamptz default now(), p_lim
 returns table (actor_id uuid, actor_name text, kind text, title_id text, workspace_id uuid, title text, category text, cover text,
                count int, covers json, at timestamptz, on_shared_board boolean)
 language sql stable security definer set search_path = public as $$
-with tz as (
+with tz as materialized (
   select safe_tz(p_tz) as name
 ),
 visible as (

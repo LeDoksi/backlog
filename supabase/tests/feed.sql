@@ -55,7 +55,7 @@ set local role authenticated;
 select is((select count(*)::int from public.feed() where title_id = 'fr-2020'), 0, 'hiding a title takes its lines back');
 -- Time zone: a real one is kept, anything else falls back to UTC.
 reset role;
-select is(array[public.safe_tz('Europe/Moscow'), public.safe_tz('Mars/Base'), public.safe_tz(null)], array['Europe/Moscow', 'UTC', 'UTC'], 'safe_tz keeps real zones only');
+select is(array[public.safe_tz('Europe/Moscow'), public.safe_tz('Mars/Base'), public.safe_tz(null), public.safe_tz('UTC+3'), public.safe_tz('MSK')], array['Europe/Moscow', 'UTC', 'UTC', 'UTC', 'UTC'], 'safe_tz keeps real zone names only');
 set local role authenticated;
 select is((select count(*)::int from public.feed(now(), 60, 'Mars/Base')), (select count(*)::int from public.feed(now(), 60, 'UTC')), 'an unknown zone reads as UTC');
 select lives_ok($$select * from public.feed(now(), 60, null)$$, 'no zone at all is fine');

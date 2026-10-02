@@ -1,5 +1,22 @@
 -- Undo 20261025000000_social_followups.
 
+create or replace function public.respond_friend_request(p_id bigint, p_accept boolean) returns void
+language plpgsql security definer set search_path = public as $$
+declare r friend_requests;
+begin
+  select * into r from friend_requests where id = p_id and to_user = auth.uid();
+  if not found then return; end if;
+  delete from friend_requests where id = p_id;
+  if p_accept then
+    insert into friendships (user_a, user_b) values (least(r.from_user, r.to_user), greatest(r.from_user, r.to_user)) on conflict do nothing;
+  end if;
+end $$;
+
+create or replace function public.remove_friend(p_user uuid) returns void
+language sql security definer set search_path = public as $$
+  delete from friendships where user_a = least(p_user, auth.uid()) and user_b = greatest(p_user, auth.uid());
+$$;
+
 create or replace function public.request_friendship(p_from uuid, p_to uuid) returns text
 language plpgsql security definer set search_path = public as $$
 begin
@@ -142,4 +159,5 @@ limit greatest(1, least(p_limit, 200));
 $$;
 
 drop function public.safe_tz(text);
+drop function public.lock_pair(uuid, uuid);
 drop table public.invite_redemptions;

@@ -11,6 +11,7 @@
   - `src/data/` — сторы и связь с Supabase: тайтлы (`titlesStore.ts`), синхронизация (`syncEngine.ts`), сессия, фильтры, итоги.
   - `src/screens/` — экраны: вход, бэклог, панель тайтла, редактирование, быстрое добавление, итоги, профиль, друзья, страница друга, приватность.
   - `src/ui/` — общие компоненты, `src/design/` — токены и темы.
+  - `retired-v2/sw.js` — воркер по старому адресу `/backlog/v2/sw.js`: снимает старую установку v2, если она где-то осталась.
 - `images/` — обложки (`images/covers/`) и иконки, публикуются по `/backlog/images/`.
 - `supabase/migrations/` — схема базы по шагам. Первый файл — снимок схемы, какой её оставила v1.
 - `worker/proxy.js` — CORS-прокси на Cloudflare для Steam и TMDb, выкладывается вручную через панель Cloudflare.
@@ -54,7 +55,7 @@ npm run e2e          # Playwright: телефон и компьютер, дос�
 
 ## Выкладка
 
-`.github/workflows/deploy.yml` на каждый push в `master`: тесты, сборка, сайт из `app/dist` + `images/`, публикация на GitHub Pages. `ci.yml` гоняет тесты, сборку с бюджетом и e2e на каждом PR.
+`.github/workflows/deploy.yml` на каждый push в `master`: тесты, сборка, сайт из `app/dist` + `images/` + воркер `retired-v2/sw.js` в `/v2/`, публикация на GitHub Pages. `ci.yml` гоняет тесты, сборку с бюджетом и e2e на каждом PR.
 
 ## Supabase: настройки вне кода
 

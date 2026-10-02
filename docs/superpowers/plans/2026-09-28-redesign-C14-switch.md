@@ -86,5 +86,5 @@ S1 → S2 → S3 → S4 → S5, затем `npm test`, `typecheck`, `build`, `bu
 
 ## Шаг 4: старый адрес `/backlog/v2/` убран (2026-10-02)
 
-Георгий подтвердил, что новая версия работает полностью, и попросил закрыть хвосты. Из сайта убраны страница-переадресация и воркер `/backlog/v2/` (`app/retired-v2/`, строка в `deploy.yml`), обработчик `fetch` в `sw-retire-v1.js` и `BL_BASE` в `vite.config.ts`. Иконка, сохранённая со старого адреса, теперь получит 404 от GitHub Pages. Ручной шаг владельца: убрать `https://ledoksi.github.io/backlog/v2/` из Supabase → Authentication → URL Configuration → Redirect URLs.
+Георгий подтвердил, что новая версия работает полностью, и попросил закрыть хвосты. Из сайта убраны страница-переадресация `/backlog/v2/`, обработчик `fetch` в `sw-retire-v1.js` и `BL_BASE` в `vite.config.ts`. Остался только воркер-«выключатель» `/backlog/v2/sw.js`: браузер, у которого проверка обновления получает 404, оставляет старый воркер и его устаревшую копию приложения навсегда, а выключатель её снимает. Новый заход на `/backlog/v2/` без старой установки получает 404 от GitHub Pages. Ручной шаг владельца: убрать `https://ledoksi.github.io/backlog/v2/` из Supabase → Authentication → URL Configuration → Redirect URLs.
 
