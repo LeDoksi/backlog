@@ -5,9 +5,6 @@ select plan(16);
 create temp table as_user (id uuid) on commit drop;
 grant all on as_user to authenticated;
 
--- An auth.users insert also fires the legacy handle_new_user trigger, which
--- until drop_legacy creates the profile itself: that is the path real
--- sign-ins take, so the tests go through it too.
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000f0', 'owner@test', '{"full_name":"Owner"}');
 insert into public.workspaces (id, kind) values ('10000000-0000-0000-0000-0000000000f0', 'shared');
@@ -18,8 +15,8 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000a', 'stranger@test', '{}'),
   ('00000000-0000-0000-0000-00000000000b', 'Guest@test', '{"full_name":"Guest Person"}'),
   ('00000000-0000-0000-0000-00000000000c', 'friend@test', '{"full_name":"Friend"}');
--- A profile the legacy trigger never made (the invite came after sign-up).
-delete from public.profiles where id = '00000000-0000-0000-0000-00000000000b';
+-- A profile the v1 trigger made before drop_legacy, without a board.
+insert into public.profiles (id, email) values ('00000000-0000-0000-0000-00000000000c', 'friend@test');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a"}';
@@ -36,7 +33,7 @@ select is(public.my_profile()->>'display_name', 'Guest Person', 'display name co
 reset role;
 select is((select count(*)::int from public.workspace_members where user_id = '00000000-0000-0000-0000-00000000000b'), 1, 'one membership');
 
--- Legacy trigger made the profile (in the inviter's old space); the call
+-- The v1 trigger made the profile; the call
 -- still has to give the person their own board and pass the invite on.
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c"}';

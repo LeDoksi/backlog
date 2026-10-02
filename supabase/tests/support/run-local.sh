@@ -23,10 +23,14 @@ schema() { pg_dump --schema-only --no-owner --exclude-schema=pgtap "$@" | grep -
 # Migrations that ship a rollback (supabase/rollbacks/<same name>) are the
 # reversible ones; everything before them is history.
 reversible=()
+# A migration without a rollback after reversible ones (drop_legacy) cannot
+# be stepped back over, so everything before it becomes history too.
 for f in "$root"/supabase/migrations/*.sql; do
   if [ -f "$rollbacks/$(basename "$f")" ]; then
     [ ${#reversible[@]} -eq 0 ] && schema > "$dir/before.sql"
     reversible+=("$f")
+  else
+    reversible=()
   fi
   apply "$f"
 done
