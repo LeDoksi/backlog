@@ -291,7 +291,7 @@ export function useVisualViewport() {
 1. Пройти чек-лист паритета спеки 6.12 вместе с владельцем на его телефоне и ПК; каждый пункт — отметка в задаче канбана.
 2. Воркер v2 в корне: `registerType: 'autoUpdate'`, `cleanupOutdatedCaches: true`, при активации удалить кэши `backlog-shell-v1` и `backlog-covers-v1` (кэши v1).
 3. После деплоя проверить: старый воркер заменён (DevTools), вход работает с `https://ledoksi.github.io/backlog/` (redirect URL корня уже есть), зеркало `bl2:*` на месте.
-4. Через неделю без жалоб удалить из Supabase Redirect URLs адрес `/backlog/v2/` и из `vite.config.ts` поддержку `BL_BASE=/backlog/v2/`.
+4. Через неделю без жалоб удалить из Supabase Redirect URLs адрес `/backlog/v2/` и из `vite.config.ts` поддержку `BL_BASE=/backlog/v2/`. **Сделано 2026-10-02** (код; Redirect URLs — вручную у владельца), см. план C14.
 
 ## Отклонения при реализации (2026-09-28)
 

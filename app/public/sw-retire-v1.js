@@ -18,12 +18,3 @@ self.addEventListener('activate', function (event) {
   );
 });
 
-// The old /backlog/v2/ address (a home-screen icon saved from there keeps
-// opening it) is answered here, so it lands on the app even offline instead
-// of needing the redirect page from the network.
-self.addEventListener('fetch', function (event) {
-  var request = event.request;
-  if (request.mode !== 'navigate') return;
-  if (!/^\/backlog\/v2(\/|$)/.test(new URL(request.url).pathname)) return;
-  event.respondWith(Response.redirect(self.registration.scope, 302));
-});

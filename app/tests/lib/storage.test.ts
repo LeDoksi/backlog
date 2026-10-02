@@ -2,90 +2,7 @@
 // deliberately partial or malformed to exercise the modules' defensive paths,
 // so they are run, not type-checked.
 import assert from 'node:assert/strict';
-import { getOverrides, setOverride, deleteTitle, applyOverlay, addTitle, getAdded, removeAdded, getCheckedParts, setCheckedParts, setPartChecked, deriveStatus, deriveAiringStatus, partsProgress, hasPartsChecklist, isCaughtUp, effectiveStatus, withDerivedStatus } from '../../src/lib/storage';
-
-function fakeStorage() {
-  var data = {};
-  return {
-    getItem: function (k) { return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
-    setItem: function (k, v) { data[k] = v; }
-  };
-}
-
-test('applyOverlay merges status override into matching title', () => {
-  var storage = fakeStorage();
-  setOverride(storage, 'frieren-2023', { status: 'in_progress' });
-  var titles = [{ id: 'frieren-2023', status: 'queue', title: 'Frieren' }];
-  var result = applyOverlay(titles, storage);
-  assert.equal(result[0].status, 'in_progress');
-});
-
-test('applyOverlay does not mutate the original title object', () => {
-  var storage = fakeStorage();
-  setOverride(storage, 'frieren-2023', { status: 'done' });
-  var original = { id: 'frieren-2023', status: 'queue' };
-  applyOverlay([original], storage);
-  assert.equal(original.status, 'queue');
-});
-
-test('deleteTitle removes a title from backlog-added and is idempotent', () => {
-  var storage = fakeStorage();
-  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
-  deleteTitle(storage, 'dune-3');
-  deleteTitle(storage, 'dune-3');
-  assert.deepEqual(getAdded(storage), []);
-});
-
-test('setOverride merges patches across multiple calls', () => {
-  var storage = fakeStorage();
-  setOverride(storage, 'ted-lasso-2020', { status: 'in_progress' });
-  setOverride(storage, 'ted-lasso-2020', { rating: 8 });
-  var titles = [{ id: 'ted-lasso-2020', status: 'queue', rating: null }];
-  var result = applyOverlay(titles, storage);
-  assert.deepEqual({ status: result[0].status, rating: result[0].rating }, { status: 'in_progress', rating: 8 });
-});
-
-test('addTitle appends to the added list', () => {
-  var storage = fakeStorage();
-  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
-  assert.deepEqual(getAdded(storage), [{ id: 'dune-3', title: 'Dune 3' }]);
-});
-
-test('removeAdded drops only the matching draft', () => {
-  var storage = fakeStorage();
-  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
-  addTitle(storage, { id: 'tron-ares', title: 'Tron Ares' });
-  var kept = removeAdded(storage, 'dune-3');
-  assert.deepEqual(kept.map(function (t) { return t.id; }), ['tron-ares']);
-  assert.deepEqual(getAdded(storage).map(function (t) { return t.id; }), ['tron-ares']);
-});
-
-test('deleting a title removes it from backlog-added', () => {
-  var storage = fakeStorage();
-  addTitle(storage, { id: 'dune-3', title: 'Dune 3' });
-  deleteTitle(storage, 'dune-3');
-  assert.deepEqual(getAdded(storage), []);
-});
-
-test('a title can be deleted and then re-added under the same id', () => {
-  var storage = fakeStorage();
-  addTitle(storage, { id: 'dune-3', title: 'Dune 3', draft: true });
-  deleteTitle(storage, 'dune-3');
-  assert.deepEqual(applyOverlay(getAdded(storage), storage), []);
-
-  // Same name typed again mints the same id, because the deleted title is gone
-  // from the existing-id set. It must come back, not be eaten by a tombstone.
-  addTitle(storage, { id: 'dune-3', title: 'Dune 3', draft: true });
-  var visible = applyOverlay(getAdded(storage), storage);
-  assert.deepEqual(visible.map(function (t) { return t.id; }), ['dune-3']);
-});
-
-// ── Season/part tracking ─────────────────────────────────────────────────
-//
-// `parts` is catalog data (what exists, and whether it has come out yet);
-// which of them the owner has seen is local state, so the two are stored
-// apart — the checked indices live under their own `backlog-parts` key and
-// only the *derived* status is written back through `setOverride`.
+import { deriveStatus, deriveAiringStatus, partsProgress, hasPartsChecklist, isCaughtUp } from '../../src/lib/storage';
 
 const RELEASED_ONLY = [
   { name: 'Сезон 1', year: 2019, released: true },
@@ -97,57 +14,6 @@ const ONE_PENDING = [
   { name: 'Сезон 2', year: 2020, released: true },
   { name: 'Сезон 3', year: 2027, released: false }
 ];
-
-test('getCheckedParts is empty for a title that was never touched', () => {
-  var storage = fakeStorage();
-  assert.deepEqual(getCheckedParts(storage, 're-zero-2016'), []);
-});
-
-test('setPartChecked adds and removes a single index, per title', () => {
-  var storage = fakeStorage();
-  setPartChecked(storage, 're-zero-2016', 0, true);
-  setPartChecked(storage, 're-zero-2016', 2, true);
-  setPartChecked(storage, 'the-boys-2019', 1, true);
-  assert.deepEqual(getCheckedParts(storage, 're-zero-2016'), [0, 2]);
-  assert.deepEqual(getCheckedParts(storage, 'the-boys-2019'), [1]);
-
-  setPartChecked(storage, 're-zero-2016', 0, false);
-  assert.deepEqual(getCheckedParts(storage, 're-zero-2016'), [2]);
-  assert.deepEqual(getCheckedParts(storage, 'the-boys-2019'), [1]);
-});
-
-test('setPartChecked is idempotent in both directions', () => {
-  var storage = fakeStorage();
-  setPartChecked(storage, 'x', 1, true);
-  setPartChecked(storage, 'x', 1, true);
-  assert.deepEqual(getCheckedParts(storage, 'x'), [1]);
-  setPartChecked(storage, 'x', 1, false);
-  setPartChecked(storage, 'x', 1, false);
-  assert.deepEqual(getCheckedParts(storage, 'x'), []);
-});
-
-// Anything that is not a non-negative integer is dropped rather than coerced —
-// including the string '2'. A JSON round-trip of this key can only ever produce
-// numbers, so a string here means the payload was hand-edited or corrupt, and
-// guessing at what it meant is worse than ignoring it.
-test('checked indices are stored sorted, deduped and free of junk', () => {
-  var storage = fakeStorage();
-  setCheckedParts(storage, 'x', [3, 1, 1, '2', -1, 2.5, null, undefined, NaN]);
-  assert.deepEqual(getCheckedParts(storage, 'x'), [1, 3]);
-});
-
-test('a corrupt backlog-parts payload reads as empty rather than throwing', () => {
-  var storage = fakeStorage();
-  storage.setItem('backlog-parts', '{not json');
-  assert.deepEqual(getCheckedParts(storage, 'x'), []);
-});
-
-test('unchecking the last part leaves an explicit empty record, not a missing one', () => {
-  var storage = fakeStorage();
-  setPartChecked(storage, 'x', 0, true);
-  setPartChecked(storage, 'x', 0, false);
-  assert.deepEqual(JSON.parse(storage.getItem('backlog-parts')), { x: [] });
-});
 
 test('deriveStatus returns null when there is nothing to derive from', () => {
   assert.equal(deriveStatus(undefined, []), null);
@@ -222,43 +88,6 @@ test('deriveStatus is a pure function of its arguments', () => {
   assert.deepEqual(parts, ONE_PENDING);
 });
 
-test('checked parts survive a status override write on the same title', () => {
-  // The two concerns share an id but not a key, so writing the derived status
-  // through the existing overrides path must not disturb the checklist.
-  var storage = fakeStorage();
-  setPartChecked(storage, 'the-boys-2019', 0, true);
-  setOverride(storage, 'the-boys-2019', { status: 'in_progress', rating: 9 });
-  assert.deepEqual(getCheckedParts(storage, 'the-boys-2019'), [0]);
-  var visible = applyOverlay([{ id: 'the-boys-2019', status: 'queue', rating: null }], storage);
-  assert.equal(visible[0].status, 'in_progress');
-  // The checklist must not leak onto the title object — nothing downstream
-  // (filters, sort, validation) knows what a checkedParts field would be.
-  assert.equal('checkedParts' in visible[0], false);
-});
-
-test('the full check-everything-released round trip on a title with a pending part', () => {
-  var storage = fakeStorage();
-  var id = 're-zero-2016';
-  assert.equal(deriveStatus(ONE_PENDING, getCheckedParts(storage, id)), 'queue');
-  setPartChecked(storage, id, 0, true);
-  assert.equal(deriveStatus(ONE_PENDING, getCheckedParts(storage, id)), 'in_progress');
-  setPartChecked(storage, id, 1, true);
-  assert.equal(deriveStatus(ONE_PENDING, getCheckedParts(storage, id)), 'in_progress');
-  // …and back down again.
-  setPartChecked(storage, id, 1, false);
-  setPartChecked(storage, id, 0, false);
-  assert.equal(deriveStatus(ONE_PENDING, getCheckedParts(storage, id)), 'queue');
-});
-
-// ── The status of a parts-bearing title is DERIVED, never written on read ──
-//
-// Review finding (Important): merely opening the modal used to reconcile a
-// stale stored status by calling setOverride, so a pure view action destroyed
-// the owner's own «Завершено» mark with no confirmation and no undo. The fix
-// makes the derived status a *read-time* property of the title, so the card,
-// the modal, the filters and the counters all agree without anything being
-// persisted until the owner actually ticks a box. These tests pin that down.
-
 const PARTS_TITLE = {
   id: 're-zero-2016',
   category: 'anime',
@@ -273,51 +102,6 @@ test('hasPartsChecklist is true only for a series/anime with a non-empty parts a
   assert.equal(hasPartsChecklist({ id: 'x', category: 'anime', parts: [] }), false);
   assert.equal(hasPartsChecklist({ id: 'x', category: 'anime' }), false);
   assert.equal(hasPartsChecklist(null), false);
-});
-
-test('applyOverlay derives the status of a parts-bearing title from its checklist', () => {
-  var storage = fakeStorage();
-  setPartChecked(storage, 're-zero-2016', 0, true);
-  var visible = applyOverlay([PARTS_TITLE], storage);
-  assert.equal(visible[0].status, 'in_progress');
-});
-
-test('applyOverlay does NOT write the derived status back to storage', () => {
-  // The regression this whole round exists for. A stored «Завершено» that
-  // disagrees with an empty checklist is displayed as the derived value and
-  // left in storage untouched, so nothing is lost and a later migration can
-  // still see what the owner had actually marked.
-  var storage = fakeStorage();
-  setOverride(storage, 're-zero-2016', { status: 'done', rating: 10 });
-  var before = storage.getItem('backlog-overrides');
-  var visible = applyOverlay([PARTS_TITLE], storage);
-  assert.equal(visible[0].status, 'queue');   // shown as derived…
-  assert.equal(visible[0].rating, 10);        // …the rest of the override still applies
-  assert.equal(storage.getItem('backlog-overrides'), before); // …and nothing was written
-  assert.deepEqual(getOverrides(storage)['re-zero-2016'], { status: 'done', rating: 10 });
-  // Reading twice must be just as inert as reading once.
-  applyOverlay([PARTS_TITLE], storage);
-  assert.equal(storage.getItem('backlog-overrides'), before);
-});
-
-test('applyOverlay does not mutate the parts-bearing title it derives for', () => {
-  var storage = fakeStorage();
-  setPartChecked(storage, 're-zero-2016', 0, true);
-  applyOverlay([PARTS_TITLE], storage);
-  assert.equal(PARTS_TITLE.status, 'queue');
-});
-
-test('applyOverlay leaves a title without a checklist on its stored status', () => {
-  var storage = fakeStorage();
-  setOverride(storage, 'frieren-2023', { status: 'done' });
-  var visible = applyOverlay([{ id: 'frieren-2023', category: 'anime', status: 'queue' }], storage);
-  assert.equal(visible[0].status, 'done');
-});
-
-test('effectiveStatus falls back to the stored status when there is nothing to derive from', () => {
-  var storage = fakeStorage();
-  assert.equal(effectiveStatus(storage, { id: 'x', category: 'movie', status: 'done' }), 'done');
-  assert.equal(effectiveStatus(storage, { id: 'x', category: 'anime', parts: [], status: 'done' }), 'done');
 });
 
 test('partsProgress ignores a checked index that is out of range', () => {
@@ -375,123 +159,6 @@ test('deriveAiringStatus is a pure function of its argument', () => {
   var parts = ONE_PENDING.slice();
   deriveAiringStatus(parts);
   assert.deepEqual(parts, ONE_PENDING);
-});
-
-test('withDerivedStatus corrects a stale airingStatus on a mixed parts list', () => {
-  var storage = fakeStorage();
-  var title = { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING };
-  var out = withDerivedStatus(storage, title);
-  assert.equal(out.airingStatus, 'ongoing');
-  assert.equal(out.status, 'queue');
-  assert.notEqual(out, title);          // a copy was needed…
-  assert.equal(title.airingStatus, 'completed'); // …and the original is untouched
-});
-
-test('withDerivedStatus leaves an already-correct mixed title as the same object', () => {
-  var storage = fakeStorage();
-  var title = { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'ongoing', parts: ONE_PENDING };
-  var out = withDerivedStatus(storage, title);
-  assert.equal(out, title); // nothing differs, so nothing is cloned
-  assert.equal(out.airingStatus, 'ongoing');
-});
-
-test('withDerivedStatus clones for airingStatus alone when only that field differs', () => {
-  // status already matches the derived value, airingStatus does not: the clone
-  // must still happen, and must carry the corrected badge.
-  var storage = fakeStorage();
-  var title = { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING };
-  var out = withDerivedStatus(storage, title);
-  assert.notEqual(out, title);
-  assert.deepEqual({ status: out.status, airingStatus: out.airingStatus }, { status: 'queue', airingStatus: 'ongoing' });
-});
-
-// The double-signal rule, tested through the function that owns it. An
-// all-pending title derives to `unreleased`, and the badge must be off — the
-// status chip already says «Ещё не вышло», so «Всё ещё выходит» next to it
-// would be redundant and contradictory. This holds no matter what the stored
-// airingStatus claimed.
-test('withDerivedStatus on an all-pending list derives unreleased AND forces the badge off', () => {
-  var storage = fakeStorage();
-  var title = { id: 'upcoming-2027', category: 'anime', status: 'queue', airingStatus: 'ongoing', parts: ALL_PENDING };
-  var out = withDerivedStatus(storage, title);
-  assert.equal(out.status, 'unreleased');
-  assert.equal(out.airingStatus, 'completed');
-});
-
-test('a stray check on an unreleased part cannot bring the badge back', () => {
-  // Nothing a viewer (or corrupt storage) can do reaches the badge: it is a
-  // fact about the parts list, and the unreleased clamp sits above it anyway.
-  var storage = fakeStorage();
-  setPartChecked(storage, 'upcoming-2027', 0, true);
-  setPartChecked(storage, 'upcoming-2027', 9, true);
-  var title = { id: 'upcoming-2027', category: 'anime', status: 'done', airingStatus: 'ongoing', parts: ALL_PENDING };
-  var out = withDerivedStatus(storage, title);
-  assert.equal(out.status, 'unreleased');
-  assert.equal(out.airingStatus, 'completed');
-});
-
-test('withDerivedStatus never derives ongoing for a fully released parts list', () => {
-  var storage = fakeStorage();
-  // done: everything released, everything checked.
-  setCheckedParts(storage, 'wrapped-2019', [0, 1]);
-  var done = withDerivedStatus(storage, { id: 'wrapped-2019', category: 'series', status: 'queue', airingStatus: 'ongoing', parts: RELEASED_ONLY });
-  assert.deepEqual({ status: done.status, airingStatus: done.airingStatus }, { status: 'done', airingStatus: 'completed' });
-
-  // in_progress: everything released, not everything watched — the ordinary
-  // "I'm midway through a finished show" state, and plainly reachable.
-  var storage2 = fakeStorage();
-  setCheckedParts(storage2, 'wrapped-2019', [0]);
-  var mid = withDerivedStatus(storage2, { id: 'wrapped-2019', category: 'series', status: 'queue', airingStatus: 'ongoing', parts: RELEASED_ONLY });
-  assert.deepEqual({ status: mid.status, airingStatus: mid.airingStatus }, { status: 'in_progress', airingStatus: 'completed' });
-
-  // queue: everything released, nothing watched.
-  var storage3 = fakeStorage();
-  var untouched = withDerivedStatus(storage3, { id: 'wrapped-2019', category: 'series', status: 'queue', airingStatus: 'ongoing', parts: RELEASED_ONLY });
-  assert.deepEqual({ status: untouched.status, airingStatus: untouched.airingStatus }, { status: 'queue', airingStatus: 'completed' });
-});
-
-test('withDerivedStatus leaves airingStatus alone on a title without a parts checklist', () => {
-  var storage = fakeStorage();
-  // No parts at all.
-  var movie = { id: 'barbie-2023', category: 'movie', status: 'done', airingStatus: 'ongoing' };
-  assert.equal(withDerivedStatus(storage, movie), movie);
-  assert.equal(withDerivedStatus(storage, movie).airingStatus, 'ongoing');
-
-  // A series with no parts list: still hand-maintained, still untouched.
-  var series = { id: 'frieren-2023', category: 'series', status: 'queue', airingStatus: 'ongoing' };
-  assert.equal(withDerivedStatus(storage, series), series);
-
-  // Empty parts array — hasPartsChecklist is false, so same again.
-  var empty = { id: 'x', category: 'anime', status: 'queue', airingStatus: 'completed', parts: [] };
-  assert.equal(withDerivedStatus(storage, empty), empty);
-
-  // Wrong category with a real parts array: the checklist gate is what decides,
-  // and a movie is never parts-bearing however its data looks.
-  var oddMovie = { id: 'y', category: 'movie', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING };
-  assert.equal(withDerivedStatus(storage, oddMovie), oddMovie);
-  assert.equal(withDerivedStatus(storage, oddMovie).airingStatus, 'completed');
-
-  // …and a null airingStatus is a value like any other: not invented, not filled in.
-  var noBadge = { id: 'z', category: 'game', status: 'queue', airingStatus: null };
-  assert.equal(withDerivedStatus(storage, noBadge), noBadge);
-});
-
-test('applyOverlay hands the derived airingStatus to consumers', () => {
-  // The badge renderer and the "returning" filter read title.airingStatus and
-  // nothing else, so this is the whole integration surface.
-  var storage = fakeStorage();
-  var visible = applyOverlay([
-    { id: 're-zero-2016', category: 'anime', status: 'queue', airingStatus: 'completed', parts: ONE_PENDING },
-    { id: 'upcoming-2027', category: 'anime', status: 'queue', airingStatus: 'ongoing', parts: ALL_PENDING },
-    { id: 'barbie-2023', category: 'movie', status: 'done', airingStatus: 'ongoing' }
-  ], storage);
-  assert.deepEqual(visible.map(function (t) { return [t.status, t.airingStatus]; }), [
-    ['queue', 'ongoing'],
-    ['unreleased', 'completed'],
-    ['done', 'ongoing']
-  ]);
-  // Still a pure read: nothing was persisted for any of them.
-  assert.equal(storage.getItem('backlog-overrides'), null);
 });
 
 // ── Brute force: prove the claims rather than assert them ──────────────────
@@ -554,24 +221,6 @@ test('deriveStatus is byte-for-byte unchanged for every list with a released par
     });
   });
   assert.ok(checkedCases > 100); // the sweep actually ran
-});
-
-test('a derived unreleased title can never carry an ongoing badge', () => {
-  ['ongoing', 'completed', null, undefined].forEach(function (stored) {
-    everyPartsList(4).forEach(function (parts) {
-      everyCheckedSubset(parts.length).forEach(function (checked) {
-        var storage = fakeStorage();
-        setCheckedParts(storage, 'sweep', checked);
-        var out = withDerivedStatus(storage, {
-          id: 'sweep', category: 'anime', status: 'queue', airingStatus: stored, parts: parts
-        });
-        var p = partsProgress(parts, checked);
-        assert.equal(out.status, deriveStatus(parts, checked));
-        assert.ok(!(out.status === 'unreleased' && out.airingStatus === 'ongoing'));
-        assert.equal(out.airingStatus, (p.released > 0 && p.pending > 0) ? 'ongoing' : 'completed');
-      });
-    });
-  });
 });
 
 test('isCaughtUp: every released part watched and more announced', () => {

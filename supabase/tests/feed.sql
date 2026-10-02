@@ -1,6 +1,6 @@
 -- feed(): what a viewer sees of others' events, and how lines merge.
 begin;
-select plan(14);
+select plan(17);
 \ir support/social_fixture.sql
 update public.workspaces set visibility = 'friends' where id in ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000b3');
 select pg_temp.put('00000000-0000-0000-0000-0000000000b2', 'fr-2020', 'in_progress', false, null, null, 'anime');
@@ -53,6 +53,12 @@ update public.profiles set share_activity = true where id = '00000000-0000-0000-
 update public.titles set hidden = true where id = 'fr-2020';
 set local role authenticated;
 select is((select count(*)::int from public.feed() where title_id = 'fr-2020'), 0, 'hiding a title takes its lines back');
+-- Time zone: a real one is kept, anything else falls back to UTC.
+reset role;
+select is(array[public.safe_tz('Europe/Moscow'), public.safe_tz('Mars/Base'), public.safe_tz(null), public.safe_tz('UTC+3'), public.safe_tz('MSK')], array['Europe/Moscow', 'UTC', 'UTC', 'UTC', 'UTC'], 'safe_tz keeps real zone names only');
+set local role authenticated;
+select is((select count(*)::int from public.feed(now(), 60, 'Mars/Base')), (select count(*)::int from public.feed(now(), 60, 'UTC')), 'an unknown zone reads as UTC');
+select lives_ok($$select * from public.feed(now(), 60, null)$$, 'no zone at all is fine');
 -- Badge: every line is new before the first visit, none after.
 select public.mark_feed_seen();
 select is(public.badge_count(), 0, 'after opening the tab the badge is empty');

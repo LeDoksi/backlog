@@ -19,11 +19,11 @@ jobs:
         with: { node-version: 22, cache: npm, cache-dependency-path: app/package-lock.json }
       - working-directory: app
         run: npm ci && npm test && npm run build
-      - name: Assemble site (app at root, old /v2/ address redirects)
+      - name: Assemble site (plus the worker that retires old /v2/ installs)
         run: |
           cp -r app/dist _site
           cp -r images _site/images
-          cp -r app/retired-v2 _site/v2
+          mkdir -p _site/v2 && cp app/retired-v2/sw.js _site/v2/sw.js
       - uses: actions/upload-pages-artifact@v3
         with: { path: _site }
   deploy:

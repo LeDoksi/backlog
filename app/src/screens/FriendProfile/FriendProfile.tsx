@@ -42,8 +42,10 @@ export function FriendProfile() {
     if (!target) return;
     setPage(null); setTaste(null); setMenu(false); setFailed(false); setPicked(null); setTab(target.tab);
     const client = getSupabase();
-    void friendProfile(client, target.id).then((p) => { setPage(p); if (p === null) setFailed(true); });
-    void tasteMatch(client, target.id).then(setTaste);
+    let live = true;
+    void friendProfile(client, target.id).then((p) => { if (!live) return; setPage(p); if (p === null) setFailed(true); });
+    void tasteMatch(client, target.id).then((t) => { if (live) setTaste(t); });
+    return () => { live = false; };
   }, [target]);
 
   useEffect(() => {

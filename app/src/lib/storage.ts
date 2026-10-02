@@ -1,89 +1,18 @@
 // storage.ts
-import type { AiringStatus, Part, Status, StorageLike, Title } from './types';
-
-var OVERRIDES_KEY = 'backlog-overrides';
-var ADDED_KEY = 'backlog-added';
-var PARTS_KEY = 'backlog-parts';
-
-function readJSON(storage: StorageLike, key: string, fallback: any): any {
-  var raw = storage.getItem(key);
-  if (!raw) return fallback;
-  try {
-    return JSON.parse(raw);
-  } catch (e) {
-    return fallback;
-  }
-}
-
-function getOverrides(storage: StorageLike): Record<string, Partial<Title>> {
-  return readJSON(storage, OVERRIDES_KEY, {});
-}
-
-function setOverride(storage: StorageLike, id: string, patch: Partial<Title>): void {
-  var overrides = getOverrides(storage);
-  overrides[id] = Object.assign({}, overrides[id], patch);
-  storage.setItem(OVERRIDES_KEY, JSON.stringify(overrides));
-}
-
-// Every title lives in backlog-added now — there is no separate catalog
-// tombstone to choose between (see README, «Каталог как данные
-// пространства»). Deleting a title is always just removing its row.
-function deleteTitle(storage: StorageLike, id: string): void {
-  removeAdded(storage, id);
-}
-
-function applyOverlay(titles: Title[], storage: StorageLike): Title[] {
-  var overrides = getOverrides(storage);
-  return titles.map(function (t) {
-    var merged = overrides[t.id] ? Object.assign({}, t, overrides[t.id]) : t;
-    // Derived last, and read-only: for a title with a parts checklist the
-    // checklist outranks any stored status, and it does so without writing
-    // anything back. See the note above `effectiveStatus`.
-    return withDerivedStatus(storage, merged);
-  });
-}
-
-function getAdded(storage: StorageLike): Title[] {
-  return readJSON(storage, ADDED_KEY, []);
-}
-
-function addTitle(storage: StorageLike, title: Title): void {
-  var added = getAdded(storage);
-  added.push(title);
-  storage.setItem(ADDED_KEY, JSON.stringify(added));
-}
-
-function removeAdded(storage: StorageLike, id: string): Title[] {
-  var kept = getAdded(storage).filter(function (t) { return t.id !== id; });
-  storage.setItem(ADDED_KEY, JSON.stringify(kept));
-  return kept;
-}
-
-// ── Season/part tracking ───────────────────────────────────────────────
 //
+// Season/part tracking: the rules that turn a `parts` list and the ticked
+// indices into a status. The local overlay that used to live here (overrides,
+// added titles and ticks in localStorage, synced to the drafts/overrides/parts
+// tables) went with those tables; titles and their ticks now live in the
+// `titles` table (see data/titlesStore.ts). The name stayed so imports did not
+// have to move.
+import type { AiringStatus, Part, Status, Title } from './types';
+
 // A series/anime title may carry `parts`: the seasons, films and OVAs it is
-// made of, in release order, each flagged `released: true|false`. That is
-// catalog data — it says what exists, not what the owner has watched.
-//
-// Which parts they *have* watched is local state, and it gets its own key
-// rather than a field on `backlog-overrides`. Two reasons. First, overrides
-// are merged straight onto the title object by `applyOverlay`, so a
-// `checkedParts` field there would ride along into every consumer — filters,
-// sort, the validator, the card renderer — none of which know what it is.
-// Second, the checklist and the status are different kinds of fact: the
-// checklist is the input, the status is the output. Only the output belongs
-// on the title, and it is written through the existing `setOverride` path so
-// that every surface already built on `status` keeps working untouched.
-//
-// Shape: { "<title id>": [0, 2, 3] } — the indices of the checked parts.
-// Indices, not names: `parts` is written once in release order and only ever
-// appended to (a season that has aired does not un-air), so an index is
-// stable, while a name is free text that may well get retitled.
-
-function getPartsState(storage: StorageLike): Record<string, number[]> {
-  var state = readJSON(storage, PARTS_KEY, {});
-  return (state && typeof state === 'object' && !Array.isArray(state)) ? state : {};
-}
+// made of, in release order, each flagged `released: true|false`. Which parts
+// the owner has watched is a list of indices into it. Indices, not names:
+// `parts` is written once in release order and only ever appended to, so an
+// index is stable, while a name is free text that may well get retitled.
 
 // Anything that is not a non-negative integer is not an index into `parts`,
 // and duplicates would make "how many are checked" a lie. Sorted so the
@@ -99,27 +28,6 @@ function normalizeIndices(indices: unknown): number[] {
     out.push(n);
   });
   return out.sort(function (a, b) { return a - b; });
-}
-
-function getCheckedParts(storage: StorageLike, id: string): number[] {
-  return normalizeIndices(getPartsState(storage)[id]);
-}
-
-function setCheckedParts(storage: StorageLike, id: string, indices: unknown): number[] {
-  var state = getPartsState(storage);
-  // Written even when empty, on purpose: "nothing checked" is a decision the
-  // owner made, and it has to be distinguishable from "never opened".
-  state[id] = normalizeIndices(indices);
-  storage.setItem(PARTS_KEY, JSON.stringify(state));
-  return state[id];
-}
-
-function setPartChecked(storage: StorageLike, id: string, index: number, checked: boolean): number[] {
-  var current = getCheckedParts(storage, id);
-  var at = current.indexOf(index);
-  if (checked && at === -1) current.push(index);
-  else if (!checked && at !== -1) current.splice(at, 1);
-  return setCheckedParts(storage, id, current);
 }
 
 // How much of a `parts` list has been watched. Counted by walking `parts`,
@@ -217,72 +125,10 @@ function isCaughtUp(title: Title, checkedIndices: unknown): boolean {
   return p.released > 0 && p.pending > 0 && p.watched === p.released;
 }
 
-// The status of a parts-bearing title is COMPUTED ON READ, never written on
-// read.
-//
-// The first cut of this feature reconciled a disagreeing stored status by
-// calling setOverride when the modal opened. That made a pure view action
-// destructive: a title the owner had marked «Завершено» by hand was silently
-// rewritten to «В бэклоге» just by being looked at, with no confirmation and
-// no undo, because an untouched checklist derives to `queue`. At the scale of
-// the full data population that is a mass wipe of real watch history, and a
-// read that mutates state is also unworkable under last-write-wins sync — a
-// device with a stale `backlog-parts` would push its stale derivation over a
-// good value the moment someone opened the title.
-//
-// So the derived value is a *view* of the title, and `backlog-overrides` is
-// written only when the owner actually ticks a box. The stored status stays
-// exactly as they left it underneath, which is also what keeps a future
-// one-time migration (pre-tick the parts of everything marked done) possible
-// at all — that information would otherwise already be gone.
-function effectiveStatus(storage: StorageLike, title: Title | null | undefined): Status | undefined {
-  if (!hasPartsChecklist(title)) return title ? title.status : undefined;
-  return deriveStatus(title.parts, getCheckedParts(storage, title.id)) || title.status;
-}
-
-// Both derived fields land here, on the read path, under the same rule: write
-// a key onto a copy only when it actually differs, so an unaffected title
-// comes back as the very same object reference.
-//
-// `airingStatus` is derived ONLY for parts-bearing titles. Movies, games and
-// any series/anime without a `parts` list keep it as the manually-maintained
-// field it has always been, untouched.
-//
-// The `unreleased` → `completed` clamp is a rule of its own, not an
-// observation about `deriveAiringStatus`'s arithmetic. An `unreleased` title
-// must never also show "Всё ещё выходит": the status badge already says
-// "Ещё не вышло", and the two together are contradictory. Today
-// `deriveAiringStatus` happens to return `completed` for an all-pending list
-// anyway — this line is what guarantees a future change to that function
-// cannot quietly bring the double signal back.
-function withDerivedStatus(storage: StorageLike, title: Title): Title {
-  var status = effectiveStatus(storage, title);
-  var patch: Partial<Title> | null = status === title.status ? null : { status: status };
-  if (hasPartsChecklist(title)) {
-    var airing = status === 'unreleased' ? 'completed' : deriveAiringStatus(title.parts);
-    if (airing !== title.airingStatus) {
-      patch = Object.assign(patch || {}, { airingStatus: airing });
-    }
-  }
-  return patch ? Object.assign({}, title, patch) : title;
-}
-
 export {
-  getOverrides,
-  setOverride,
-  deleteTitle,
-  applyOverlay,
-  getAdded,
-  addTitle,
-  removeAdded,
-  getCheckedParts,
-  setCheckedParts,
-  setPartChecked,
   partsProgress,
   deriveStatus,
   deriveAiringStatus,
   hasPartsChecklist,
-  isCaughtUp,
-  effectiveStatus,
-  withDerivedStatus
+  isCaughtUp
 };
