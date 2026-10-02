@@ -147,10 +147,15 @@ export async function matches(client: SupabaseLike): Promise<Match[] | null> {
   return Array.isArray(rows) ? rows : null;
 }
 
+/** The server reads at most this many keys per call, so a big board goes in batches. */
+const KEYS_PER_CALL = 500;
+
 export async function friendsOnTitles(client: SupabaseLike, keys: string[]): Promise<FriendOn[] | null> {
-  if (!keys.length) return [];
-  const rows = data<FriendOn[]>(await callRpc(client, 'friends_on_titles', { p_keys: keys }));
-  return Array.isArray(rows) ? rows : null;
+  const batches: string[][] = [];
+  for (let i = 0; i < keys.length; i += KEYS_PER_CALL) batches.push(keys.slice(i, i + KEYS_PER_CALL));
+  const answers = await Promise.all(batches.map(async (b) => data<FriendOn[]>(await callRpc(client, 'friends_on_titles', { p_keys: b }))));
+  if (!answers.every(Array.isArray)) return null;
+  return (answers as FriendOn[][]).flat();
 }
 
 // ── Leaderboard ────────────────────────────────────────────────────────

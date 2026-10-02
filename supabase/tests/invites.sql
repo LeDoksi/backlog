@@ -2,7 +2,7 @@
 -- friend request from the link's owner; an expired one lets nobody in;
 -- following the same link again never makes a second request.
 begin;
-select plan(17);
+select plan(19);
 \ir support/social_fixture.sql
 
 -- Newcomers: not on allowed_emails, so the legacy trigger made no profile.
@@ -49,5 +49,10 @@ select pg_temp.login('00000000-0000-0000-0000-0000000000a1');
 select is(public.redeem_invite((select j->>'token' from link))->>'status', 'self', 'own link does nothing');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a2');
 select is(public.redeem_invite((select j->>'token' from link))->>'status', 'already_friends', 'a friend is already a friend');
+reset role;
+select results_eq($$select user_id::text, outcome from public.invite_redemptions order by user_id$$,
+  $$values ('00000000-0000-0000-0000-0000000000a2'::text, 'already_friends'::text), ('00000000-0000-0000-0000-0000000000a3', 'requested'),
+           ('00000000-0000-0000-0000-0000000000c1', 'requested')$$, 'each follower is recorded once, the owner never');
+select is((select count(*)::int from public.invite_redemptions r join public.invite_links l using (token)), 3, 'recorded against the link');
 select * from finish();
 rollback;

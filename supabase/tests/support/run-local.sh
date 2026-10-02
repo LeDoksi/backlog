@@ -32,6 +32,7 @@ for f in "$root"/supabase/migrations/*.sql; do
 done
 pg_prove --ext .sql "$tests"/*.sql
 "$here/race-board-limit.sh"
+"$here/race-friend-requests.sh"
 [ ${#reversible[@]} -eq 0 ] && exit 0
 echo "rollback check: down ${#reversible[@]} migrations, compare schema, up again"
 for (( i=${#reversible[@]}-1; i>=0; i-- )); do apply "$rollbacks/$(basename "${reversible[$i]}")"; done
@@ -40,3 +41,4 @@ diff -u "$dir/before.sql" "$dir/after.sql" || { echo "rollbacks do not restore t
 for f in "${reversible[@]}"; do apply "$f"; done
 pg_prove --ext .sql "$tests"/*.sql
 "$here/race-board-limit.sh"
+"$here/race-friend-requests.sh"

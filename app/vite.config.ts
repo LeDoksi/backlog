@@ -5,9 +5,8 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { extname, resolve, sep } from 'node:path';
 import type { Connect, Plugin } from 'vite';
 
-// The site root since v2 replaced v1. BL_BASE=/backlog/v2/ still builds the
-// old address for a week after the switch (plan C14, step 4).
-const base = process.env.BL_BASE ?? '/backlog/';
+// The site root since v2 replaced v1.
+const base = '/backlog/';
 
 // In production the repo's images/ is copied to /backlog/images/ (see
 // deploy.yml). Locally only app/ is served, so dev and preview (which e2e
@@ -53,9 +52,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Root build only: retires v1's caches and tabs once, and answers the
-        // old /backlog/v2/ address with a redirect to the root.
-        importScripts: base === '/backlog/' ? ['sw-retire-v1.js'] : [],
+        // Retires v1's caches and tabs once.
+        importScripts: ['sw-retire-v1.js'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         runtimeCaching: [

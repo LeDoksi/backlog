@@ -139,4 +139,15 @@ describe('friend page wrappers', () => {
     expect(await Social.leaderboard(rpcClient(ok({ status: 'off' })).client, 'game', 'all')).toEqual({ status: 'off' });
     expect(await Social.leaderboard(rpcClient(fail).client, 'game', 'all')).toBeNull();
   });
+
+  it('friendsOnTitles asks in batches of 500 keys and joins the answers', async () => {
+    const keys = Array.from({ length: 1201 }, (_, i) => `k${i}`);
+    const r = rpcClient((_n, args) => ({ data: [{ title_key: (args as { p_keys: string[] }).p_keys[0], friend_id: 'a', friend_name: 'А', status: 'done' }], error: null }));
+    const rows = await Social.friendsOnTitles(r.client, keys);
+    expect(r.calls.map((c) => (c.args as { p_keys: string[] }).p_keys.length)).toEqual([500, 500, 201]);
+    expect(rows?.map((x) => x.title_key)).toEqual(['k0', 'k500', 'k1000']);
+    let n = 0;
+    const flaky = rpcClient(() => (n++ === 1 ? fail() : { data: [], error: null }));
+    expect(await Social.friendsOnTitles(flaky.client, keys)).toBeNull();
+  });
 });

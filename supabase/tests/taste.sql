@@ -1,6 +1,6 @@
 -- taste_match and friend_shelf: over what each may see of the other.
 begin;
-select plan(14);
+select plan(15);
 \ir support/social_fixture.sql
 update public.workspaces set visibility = 'friends' where id in ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000b6');
 -- Me and friend: the same five finished titles, the same genres, one shared want.
@@ -20,6 +20,13 @@ select is(public.taste_match('00000000-0000-0000-0000-0000000000a2')->>'both_wan
 select is((public.taste_match('00000000-0000-0000-0000-0000000000a2')->'genres')::jsonb, '["драма", "фэнтези"]'::jsonb, 'shared genres');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a5')->>'percent', '0', 'nothing in common: 0');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a3')->>'status', 'not_enough', 'stranger''s board is private: too little to compare');
+reset role;
+update public.profiles set share_matches = false where id = '00000000-0000-0000-0000-0000000000a3';
+set local role authenticated;
+select is(public.taste_match('00000000-0000-0000-0000-0000000000a3')->>'status', 'not_enough', 'a stranger''s switch is not told');
+reset role;
+update public.profiles set share_matches = true where id = '00000000-0000-0000-0000-0000000000a3';
+set local role authenticated;
 
 -- Hidden titles do not count: hide one of the friend's finished ones.
 reset role;

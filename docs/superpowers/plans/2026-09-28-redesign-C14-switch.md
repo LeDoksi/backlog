@@ -83,3 +83,8 @@ S1 → S2 → S3 → S4 → S5, затем `npm test`, `typecheck`, `build`, `bu
 - В базовой миграции нет пояснений из README v1 к защите в `invite_email`; они есть в истории git.
 - В `.gitignore` осталась строка `tools/catalog-migration-input/`.
 - Страница-переадресация без JS теряет `#` в адресе.
+
+## Шаг 4: старый адрес `/backlog/v2/` убран (2026-10-02)
+
+Георгий подтвердил, что новая версия работает полностью, и попросил закрыть хвосты. Из сайта убраны страница-переадресация и воркер `/backlog/v2/` (`app/retired-v2/`, строка в `deploy.yml`), обработчик `fetch` в `sw-retire-v1.js` и `BL_BASE` в `vite.config.ts`. Иконка, сохранённая со старого адреса, теперь получит 404 от GitHub Pages. Ручной шаг владельца: убрать `https://ledoksi.github.io/backlog/v2/` из Supabase → Authentication → URL Configuration → Redirect URLs.
+
