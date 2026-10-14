@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DotsThree, EyeSlash, PencilSimple } from '@phosphor-icons/react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
+import { Popover } from '../../ui/Popover';
 import { useTitles } from '../../data/titlesStore';
 import { useUi } from '../../data/ui';
 import { busy } from '../../data/busy';
@@ -24,6 +25,7 @@ export function TitleSheet() {
   const checked = useTitles((t) => (id ? t.checked[id] : undefined)) ?? [];
   const store = useTitles.getState;
   const [menu, setMenu] = useState(false);
+  const moreRef = useRef<HTMLButtonElement>(null);
   const open = !!id && !!title;
   useEffect(() => {
     if (!open) return;
@@ -53,17 +55,17 @@ export function TitleSheet() {
         <>
           <Button variant="inverse" className={s.edit} icon={<PencilSimple size={20} aria-hidden="true" />} onClick={() => openEdit(title.id)}>Редактировать</Button>
           <div className={s.moreWrap}>
-            <Button variant="neutral" className={s.iconBtn} aria-label="Ещё" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
+            <Button ref={moreRef} variant="neutral" className={s.iconBtn} aria-label="Ещё" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
               <DotsThree size={24} weight="bold" />
             </Button>
-            {menu && (
-              <div className={s.menu} role="group" aria-label="Ещё">
+            <Popover open={menu} onClose={() => setMenu(false)} anchor={moreRef} label="Ещё" align="end" side="above" className={s.menu}>
+              <div className={s.menuList}>
                 <button type="button" className={s.menuItem} onClick={() => { setMenu(false); store().editTitle(title.id, { hidden: !title.hidden }); }}>
                   {title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'}
                 </button>
                 <button type="button" className={`${s.menuItem} ${s.menuDanger}`} onClick={() => remove(title.id, title.title)}>Удалить</button>
               </div>
-            )}
+            </Popover>
           </div>
         </>
       )}>

@@ -24,10 +24,3 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with: { name: e2e-results, path: app/test-results, retention-days: 7 }
-      - name: font diagnostics (temporary)
-        if: always()
-        working-directory: app
-        run: |
-          ls /etc/fonts/conf.d; fc-match sans-serif; fc-match system-ui; fc-match -v sans-serif | grep -E "hint|rgba|antialias|lcd"
-          ls ~/.cache/ms-playwright
-          npx playwright test zz-font --project=phone --reporter=line | grep -v WebServer | tail -30

@@ -1,8 +1,8 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import s from './Button.module.css';
 
 type Variant = 'primary' | 'tonal' | 'neutral' | 'danger' | 'inverse';
-interface Props extends ButtonHTMLAttributes<HTMLButtonElement> { variant?: Variant; size?: 'md' | 'lg'; icon?: ReactNode }
+interface Props extends ButtonHTMLAttributes<HTMLButtonElement> { variant?: Variant; size?: 'md' | 'lg'; icon?: ReactNode; ref?: Ref<HTMLButtonElement> }
 
 export function Button({ variant = 'primary', size = 'md', icon, children, className, ...rest }: Props) {
   return (

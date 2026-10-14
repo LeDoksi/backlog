@@ -8,6 +8,9 @@ interface Props {
   anchor: RefObject<HTMLElement | null>;
   label: string;
   align?: 'start' | 'end';
+  /** 'above' for an opener near the bottom of the screen, like a sheet's footer. */
+  side?: 'below' | 'above';
+  className?: string;
   children: ReactNode;
   footer?: ReactNode;
 }
@@ -16,7 +19,7 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), [tabin
 
 // The desktop stand-in for a bottom sheet: anchored under the chip that
 // opened it, closed by Esc or a click anywhere outside it and the chip.
-export function Popover({ open, onClose, anchor, label, align = 'start', children, footer }: Props) {
+export function Popover({ open, onClose, anchor, label, align = 'start', side = 'below', className, children, footer }: Props) {
   const panel = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -33,10 +36,11 @@ export function Popover({ open, onClose, anchor, label, align = 'start', childre
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); close.current(); } };
     document.addEventListener('pointerdown', onDown);
-    document.addEventListener('keydown', onKey);
+    // Capture, so Esc closes only this and not a sheet it sits in.
+    document.addEventListener('keydown', onKey, true);
     return () => {
       document.removeEventListener('pointerdown', onDown);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey, true);
       if (panel.current?.contains(document.activeElement) || document.activeElement === document.body) opener?.focus();
     };
   }, [open, anchor]);
@@ -44,8 +48,8 @@ export function Popover({ open, onClose, anchor, label, align = 'start', childre
   return (
     <AnimatePresence>
       {open && (
-        <motion.div ref={panel} role="dialog" aria-label={label} className={`${s.pop} ${align === 'end' ? s.end : ''}`}
-          initial={reduce ? false : { opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+        <motion.div ref={panel} role="dialog" aria-label={label} className={[s.pop, align === 'end' && s.end, side === 'above' && s.above, className].filter(Boolean).join(' ')}
+          initial={reduce ? false : { opacity: 0, y: side === 'above' ? 6 : -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
           transition={{ duration: reduce ? 0 : 0.16 }}>
           <div className={s.body}>{children}</div>
           {footer && <div className={s.footer}>{footer}</div>}
