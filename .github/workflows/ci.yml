@@ -20,3 +20,7 @@ jobs:
       - name: e2e
         working-directory: app
         run: npx playwright install --with-deps chromium && npm run e2e
+      - name: keep failed screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: e2e-results, path: app/test-results, retention-days: 7 }
