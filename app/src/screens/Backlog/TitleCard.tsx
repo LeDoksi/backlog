@@ -17,7 +17,7 @@ import s from './TitleCard.module.css';
 const PLACEHOLDER = resolveCover(undefined, ASSET_ROOT);
 
 export function cardLabel(t: Title, friend?: FriendOn): string {
-  return [t.title, statusLabel(t.status, t.category), isStillAiring(t) ? 'всё ещё выходит' : '',
+  return [t.title, statusLabel(t.status, t.category), t.rating ? `оценка ${t.rating}` : '', isStillAiring(t) ? 'всё ещё выходит' : '',
     friend ? `${friend.friend_name} ${statusWord(friend.status, t.category)}` : ''].filter(Boolean).join(' — ');
 }
 
@@ -62,7 +62,7 @@ export const TitleCard = memo(function TitleCard({ title, checked, friend, onQui
       <div className={s.body}>
         <div className={s.title}>{title.title}</div>
         <div className={s.metaRow}>
-          <span className={s.meta}>{metaLine(title)}</span>
+          <span className={s.meta}>{metaLine(title)}{title.rating ? ` · ${title.rating}` : ''}</span>
           {friend && <span className={s.friend} aria-hidden="true"><Avatar userId={friend.friend_id} name={friend.friend_name} size={18} /><span className={s.friendName}>{friend.friend_name}</span></span>}
         </div>
       </div>

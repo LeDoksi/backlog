@@ -19,6 +19,8 @@ export interface TitlesState {
   online: boolean;
   setBoard(id: string | null): void;
   setStatus(id: string, status: Status): void;
+  /** My own 1–10, or null to clear it. */
+  setRating(id: string, rating: number | null): void;
   setPartChecked(id: string, index: number, checked: boolean): void;
   setAllReleasedChecked(id: string): void;
   addTitle(t: Title): 'ok' | 'duplicate';
@@ -183,6 +185,11 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
 
       setStatus(id, status) {
         patch(id, { status });
+      },
+
+      setRating(id, rating) {
+        const valid = rating === null || (Number.isInteger(rating) && rating >= 1 && rating <= 10);
+        if (valid) patch(id, { rating });
       },
 
       setPartChecked(id, index, on) {

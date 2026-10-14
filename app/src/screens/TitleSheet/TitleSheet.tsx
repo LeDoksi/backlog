@@ -13,6 +13,7 @@ import { ASSET_ROOT } from '../../config';
 import { StatusControl } from './StatusControl';
 import { PartsChecklist } from './PartsChecklist';
 import { FriendsOnTitle } from './FriendsOnTitle';
+import { RatingControl } from './RatingControl';
 import s from './TitleSheet.module.css';
 
 export function TitleSheet() {
@@ -91,6 +92,11 @@ export function TitleSheet() {
                 {title.status === 'unreleased' && <p className={s.unreleased}>Ещё не вышло. Когда выйдет, сними отметку в редактировании.</p>}
                 {title.status !== 'unreleased' && <StatusControl value={title.status} category={title.category} onChange={(st) => store().setStatus(title.id, st)} />}
               </>
+            )}
+
+            {title.status !== 'unreleased' && (
+              <RatingControl value={title.rating ?? null} prompt={title.status === 'done' && title.rating == null}
+                onChange={(v) => store().setRating(title.id, v)} />
             )}
 
             <FriendsOnTitle title={title} />

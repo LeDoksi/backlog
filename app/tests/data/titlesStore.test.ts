@@ -154,6 +154,15 @@ describe('titles store', () => {
     expect(client.log.some((e) => e.op === 'delete' && e.filters?.id === 'drive-2011')).toBe(true);
   });
 
+  it('setRating sends the rating alone; null clears it', () => {
+    const { store, title, outbox } = setup(true);
+    store.getState().setRating('drive-2011', 7);
+    expect(title('drive-2011').rating).toBe(7);
+    expect(outbox.list()).toMatchObject([{ kind: 'patch', id: 'drive-2011', cols: { rating: 7 } }]);
+    store.getState().setRating('drive-2011', null);
+    expect(title('drive-2011').rating).toBeNull();
+  });
+
   describe('undo delete', () => {
     beforeEach(() => { vi.useFakeTimers(); });
     afterEach(() => { vi.useRealTimers(); });

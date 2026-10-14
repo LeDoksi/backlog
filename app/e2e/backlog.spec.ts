@@ -137,3 +137,18 @@ test('the phone filter sheet fits the screen, sort options included', async ({ p
   await byName.click();
   await expect(byName).toHaveAttribute('aria-checked', 'true');
 });
+
+test('finishing a title asks «Как тебе?»; the rating shows on its card', async ({ page }) => {
+  const plain = catalogTitles.find((t) => !t.parts && t.status === 'queue')!;
+  const card = page.locator(`article[data-id="${plain.id}"]`);
+  await card.locator(':scope > button').first().click();
+  const sheet = page.getByRole('dialog', { name: plain.title });
+  await expect(sheet.getByRole('radiogroup', { name: 'Оценка' })).toBeVisible();
+  await sheet.getByRole('radio', { name: 'Завершено' }).click();
+  const ask = sheet.getByRole('radiogroup', { name: 'Как тебе?' });
+  await expect(ask).toBeVisible();
+  await ask.getByRole('radio', { name: '8' }).click();
+  await expect(sheet.getByRole('radiogroup', { name: 'Оценка' }).getByRole('radio', { name: '8' })).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Escape');
+  await expect(card).toContainText(/· 8$/);
+});
