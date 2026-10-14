@@ -1,0 +1,192 @@
+[
+  {
+    "id": 16498,
+    "name": "Shingeki no Kyojin",
+    "russian": "Атака титанов",
+    "image": {
+      "original": "/system/animes/original/16498.jpg?1711973439",
+      "preview": "/system/animes/preview/16498.jpg?1711973439",
+      "x96": "/system/animes/x96/16498.jpg?1711973439",
+      "x48": "/system/animes/x48/16498.jpg?1711973439"
+    },
+    "url": "/animes/16498-shingeki-no-kyojin",
+    "kind": "tv",
+    "score": "8.58",
+    "status": "released",
+    "episodes": 25,
+    "episodes_aired": 25,
+    "aired_on": "2013-04-07",
+    "released_on": "2013-09-29"
+  },
+  {
+    "id": 42091,
+    "name": "Shingeki no Kyojin: Chronicle",
+    "russian": "Атака титанов: Хроника",
+    "image": {
+      "original": "/system/animes/original/42091.jpg?1711973475",
+      "preview": "/system/animes/preview/42091.jpg?1711973475",
+      "x96": "/system/animes/x96/42091.jpg?1711973475",
+      "x48": "/system/animes/x48/42091.jpg?1711973475"
+    },
+    "url": "/animes/42091-shingeki-no-kyojin-chronicle",
+    "kind": "movie",
+    "score": "7.85",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2020-07-17",
+    "released_on": null
+  },
+  {
+    "id": 36702,
+    "name": "Shingeki no Kyojin Season 2 Movie: Kakusei no Houkou",
+    "russian": "Атака титанов: Рёв пробуждения",
+    "image": {
+      "original": "/system/animes/original/36702.jpg?1711973486",
+      "preview": "/system/animes/preview/36702.jpg?1711973486",
+      "x96": "/system/animes/x96/36702.jpg?1711973486",
+      "x48": "/system/animes/x48/36702.jpg?1711973486"
+    },
+    "url": "/animes/36702-shingeki-no-kyojin-season-2-movie-kakusei-no-houkou",
+    "kind": "movie",
+    "score": "7.99",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 1,
+    "aired_on": "2018-01-13",
+    "released_on": null
+  },
+  {
+    "id": 35760,
+    "name": "Shingeki no Kyojin Season 3",
+    "russian": "Атака титанов 3",
+    "image": {
+      "original": "/system/animes/original/35760.jpg?1711973466",
+      "preview": "/system/animes/preview/35760.jpg?1711973466",
+      "x96": "/system/animes/x96/35760.jpg?1711973466",
+      "x48": "/system/animes/x48/35760.jpg?1711973466"
+    },
+    "url": "/animes/35760-shingeki-no-kyojin-season-3",
+    "kind": "tv",
+    "score": "8.65",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2018-07-23",
+    "released_on": "2018-10-15"
+  },
+  {
+    "id": 36106,
+    "name": "Shingeki no Kyojin: Lost Girls",
+    "russian": "Атака титанов: Потерянные девушки",
+    "image": {
+      "original": "/system/animes/original/36106.jpg?1711973469",
+      "preview": "/system/animes/preview/36106.jpg?1711973469",
+      "x96": "/system/animes/x96/36106.jpg?1711973469",
+      "x48": "/system/animes/x48/36106.jpg?1711973469"
+    },
+    "url": "/animes/36106-shingeki-no-kyojin-lost-girls",
+    "kind": "ova",
+    "score": "7.83",
+    "status": "released",
+    "episodes": 3,
+    "episodes_aired": 3,
+    "aired_on": "2017-12-08",
+    "released_on": "2018-08-09"
+  },
+  {
+    "id": 35122,
+    "name": "Shingeki no Kyotou",
+    "russian": "Атака титанов: Оборона Skytree",
+    "image": {
+      "original": "/system/animes/original/35122.jpg?1711973493",
+      "preview": "/system/animes/preview/35122.jpg?1711973493",
+      "x96": "/system/animes/x96/35122.jpg?1711973493",
+      "x48": "/system/animes/x48/35122.jpg?1711973493"
+    },
+    "url": "/animes/35122-shingeki-no-kyotou",
+    "kind": "movie",
+    "score": "6.38",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2017-04-10",
+    "released_on": null
+  },
+  {
+    "id": 39477,
+    "name": "Shingeki no Kyojin Season 3 Specials",
+    "russian": "Атака титанов 3: Спецвыпуски",
+    "image": {
+      "original": "/system/animes/original/39477.jpg?1711973448",
+      "preview": "/system/animes/preview/39477.jpg?1711973448",
+      "x96": "/system/animes/x96/39477.jpg?1711973448",
+      "x48": "/system/animes/x48/39477.jpg?1711973448"
+    },
+    "url": "/animes/39477-shingeki-no-kyojin-season-3-specials",
+    "kind": "special",
+    "score": "7.68",
+    "status": "released",
+    "episodes": 7,
+    "episodes_aired": 0,
+    "aired_on": "2018-10-17",
+    "released_on": "2019-09-18"
+  },
+  {
+    "id": 40028,
+    "name": "Shingeki no Kyojin: The Final Season",
+    "russian": "Атака титанов: Финал",
+    "image": {
+      "original": "/system/animes/original/40028.jpg?1711973445",
+      "preview": "/system/animes/preview/40028.jpg?1711973445",
+      "x96": "/system/animes/x96/40028.jpg?1711973445",
+      "x48": "/system/animes/x48/40028.jpg?1711973445"
+    },
+    "url": "/animes/40028-shingeki-no-kyojin-the-final-season",
+    "kind": "tv",
+    "score": "8.79",
+    "status": "released",
+    "episodes": 16,
+    "episodes_aired": 16,
+    "aired_on": "2020-12-07",
+    "released_on": "2021-03-29"
+  },
+  {
+    "id": 48583,
+    "name": "Shingeki no Kyojin: The Final Season Part 2",
+    "russian": "Атака титанов: Финал. Часть 2",
+    "image": {
+      "original": "/system/animes/original/48583.jpg?1708763764",
+      "preview": "/system/animes/preview/48583.jpg?1708763764",
+      "x96": "/system/animes/x96/48583.jpg?1708763764",
+      "x48": "/system/animes/x48/48583.jpg?1708763764"
+    },
+    "url": "/animes/48583-shingeki-no-kyojin-the-final-season-part-2",
+    "kind": "tv",
+    "score": "8.78",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2022-01-10",
+    "released_on": "2022-04-04"
+  },
+  {
+    "id": 39478,
+    "name": "Shingeki no Kyojin in the Dome: Heishi-tachi no Hoshizora",
+    "russian": "Атака титанов в планетарии",
+    "image": {
+      "original": "/system/animes/original/39478.jpg?1711973434",
+      "preview": "/system/animes/preview/39478.jpg?1711973434",
+      "x96": "/system/animes/x96/39478.jpg?1711973434",
+      "x48": "/system/animes/x48/39478.jpg?1711973434"
+    },
+    "url": "/animes/39478-shingeki-no-kyojin-in-the-dome-heishi-tachi-no-hoshizora",
+    "kind": "movie",
+    "score": "7.44",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2017-05-20",
+    "released_on": null
+  }
+]

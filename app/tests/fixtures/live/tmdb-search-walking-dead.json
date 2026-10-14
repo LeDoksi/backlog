@@ -1,0 +1,141 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/rAOjnEFTuNysY7bot8zonhImGMh.jpg",
+      "genre_ids": [
+        10759,
+        18,
+        10765
+      ],
+      "id": 1402,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Walking Dead",
+      "overview": "Заместитель шерифа Рик Граймс просыпается от комы и обнаруживает, что мир после апокалипсиса захватили плотоядные зомби. Он отправляется на поиски своей семьи и по пути встречает многих других выживших.",
+      "popularity": 194.1935,
+      "poster_path": "/3metsxLVhlJU0mNj5gVfKIih0EF.jpg",
+      "first_air_date": "2010-10-31",
+      "softcore": false,
+      "name": "Ходячие мертвецы",
+      "vote_average": 8.079,
+      "vote_count": 18268
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/fkeVnvxVx4x2PdDOOzSblFUGTVt.jpg",
+      "genre_ids": [
+        10765,
+        10759,
+        18
+      ],
+      "id": 211684,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Walking Dead: Daryl Dixon",
+      "overview": "Дэрил Диксон становится вербовщиком Содружества, которое спасает уцелевших людей, и параллельно он пытается отыскать Рика Граймса и Мишонн. Судьба заносит его на корабле из США во Францию, где он знакомится с местными повстанцами и берется за опасную миссию — забрать мальчика Лорана от его тети и увезти в Париж. Ходят слухи, что ребенок — новый мессия, ведь он рожден от матери-зомби, но при этом сам остался здоровым.",
+      "popularity": 37.939,
+      "poster_path": "/kRTaNKcs3RQJCB626y1mGOTHVYU.jpg",
+      "first_air_date": "2023-09-10",
+      "softcore": false,
+      "name": "Ходячие мертвецы: Дэрил Диксон",
+      "vote_average": 8.0,
+      "vote_count": 933
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/vV5LKWmuysEe5wsuZJGbdiL5XJ2.jpg",
+      "genre_ids": [
+        10759,
+        18,
+        10765
+      ],
+      "id": 194583,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Walking Dead: Dead City",
+      "overview": "Сына Мэгги похитили, и женщина просит Нигана, который когда-то убил ее мужа, отправиться с ней в Нью-Йорк на поиски. На Манхэттене они сталкиваются с необычной общиной выживших, а также новыми типами зомби.",
+      "popularity": 50.0512,
+      "poster_path": "/zNg0WpDHk9V0YoUD4BGAVDNVViz.jpg",
+      "first_air_date": "2023-06-18",
+      "softcore": false,
+      "name": "Ходячие мертвецы: Мертвый город",
+      "vote_average": 7.905,
+      "vote_count": 810
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/5PCKxpFcCTDFT3b1olJGPaAIM9e.jpg",
+      "genre_ids": [
+        10765,
+        18
+      ],
+      "id": 206586,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Walking Dead: The Ones Who Live",
+      "overview": "Мишонн узнает, что ее муж Рик Граймс, который пропал без вести, всё же жив и взят в плен бойцами Гражданской республики. Женщина вооружается катаной и отправляется на его поиски, по пути уничтожая толпы голодных зомби.",
+      "popularity": 16.0291,
+      "poster_path": "/rhN08H5Yg7xAFfBzeDzVV9GAwDj.jpg",
+      "first_air_date": "2024-02-25",
+      "softcore": false,
+      "name": "Ходячие мертвецы: Выжившие",
+      "vote_average": 8.0,
+      "vote_count": 748
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/mFAiusk8yF0GeBK0xIcte4GdWWE.jpg",
+      "genre_ids": [
+        99
+      ],
+      "id": 129035,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Walking Dead: Origins",
+      "overview": "Набор специальных выпусков, посвящённых четырём знаковым персонажам ”Ходячих мертвецов”: Дэрилу, Мэгги, Нигану и Кэрол. Каждый эпизод представляет историю зомби-апокалипсиса с точки зрения отдельного персонажа и содержит новые интервью и рассказы актёров, которые играют этих персонажей, вплетённые в отрывки из самых важных моментов их путешествий.",
+      "popularity": 4.5843,
+      "poster_path": "/peRljvBEK83ofgKgZPjrOsqePBn.jpg",
+      "first_air_date": "2021-07-15",
+      "softcore": false,
+      "name": "Ходячие мертвецы: Истоки",
+      "vote_average": 7.7,
+      "vote_count": 491
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/vlxHVv236ehbde3qXc5R1ewAn4B.jpg",
+      "genre_ids": [
+        18,
+        10765
+      ],
+      "id": 94305,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Walking Dead: World Beyond",
+      "overview": "События разворачиваются в далёком будущем после начала, демонстрируя жизнь конца первого поколения в мире, которое выросло вокруг зомби. Группа подростков отправится в таинственное путешествие, так или иначе связанное с исчезновением Рика Граймса.",
+      "popularity": 12.9453,
+      "poster_path": "/wGGZQ4n7uWCkh89pHQJF1K4zG5k.jpg",
+      "first_air_date": "2020-10-04",
+      "softcore": false,
+      "name": "Ходячие мертвецы: Мир за пределами",
+      "vote_average": 7.3,
+      "vote_count": 1228
+    }
+  ],
+  "total_pages": 1,
+  "total_results": 6
+}

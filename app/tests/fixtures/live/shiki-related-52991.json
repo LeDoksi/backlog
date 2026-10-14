@@ -1,0 +1,122 @@
+[
+  {
+    "relation": "Adaptation",
+    "relation_russian": "Адаптация",
+    "anime": null,
+    "manga": {
+      "id": 126287,
+      "name": "Sousou no Frieren",
+      "russian": "Провожающая в последний путь Фрирен",
+      "image": {
+        "original": "/system/mangas/original/126287.jpg?1712852798",
+        "preview": "/system/mangas/preview/126287.jpg?1712852798",
+        "x96": "/system/mangas/x96/126287.jpg?1712852798",
+        "x48": "/system/mangas/x48/126287.jpg?1712852798"
+      },
+      "url": "/mangas/126287-sousou-no-frieren",
+      "kind": "manga",
+      "score": "8.87",
+      "status": "ongoing",
+      "volumes": 0,
+      "chapters": 0,
+      "aired_on": "2020-04-28",
+      "released_on": null
+    }
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 56805,
+      "name": "Yuusha",
+      "russian": "Герой",
+      "image": {
+        "original": "/system/animes/original/56805.jpg?1712951814",
+        "preview": "/system/animes/preview/56805.jpg?1712951814",
+        "x96": "/system/animes/x96/56805.jpg?1712951814",
+        "x48": "/system/animes/x48/56805.jpg?1712951814"
+      },
+      "url": "/animes/56805-yuusha",
+      "kind": "music",
+      "score": "7.88",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2023-09-29",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 56885,
+      "name": "Sousou no Frieren: ●● no Mahou",
+      "russian": "Провожающая в последний путь Фрирен: Магия ●●",
+      "image": {
+        "original": "/system/animes/original/56885.jpg?1718913269",
+        "preview": "/system/animes/preview/56885.jpg?1718913269",
+        "x96": "/system/animes/x96/56885.jpg?1718913269",
+        "x48": "/system/animes/x48/56885.jpg?1718913269"
+      },
+      "url": "/animes/56885-sousou-no-frieren-no-mahou",
+      "kind": "ona",
+      "score": "7.36",
+      "status": "released",
+      "episodes": 24,
+      "episodes_aired": 23,
+      "aired_on": "2023-10-11",
+      "released_on": "2026-05-22"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 58313,
+      "name": "Haru (2024)",
+      "russian": "Солнечный",
+      "image": {
+        "original": "/system/animes/original/58313.jpg?1717702311",
+        "preview": "/system/animes/preview/58313.jpg?1717702311",
+        "x96": "/system/animes/x96/58313.jpg?1717702311",
+        "x48": "/system/animes/x48/58313.jpg?1717702311"
+      },
+      "url": "/animes/58313-haru-2024",
+      "kind": "music",
+      "score": "7.16",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2024-03-05",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Sequel",
+    "relation_russian": "Продолжение",
+    "anime": {
+      "id": 59978,
+      "name": "Sousou no Frieren 2nd Season",
+      "russian": "Провожающая в последний путь Фрирен 2",
+      "image": {
+        "original": "/assets/globals/missing_original.jpg",
+        "preview": "/assets/globals/missing_preview.jpg",
+        "x96": "/assets/globals/missing_x96.jpg",
+        "x48": "/assets/globals/missing_x48.jpg"
+      },
+      "url": "/animes/59978-sousou-no-frieren-2nd-season",
+      "kind": "tv",
+      "score": "8.84",
+      "status": "released",
+      "episodes": 10,
+      "episodes_aired": 10,
+      "aired_on": "2026-01-16",
+      "released_on": "2026-03-27"
+    },
+    "manga": null
+  }
+]

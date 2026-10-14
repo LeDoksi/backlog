@@ -1,0 +1,833 @@
+{
+  "links": [
+    {
+      "id": 48052990,
+      "source_id": 16498,
+      "target_id": 18397,
+      "source": 24,
+      "target": 21,
+      "weight": 12,
+      "relation": "side_story"
+    },
+    {
+      "id": 48052994,
+      "source_id": 16498,
+      "target_id": 19285,
+      "source": 24,
+      "target": 23,
+      "weight": 12,
+      "relation": "summary"
+    },
+    {
+      "id": 48052999,
+      "source_id": 16498,
+      "target_id": 19391,
+      "source": 24,
+      "target": 22,
+      "weight": 12,
+      "relation": "other"
+    },
+    {
+      "id": 48052995,
+      "source_id": 16498,
+      "target_id": 23775,
+      "source": 24,
+      "target": 20,
+      "weight": 12,
+      "relation": "summary"
+    },
+    {
+      "id": 48052996,
+      "source_id": 16498,
+      "target_id": 23777,
+      "source": 24,
+      "target": 18,
+      "weight": 12,
+      "relation": "summary"
+    },
+    {
+      "id": 48052988,
+      "source_id": 16498,
+      "target_id": 25777,
+      "source": 24,
+      "target": 16,
+      "weight": 12,
+      "relation": "sequel"
+    },
+    {
+      "id": 48052991,
+      "source_id": 16498,
+      "target_id": 25781,
+      "source": 24,
+      "target": 19,
+      "weight": 12,
+      "relation": "spin_off"
+    },
+    {
+      "id": 48052992,
+      "source_id": 16498,
+      "target_id": 31374,
+      "source": 24,
+      "target": 17,
+      "weight": 12,
+      "relation": "spin_off"
+    },
+    {
+      "id": 48053000,
+      "source_id": 16498,
+      "target_id": 35122,
+      "source": 24,
+      "target": 15,
+      "weight": 12,
+      "relation": "other"
+    },
+    {
+      "id": 48052993,
+      "source_id": 16498,
+      "target_id": 36106,
+      "source": 24,
+      "target": 13,
+      "weight": 12,
+      "relation": "spin_off"
+    },
+    {
+      "id": 48052997,
+      "source_id": 16498,
+      "target_id": 42091,
+      "source": 24,
+      "target": 6,
+      "weight": 12,
+      "relation": "summary"
+    },
+    {
+      "id": 48052998,
+      "source_id": 16498,
+      "target_id": 49739,
+      "source": 24,
+      "target": 7,
+      "weight": 12,
+      "relation": "character"
+    },
+    {
+      "id": 48067466,
+      "source_id": 19285,
+      "target_id": 16498,
+      "source": 23,
+      "target": 24,
+      "weight": 2,
+      "relation": "full_story"
+    },
+    {
+      "id": 48067465,
+      "source_id": 19285,
+      "target_id": 23775,
+      "source": 23,
+      "target": 20,
+      "weight": 2,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 48067472,
+      "source_id": 19391,
+      "target_id": 16498,
+      "source": 22,
+      "target": 24,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48067470,
+      "source_id": 19391,
+      "target_id": 39477,
+      "source": 22,
+      "target": 9,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48083082,
+      "source_id": 23777,
+      "target_id": 16498,
+      "source": 18,
+      "target": 24,
+      "weight": 3,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48083080,
+      "source_id": 23777,
+      "target_id": 23775,
+      "source": 18,
+      "target": 20,
+      "weight": 3,
+      "relation": "prequel"
+    },
+    {
+      "id": 48083081,
+      "source_id": 23777,
+      "target_id": 36702,
+      "source": 18,
+      "target": 12,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 48083051,
+      "source_id": 23775,
+      "target_id": 16498,
+      "source": 20,
+      "target": 24,
+      "weight": 3,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48083050,
+      "source_id": 23775,
+      "target_id": 19285,
+      "source": 20,
+      "target": 23,
+      "weight": 3,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 48083049,
+      "source_id": 23775,
+      "target_id": 23777,
+      "source": 20,
+      "target": 18,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 48222646,
+      "source_id": 42091,
+      "target_id": 16498,
+      "source": 6,
+      "target": 24,
+      "weight": 4,
+      "relation": "full_story"
+    },
+    {
+      "id": 48222647,
+      "source_id": 42091,
+      "target_id": 25777,
+      "source": 6,
+      "target": 16,
+      "weight": 4,
+      "relation": "full_story"
+    },
+    {
+      "id": 48222648,
+      "source_id": 42091,
+      "target_id": 35760,
+      "source": 6,
+      "target": 11,
+      "weight": 4,
+      "relation": "full_story"
+    },
+    {
+      "id": 48222649,
+      "source_id": 42091,
+      "target_id": 38524,
+      "source": 6,
+      "target": 8,
+      "weight": 4,
+      "relation": "full_story"
+    },
+    {
+      "id": 48132945,
+      "source_id": 31374,
+      "target_id": 16498,
+      "source": 17,
+      "target": 24,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48083417,
+      "source_id": 25781,
+      "target_id": 16498,
+      "source": 19,
+      "target": 24,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48083422,
+      "source_id": 25777,
+      "target_id": 16498,
+      "source": 16,
+      "target": 24,
+      "weight": 5,
+      "relation": "prequel"
+    },
+    {
+      "id": 48083423,
+      "source_id": 25777,
+      "target_id": 35760,
+      "source": 16,
+      "target": 11,
+      "weight": 5,
+      "relation": "sequel"
+    },
+    {
+      "id": 48083426,
+      "source_id": 25777,
+      "target_id": 36702,
+      "source": 16,
+      "target": 12,
+      "weight": 5,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 48083427,
+      "source_id": 25777,
+      "target_id": 39478,
+      "source": 16,
+      "target": 14,
+      "weight": 5,
+      "relation": "other"
+    },
+    {
+      "id": 48083425,
+      "source_id": 25777,
+      "target_id": 42091,
+      "source": 16,
+      "target": 6,
+      "weight": 5,
+      "relation": "summary"
+    },
+    {
+      "id": 48133450,
+      "source_id": 36106,
+      "target_id": 16498,
+      "source": 13,
+      "target": 24,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48434212,
+      "source_id": 49739,
+      "target_id": 16498,
+      "source": 7,
+      "target": 24,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 47999307,
+      "source_id": 18397,
+      "target_id": 16498,
+      "source": 21,
+      "target": 24,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48162479,
+      "source_id": 35122,
+      "target_id": 16498,
+      "source": 15,
+      "target": 24,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48163162,
+      "source_id": 39477,
+      "target_id": 19391,
+      "source": 9,
+      "target": 22,
+      "weight": 3,
+      "relation": "prequel"
+    },
+    {
+      "id": 48163165,
+      "source_id": 39477,
+      "target_id": 35760,
+      "source": 9,
+      "target": 11,
+      "weight": 3,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48163163,
+      "source_id": 39477,
+      "target_id": 49627,
+      "source": 9,
+      "target": 4,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 48179548,
+      "source_id": 39478,
+      "target_id": 25777,
+      "source": 14,
+      "target": 16,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48222476,
+      "source_id": 36702,
+      "target_id": 23777,
+      "source": 12,
+      "target": 18,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48222477,
+      "source_id": 36702,
+      "target_id": 25777,
+      "source": 12,
+      "target": 16,
+      "weight": 2,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48133422,
+      "source_id": 35760,
+      "target_id": 25777,
+      "source": 11,
+      "target": 16,
+      "weight": 5,
+      "relation": "prequel"
+    },
+    {
+      "id": 48133423,
+      "source_id": 35760,
+      "target_id": 38524,
+      "source": 11,
+      "target": 8,
+      "weight": 5,
+      "relation": "sequel"
+    },
+    {
+      "id": 48133425,
+      "source_id": 35760,
+      "target_id": 39477,
+      "source": 11,
+      "target": 9,
+      "weight": 5,
+      "relation": "side_story"
+    },
+    {
+      "id": 48133426,
+      "source_id": 35760,
+      "target_id": 42091,
+      "source": 11,
+      "target": 6,
+      "weight": 5,
+      "relation": "summary"
+    },
+    {
+      "id": 48133427,
+      "source_id": 35760,
+      "target_id": 54468,
+      "source": 11,
+      "target": 10,
+      "weight": 5,
+      "relation": "other"
+    },
+    {
+      "id": 47807034,
+      "source_id": 38524,
+      "target_id": 35760,
+      "source": 8,
+      "target": 11,
+      "weight": 3,
+      "relation": "prequel"
+    },
+    {
+      "id": 47807035,
+      "source_id": 38524,
+      "target_id": 40028,
+      "source": 8,
+      "target": 5,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 47807037,
+      "source_id": 38524,
+      "target_id": 42091,
+      "source": 8,
+      "target": 6,
+      "weight": 3,
+      "relation": "summary"
+    },
+    {
+      "id": 47936107,
+      "source_id": 40028,
+      "target_id": 38524,
+      "source": 5,
+      "target": 8,
+      "weight": 4,
+      "relation": "prequel"
+    },
+    {
+      "id": 47936108,
+      "source_id": 40028,
+      "target_id": 48583,
+      "source": 5,
+      "target": 3,
+      "weight": 4,
+      "relation": "sequel"
+    },
+    {
+      "id": 47936110,
+      "source_id": 40028,
+      "target_id": 49627,
+      "source": 5,
+      "target": 4,
+      "weight": 4,
+      "relation": "side_story"
+    },
+    {
+      "id": 47936111,
+      "source_id": 40028,
+      "target_id": 51618,
+      "source": 5,
+      "target": 2,
+      "weight": 4,
+      "relation": "other"
+    },
+    {
+      "id": 47883609,
+      "source_id": 54468,
+      "target_id": 35760,
+      "source": 10,
+      "target": 11,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48434196,
+      "source_id": 49627,
+      "target_id": 39477,
+      "source": 4,
+      "target": 9,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48434197,
+      "source_id": 49627,
+      "target_id": 40028,
+      "source": 4,
+      "target": 5,
+      "weight": 2,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48485164,
+      "source_id": 51618,
+      "target_id": 40028,
+      "source": 2,
+      "target": 5,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48434074,
+      "source_id": 48583,
+      "target_id": 40028,
+      "source": 3,
+      "target": 5,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48434075,
+      "source_id": 48583,
+      "target_id": 51535,
+      "source": 3,
+      "target": 1,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48485107,
+      "source_id": 51535,
+      "target_id": 48583,
+      "source": 1,
+      "target": 3,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48485109,
+      "source_id": 51535,
+      "target_id": 59571,
+      "source": 1,
+      "target": 0,
+      "weight": 2,
+      "relation": "summary"
+    },
+    {
+      "id": 48897552,
+      "source_id": 59571,
+      "target_id": 51535,
+      "source": 0,
+      "target": 1,
+      "weight": 1,
+      "relation": "full_story"
+    }
+  ],
+  "nodes": [
+    {
+      "id": 59571,
+      "date": 1731013200,
+      "name": "Атака титанов: Заключительная глава — Последняя атака",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/59571-shingeki-no-kyojin-movie-kanketsu-hen-the-last-attack",
+      "year": 2024,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 51535,
+      "date": 1677877200,
+      "name": "Атака титанов: Финал — Заключительная глава",
+      "image_url": "https://shikimori.io/system/animes/x96/51535.jpg?1716775753",
+      "url": "/animes/51535-shingeki-no-kyojin-the-final-season-kanketsu-hen",
+      "year": 2023,
+      "kind": "TV Спецвыпуск",
+      "weight": 2
+    },
+    {
+      "id": 51618,
+      "date": 1648933200,
+      "name": "Моя война",
+      "image_url": "https://shikimori.io/system/animes/x96/51618.jpg?1716775657",
+      "url": "/animes/51618-boku-no-sensou",
+      "year": 2022,
+      "kind": "Клип",
+      "weight": 1
+    },
+    {
+      "id": 48583,
+      "date": 1641762000,
+      "name": "Атака титанов: Финал. Часть 2",
+      "image_url": "https://shikimori.io/system/animes/x96/48583.jpg?1708763764",
+      "url": "/animes/48583-shingeki-no-kyojin-the-final-season-part-2",
+      "year": 2022,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 49627,
+      "date": 1625605200,
+      "name": "Атака титанов: Финал — Спецвыпуски",
+      "image_url": "https://shikimori.io/system/animes/x96/49627.jpg?1706499409",
+      "url": "/animes/49627-shingeki-no-kyojin-the-final-season-specials",
+      "year": 2021,
+      "kind": "Спецвыпуск",
+      "weight": 2
+    },
+    {
+      "id": 40028,
+      "date": 1607288400,
+      "name": "Атака титанов: Финал",
+      "image_url": "https://shikimori.io/system/animes/x96/40028.jpg?1711973445",
+      "url": "/animes/40028-shingeki-no-kyojin-the-final-season",
+      "year": 2020,
+      "kind": "TV Сериал",
+      "weight": 4
+    },
+    {
+      "id": 42091,
+      "date": 1594933200,
+      "name": "Атака титанов: Хроника",
+      "image_url": "https://shikimori.io/system/animes/x96/42091.jpg?1711973475",
+      "url": "/animes/42091-shingeki-no-kyojin-chronicle",
+      "year": 2020,
+      "kind": "Фильм",
+      "weight": 4
+    },
+    {
+      "id": 49739,
+      "date": 1569877200,
+      "name": "Атака титанов x Сникерс",
+      "image_url": "https://shikimori.io/system/animes/x96/49739.jpg?1706499231",
+      "url": "/animes/49739-snickers-x-shingeki-no-kyojin",
+      "year": 2019,
+      "kind": "Реклама",
+      "weight": 1
+    },
+    {
+      "id": 38524,
+      "date": 1556485200,
+      "name": "Атака титанов 3. Часть 2",
+      "image_url": "https://shikimori.io/system/animes/x96/38524.jpg?1711973463",
+      "url": "/animes/38524-shingeki-no-kyojin-season-3-part-2",
+      "year": 2019,
+      "kind": "TV Сериал",
+      "weight": 3
+    },
+    {
+      "id": 39477,
+      "date": 1539723600,
+      "name": "Атака титанов 3: Спецвыпуски",
+      "image_url": "https://shikimori.io/system/animes/x96/39477.jpg?1711973448",
+      "url": "/animes/39477-shingeki-no-kyojin-season-3-specials",
+      "year": 2018,
+      "kind": "Спецвыпуск",
+      "weight": 3
+    },
+    {
+      "id": 54468,
+      "date": 1537304400,
+      "name": "Реквием на рассвете",
+      "image_url": "https://shikimori.io/system/animes/x96/54468.jpg?1717982236",
+      "url": "/animes/54468-akatsuki-no-chinkonka",
+      "year": 2018,
+      "kind": "Клип",
+      "weight": 1
+    },
+    {
+      "id": 35760,
+      "date": 1532293200,
+      "name": "Атака титанов 3",
+      "image_url": "https://shikimori.io/system/animes/x96/35760.jpg?1711973466",
+      "url": "/animes/35760-shingeki-no-kyojin-season-3",
+      "year": 2018,
+      "kind": "TV Сериал",
+      "weight": 5
+    },
+    {
+      "id": 36702,
+      "date": 1515790800,
+      "name": "Атака титанов: Рёв пробуждения",
+      "image_url": "https://shikimori.io/system/animes/x96/36702.jpg?1711973486",
+      "url": "/animes/36702-shingeki-no-kyojin-season-2-movie-kakusei-no-houkou",
+      "year": 2018,
+      "kind": "Фильм",
+      "weight": 2
+    },
+    {
+      "id": 36106,
+      "date": 1512680400,
+      "name": "Атака титанов: Потерянные девушки",
+      "image_url": "https://shikimori.io/system/animes/x96/36106.jpg?1711973469",
+      "url": "/animes/36106-shingeki-no-kyojin-lost-girls",
+      "year": 2017,
+      "kind": "OVA",
+      "weight": 1
+    },
+    {
+      "id": 39478,
+      "date": 1495227600,
+      "name": "Атака титанов в планетарии",
+      "image_url": "https://shikimori.io/system/animes/x96/39478.jpg?1711973434",
+      "url": "/animes/39478-shingeki-no-kyojin-in-the-dome-heishi-tachi-no-hoshizora",
+      "year": 2017,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 35122,
+      "date": 1491771600,
+      "name": "Атака титанов: Оборона Skytree",
+      "image_url": "https://shikimori.io/system/animes/x96/35122.jpg?1711973493",
+      "url": "/animes/35122-shingeki-no-kyotou",
+      "year": 2017,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 25777,
+      "date": 1490994000,
+      "name": "Атака титанов 2",
+      "image_url": "https://shikimori.io/system/animes/x96/25777.jpg?1711973455",
+      "url": "/animes/25777-shingeki-no-kyojin-season-2",
+      "year": 2017,
+      "kind": "TV Сериал",
+      "weight": 5
+    },
+    {
+      "id": 31374,
+      "date": 1443906000,
+      "name": "Атака! Титаны средней школы",
+      "image_url": "https://shikimori.io/system/animes/x96/31374.jpg?1711973457",
+      "url": "/animes/31374-shingeki-kyojin-chuugakkou",
+      "year": 2015,
+      "kind": "TV Сериал",
+      "weight": 1
+    },
+    {
+      "id": 23777,
+      "date": 1435352400,
+      "name": "Атака титанов: Крылья свободы",
+      "image_url": "https://shikimori.io/system/animes/x96/23777.jpg?1711973436",
+      "url": "/animes/23777-shingeki-no-kyojin-movie-2-jiyuu-no-tsubasa",
+      "year": 2015,
+      "kind": "Фильм",
+      "weight": 3
+    },
+    {
+      "id": 25781,
+      "date": 1418072400,
+      "name": "Атака титанов: Выбор без сожалений",
+      "image_url": "https://shikimori.io/system/animes/x96/25781.jpg?1711973510",
+      "url": "/animes/25781-shingeki-no-kyojin-kuinaki-sentaku",
+      "year": 2014,
+      "kind": "OVA",
+      "weight": 1
+    },
+    {
+      "id": 23775,
+      "date": 1416603600,
+      "name": "Атака титанов: Багровые луки и стрелы",
+      "image_url": "https://shikimori.io/system/animes/x96/23775.jpg?1711973465",
+      "url": "/animes/23775-shingeki-no-kyojin-movie-1-guren-no-yumiya",
+      "year": 2014,
+      "kind": "Фильм",
+      "weight": 3
+    },
+    {
+      "id": 18397,
+      "date": 1386532800,
+      "name": "Атака титанов OVA",
+      "image_url": "https://shikimori.io/system/animes/x96/18397.jpg?1711973466",
+      "url": "/animes/18397-shingeki-no-kyojin-ova",
+      "year": 2013,
+      "kind": "OVA",
+      "weight": 1
+    },
+    {
+      "id": 19391,
+      "date": 1374004800,
+      "name": "Атака титанов: Театр с монстрами — Вперёд, кадетский корпус!",
+      "image_url": "https://shikimori.io/system/animes/x96/19391.jpg?1711973474",
+      "url": "/animes/19391-shingeki-no-kyojin-picture-drama",
+      "year": 2013,
+      "kind": "Спецвыпуск",
+      "weight": 2
+    },
+    {
+      "id": 19285,
+      "date": 1373140800,
+      "name": "Атака титанов: Рекап",
+      "image_url": "https://shikimori.io/system/animes/x96/19285.jpg?1711973437",
+      "url": "/animes/19285-shingeki-no-kyojin-ano-hi-kara",
+      "year": 2013,
+      "kind": "TV Спецвыпуск",
+      "weight": 2
+    },
+    {
+      "id": 16498,
+      "date": 1365278400,
+      "name": "Атака титанов",
+      "image_url": "https://shikimori.io/system/animes/x96/16498.jpg?1711973439",
+      "url": "/animes/16498-shingeki-no-kyojin",
+      "year": 2013,
+      "kind": "TV Сериал",
+      "weight": 12
+    }
+  ],
+  "current_id": 16498
+}

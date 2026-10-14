@@ -1,0 +1,192 @@
+[
+  {
+    "id": 32380,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo!: Kono Subarashii Choker ni Shukufuku wo!",
+    "russian": "Этот замечательный мир! Этот замечательный ошейник!",
+    "image": {
+      "original": "/system/animes/original/32380.jpg?1711959588",
+      "preview": "/system/animes/preview/32380.jpg?1711959588",
+      "x96": "/system/animes/x96/32380.jpg?1711959588",
+      "x48": "/system/animes/x48/32380.jpg?1711959588"
+    },
+    "url": "/animes/32380-kono-subarashii-sekai-ni-shukufuku-wo-kono-subarashii-choker-ni-shukufuku-wo",
+    "kind": "ova",
+    "score": "7.82",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2016-06-24",
+    "released_on": null
+  },
+  {
+    "id": 30831,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo!",
+    "russian": "Этот замечательный мир!",
+    "image": {
+      "original": "/system/animes/original/30831.jpg?1711959601",
+      "preview": "/system/animes/preview/30831.jpg?1711959601",
+      "x96": "/system/animes/x96/30831.jpg?1711959601",
+      "x48": "/system/animes/x48/30831.jpg?1711959601"
+    },
+    "url": "/animes/x30831-kono-subarashii-sekai-ni-shukufuku-wo",
+    "kind": "tv",
+    "score": "8.09",
+    "status": "released",
+    "episodes": 10,
+    "episodes_aired": 10,
+    "aired_on": "2016-01-14",
+    "released_on": "2016-03-17"
+  },
+  {
+    "id": 32937,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo! 2",
+    "russian": "Этот замечательный мир! 2",
+    "image": {
+      "original": "/system/animes/original/32937.jpg?1711959560",
+      "preview": "/system/animes/preview/32937.jpg?1711959560",
+      "x96": "/system/animes/x96/32937.jpg?1711959560",
+      "x48": "/system/animes/x48/32937.jpg?1711959560"
+    },
+    "url": "/animes/y32937-kono-subarashii-sekai-ni-shukufuku-wo-2",
+    "kind": "tv",
+    "score": "8.24",
+    "status": "released",
+    "episodes": 10,
+    "episodes_aired": 10,
+    "aired_on": "2017-01-12",
+    "released_on": "2017-03-16"
+  },
+  {
+    "id": 49458,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo! 3",
+    "russian": "Этот замечательный мир! 3",
+    "image": {
+      "original": "/system/animes/original/49458.jpg?1717634812",
+      "preview": "/system/animes/preview/49458.jpg?1717634812",
+      "x96": "/system/animes/x96/49458.jpg?1717634812",
+      "x48": "/system/animes/x48/49458.jpg?1717634812"
+    },
+    "url": "/animes/49458-kono-subarashii-sekai-ni-shukufuku-wo-3",
+    "kind": "tv",
+    "score": "8.33",
+    "status": "released",
+    "episodes": 11,
+    "episodes_aired": 11,
+    "aired_on": "2024-04-10",
+    "released_on": "2024-06-19"
+  },
+  {
+    "id": 61203,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo! 4",
+    "russian": "Этот замечательный мир! 4",
+    "image": {
+      "original": "/assets/globals/missing_original.jpg",
+      "preview": "/assets/globals/missing_preview.jpg",
+      "x96": "/assets/globals/missing_x96.jpg",
+      "x48": "/assets/globals/missing_x48.jpg"
+    },
+    "url": "/animes/61203-kono-subarashii-sekai-ni-shukufuku-wo-4",
+    "kind": "tv",
+    "score": "0.0",
+    "status": "anons",
+    "episodes": 0,
+    "episodes_aired": 0,
+    "aired_on": "2027-01-01",
+    "released_on": null
+  },
+  {
+    "id": 34626,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo! 2: Kono Subarashii Geijutsu ni Shukufuku wo!",
+    "russian": "Этот замечательный мир! 2: Благословение этому замечательному искусству!",
+    "image": {
+      "original": "/system/animes/original/34626.jpg?1711959568",
+      "preview": "/system/animes/preview/34626.jpg?1711959568",
+      "x96": "/system/animes/x96/34626.jpg?1711959568",
+      "x48": "/system/animes/x48/34626.jpg?1711959568"
+    },
+    "url": "/animes/34626-kono-subarashii-sekai-ni-shukufuku-wo-2-kono-subarashii-geijutsu-ni-shukufuku-wo",
+    "kind": "ova",
+    "score": "8.01",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2017-07-24",
+    "released_on": null
+  },
+  {
+    "id": 51958,
+    "name": "Kono Subarashii Sekai ni Bakuen wo!",
+    "russian": "Одаривая этот замечательный мир взрывами!",
+    "image": {
+      "original": "/system/animes/original/51958.jpg?1710733679",
+      "preview": "/system/animes/preview/51958.jpg?1710733679",
+      "x96": "/system/animes/x96/51958.jpg?1710733679",
+      "x48": "/system/animes/x48/51958.jpg?1710733679"
+    },
+    "url": "/animes/51958-kono-subarashii-sekai-ni-bakuen-wo",
+    "kind": "tv",
+    "score": "7.52",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2023-04-06",
+    "released_on": "2023-06-22"
+  },
+  {
+    "id": 59833,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo! 3: Bonus Stage",
+    "russian": "Этот замечательный мир! 3: Бонусный этап",
+    "image": {
+      "original": "/assets/globals/missing_original.jpg",
+      "preview": "/assets/globals/missing_preview.jpg",
+      "x96": "/assets/globals/missing_x96.jpg",
+      "x48": "/assets/globals/missing_x48.jpg"
+    },
+    "url": "/animes/59833-kono-subarashii-sekai-ni-shukufuku-wo-3-bonus-stage",
+    "kind": "ova",
+    "score": "8.13",
+    "status": "released",
+    "episodes": 2,
+    "episodes_aired": 0,
+    "aired_on": "2025-04-25",
+    "released_on": null
+  },
+  {
+    "id": 38040,
+    "name": "Kono Subarashii Sekai ni Shukufuku wo! Movie: Kurenai Densetsu",
+    "russian": "Этот замечательный мир! Багровая легенда",
+    "image": {
+      "original": "/system/animes/original/38040.jpg?1711959620",
+      "preview": "/system/animes/preview/38040.jpg?1711959620",
+      "x96": "/system/animes/x96/38040.jpg?1711959620",
+      "x48": "/system/animes/x48/38040.jpg?1711959620"
+    },
+    "url": "/animes/z38040-kono-subarashii-sekai-ni-shukufuku-wo-movie-kurenai-densetsu",
+    "kind": "movie",
+    "score": "8.4",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 1,
+    "aired_on": "2019-08-30",
+    "released_on": null
+  },
+  {
+    "id": 42307,
+    "name": "Subarashiki Kono Sekai The Animation",
+    "russian": "Этот чудесный мир",
+    "image": {
+      "original": "/system/animes/original/42307.jpg?1711975324",
+      "preview": "/system/animes/preview/42307.jpg?1711975324",
+      "x96": "/system/animes/x96/42307.jpg?1711975324",
+      "x48": "/system/animes/x48/42307.jpg?1711975324"
+    },
+    "url": "/animes/42307-subarashiki-kono-sekai-the-animation",
+    "kind": "tv",
+    "score": "6.16",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2021-04-10",
+    "released_on": "2021-06-26"
+  }
+]
