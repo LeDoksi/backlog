@@ -1,0 +1,125 @@
+# Волна 2. Сезоны и франшизы: план реализации
+
+> **Где лежат документы.** Спека: `docs/superpowers/specs/2026-10-14-review-improvements-design.md`, раздел «Волна 2». Канбан: Supabase-проект `kanban` (`qcxfaxgqjzabtrzpsnnm`), эпик BL-E10, карточки BL-90, 94, 95, 108, 109, 110. Решения Георгия: сезоны и фильмы в основном списке, OVA и спешлы в свёрнутом дополнительном блоке; спин-офф и ремейк TMDb — отдельные тайтлы; «готовый сериал с новым сезоном возвращается из просмотренного» — ок; проверка раз в день при открытии сайта, молча.
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+> **Перед стартом:** волна 1 выложена (иначе миграции конфликтуют по датам: эта волна начинает с `20261110…`). Если нет — договориться в треде и поправить имена.
+
+**Goal:** Одна строка поиска на многосезонник, полный список частей при добавлении, «ждёт продолжения» в конце списка, ежедневное тихое обновление: дозаполнение сезонов у старых тайтлов, новые сезоны, склейка дублей франшизы.
+
+**Architecture:** Провайдеры в `lib/enrich.ts` отдают сырые сезоны (TMDb) и франшизу (Shikimori). Чистые модули `lib/franchise.ts` (сборка частей и группировка поиска) и `lib/refresh.ts` (слияние частей только дописыванием, план склейки дублей) без сети и React. Ежедневный проход `data/refreshJob.ts` пишет через новую функцию базы `apply_title_refresh`, которая выключает запись в ленту. «Ждёт продолжения» вычисляется на клиенте из чек-листа (`isCaughtUp` уже есть).
+
+**Tech Stack:** как в волне 1; живые API только через Remote Control на компьютере Георгия (облако блокирует TMDb и Shikimori).
+
+**Spec:** разделы 2.1–2.7.
+
+## Global Constraints
+
+- Части пишутся в порядке выхода и **только дописываются в конец**; отметки (`checked_parts`) хранятся по номеру части, поэтому существующие части никогда не переставляются и не удаляются автоматически.
+- Новые необязательные поля части в `parts` (jsonb): `ref: string` (`shiki:<id>`, `tmdb-season:<n>`), `extra: true` (дополнительный блок). Части без них работают как раньше.
+- Дополнительные части (`extra: true`) не влияют на статус, «X из Y», итоги и лидеров.
+- Shikimori: не больше 5 запросов в секунду и 90 в минуту, заголовок `User-Agent` как в `shikimoriGet`. Запросы проходом — по одному.
+- Тихие правки (проход) не пишут в `activity_events`.
+- Тайтлы с `parts_manual = true` проход не трогает, кроме флага `released` у частей с `ref`.
+- Тайтлы с незавершёнными операциями в outbox проход пропускает.
+
+## Review Focus
+
+1. Склейка, когда у дублей разные статусы (один `done`, другой `queue`): отметки ставятся только на части завершённых, ничего не теряется. Тест в задаче 4.
+2. Источник ответил ошибкой или пусто: тайтл не меняется и не теряет части, проход идёт дальше. Тест в задаче 5.
+3. Проход на общей доске одновременно на двух устройствах: второй вызов `apply_title_refresh` не дублирует части и не падает (сравнение по `ref`). Тест в задаче 2.
+4. Франшиза из 60+ частей (Гинтама, Наруто): основной список не больше реальных сезонов и фильмов, остальное в дополнительном блоке; панель не тормозит. Тест в задаче 3 на записанном ответе.
+5. Готовый сериал, вышел новый сезон: статус `done` → `in_progress`, в ленту ничего не уходит, тайтл не «ждёт продолжения». Тест в задачах 2 и 4.
+
+---
+
+### Task 1: Живые ответы API (Remote Control)
+
+**Files:** Create `app/tests/fixtures/live/` с JSON-ответами; `docs/superpowers/plans/2026-10-14-wave2-seasons.md` — раздел «Что показали живые ответы».
+
+- [ ] **Step 1:** Запустить Remote Control на компьютере Георгия (`start_rc_session`, папка из `list_devices`, свежий клон, старый чекаут не трогать). Сохранить ответы: TMDb `/tv/{id}?language=ru-RU` для «Ходячие мертвецы» (1402), «Кастлвания» (71024), «Библиотекари» (61599); Shikimori `/api/animes/{id}` и `/api/animes/{id}/franchise` и `/api/animes/{id}/related` для «Атака титанов» (16498), «Этот замечательный мир!» (30831), «Синяя тюрьма» (49596), «Фрирен» (52991), «Гинтама» (918); поиск `/api/animes?search=атака титанов&limit=10`.
+- [ ] **Step 2:** Записать в план: какие `kind` у узлов франшизы, как отличить сиквел от спин-оффа (`related.relation` в связях франшизы), есть ли у узла дата и признак «анонс»; сколько узлов у Гинтамы. Принять правило «основной список» по живым данным: ТВ-сезоны и фильмы, связанные цепочкой `sequel/prequel` с выбранным тайтлом, и фильмы франшизы; всё остальное `extra`. Если правило не даёт разумного списка на всех пяти примерах, упростить до «tv + movie = основное» и записать решение.
+- [ ] **Step 3: Commit** `test: live TMDb and Shikimori fixtures for seasons`.
+
+### Task 2: База: `parts_manual`, `apply_title_refresh`, тихий триггер, лидеры без extra
+
+**Files:**
+- Create: `supabase/migrations/20261110000000_title_refresh.sql`, `supabase/rollbacks/20261110000000_title_refresh.sql`, `supabase/tests/title_refresh.sql`
+- Modify: `supabase/tests/leaderboard.sql`, `supabase/tests/grants.sql`, `app/src/lib/titleRow.ts`, `app/src/lib/types.ts`
+
+**Interfaces:**
+- Produces: колонка `titles.parts_manual boolean not null default false`; `Title.partsManual?: boolean`, маппинг в `titleRow.ts`.
+- Produces: `apply_title_refresh(p_workspace uuid, p_updates jsonb, p_deletes text[]) returns int` — `p_updates`: массив `{id, parts, checked_parts, status, manual_status, airing_status}`; обновляет только строки этой доски, только если `is_member(p_workspace)`; удаляет `p_deletes`; возвращает число изменённых строк. Внутри `set_config('bl.quiet', '1', true)`.
+- Produces: `titles_activity()` первой строкой `if current_setting('bl.quiet', true) = '1' then return new; end if;`.
+- Produces: лидеры (`board_leaderboard` и всё, что считает сезоны из `checked_parts`) считают только отметки частей без `extra`.
+
+- [ ] **Step 1: Тесты pgTAP:** не-участник получает 0 и строки не меняются; участник обновляет части, событий в `activity_events` не прибавилось; повторный вызов с теми же данными меняет 0 строк по содержанию и не падает; `p_deletes` удаляет только на своей доске; лидеры: отметка на `extra`-части не прибавляет сезон; `done → in_progress` через функцию не пишет событие.
+- [ ] **Step 2:** `run-local.sh` — падают. **Step 3:** миграция и откат (прод-скрипт с `rename` вместо `drop`, как в волне 1). **Step 4:** зелёные, откаты сходятся.
+- [ ] **Step 5: Commit** `feat(db): apply_title_refresh, parts_manual, quiet trigger, extras out of leaders`.
+
+### Task 3: Провайдеры и сборка частей
+
+**Files:**
+- Modify: `app/src/lib/enrich.ts`, `app/src/lib/types.ts` (`Part`: `ref?: string; extra?: boolean`)
+- Create: `app/src/lib/franchise.ts`
+- Test: `app/tests/lib/enrich.test.ts`, `app/tests/lib/franchise.test.ts` (на фикстурах задачи 1)
+
+**Interfaces:**
+- Produces в `enrich.ts`: `fetchTmdbSeasons(fetchFn, proxyBase, key, tvId): Promise<{ status: string | null; seasons: { number: number; name: string; year: number | null; airDate: string | null }[] } | null>`; `fetchShikimoriFranchise(fetchFn, id): Promise<FranchiseNode[] | null>` с `FranchiseNode { id: number; name: string; kind: string; year: number | null; date: string | null; main: boolean }` (`main` по правилу задачи 1).
+- Produces в `franchise.ts`: `partsFromTmdb(seasons, today: Date): Part[]` (сезон 0 → `extra`, будущая или пустая дата → `released: false`, `ref: tmdb-season:<n>`, имя «Сезон N» или название сезона, если оно не «Сезон N»); `partsFromFranchise(nodes, today): Part[]` (по дате, основные сначала в своём порядке, `extra` в конце, `ref: shiki:<id>`); `groupHits(hits: Hit[], franchiseOf: (id) => string | null): Hit[]` (одна строка на франшизу, самая ранняя ТВ); `franchiseLabel(parts): string` («4 сезона, 2 фильма»).
+
+- [ ] **Step 1: Тесты** на фикстурах: «Ходячие мертвецы» → 11 основных сезонов, без нулевого в основном; «Атака титанов» → OVA в `extra`, 4 ТВ-сезона и фильмы в основном; Гинтама — основной список ≤ 15; ошибка сети → `null`.
+- [ ] **Step 2–4:** падают → реализация → зелёные.
+- [ ] **Step 5: Commit** `feat: seasons from TMDb and Shikimori franchise`.
+
+### Task 4: Слияние частей и план склейки (чистая логика)
+
+**Files:** Create `app/src/lib/refresh.ts`; Modify `app/src/lib/storage.ts` (`partsProgress` пропускает `extra`); Test `app/tests/lib/refresh.test.ts`, `app/tests/lib/storage.test.ts`.
+
+**Interfaces:**
+- Produces: `mergeParts(current: Part[] | undefined, fresh: Part[]): { parts: Part[]; changed: boolean }` — пустой `current` → `fresh`; иначе существующие по `ref` обновляют только `released`/`year`, новых `ref` дописываются в конец; части без `ref` сопоставляются по имени и получают `ref`.
+- Produces: `fillTicksForDone(parts, status): number[]` — для тайтла `done` без чек-листа отмечает все вышедшие основные.
+- Produces: `planMerge(board: Title[], ticks: Record<string, number[]>, franchiseIds: Record<string, string[]>): { keep: string; absorb: string[]; parts: Part[]; checked: number[]; rating: number | null; hidden: boolean }[]` — по спеке 2.5 п.3: главный — с первым ТВ-сезоном франшизы, иначе раньше добавленный; отметки — части с `ref` дублей, которые были `done`, плюс отметки самого главного; оценка — максимальная.
+
+- [ ] **Step 1: Тесты:** `mergeParts` не переставляет старые и дописывает новый сезон; `partsProgress` с `extra` не считает его в `released`/`watched`; `isCaughtUp` для «все вышедшие основные отмечены, есть невышедшая» → `true`; `planMerge` для «Адский рай» (`done`) + «Адский рай 2» (`done`) → один тайтл, обе части отмечены; для «Блю Лок» (`done`) + «против сборной» (`queue`) → отмечена только первая; разные доски не склеиваются; без франшизы — пусто.
+- [ ] **Step 2–4.** **Step 5: Commit** `feat: append-only parts merge and duplicate merge plan`.
+
+### Task 5: Ежедневный проход
+
+**Files:** Create `app/src/data/refreshJob.ts`; Modify `app/src/App.tsx` (запуск после первой синхронизации доски), `app/src/lib/social.ts` или новый `app/src/lib/refreshRpc.ts` (`applyTitleRefresh(client, board, updates, deletes)`); Test `app/tests/data/refreshJob.test.ts`.
+
+**Interfaces:**
+- Produces: `runDailyRefresh(deps: { titles: Title[]; ticks; board: string; fetchFn; client; storage; now: Date; pendingIds: Set<string> }): Promise<{ updated: number; merged: number; skipped: number }>`; отметка последнего запуска в storage `refresh:<board>` (дата ISO, раз в календарный день).
+- Порядок: выбрать тайтлы `series`/`anime` с `source`/`sourceId`, без `pendingIds`; по одному запросу с паузой 250 мс; собрать обновления и план склейки; один вызов `applyTitleRefresh`; при успехе — `store.refresh(true)`.
+
+- [ ] **Step 1: Тесты** (фейковый fetch, фейковый клиент): второй запуск в тот же день ничего не делает; ошибка одного источника не останавливает остальные; `parts_manual` тайтл получает только смену `released`; тайтл в outbox пропущен; `done`-сериал с новым сезоном уходит в обновление со статусом `in_progress`; один вызов RPC на проход.
+- [ ] **Step 2–4.** **Step 5: Commit** `feat: daily quiet refresh of seasons with duplicate merge (BL-94, BL-95, BL-109)`.
+
+### Task 6: Поиск и добавление: одна строка и части сразу (BL-90, BL-108)
+
+**Files:** Modify `app/src/data/enrichSearch.ts`, `app/src/data/newTitle.ts`, `app/src/screens/QuickAdd/QuickAdd.tsx`; Test `app/tests/data/newTitle.test.ts`, `app/e2e/quick-add.spec.ts`, стаб внешних API в e2e (перехват `page.route` на фикстуры задачи 1).
+
+- [ ] **Step 1: Тесты:** поиск «атака титанов» на фикстуре → одна строка с подписью «4 сезона, N фильмов»; франшиза, которая уже на доске (любой `ref`/`source_id` из франшизы), помечена «Уже в бэклоге» и не добавляется; добавленный сериал TMDb сразу с сезонами; `buildTitle` кладёт `parts`.
+- [ ] **Step 2–4.** **Step 5: Commit** `feat: one search result per franchise, parts on add (BL-90, BL-108)`.
+
+### Task 7: «Ждёт продолжения», дополнительный блок, `parts_manual` в редактировании (BL-110)
+
+**Files:** Modify `app/src/lib/query.ts` (сортировка), `app/src/data/filters.ts` (галочка `waiting`), `app/src/screens/Backlog/FilterPanels.tsx`, `app/src/screens/Backlog/TitleCard.tsx`, `app/src/data/labels.ts`, `app/src/screens/TitleSheet/PartsChecklist.tsx`, `app/src/screens/EditTitle/EditTitle.tsx`; Test `app/tests/lib/query.test.ts`, `app/tests/data/filters.test.ts`, `app/e2e/backlog.spec.ts`, снимки.
+
+**Interfaces:**
+- Produces: `sortTitles(titles, 'status', isWaiting?: (t) => boolean)` — порядок `in_progress (не ждёт)`, `queue`, `ждёт`, `unreleased`, `done`. Пометка на плитке `STATUS_CARD_WAITING = 'Ждёт продолжения'`.
+- `PartsChecklist`: основные как сейчас; если есть `extra` — свёрнутая кнопка «Ещё N: OVA и спешлы», раскрывает их же чекбоксы. «Просмотрено X из Y» без `extra`.
+- `EditTitle`: любое изменение списка частей ставит `partsManual: true`.
+
+- [ ] **Step 1: Тесты:** сортировка ставит ждущий после «В бэклоге»; фильтр `waiting` показывает только ждущих; плитка ждущего — «Ждёт продолжения»; дополнительный блок свёрнут и не влияет на «X из Y»; правка частей в редактировании ставит `parts_manual`.
+- [ ] **Step 2–4.** Переснять снимки «backlog», «title». **Step 5: Commit** `feat: waiting for next season sorts down; extras block (BL-110)`.
+
+### Task 8: Выкладка и проверка вживую
+
+- [ ] **Step 1:** Полная проверка (`npm test`, `typecheck`, `build`, `budget`, `e2e`, `run-local.sh`), ревью ветки, исправления.
+- [ ] **Step 2:** Прод-скрипт задачи 2 → `/mnt/project-files/sql/`, Георгий запускает **до** слияния. Проверить read-only запросом.
+- [ ] **Step 3:** Перед слиянием снять снимок прод-таблицы `titles` в `/mnt/project-files/backups/` (read-only выборка в JSON): склейка удаляет строки.
+- [ ] **Step 4:** PR, CI, слияние, выкладка.
+- [ ] **Step 5:** Через Remote Control открыть живой сайт под Георгием (его вход в браузере): поиск «Атака титанов» → одна строка; на доске после прохода сезоны появились; read-only запрос в прод: у скольких сериалов и аниме всё ещё нет `parts` (было 104 из 170), дубли из обзора склеены, `activity_events` за время прохода без всплеска.
+- [ ] **Step 6:** Канбан BL-90, 94, 95, 108, 109, 110; план — галочки и «Отклонения при реализации»; сообщение Георгию, что попробовать.
