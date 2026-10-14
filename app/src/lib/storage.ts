@@ -44,6 +44,8 @@ function partsProgress(parts: Part[] | null | undefined, checkedIndices: unknown
   var out = { released: 0, pending: 0, watched: 0 };
   if (!Array.isArray(parts)) return out;
   parts.forEach(function (part: Part | null, index: number) {
+    // Extras (OVA, specials) are a side block: they count toward nothing.
+    if (part && part.extra) return;
     if (part && part.released === false) { out.pending += 1; return; }
     out.released += 1;
     if (checked.indexOf(index) !== -1) out.watched += 1;

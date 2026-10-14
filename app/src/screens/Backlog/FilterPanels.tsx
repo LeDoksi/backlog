@@ -1,15 +1,14 @@
 import { useMemo } from 'react';
 import { Chip } from '../../ui/Chip';
 import { Switch } from '../../ui/Switch';
-import { useFilters, genreCounts, type SortKey } from '../../data/filters';
+import { useFilters, genreCounts, type SortKey, type StatusFilter } from '../../data/filters';
 import { useTitles } from '../../data/titlesStore';
 import { STATUS_FILTER } from '../../data/labels';
-import type { Status } from '../../lib/types';
 import s from './FilterPanels.module.css';
 
 export const SORT_LABEL: Record<SortKey, string> = { status: 'Актуальное', added: 'Добавлено', name: 'Название', year: 'Год' };
 const SORTS: SortKey[] = ['status', 'added', 'name', 'year'];
-const STATUSES: Status[] = ['in_progress', 'queue', 'done', 'unreleased'];
+const STATUSES: StatusFilter[] = ['in_progress', 'waiting', 'queue', 'done', 'unreleased'];
 
 export function GenresPanel() {
   const titles = useTitles((t) => t.titles);
@@ -37,7 +36,7 @@ export function GenresPanel() {
 
 export function FiltersPanel({ withSort }: { withSort: boolean }) {
   const f = useFilters();
-  const toggle = (st: Status) => f.set({ statuses: f.statuses.includes(st) ? f.statuses.filter((x) => x !== st) : [...f.statuses, st] });
+  const toggle = (st: StatusFilter) => f.set({ statuses: f.statuses.includes(st) ? f.statuses.filter((x) => x !== st) : [...f.statuses, st] });
   return (
     <>
       <div className={s.head}><h2 id="filters-title" className={s.title}>Фильтры</h2></div>

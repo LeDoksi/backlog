@@ -1,6 +1,6 @@
 -- apply_title_refresh(): the daily refresh's quiet write (spec 2.5).
 begin;
-select plan(15);
+select plan(16);
 \ir support/social_fixture.sql
 update public.workspaces set visibility = 'friends' where id = '00000000-0000-0000-0000-0000000000b1';
 select pg_temp.put('00000000-0000-0000-0000-0000000000b1', 'walking-dead', 'done', false, 'tmdb-series', '1402', 'series');
@@ -31,10 +31,11 @@ select is(public.apply_title_refresh('00000000-0000-0000-0000-0000000000b1',
      "checked_parts":{"0":"2020-01-01T00:00:00Z","1":"2020-01-01T00:00:00Z"},"status":"done","manual_status":"done","airing_status":"completed"},
     {"id":"aot","base":{"parts":null,"checked_parts":{},"status":"queue"},
      "parts":[{"name":"Сезон 1","ref":"shiki:16498"},{"name":"OVA","ref":"shiki:25777","extra":true}],
-     "checked_parts":{"1":"2020-01-01T00:00:00Z"},"status":"queue","manual_status":"queue","airing_status":"completed"}]',
+     "checked_parts":{"1":"2020-01-01T00:00:00Z"},"status":"queue","manual_status":"queue","airing_status":"completed","rating":8}]',
   '[{"id":"aot-ova","base":{"parts":null,"checked_parts":{},"status":"done"}}]'), 3, 'two rows updated and one deleted');
 select is(jsonb_array_length((select parts from public.titles where id = 'walking-dead')), 2, 'the seasons are written');
 select is((select count(*)::int from public.titles where id = 'aot-ova'), 0, 'the duplicate is gone');
+select is((select rating from public.titles where id = 'aot'), 8, 'the merged rating is kept');
 select is(pg_temp.events(), 0::bigint, 'no feed events from the quiet write');
 
 -- The same call again (a second device): the base no longer matches, so nothing moves.

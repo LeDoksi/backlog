@@ -6,7 +6,8 @@ import { resolveCover } from '../../lib/covers';
 import { isStillAiring } from '../../lib/query';
 import { ASSET_ROOT } from '../../config';
 import { openTitle } from '../../data/ui';
-import { cardProgress, metaLine, statusLabel } from '../../data/labels';
+import { cardProgress, metaLine, statusLabel, STATUS_CARD_WAITING } from '../../data/labels';
+import { isWaiting } from '../../data/filters';
 import type { Title } from '../../lib/types';
 import type { FriendOn } from '../../lib/social';
 import { Avatar } from '../../ui/Avatar';
@@ -16,8 +17,8 @@ import s from './TitleCard.module.css';
 
 const PLACEHOLDER = resolveCover(undefined, ASSET_ROOT);
 
-export function cardLabel(t: Title, friend?: FriendOn): string {
-  return [t.title, statusLabel(t.status, t.category), t.rating ? `оценка ${t.rating}` : '', isStillAiring(t) ? 'всё ещё выходит' : '',
+export function cardLabel(t: Title, friend?: FriendOn, waiting = false): string {
+  return [t.title, waiting ? STATUS_CARD_WAITING : statusLabel(t.status, t.category), t.rating ? `оценка ${t.rating}` : '', isStillAiring(t) ? 'всё ещё выходит' : '',
     friend ? `${friend.friend_name} ${statusWord(friend.status, t.category)}` : ''].filter(Boolean).join(' — ');
 }
 
@@ -28,6 +29,7 @@ export const TitleCard = memo(function TitleCard({ title, checked, friend, onQui
   const [quick, setQuick] = useState(false);
   const root = useRef<HTMLElement>(null);
   const progress = cardProgress(title, checked);
+  const waiting = isWaiting(title, checked);
   const hasQuick = title.status !== 'unreleased' || !!progress;
   const press = useLongPress(() => { if (hasQuick) { navigator.vibrate?.(10); setQuick(true); } });
 
@@ -50,7 +52,7 @@ export const TitleCard = memo(function TitleCard({ title, checked, friend, onQui
           <img src={resolveCover(title.cover, ASSET_ROOT)} alt="" loading="lazy" decoding="async" draggable={false}
             onError={(e) => { if (e.currentTarget.src !== PLACEHOLDER) e.currentTarget.src = PLACEHOLDER; }} />
         </div>
-        <div className={s.pill}><StatusPill status={title.status} category={title.category} onPoster /></div>
+        <div className={s.pill}><StatusPill status={title.status} category={title.category} onPoster waiting={waiting} /></div>
         {progress && (
           <div className={s.progress} aria-hidden="true">
             <div className={s.progressText}><span>{progress.left}</span><span>{progress.right}</span></div>
@@ -66,7 +68,7 @@ export const TitleCard = memo(function TitleCard({ title, checked, friend, onQui
           {friend && <span className={s.friend} aria-hidden="true"><Avatar userId={friend.friend_id} name={friend.friend_name} size={18} /><span className={s.friendName}>{friend.friend_name}</span></span>}
         </div>
       </div>
-      <button type="button" className={s.hit} aria-label={cardLabel(title, friend)} onClick={() => openTitle(title.id)} {...press} />
+      <button type="button" className={s.hit} aria-label={cardLabel(title, friend, waiting)} onClick={() => openTitle(title.id)} {...press} />
       {hasQuick && (
         <button type="button" className={s.more} aria-label={`Быстрые действия: ${title.title}`} aria-expanded={quick}
           onClick={() => setQuick((q) => !q)}><DotsThree size={20} weight="bold" /></button>

@@ -6,6 +6,12 @@ export interface Part {
   name: string;
   year?: number | null;
   released?: boolean;
+  // Where the part came from (`shiki:<id>`, `tmdb-season:<n>`): the daily
+  // refresh matches parts by it. Parts written before wave 2 have none.
+  ref?: string;
+  // OVA, special, short spin-off: the folded extras block, which counts
+  // toward nothing (status, «X из Y», totals, leaders).
+  extra?: boolean;
 }
 
 export interface Title {
@@ -33,6 +39,9 @@ export interface Title {
   startedAt?: string | null;
   completedAt?: string | null;
   createdAt?: string;
+  // The list of parts was edited by hand: the daily refresh leaves it alone
+  // except for the released flags.
+  partsManual?: boolean;
 }
 
 export interface StorageLike {

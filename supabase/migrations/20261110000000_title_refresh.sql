@@ -59,7 +59,8 @@ language sql immutable as $$
 $$;
 
 -- The daily refresh's one write (spec 2.5). p_updates: [{id, base, parts,
--- checked_parts, status, manual_status, airing_status}], p_deletes: [{id,
+-- checked_parts, status, manual_status, airing_status, rating}] (a merge
+-- keeps the highest rating), p_deletes: [{id,
 -- base}], where base = {parts, checked_parts, status} as the client saw the
 -- row. A row that changed since (another device, a tick made meanwhile)
 -- makes the whole call a no-op that answers -1: the client reloads and tries
@@ -87,14 +88,16 @@ begin
           checked_parts = case when jsonb_typeof(u->'checked_parts') = 'object' then u->'checked_parts' else t.checked_parts end,
           status = coalesce(u->>'status', t.status),
           manual_status = case when u ? 'manual_status' then u->>'manual_status' else t.manual_status end,
-          airing_status = case when u ? 'airing_status' then u->>'airing_status' else t.airing_status end
+          airing_status = case when u ? 'airing_status' then u->>'airing_status' else t.airing_status end,
+          rating = case when u ? 'rating' then (u->>'rating')::int else t.rating end
        where t.workspace_id = p_workspace and t.id = u->>'id'
-         and (t.parts, t.checked_parts, t.status, t.manual_status, t.airing_status) is distinct from
+         and (t.parts, t.checked_parts, t.status, t.manual_status, t.airing_status, t.rating) is distinct from
              (case when jsonb_typeof(u->'parts') = 'array' then u->'parts' else t.parts end,
               case when jsonb_typeof(u->'checked_parts') = 'object' then u->'checked_parts' else t.checked_parts end,
               coalesce(u->>'status', t.status),
               case when u ? 'manual_status' then u->>'manual_status' else t.manual_status end,
-              case when u ? 'airing_status' then u->>'airing_status' else t.airing_status end);
+              case when u ? 'airing_status' then u->>'airing_status' else t.airing_status end,
+              case when u ? 'rating' then (u->>'rating')::int else t.rating end);
       get diagnostics c = row_count;
       n := n + c;
     end loop;

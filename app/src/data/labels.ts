@@ -10,7 +10,9 @@ export const STATUS_CARD: Record<Status, string> = { queue: 'В бэклоге',
 export function statusLabel(status: Status, category: Category): string {
   return status === 'in_progress' && category === 'game' ? 'Играю' : STATUS_CARD[status];
 }
-export const STATUS_FILTER: Record<Status, string> = { queue: 'В бэклоге', in_progress: 'В процессе', done: 'Завершено', unreleased: 'Ещё не вышло' };
+export const STATUS_FILTER: Record<Status | 'waiting', string> = { queue: 'В бэклоге', in_progress: 'В процессе', waiting: 'Ждёт продолжения', done: 'Завершено', unreleased: 'Ещё не вышло' };
+/** On the card instead of «Смотрю» when everything out is watched and more is coming (spec 2.4). */
+export const STATUS_CARD_WAITING = 'Ждёт продолжения';
 
 export function metaLine(t: Title): string {
   return [CATEGORY_LABEL[t.category], t.year].filter(Boolean).join(', ');
@@ -20,7 +22,8 @@ export function metaLine(t: Title): string {
 export function cardProgress(t: Title, checked: number[] | undefined): { left: string; right: string; pct: number } | null {
   if (!hasPartsChecklist(t)) return null;
   const p = partsProgress(t.parts, checked ?? []);
-  const total = t.parts.length;
+  // Extras (OVA, specials) are not counted: «X из Y» is main parts only.
+  const total = p.released + p.pending;
   return {
     left: `${p.watched} из ${total}`,
     right: p.pending > 0 ? `ждём ${p.released + 1}-й` : '',

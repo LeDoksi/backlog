@@ -1,12 +1,16 @@
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import { matchesFilters, matchesSearch, sortTitles, isStillAiring } from '../lib/query';
+import { isCaughtUp } from '../lib/storage';
 import type { Category, Status, Title } from '../lib/types';
+
+/** A status chip: the four statuses and «Ждёт продолжения» (in progress, caught up). */
+export type StatusFilter = Status | 'waiting';
 
 export type SortKey = 'status' | 'added' | 'name' | 'year';
 
 export interface FilterState {
   category: 'all' | Category;
-  statuses: Status[];
+  statuses: StatusFilter[];
   genres: string[];
   stillAiring: boolean;
   hideDone: boolean;
@@ -20,7 +24,7 @@ export const DEFAULT_FILTERS: FilterState = {
 
 const KEY = 'bl2:filters';
 const CATEGORIES: ('all' | Category)[] = ['all', 'anime', 'movie', 'series', 'game'];
-const STATUSES: Status[] = ['queue', 'in_progress', 'done', 'unreleased'];
+const STATUSES: StatusFilter[] = ['queue', 'in_progress', 'waiting', 'done', 'unreleased'];
 const SORTS: SortKey[] = ['status', 'added', 'name', 'year'];
 
 // Search is deliberately not persisted: coming back to a half-typed query
@@ -31,7 +35,7 @@ function load(): FilterState {
     return {
       ...DEFAULT_FILTERS,
       category: CATEGORIES.includes(raw.category) ? raw.category : 'all',
-      statuses: Array.isArray(raw.statuses) ? raw.statuses.filter((s: Status) => STATUSES.includes(s)) : [],
+      statuses: Array.isArray(raw.statuses) ? raw.statuses.filter((s: StatusFilter) => STATUSES.includes(s)) : [],
       genres: Array.isArray(raw.genres) ? raw.genres.filter((g: unknown) => typeof g === 'string') : [],
       stillAiring: raw.stillAiring === true,
       hideDone: raw.hideDone === true,
@@ -67,14 +71,20 @@ export const useFilters: UseBoundStore<StoreApi<FiltersStore>> = create<FiltersS
   }
 }));
 
-export function visibleTitles(titles: Title[], f: FilterState): Title[] {
+/** Watched everything that is out and more is coming (spec 2.4): «Ждёт продолжения». */
+export function isWaiting(t: Title, checked: number[] | undefined): boolean {
+  return t.status === 'in_progress' && isCaughtUp(t, checked ?? []);
+}
+
+export function visibleTitles(titles: Title[], f: FilterState, checked: Record<string, number[]> = {}): Title[] {
+  const waiting = (t: Title) => isWaiting(t, checked[t.id]);
   const list = titles.filter((t) => {
     if (f.category !== 'all' && t.category !== f.category) return false;
     if (f.hideDone && t.status === 'done') return false;
-    if (f.statuses.length && !f.statuses.includes(t.status)) return false;
+    if (f.statuses.length && !f.statuses.includes(waiting(t) ? 'waiting' : t.status)) return false;
     return matchesFilters(t, { genre: f.genres, returning: f.stillAiring }) && matchesSearch(t, f.search.trim());
   });
-  return sortTitles(list, f.sort);
+  return sortTitles(list, f.sort, waiting);
 }
 
 /** How many filters beyond category and search are narrowing the grid. */
