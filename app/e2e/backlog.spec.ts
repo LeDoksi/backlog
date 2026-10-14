@@ -149,6 +149,8 @@ test('finishing a title asks «Как тебе?»; the rating shows on its card'
   await expect(ask).toBeVisible();
   await ask.getByRole('radio', { name: '8' }).click();
   await expect(sheet.getByRole('radiogroup', { name: 'Оценка' }).getByRole('radio', { name: '8' })).toHaveAttribute('aria-checked', 'true');
+  // Once the server has it, nothing says it is unsaved.
+  await expect(page.getByText(/Не сохранено/)).toBeHidden();
   await page.keyboard.press('Escape');
   await expect(card).toContainText(/· 8$/);
 });

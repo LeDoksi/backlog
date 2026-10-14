@@ -15,10 +15,10 @@ import { CopyButtons } from '../FriendProfile/CopyFromFriend';
 import t from '../TitleSheet/TitleSheet.module.css';
 import s from './FriendTitle.module.css';
 
-/** «Вадим · завершено, 9/10». */
+/** «Вадим · завершено, оценка 9/10». */
 export function friendStatusLine(name: string, d: Pick<FriendTitleData, 'status' | 'category' | 'rating'>): string {
   const base = `${name} · ${statusWord(d.status, d.category)}`;
-  return d.rating ? `${base}, ${d.rating}/10` : base;
+  return d.rating ? `${base}, оценка ${d.rating}/10` : base;
 }
 
 /** A friend's title, read-only, with «Добавить к себе» (spec 1.3). */

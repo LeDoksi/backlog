@@ -38,7 +38,7 @@ test('shows the friend\'s title read-only with the add button', async () => {
   await open(show);
   expect(screen.getByRole('heading', { name: 'Озарк' })).toBeInTheDocument();
   expect(screen.getByText('Финансист отмывает деньги.')).toBeInTheDocument();
-  expect(screen.getByText('Вадим · завершено, 9/10')).toBeInTheDocument();
+  expect(screen.getByText('Вадим · завершено, оценка 9/10')).toBeInTheDocument();
   const boxes = screen.getAllByRole('checkbox');
   expect(boxes).toHaveLength(2);
   boxes.forEach((b) => expect(b).toBeDisabled());

@@ -24,9 +24,9 @@ test('the badge counts new lines, the tab groups them and opening it clears the 
   await expect(page.getByRole('heading', { name: 'Друзья', level: 1 })).toBeVisible();
   const today = page.getByRole('region', { name: 'Сегодня' });
   await expect(today.getByRole('button', { name: /^(Даша|Лёша) · / })).toHaveCount(2);
-  await expect(today).toContainText('Даша · 2 сезона «Фрирен»');
+  await expect(today).toContainText('Даша · просмотрено 2 сезона «Фрирен»');
   await expect(today).toContainText('общая доска');
-  await expect(today).toContainText('Лёша · +12 тайтлов');
+  await expect(today).toContainText('Лёша · добавлено 12 тайтлов');
   await expect(page.getByRole('region', { name: 'На этой неделе' })).toContainText('Лёша · завершено «Драйв»');
   await expect(page.getByRole('region', { name: 'Раньше' })).toContainText('Даша · начато «Тед Лассо»');
   expect(await rpcNames(page)).toContain('mark_feed_seen');
@@ -73,8 +73,40 @@ test('a cover in an additions line opens that title', async ({ page }) => {
   await page.getByRole('button', { name: 'Обложка 2 из 3' }).click();
   await expect(page.getByRole('dialog', { name: 'Бета' })).toBeVisible();
   await page.goBack();
-  await page.getByRole('button', { name: /^Вадим · \+3 тайтла/ }).click();
-  await expect(page.getByRole('dialog', { name: 'Вадим' }).getByRole('button', { name: 'Хочет' })).toHaveAttribute('aria-pressed', 'true');
+  // The strip of covers sits over the bottom of the line, so tap its text.
+  await page.getByRole('button', { name: /^Вадим · добавлено 3 тайтла/ }).click({ position: { x: 120, y: 20 } });
+  const list = page.getByRole('dialog', { name: 'Вадим · добавлено 3 тайтла' });
+  await expect(list.getByRole('button', { name: /^«/ })).toHaveText([/Альфа/, /Бета/, /Гамма/]);
+  await list.getByRole('button', { name: /^«Гамма»/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Гамма' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('dialog', { name: 'Гамма' })).toBeHidden();
+  await list.getByRole('button', { name: 'Вся полка «Хочет»' }).click();
+  await expect(list).toBeHidden();
+  await expect(page.getByRole('dialog', { name: 'Вадим', exact: true }).getByRole('button', { name: 'Хочет', exact: true })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('a long additions line scrolls sideways and lists every title', async ({ page }, info) => {
+  const ids = Array.from({ length: 10 }, (_, i) => `t${i}`);
+  await installStub(page, {
+    signedIn: true, hasProfile: true, friends: [vadim],
+    feed: [{ ...base, actor_id: vadim.id, actor_name: 'Вадим', kind: 'added', title_id: 't0', title: 'T0', category: 'movie', count: 10, at: ago(1),
+      covers: ids.map(() => 'images/covers/drive-2011.jpg'), title_ids: ids }],
+    shelves: { [vadim.id]: { want: ids.map((id, i) => ({ id, title: `Фильм ${i + 1}`, category: 'movie', year: 2000 + i, cover: null, common: false })) } }
+  });
+  await page.goto('./');
+  await nav(page).getByRole('button', { name: /Друзья/ }).click();
+  if (info.project.name === 'phone') {
+    const last = page.getByRole('button', { name: 'Обложка 10 из 10' });
+    await last.scrollIntoViewIfNeeded();
+    await expect(last).toBeInViewport();
+    await last.click();
+    await expect(page.getByRole('dialog', { name: 'Фильм 10' })).toBeVisible();
+    await page.goBack();
+  }
+  await page.getByRole('button', { name: /^Вадим · добавлено 10 тайтлов/ }).first().click({ position: { x: 120, y: 20 } });
+  const list = page.getByRole('dialog', { name: 'Вадим · добавлено 10 тайтлов' });
+  await expect(list.getByRole('button', { name: /^«/ })).toHaveCount(10);
 });
 
 test('an empty feed says what will appear there', async ({ page }) => {

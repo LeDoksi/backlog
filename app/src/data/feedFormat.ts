@@ -25,16 +25,21 @@ export type ShelfTab = 'done' | 'watching' | 'want';
 
 export function feedText(r: FeedRow): string {
   switch (r.kind) {
-    case 'completed': return r.rating ? `завершено «${r.title}» · ${r.rating}/10` : `завершено «${r.title}»`;
+    case 'completed': return r.rating ? `завершено «${r.title}» · оценка ${r.rating}/10` : `завершено «${r.title}»`;
     case 'started': return `начато «${r.title}»`;
     case 'parts': {
       const seasons = r.category === 'series' || r.category === 'anime';
       const unit = seasons ? plural(r.count, 'сезон', 'сезона', 'сезонов') : plural(r.count, 'часть', 'части', 'частей');
-      return `${r.count} ${unit} «${r.title}»`;
+      return `${r.category === 'game' ? 'пройдено' : 'просмотрено'} ${r.count} ${unit} «${r.title}»`;
     }
     case 'added':
-      return r.count > 1 ? `+${r.count} ${plural(r.count, 'тайтл', 'тайтла', 'тайтлов')}` : `добавлено «${r.title}»`;
+      return r.count > 1 ? addedText(r.count) : `добавлено «${r.title}»`;
   }
+}
+
+/** An additions line of several titles: «добавлено 3 тайтла». */
+export function addedText(count: number): string {
+  return `добавлено ${count} ${plural(count, 'тайтл', 'тайтла', 'тайтлов')}`;
 }
 
 const DAY = 24 * 60 * 60 * 1000;

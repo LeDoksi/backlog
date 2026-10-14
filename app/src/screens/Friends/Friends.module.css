@@ -22,7 +22,8 @@
 .itemText b { font-weight: 600; }
 .when { font-size: var(--fs-xs); color: var(--muted); }
 .cover { width: 42px; height: 63px; border-radius: var(--r-xs); object-fit: cover; flex-shrink: 0; background: var(--poster-empty); }
-.strip { display: flex; gap: 6px; overflow: hidden; }
+.strip { position: relative; z-index: 1; display: flex; gap: 6px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 -12px 0 -14px; padding: 0 12px 0 14px; scroll-padding-inline: 14px; }
+.strip::-webkit-scrollbar { display: none; }
 .stripBtn { flex-shrink: 0; display: block; }
 .strip img { width: 48px; height: 72px; border-radius: var(--r-xs); object-fit: cover; flex-shrink: 0; background: var(--poster-empty); }
 .note { margin: 0; padding: 18px; border-radius: var(--r-card); background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text-2); font-size: var(--fs-md); line-height: 1.45; }
