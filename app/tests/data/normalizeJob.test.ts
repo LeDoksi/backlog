@@ -81,4 +81,12 @@ describe('runNormalize', () => {
     expect(rpc).not.toHaveBeenCalled();
     expect(r.done).toBe(false);
   });
+
+  it('a title whose source never answers is given up after three opens', async () => {
+    const { d } = deps([movie('gone', '404')]);
+    expect((await runNormalize(d)).done).toBe(false);
+    expect((await runNormalize(d)).done).toBe(false);
+    expect((await runNormalize(d)).done).toBe(true);
+    expect((await runNormalize(d)).ran).toBe(false);
+  });
 });

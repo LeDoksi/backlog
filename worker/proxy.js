@@ -24,10 +24,15 @@ const ALLOWED_HOSTS = new Set([
   'api.mymemory.translated.net'
 ]);
 
-// Host → the environment variable holding its bearer key.
+// Host → the environment variable holding its bearer key, the only paths
+// the key goes to, and the only sites allowed to ask. A key is spent on the
+// owner's account, so the relay does not lend it to anyone who finds the
+// URL: browsers always send Origin on these cross-site requests, and a
+// script that fakes it still only reaches the read-only grid search.
 const KEYED_HOSTS = {
-  'www.steamgriddb.com': 'SGDB_KEY'
+  'www.steamgriddb.com': { env: 'SGDB_KEY', paths: /^\/api\/v2\/(grids\/(steam|game)\/\d+|search\/autocomplete\/[^/]+)$/ }
 };
+const APP_ORIGINS = /^(https:\/\/ledoksi\.github\.io|http:\/\/localhost(:\d+)?|http:\/\/127\.0\.0\.1(:\d+)?)$/;
 
 function corsHeaders() {
   return {
@@ -47,6 +52,20 @@ export default {
     }
 
     var url = new URL(request.url);
+    // A check that can be opened in a browser: is the SteamGridDB key there,
+    // and does SteamGridDB take it? The key itself is never shown.
+    if (url.pathname === '/__status') {
+      var status = 'missing';
+      if (env && env.SGDB_KEY) {
+        try {
+          var probe = await fetch('https://www.steamgriddb.com/api/v2/grids/steam/620?dimensions=600x900', { headers: { Authorization: 'Bearer ' + env.SGDB_KEY } });
+          status = probe.ok ? 'ok' : probe.status === 401 || probe.status === 403 ? 'rejected' : 'error ' + probe.status;
+        } catch (e) {
+          status = 'unreachable';
+        }
+      }
+      return new Response(JSON.stringify({ steamgriddb: status }), { headers: Object.assign(corsHeaders(), { 'Content-Type': 'application/json' }) });
+    }
     var targetUrl = url.pathname.slice(1) + url.search;
     var target;
     try {
@@ -59,9 +78,12 @@ export default {
     }
 
     var init = { headers: {} };
-    var keyName = KEYED_HOSTS[target.hostname];
-    if (keyName) {
-      var key = env && env[keyName];
+    var keyed = KEYED_HOSTS[target.hostname];
+    if (keyed) {
+      if (!keyed.paths.test(target.pathname) || !APP_ORIGINS.test(request.headers.get('Origin') || '')) {
+        return new Response('Forbidden', { status: 403, headers: corsHeaders() });
+      }
+      var key = env && env[keyed.env];
       if (!key) return new Response('Not configured', { status: 503, headers: corsHeaders() });
       init.headers.Authorization = 'Bearer ' + key;
     }

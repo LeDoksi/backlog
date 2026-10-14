@@ -242,7 +242,8 @@ function shikimoriYear(entry: any) {
 }
 
 function shikimoriCover(image: any) {
-  if (!image || !image.original) return '';
+  // «No picture» is a placeholder, not a cover.
+  if (!image || !image.original || /\/assets\/globals\/missing/.test(image.original)) return '';
   return /^https?:\/\//.test(image.original) ? image.original : SHIKIMORI_BASE + image.original;
 }
 
@@ -509,7 +510,10 @@ async function sgdbTallCover(fetchFn: FetchLike, proxyBase: string, query: { ste
   }
   if (!query.name || !query.name.trim()) return null;
   var found = await safeFetch(fetchFn, proxyBase + SGDB_API + '/search/autocomplete/' + encodeURIComponent(query.name.trim()));
-  var game = found && Array.isArray(found.data) ? found.data[0] : null;
+  // Only a game of exactly this name: «Doom» is not «DOOM II».
+  var game = found && Array.isArray(found.data)
+    ? found.data.find(function (g: any) { return g && typeof g.name === 'string' && sameName(g.name, query.name); })
+    : null;
   if (!game || game.id == null) return null;
   return firstGrid(await safeFetch(fetchFn, proxyBase + SGDB_API + '/grids/game/' + game.id + grids));
 }
@@ -525,14 +529,25 @@ function isLatin(text: string): boolean {
 
 export function sameName(a: string, b: string): boolean {
   var norm = function (x: string) {
-    return x.replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[ё]/g, 'е').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    return x.replace(/\s*\([^)]*\)\s*$/, '').replace(/[™®©]/g, '').toLowerCase().replace(/[ё]/g, 'е').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
   };
   var x = norm(a);
   var y = norm(b);
-  return !!x && !!y && (x === y || x.indexOf(y) === 0 || y.indexOf(x) === 0);
+  // Exact: «Hades II» or «Portal 2» is another game than «Hades» or «Portal».
+  return !!x && x === y;
 }
 
 var RU_WIKI = 'https://ru.wikipedia.org/w/api.php';
+
+// The first sentence says what the article is: «… — компьютерная игра»,
+// «… — видеоигра». A film or a book «по мотивам компьютерных игр» names a
+// film or a book first, and the plural «игр» is not «игра».
+function aboutAGame(paragraph: string): boolean {
+  var sentence = paragraph.replace(/\([^)]*\)/g, '').split(/[.!?]\s+(?=[А-ЯЁA-Z])/)[0] || '';
+  var m = /(?<!\p{L})(?:видео)?игр[аыу](?!\p{L})|видеоигр[аыу]?(?!\p{L})/iu.exec(sentence);
+  if (!m) return false;
+  return !/(?<!\p{L})(?:фильм|кинофильм|мультфильм|роман|повесть|книга|сериал|телесериал|комикс|манга|аниме)(?!\p{L})/iu.test(sentence.slice(0, m.index));
+}
 
 /**
  * The first paragraph of the Russian Wikipedia article about the game
@@ -560,7 +575,7 @@ async function ruWikiSummary(fetchFn: FetchLike, name: string): Promise<string |
     // Pronunciation and stress leftovers: «( )», «(англ. )», doubled spaces.
     first = first.replace(/́/g, '').replace(/\s*\((?:[а-яё]+\.\s*)?[;,]?\s*\)/gi, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.])/g, '$1').trim();
     if (!first || first.length < 40) continue;
-    if (/\(.*игр/i.test(title) || /игр/i.test(first)) return first;
+    if (/\(.*игр/i.test(title) || aboutAGame(first)) return first;
   }
   return null;
 }

@@ -80,7 +80,7 @@ describe('a RAWG game with a Steam version', () => {
   it('still gets a tall cover from SteamGridDB, by name', async () => {
     const card = await cardFor('rawg', '972995', deps(routes([
       [/api\/games\/972995\?/, { id: 972995, name: 'Grand Theft Auto VI', description_raw: 'Grand Theft Auto VI is an upcoming action-adventure game.', background_image: 'https://media.rawg.io/g.jpg' }],
-      [/search\/autocomplete\/Grand%20Theft%20Auto%20VI/, { success: true, data: [{ id: 5 }] }],
+      [/search\/autocomplete\/Grand%20Theft%20Auto%20VI/, { success: true, data: [{ id: 5, name: 'Grand Theft Auto VI' }] }],
       [/grids\/game\/5\?/, { success: true, data: [{ url: 'https://cdn2.steamgriddb.com/grid/gta.png' }] }]
     ])));
     expect(card).toMatchObject({ title: 'Grand Theft Auto VI', cover: 'https://cdn2.steamgriddb.com/grid/gta.png' });

@@ -9,6 +9,8 @@ import * as Enrich from '../lib/enrich';
 import { materialize } from '../lib/derive';
 import { partsFromFranchise, partsFromTmdb } from '../lib/franchise';
 import { cardFor } from './cardSources';
+import { isLandscapeCover } from '../lib/covers';
+import { good } from '../lib/sources';
 import { cardFixes, fillTicksForDone, mergeParts, planMerge, ticksWith, type FreshPart } from '../lib/refresh';
 import { checkedIndices, fromRow, type CheckedParts, type TitleRow } from '../lib/titleRow';
 import type { FetchLike, Part, StorageLike, SupabaseLike, Title } from '../lib/types';
@@ -65,9 +67,15 @@ export function cardBase(r: TitleRow, cols: Partial<TitleRow>) {
   return out;
 }
 
-/** A game whose card the daily pass may improve: a wide or missing cover, an English or empty description. */
+/**
+ * A game whose card the daily pass may improve (spec 3.4): a wide or
+ * missing cover, an English or empty description. An old-site file is
+ * tall already: that is the one-time normalization's to replace.
+ */
 export function gameNeedsCard(r: TitleRow): boolean {
-  return cardFixes(r, { cover: 'https://tall.example/cover.jpg', synopsis: 'Описание.' }, 'daily') !== null;
+  const cover = (r.cover ?? '').trim();
+  const wideOrNone = !cover || /_placeholder\./.test(cover) || isLandscapeCover(cover);
+  return wideOrNone || !good('synopsis', r.synopsis ?? '');
 }
 
 export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult> {
@@ -109,20 +117,6 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       franchise[r.id] = { key: String(f.rootId), ref: `shiki:${id}`, main: !!f.nodes.find((n) => n.id === id)?.main };
       firstTv[String(f.rootId)] = `shiki:${f.rootId}`;
     }
-  }
-
-  // Games (spec 3.4): one at a time too.
-  const cards: Record<string, Partial<TitleRow>> = {};
-  const games = deps.rows.filter((r) => r.category === 'game' && r.source_id && (r.source === 'steam' || r.source === 'rawg')
-    && !deps.pendingIds.has(r.id) && gameNeedsCard(r));
-  for (const r of games) {
-    if (asked++) await pause(PAUSE_MS);
-    const card = await cardFor(r.source!, r.source_id!, {
-      fetchFn: deps.fetchFn, proxy: deps.proxy ?? '', tmdbKey: deps.tmdbKey, rawgKey: deps.rawgKey ?? '', loadImage: deps.loadImage ?? (async () => false)
-    });
-    if (!card) { skipped++; continue; }
-    const fix = cardFixes(r, card, 'daily');
-    if (fix) cards[r.id] = fix;
   }
 
   const titles = new Map<string, { row: TitleRow; title: Title; ticks: CheckedParts }>();
@@ -181,17 +175,13 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
     updates.push({ id, base: base(row), ...cols });
     changes.push({ id, cols });
   }
-  for (const [id, cols] of Object.entries(cards)) {
-    const row = deps.rows.find((r) => r.id === id)!;
-    updates.push({ id, base: cardBase(row, cols), ...cols });
-    changes.push({ id, cols });
-  }
   const deletes = [...absorbed].map((id) => ({ id, base: base(titles.get(id)!.row) }));
   deletes.forEach((d) => changes.push({ id: d.id, cols: null }));
 
   if (!updates.length && !deletes.length) {
     markDone(storage, board, now);
-    return { ran: true, updated: 0, merged: 0, skipped, changes: [] };
+    const games = await refreshGames(deps, pause, asked > 0);
+    return { ran: true, updated: games.length, merged: 0, skipped, changes: games };
   }
 
   let res: { data: unknown; error: unknown };
@@ -208,5 +198,52 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   }
   // A source that did not answer is skipped until tomorrow (spec 2.5).
   markDone(storage, board, now);
-  return { ran: true, updated: updates.length, merged: deletes.length, skipped, changes };
+  // Games go after the seasons and in a write of their own: their sources
+  // are slow, and a stale game must not cost the seasons their write.
+  const games = await refreshGames(deps, pause, true);
+  return { ran: true, updated: updates.length + games.length, merged: deletes.length, skipped, changes: [...changes, ...games] };
+}
+
+const gamesKey = (board: string) => `refresh-games:${board}`;
+/** A game asked about is asked again only after a week: nothing better usually stays so. */
+const GAME_EVERY_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Games (spec 3.4): a wide or missing cover becomes a tall one, an English
+ * or empty description a Russian one. One game at a time, each at most
+ * once a week; the rows are the board as it was when the refresh started,
+ * and a game edited since makes the write stale (its base names the
+ * fields), which is simply tried next week.
+ */
+async function refreshGames(deps: RefreshDeps, pause: (ms: number) => Promise<void>, pauseFirst: boolean): Promise<RefreshResult['changes']> {
+  const { board, storage, now } = deps;
+  let asked: Record<string, number> = {};
+  try { asked = JSON.parse(storage.getItem(gamesKey(board)) ?? '{}') ?? {}; } catch { /* start over */ }
+  const games = deps.rows.filter((r) => r.category === 'game' && r.source_id && (r.source === 'steam' || r.source === 'rawg')
+    && !deps.pendingIds.has(r.id) && gameNeedsCard(r) && !(now.getTime() - (asked[r.id] ?? 0) < GAME_EVERY_MS));
+  if (!games.length) return [];
+  const updates: Record<string, unknown>[] = [];
+  const changes: RefreshResult['changes'] = [];
+  let first = !pauseFirst;
+  for (const r of games) {
+    if (!first) await pause(PAUSE_MS);
+    first = false;
+    const card = await cardFor(r.source!, r.source_id!, {
+      fetchFn: deps.fetchFn, proxy: deps.proxy ?? '', tmdbKey: deps.tmdbKey, rawgKey: deps.rawgKey ?? '', loadImage: deps.loadImage ?? (async () => false)
+    });
+    asked[r.id] = now.getTime();
+    const cols = card ? cardFixes(r, card, 'daily') : null;
+    if (!cols) continue;
+    updates.push({ id: r.id, base: cardBase(r, cols), ...cols });
+    changes.push({ id: r.id, cols });
+  }
+  try { storage.setItem(gamesKey(board), JSON.stringify(asked)); } catch { /* asked again tomorrow */ }
+  if (!updates.length || !deps.client) return [];
+  let res: { data: unknown; error: unknown };
+  try {
+    res = await deps.client.rpc('apply_title_refresh', { p_workspace: board, p_updates: updates, p_deletes: [] });
+  } catch (e) {
+    res = { data: null, error: e };
+  }
+  return res.error || typeof res.data !== 'number' || res.data < 0 ? [] : changes;
 }

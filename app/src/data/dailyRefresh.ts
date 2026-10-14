@@ -23,8 +23,10 @@ function land(board: string, changes: { id: string; cols: Partial<TitleRow> | nu
 
 function normalizeOnce(board: string): void {
   if (normalizing.has(board) || normalizedAlready(mirror, board) || typeof fetch !== 'function') return;
-  normalizing.add(board);
   const store = useTitles.getState();
+  // The rows at hand are the open board's: another board waits for its own pull.
+  if (store.boardId !== board) return;
+  normalizing.add(board);
   void runNormalize({
     board, rows: store.boardRows(), pendingIds: outbox.pendingIds(board), client: getSupabase(), storage: mirror,
     fetchFn: fetch.bind(globalThis) as FetchLike, proxy: CORS_PROXY, tmdbKey: TMDB_KEY, rawgKey: RAWG_KEY, loadImage: browserLoadImage,

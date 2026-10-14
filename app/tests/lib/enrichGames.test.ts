@@ -44,7 +44,7 @@ describe('sgdbTallCover', () => {
   it('no grids by appid: falls back to the name', async () => {
     const url = await sgdbTallCover(routes([
       [/grids\/steam\//, { success: true, data: [] }],
-      [/search\/autocomplete\//, { success: true, data: [{ id: 7 }] }],
+      [/search\/autocomplete\//, { success: true, data: [{ id: 7, name: 'X' }] }],
       [/grids\/game\/7\?/, grid]
     ]), PROXY, { steamAppId: '1', name: 'X' });
     expect(url).toBe('https://cdn2.steamgriddb.com/grid/abc.png');
@@ -121,4 +121,25 @@ it('isLatin', () => {
   expect(isLatin('Hogwarts Legacy is an immersive open-world RPG.')).toBe(true);
   expect(isLatin('Hogwarts Legacy — это ролевая игра с открытым миром.')).toBe(false);
   expect(isLatin('')).toBe(false);
+});
+
+describe('review fixes', () => {
+  const search = (titles: string[]) => ({ query: { search: titles.map((title) => ({ title })) } });
+  const extract = (title: string, text: string) => ({ query: { pages: { '1': { title, extract: text } } } });
+  it('a film «по мотивам компьютерных игр» is not the game', async () => {
+    expect(await ruWikiSummary(routes([[/list=search/, search(['Warcraft'])],
+      [/prop=extracts/, extract('Warcraft', 'Warcraft (англ. Warcraft) — американский фэнтезийный фильм 2016 года по мотивам серии компьютерных игр Warcraft.')]]), 'Warcraft')).toBeNull();
+  });
+  it('«(англ. …)» before the dash does not cut the sentence short', async () => {
+    const text = await ruWikiSummary(routes([[/list=search/, search(['Ghost of Tsushima'])],
+      [/prop=extracts/, extract('Ghost of Tsushima', 'Ghost of Tsushima (с англ. Призрак Цусимы) — компьютерная игра в жанре action-adventure, разработанная Sucker Punch.')]]), 'Ghost of Tsushima');
+    expect(text).toMatch(/^Ghost of Tsushima .*компьютерная игра/);
+  });
+  it('a sequel is another game', async () => {
+    expect(await ruWikiSummary(routes([[/list=search/, search(['Hades II'])], [/prop=extracts/, extract('Hades II', 'Hades II — компьютерная игра в жанре roguelike.')]]), 'Hades')).toBeNull();
+    const calls: string[] = [];
+    expect(await sgdbTallCover(routes([[/autocomplete/, { success: true, data: [{ id: 1, name: 'DOOM II' }, { id: 2, name: 'DOOM' }] }],
+      [/grids\/game\/2\?/, { success: true, data: [{ url: 'https://cdn2.steamgriddb.com/grid/doom.png' }] }]], calls), PROXY, { name: 'Doom' })).toBe('https://cdn2.steamgriddb.com/grid/doom.png');
+    expect(await sgdbTallCover(routes([[/autocomplete/, { success: true, data: [{ id: 1, name: 'DOOM II' }] }]]), PROXY, { name: 'Doom' })).toBeNull();
+  });
 });

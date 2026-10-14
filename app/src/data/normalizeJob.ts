@@ -31,20 +31,25 @@ const BATCH = 10;
 const PAUSE_MS = 250;
 const key = (board: string) => `normalize:${board}`;
 
-function seen(storage: StorageLike, board: string): Set<string> | 'done' {
+interface Progress { done: Set<string>; fails: Record<string, number> }
+
+function seen(storage: StorageLike, board: string): Progress | 'done' {
   try {
     const v = storage.getItem(key(board));
     if (v === 'done') return 'done';
-    const list = v ? JSON.parse(v) : [];
-    return new Set(Array.isArray(list) ? list.map(String) : []);
+    const o = v ? JSON.parse(v) : {};
+    return { done: new Set(Array.isArray(o.done) ? o.done.map(String) : []), fails: o.fails && typeof o.fails === 'object' ? o.fails : {} };
   } catch {
-    return new Set();
+    return { done: new Set(), fails: {} };
   }
 }
 
-function save(storage: StorageLike, board: string, value: Set<string> | 'done') {
-  try { storage.setItem(key(board), value === 'done' ? 'done' : JSON.stringify([...value])); } catch { /* it goes on next open */ }
+function save(storage: StorageLike, board: string, value: Progress | 'done') {
+  try { storage.setItem(key(board), value === 'done' ? 'done' : JSON.stringify({ done: [...value.done], fails: value.fails })); } catch { /* it goes on next open */ }
 }
+
+/** A title whose source has not answered on this many opens is left as it is. */
+const GIVE_UP = 3;
 
 export function normalizedAlready(storage: StorageLike, board: string): boolean {
   return seen(storage, board) === 'done';
@@ -53,8 +58,9 @@ export function normalizedAlready(storage: StorageLike, board: string): boolean 
 export async function runNormalize(deps: NormalizeDeps): Promise<NormalizeResult> {
   const { board, storage } = deps;
   const none: NormalizeResult = { ran: false, done: false, updated: 0, skipped: 0 };
-  const done = seen(storage, board);
-  if (!deps.client || done === 'done') return none;
+  const progress = seen(storage, board);
+  if (!deps.client || progress === 'done') return none;
+  const { done, fails } = progress;
   const pause = deps.pause ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
 
   const todo = deps.rows.filter((r) => r.source && r.source_id && categoryOf(r.source) && !done.has(r.id));
@@ -77,6 +83,8 @@ export async function runNormalize(deps: NormalizeDeps): Promise<NormalizeResult
       if (!card) {
         skipped++;
         failed.set(r.source!, (failed.get(r.source!) ?? 0) + 1);
+        fails[r.id] = (fails[r.id] ?? 0) + 1;
+        if (fails[r.id]! >= GIVE_UP) finished.push(r.id);
         continue;
       }
       const cols = cardFixes(r, card, 'normalize');
@@ -98,7 +106,7 @@ export async function runNormalize(deps: NormalizeDeps): Promise<NormalizeResult
       deps.onChanges(changes);
     }
     finished.forEach((id) => done.add(id));
-    save(storage, board, done);
+    save(storage, board, progress);
   }
   const all = deps.rows.every((r) => !r.source || !r.source_id || !categoryOf(r.source) || done.has(r.id));
   if (all) save(storage, board, 'done');

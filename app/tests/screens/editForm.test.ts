@@ -54,3 +54,11 @@ describe('remapChecked', () => {
     expect(remapChecked({ ...f, parts: [...f.parts, newPart({ name: 'S4' })] }, [1, 0])).toBeNull();
   });
 });
+
+test('a machine translation is edited without its mark; left alone, it keeps it', () => {
+  const mt: Title = { ...t, synopsis: '[mt] Тёмный триллер.' };
+  const form = formFromTitle(mt);
+  expect(form.synopsis).toBe('Тёмный триллер.');
+  expect(patchFromForm(form, formFromTitle(mt))).toEqual({});
+  expect(patchFromForm({ ...form, synopsis: 'Мой текст.' }, formFromTitle(mt))).toEqual({ synopsis: 'Мой текст.' });
+});

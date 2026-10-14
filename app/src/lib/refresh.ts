@@ -200,7 +200,8 @@ const RU = (s: string | null | undefined) => good('synopsis', s);
 export function cardFixes(row: TitleRow, card: Raw, mode: 'daily' | 'normalize'): Partial<TitleRow> | null {
   const out: Partial<TitleRow> = {};
   const cover = card.cover?.trim();
-  if (cover && cover !== row.cover && replaceableCover(row.cover)) {
+  // A source's «no picture» is never a cover.
+  if (cover && !/\/assets\/globals\/missing|_placeholder\./.test(cover) && cover !== row.cover && replaceableCover(row.cover)) {
     const none = !(row.cover ?? '').trim() || /_placeholder\.|\/assets\/globals\/missing/.test(row.cover ?? '');
     // Tall beats anything replaceable; a wide picture only fills a gap
     // (an old-site file is tall, another wide one is no better).
