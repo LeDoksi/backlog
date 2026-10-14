@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import catalog from '../fixtures/catalog.json';
-import { visibleTitles, categoryCounts, genreCounts, DEFAULT_FILTERS, type FilterState } from '../../src/data/filters';
+import { visibleTitles, categoryCounts, genreCounts, isWaiting, DEFAULT_FILTERS, type FilterState } from '../../src/data/filters';
 import { matchesFilters, matchesSearch, sortTitles } from '../../src/lib/query';
 import type { Status, Title } from '../../src/lib/types';
 
@@ -11,7 +11,7 @@ function v1(f: FilterState): Title[] {
   const inCat = f.category === 'all' ? titles : titles.filter((t) => t.category === f.category);
   const list = inCat.filter((t) => {
     if (f.hideDone && t.status === 'done') return false;
-    return matchesFilters(t, { status: f.statuses[0] ?? 'all', genre: f.genres, returning: f.stillAiring }) && matchesSearch(t, f.search);
+    return matchesFilters(t, { status: (f.statuses[0] as Status | undefined) ?? 'all', genre: f.genres, returning: f.stillAiring }) && matchesSearch(t, f.search);
   });
   return sortTitles(list, f.sort);
 }
@@ -56,5 +56,32 @@ describe('genreCounts', () => {
   it('sorts by use, most first', () => {
     const g = genreCounts(titles, 'all');
     for (let i = 1; i < g.length; i++) expect(g[i - 1]!.count).toBeGreaterThanOrEqual(g[i]!.count);
+  });
+});
+
+describe('waiting for the next season (spec 2.4)', () => {
+  const t = (id: string, status: Status, parts?: { name: string; released?: boolean; extra?: boolean }[]): Title =>
+    ({ id, title: id, category: 'series', status, genres: [], parts });
+  const board = [
+    t('done', 'done'),
+    t('waiting', 'in_progress', [{ name: '1' }, { name: '2', released: false }]),
+    t('unreleased', 'unreleased'),
+    t('queue', 'queue'),
+    t('watching', 'in_progress', [{ name: '1' }, { name: '2' }])
+  ];
+  const checked = { waiting: [0], watching: [0] };
+
+  it('sorts after «В бэклоге» and before «Ещё не вышло»', () => {
+    expect(visibleTitles(board, DEFAULT_FILTERS, checked).map((x) => x.id)).toEqual(['watching', 'queue', 'waiting', 'unreleased', 'done']);
+  });
+
+  it('has its own status chip, apart from «В процессе»', () => {
+    expect(visibleTitles(board, { ...DEFAULT_FILTERS, statuses: ['waiting'] }, checked).map((x) => x.id)).toEqual(['waiting']);
+    expect(visibleTitles(board, { ...DEFAULT_FILTERS, statuses: ['in_progress'] }, checked).map((x) => x.id)).toEqual(['watching']);
+  });
+
+  it('an announced OVA in the extras block does not make a title wait', () => {
+    const show = t('s', 'in_progress', [{ name: '1' }, { name: 'OVA', extra: true, released: false }, { name: '2' }]);
+    expect(isWaiting(show, [0])).toBe(false);
   });
 });

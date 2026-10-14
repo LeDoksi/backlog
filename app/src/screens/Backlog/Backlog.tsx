@@ -18,11 +18,12 @@ import s from './Backlog.module.css';
 
 export function Backlog() {
   const titles = useTitles((t) => t.titles);
+  const checked = useTitles((t) => t.checked);
   const loading = useTitles((t) => t.loading);
   const boardId = useTitles((t) => t.boardId);
   const filters = useFilters();
   const setQuickAdd = useUi((u) => u.setQuickAdd);
-  const shown = useMemo(() => visibleTitles(titles, filters), [titles, filters]);
+  const shown = useMemo(() => visibleTitles(titles, filters, checked), [titles, filters, checked]);
   const wide = useMediaQuery('(min-width: 1280px)');
   // One request for the whole board, not per filter: the store skips a key set it already has.
   const keys = useMemo(() => titles.map(titleKey), [titles]);

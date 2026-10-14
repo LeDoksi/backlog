@@ -1,0 +1,192 @@
+[
+  {
+    "id": 54865,
+    "name": "Blue Lock vs. U-20 Japan",
+    "russian": "Синяя тюрьма: Блю Лок против юношеской сборной Японии",
+    "image": {
+      "original": "/system/animes/original/54865.jpg?1711514722",
+      "preview": "/system/animes/preview/54865.jpg?1711514722",
+      "x96": "/system/animes/x96/54865.jpg?1711514722",
+      "x48": "/system/animes/x48/54865.jpg?1711514722"
+    },
+    "url": "/animes/54865-blue-lock-vs-u-20-japan",
+    "kind": "tv",
+    "score": "7.5",
+    "status": "released",
+    "episodes": 14,
+    "episodes_aired": 14,
+    "aired_on": "2024-10-06",
+    "released_on": "2024-12-28"
+  },
+  {
+    "id": 54866,
+    "name": "Blue Lock: Episode Nagi",
+    "russian": "Синяя тюрьма: Блю Лок — Эпизод с Наги",
+    "image": {
+      "original": "/system/animes/original/54866.jpg?1711514722",
+      "preview": "/system/animes/preview/54866.jpg?1711514722",
+      "x96": "/system/animes/x96/54866.jpg?1711514722",
+      "x48": "/system/animes/x48/54866.jpg?1711514722"
+    },
+    "url": "/animes/54866-blue-lock-episode-nagi",
+    "kind": "movie",
+    "score": "7.27",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2024-04-19",
+    "released_on": null
+  },
+  {
+    "id": 60076,
+    "name": "Blue Lock: Episode Nagi - Additional Time!",
+    "russian": "Синяя тюрьма: Блю Лок — Эпизод с Наги. Дополнительное время!",
+    "image": {
+      "original": "/assets/globals/missing_original.jpg",
+      "preview": "/assets/globals/missing_preview.jpg",
+      "x96": "/assets/globals/missing_x96.jpg",
+      "x48": "/assets/globals/missing_x48.jpg"
+    },
+    "url": "/animes/60076-blue-lock-episode-nagi-additional-time",
+    "kind": "movie",
+    "score": "6.84",
+    "status": "released",
+    "episodes": 4,
+    "episodes_aired": 0,
+    "aired_on": "2024-04-19",
+    "released_on": "2024-05-10"
+  },
+  {
+    "id": 62589,
+    "name": "Blue Lock: Neo Egoist League",
+    "russian": "Синяя тюрьма: Блю Лок — Лига неоэгоистов",
+    "image": {
+      "original": "/assets/globals/missing_original.jpg",
+      "preview": "/assets/globals/missing_preview.jpg",
+      "x96": "/assets/globals/missing_x96.jpg",
+      "x48": "/assets/globals/missing_x48.jpg"
+    },
+    "url": "/animes/62589-blue-lock-neo-egoist-league",
+    "kind": "tv",
+    "score": "0.0",
+    "status": "anons",
+    "episodes": 0,
+    "episodes_aired": 0,
+    "aired_on": null,
+    "released_on": null
+  },
+  {
+    "id": 60775,
+    "name": "Blue Lock Additional Time",
+    "russian": "Синяя тюрьма: Блю Лок — Дополнительное время",
+    "image": {
+      "original": "/assets/globals/missing_original.jpg",
+      "preview": "/assets/globals/missing_preview.jpg",
+      "x96": "/assets/globals/missing_x96.jpg",
+      "x48": "/assets/globals/missing_x48.jpg"
+    },
+    "url": "/animes/60775-blue-lock-additional-time",
+    "kind": "ona",
+    "score": "6.78",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2024-10-06",
+    "released_on": null
+  },
+  {
+    "id": 49596,
+    "name": "Blue Lock",
+    "russian": "Синяя тюрьма: Блю Лок",
+    "image": {
+      "original": "/system/animes/original/49596.jpg?1711944212",
+      "preview": "/system/animes/preview/49596.jpg?1711944212",
+      "x96": "/system/animes/x96/49596.jpg?1711944212",
+      "x48": "/system/animes/x48/49596.jpg?1711944212"
+    },
+    "url": "/animes/49596-blue-lock",
+    "kind": "tv",
+    "score": "8.09",
+    "status": "released",
+    "episodes": 24,
+    "episodes_aired": 24,
+    "aired_on": "2022-10-09",
+    "released_on": "2023-03-26"
+  },
+  {
+    "id": 43643,
+    "name": "Lan Gu",
+    "russian": "Синяя кость",
+    "image": {
+      "original": "/system/animes/original/43643.jpg?1711960650",
+      "preview": "/system/animes/preview/43643.jpg?1711960650",
+      "x96": "/system/animes/x96/43643.jpg?1711960650",
+      "x48": "/system/animes/x48/43643.jpg?1711960650"
+    },
+    "url": "/animes/43643-lan-gu",
+    "kind": "movie",
+    "score": "0.0",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "1988-01-01",
+    "released_on": null
+  },
+  {
+    "id": 39187,
+    "name": "Daisy Blue",
+    "russian": "Синяя маргаритка",
+    "image": {
+      "original": "/system/animes/original/39187.jpg?1711947101",
+      "preview": "/system/animes/preview/39187.jpg?1711947101",
+      "x96": "/system/animes/x96/39187.jpg?1711947101",
+      "x48": "/system/animes/x48/39187.jpg?1711947101"
+    },
+    "url": "/animes/39187-daisy-blue",
+    "kind": "music",
+    "score": "5.87",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 1,
+    "aired_on": "2017-12-20",
+    "released_on": null
+  },
+  {
+    "id": 48567,
+    "name": "Visual Prison",
+    "russian": "Визуальная тюрьма",
+    "image": {
+      "original": "/system/animes/original/48567.jpg?1708772189",
+      "preview": "/system/animes/preview/48567.jpg?1708772189",
+      "x96": "/system/animes/x96/48567.jpg?1708772189",
+      "x48": "/system/animes/x48/48567.jpg?1708772189"
+    },
+    "url": "/animes/48567-visual-prison",
+    "kind": "tv",
+    "score": "6.73",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2021-10-09",
+    "released_on": "2021-12-25"
+  },
+  {
+    "id": 11141,
+    "name": "Blue Seagull",
+    "russian": "Синяя чайка",
+    "image": {
+      "original": "/system/animes/original/11141.jpg?1711944227",
+      "preview": "/system/animes/preview/11141.jpg?1711944227",
+      "x96": "/system/animes/x96/11141.jpg?1711944227",
+      "x48": "/system/animes/x48/11141.jpg?1711944227"
+    },
+    "url": "/animes/11141-blue-seagull",
+    "kind": "movie",
+    "score": "3.87",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "1994-11-05",
+    "released_on": null
+  }
+]

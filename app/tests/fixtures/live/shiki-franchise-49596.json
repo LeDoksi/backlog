@@ -1,0 +1,157 @@
+{
+  "links": [
+    {
+      "id": 48864118,
+      "source_id": 49596,
+      "target_id": 54865,
+      "source": 5,
+      "target": 2,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 48864121,
+      "source_id": 49596,
+      "target_id": 54866,
+      "source": 5,
+      "target": 4,
+      "weight": 3,
+      "relation": "spin_off"
+    },
+    {
+      "id": 48864122,
+      "source_id": 49596,
+      "target_id": 60775,
+      "source": 5,
+      "target": 1,
+      "weight": 3,
+      "relation": "other"
+    },
+    {
+      "id": 48896665,
+      "source_id": 60775,
+      "target_id": 49596,
+      "source": 1,
+      "target": 5,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 47883640,
+      "source_id": 54865,
+      "target_id": 49596,
+      "source": 2,
+      "target": 5,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 47883641,
+      "source_id": 54865,
+      "target_id": 62589,
+      "source": 2,
+      "target": 0,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48924593,
+      "source_id": 54866,
+      "target_id": 49596,
+      "source": 4,
+      "target": 5,
+      "weight": 2,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48924594,
+      "source_id": 54866,
+      "target_id": 60076,
+      "source": 4,
+      "target": 3,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48897179,
+      "source_id": 60076,
+      "target_id": 54866,
+      "source": 3,
+      "target": 4,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48935804,
+      "source_id": 62589,
+      "target_id": 54865,
+      "source": 0,
+      "target": 2,
+      "weight": 1,
+      "relation": "prequel"
+    }
+  ],
+  "nodes": [
+    {
+      "id": 62589,
+      "date": 1792004785,
+      "name": "Синяя тюрьма: Блю Лок — Лига неоэгоистов",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/62589-blue-lock-neo-egoist-league",
+      "year": null,
+      "kind": "TV Сериал",
+      "weight": 1
+    },
+    {
+      "id": 60775,
+      "date": 1728162000,
+      "name": "Синяя тюрьма: Блю Лок — Дополнительное время",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/60775-blue-lock-additional-time",
+      "year": 2024,
+      "kind": "ONA",
+      "weight": 1
+    },
+    {
+      "id": 54865,
+      "date": 1728162000,
+      "name": "Синяя тюрьма: Блю Лок против юношеской сборной Японии",
+      "image_url": "https://shikimori.io/system/animes/x96/54865.jpg?1711514722",
+      "url": "/animes/54865-blue-lock-vs-u-20-japan",
+      "year": 2024,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 60076,
+      "date": 1713474000,
+      "name": "Синяя тюрьма: Блю Лок — Эпизод с Наги. Дополнительное время!",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/60076-blue-lock-episode-nagi-additional-time",
+      "year": 2024,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 54866,
+      "date": 1713474000,
+      "name": "Синяя тюрьма: Блю Лок — Эпизод с Наги",
+      "image_url": "https://shikimori.io/system/animes/x96/54866.jpg?1711514722",
+      "url": "/animes/54866-blue-lock-episode-nagi",
+      "year": 2024,
+      "kind": "Фильм",
+      "weight": 2
+    },
+    {
+      "id": 49596,
+      "date": 1665262800,
+      "name": "Синяя тюрьма: Блю Лок",
+      "image_url": "https://shikimori.io/system/animes/x96/49596.jpg?1711944212",
+      "url": "/animes/49596-blue-lock",
+      "year": 2022,
+      "kind": "TV Сериал",
+      "weight": 3
+    }
+  ],
+  "current_id": 49596
+}

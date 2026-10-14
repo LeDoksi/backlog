@@ -1,0 +1,241 @@
+{
+  "links": [
+    {
+      "id": 48099104,
+      "source_id": 30831,
+      "target_id": 32380,
+      "source": 8,
+      "target": 7,
+      "weight": 3,
+      "relation": "side_story"
+    },
+    {
+      "id": 48099101,
+      "source_id": 30831,
+      "target_id": 32937,
+      "source": 8,
+      "target": 6,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 48099105,
+      "source_id": 30831,
+      "target_id": 51958,
+      "source": 8,
+      "target": 3,
+      "weight": 3,
+      "relation": "spin_off"
+    },
+    {
+      "id": 48113203,
+      "source_id": 32380,
+      "target_id": 30831,
+      "source": 7,
+      "target": 8,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48113364,
+      "source_id": 32937,
+      "target_id": 30831,
+      "source": 6,
+      "target": 8,
+      "weight": 3,
+      "relation": "prequel"
+    },
+    {
+      "id": 48113368,
+      "source_id": 32937,
+      "target_id": 34626,
+      "source": 6,
+      "target": 5,
+      "weight": 3,
+      "relation": "side_story"
+    },
+    {
+      "id": 48113365,
+      "source_id": 32937,
+      "target_id": 38040,
+      "source": 6,
+      "target": 4,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 47309905,
+      "source_id": 51958,
+      "target_id": 30831,
+      "source": 3,
+      "target": 8,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48179059,
+      "source_id": 38040,
+      "target_id": 32937,
+      "source": 4,
+      "target": 6,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48179060,
+      "source_id": 38040,
+      "target_id": 49458,
+      "source": 4,
+      "target": 2,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48133283,
+      "source_id": 34626,
+      "target_id": 32937,
+      "source": 5,
+      "target": 6,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 47765645,
+      "source_id": 49458,
+      "target_id": 38040,
+      "source": 2,
+      "target": 4,
+      "weight": 3,
+      "relation": "prequel"
+    },
+    {
+      "id": 47765649,
+      "source_id": 49458,
+      "target_id": 59833,
+      "source": 2,
+      "target": 1,
+      "weight": 3,
+      "relation": "side_story"
+    },
+    {
+      "id": 47765646,
+      "source_id": 49458,
+      "target_id": 61203,
+      "source": 2,
+      "target": 0,
+      "weight": 3,
+      "relation": "sequel"
+    },
+    {
+      "id": 48935679,
+      "source_id": 61203,
+      "target_id": 49458,
+      "source": 0,
+      "target": 2,
+      "weight": 1,
+      "relation": "prequel"
+    },
+    {
+      "id": 48897392,
+      "source_id": 59833,
+      "target_id": 49458,
+      "source": 1,
+      "target": 2,
+      "weight": 1,
+      "relation": "parent_story"
+    }
+  ],
+  "nodes": [
+    {
+      "id": 61203,
+      "date": 1798750800,
+      "name": "Этот замечательный мир! 4",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/61203-kono-subarashii-sekai-ni-shukufuku-wo-4",
+      "year": 2027,
+      "kind": "TV Сериал",
+      "weight": 1
+    },
+    {
+      "id": 59833,
+      "date": 1745528400,
+      "name": "Этот замечательный мир! 3: Бонусный этап",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/59833-kono-subarashii-sekai-ni-shukufuku-wo-3-bonus-stage",
+      "year": 2025,
+      "kind": "OVA",
+      "weight": 1
+    },
+    {
+      "id": 49458,
+      "date": 1712696400,
+      "name": "Этот замечательный мир! 3",
+      "image_url": "https://shikimori.io/system/animes/x96/49458.jpg?1717634812",
+      "url": "/animes/49458-kono-subarashii-sekai-ni-shukufuku-wo-3",
+      "year": 2024,
+      "kind": "TV Сериал",
+      "weight": 3
+    },
+    {
+      "id": 51958,
+      "date": 1680728400,
+      "name": "Одаривая этот замечательный мир взрывами!",
+      "image_url": "https://shikimori.io/system/animes/x96/51958.jpg?1710733679",
+      "url": "/animes/51958-kono-subarashii-sekai-ni-bakuen-wo",
+      "year": 2023,
+      "kind": "TV Сериал",
+      "weight": 1
+    },
+    {
+      "id": 38040,
+      "date": 1567112400,
+      "name": "Этот замечательный мир! Багровая легенда",
+      "image_url": "https://shikimori.io/system/animes/x96/38040.jpg?1711959620",
+      "url": "/animes/z38040-kono-subarashii-sekai-ni-shukufuku-wo-movie-kurenai-densetsu",
+      "year": 2019,
+      "kind": "Фильм",
+      "weight": 2
+    },
+    {
+      "id": 34626,
+      "date": 1500843600,
+      "name": "Этот замечательный мир! 2: Благословение этому замечательному искусству!",
+      "image_url": "https://shikimori.io/system/animes/x96/34626.jpg?1711959568",
+      "url": "/animes/34626-kono-subarashii-sekai-ni-shukufuku-wo-2-kono-subarashii-geijutsu-ni-shukufuku-wo",
+      "year": 2017,
+      "kind": "OVA",
+      "weight": 1
+    },
+    {
+      "id": 32937,
+      "date": 1484168400,
+      "name": "Этот замечательный мир! 2",
+      "image_url": "https://shikimori.io/system/animes/x96/32937.jpg?1711959560",
+      "url": "/animes/y32937-kono-subarashii-sekai-ni-shukufuku-wo-2",
+      "year": 2017,
+      "kind": "TV Сериал",
+      "weight": 3
+    },
+    {
+      "id": 32380,
+      "date": 1466715600,
+      "name": "Этот замечательный мир! Этот замечательный ошейник!",
+      "image_url": "https://shikimori.io/system/animes/x96/32380.jpg?1711959588",
+      "url": "/animes/32380-kono-subarashii-sekai-ni-shukufuku-wo-kono-subarashii-choker-ni-shukufuku-wo",
+      "year": 2016,
+      "kind": "OVA",
+      "weight": 1
+    },
+    {
+      "id": 30831,
+      "date": 1452718800,
+      "name": "Этот замечательный мир!",
+      "image_url": "https://shikimori.io/system/animes/x96/30831.jpg?1711959601",
+      "url": "/animes/x30831-kono-subarashii-sekai-ni-shukufuku-wo",
+      "year": 2016,
+      "kind": "TV Сериал",
+      "weight": 3
+    }
+  ],
+  "current_id": 30831
+}

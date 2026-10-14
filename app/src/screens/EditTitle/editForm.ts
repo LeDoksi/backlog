@@ -2,7 +2,8 @@ import type { Category, Part, Title } from '../../lib/types';
 
 // `from` is the part's index when the form opened: watched progress is stored
 // as part indices, so reordering or removing parts has to carry it along.
-export interface FormPart { key: number; name: string; year: string; released: boolean; from?: number }
+// `ref` and `extra` ride along unseen: the daily refresh matches parts by ref.
+export interface FormPart { key: number; name: string; year: string; released: boolean; from?: number; ref?: string; extra?: boolean }
 export interface EditForm {
   title: string;
   originalTitle: string;
@@ -19,7 +20,8 @@ export interface EditForm {
 
 let partKey = 1;
 export const newPart = (p?: Partial<Part>, from?: number): FormPart => ({
-  key: partKey++, name: p?.name ?? '', year: p?.year != null ? String(p.year) : '', released: p?.released !== false, from
+  key: partKey++, name: p?.name ?? '', year: p?.year != null ? String(p.year) : '', released: p?.released !== false, from,
+  ...(p?.ref ? { ref: p.ref } : {}), ...(p?.extra ? { extra: true } : {})
 });
 
 export function formFromTitle(t: Title): EditForm {
@@ -57,7 +59,8 @@ function values(f: EditForm): Record<string, unknown> {
     seasonInfo: f.seasonInfo.trim(),
     synopsis: f.synopsis,
     parts: keptParts(f)
-      .map((p) => ({ name: p.name.trim(), year: p.year.trim() ? parseInt(p.year, 10) : null, released: p.released })),
+      .map((p) => ({ name: p.name.trim(), year: p.year.trim() ? parseInt(p.year, 10) : null, released: p.released,
+        ...(p.ref ? { ref: p.ref } : {}), ...(p.extra ? { extra: true } : {}) })),
     unreleased: f.unreleased
   };
 }
@@ -71,6 +74,8 @@ export function patchFromForm(form: EditForm, initial: EditForm): Partial<Title>
     if (k === 'unreleased') patch.status = now.unreleased ? 'unreleased' : 'queue';
     else patch[k] = now[k];
   });
+  // A list edited by hand is left alone by the daily refresh (spec 2.5).
+  if ('parts' in patch) patch.partsManual = true;
   return patch as Partial<Title>;
 }
 

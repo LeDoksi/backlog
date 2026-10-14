@@ -1,0 +1,159 @@
+{
+  "adult": false,
+  "backdrop_path": "/jLE5bsPA9xOKzBWOaOmKbp1DWQS.jpg",
+  "created_by": [
+    {
+      "id": 89597,
+      "credit_id": "5f960447a1074b0036f46b73",
+      "name": "Уоррен Эллис",
+      "original_name": "Warren Ellis",
+      "gender": 2,
+      "profile_path": "/wBaDI3Q4oCxNddqiHjuwah9Gmzv.jpg"
+    }
+  ],
+  "episode_run_time": [],
+  "first_air_date": "2017-07-07",
+  "genres": [
+    {
+      "id": 16,
+      "name": "мультфильм"
+    },
+    {
+      "id": 10765,
+      "name": "НФ и Фэнтези"
+    },
+    {
+      "id": 18,
+      "name": "драма"
+    }
+  ],
+  "homepage": "https://www.netflix.com/title/80095241",
+  "id": 71024,
+  "in_production": false,
+  "languages": [
+    "en"
+  ],
+  "last_air_date": "2021-05-13",
+  "last_episode_to_air": {
+    "id": 2878322,
+    "name": "Это была странная история",
+    "overview": "Не желая жить в клетке, Ленор выбирает другую судьбу. Алукард открывает ворота замка. Сифе кажется, что она навсегда потеряла Бельмонта.",
+    "vote_average": 8.303,
+    "vote_count": 33,
+    "air_date": "2021-05-13",
+    "episode_number": 10,
+    "episode_type": "finale",
+    "production_code": "",
+    "runtime": 27,
+    "season_number": 4,
+    "show_id": 71024,
+    "still_path": "/aQphltNKc8pmE2128iybtMHoVm8.jpg"
+  },
+  "name": "Кастлвания",
+  "next_episode_to_air": null,
+  "networks": [
+    {
+      "id": 213,
+      "logo_path": "/wwemzKWzjKYJFfCeiB57q3r4Bcm.png",
+      "name": "Netflix",
+      "origin_country": ""
+    }
+  ],
+  "number_of_episodes": 32,
+  "number_of_seasons": 4,
+  "origin_country": [
+    "US"
+  ],
+  "original_language": "en",
+  "original_name": "Castlevania",
+  "overview": "Охотник на вампиров спасает осажденный город от армии дьявольских чудовищ под предводительством самого Дракулы.",
+  "popularity": 31.8538,
+  "poster_path": "/1y74WH7RU7Rgdf8DGJNFLi7ebpU.jpg",
+  "production_companies": [
+    {
+      "id": 34764,
+      "logo_path": "/bvon5U0QrVapPuHLopQLfK8O8rc.png",
+      "name": "Frederator Studios",
+      "origin_country": "US"
+    },
+    {
+      "id": 121093,
+      "logo_path": "/dyckDFhZusH3PdxeB41WTGDJ65p.png",
+      "name": "Powerhouse Animation Studios",
+      "origin_country": "US"
+    },
+    {
+      "id": 47927,
+      "logo_path": null,
+      "name": "Project 51 Productions",
+      "origin_country": "US"
+    },
+    {
+      "id": 47426,
+      "logo_path": null,
+      "name": "Adishankarbrand",
+      "origin_country": "US"
+    }
+  ],
+  "production_countries": [
+    {
+      "iso_3166_1": "US",
+      "name": "United States of America"
+    }
+  ],
+  "seasons": [
+    {
+      "air_date": "2017-07-07",
+      "episode_count": 4,
+      "id": 86847,
+      "name": "Сезон 1",
+      "overview": "Последний выживший член опозоренного клана борется за спасение Восточной Европы от Дракулы.",
+      "poster_path": "/3vZmyMfrjzO8aj3cWhxpfIzGyzS.jpg",
+      "season_number": 1,
+      "vote_average": 7.7
+    },
+    {
+      "air_date": "2018-10-26",
+      "episode_count": 8,
+      "id": 107076,
+      "name": "Сезон 2",
+      "overview": "Трое очень непохожих, но одинаково отважных героев встают на пути вампирской армии Дракулы, который намерен стереть человечество с лица земли.",
+      "poster_path": "/fbZsRJF9DjlNHZN0WFYJ70mSsKK.jpg",
+      "season_number": 2,
+      "vote_average": 7.8
+    },
+    {
+      "air_date": "2020-03-05",
+      "episode_count": 10,
+      "id": 142858,
+      "name": "Сезон 3",
+      "overview": "Бельмонт и Сифа поселяются в деревне со зловещим секретом. Алукард находит себе парочку восторженных учеников, а Айзек отправляется на поиски Гектора.",
+      "poster_path": "/n9oxhdzDiG8rmxg1EGYTZVokMm1.jpg",
+      "season_number": 3,
+      "vote_average": 7.5
+    },
+    {
+      "air_date": "2021-05-13",
+      "episode_count": 10,
+      "id": 190844,
+      "name": "Сезон 4",
+      "overview": "Влияние Дракулы становится все значительнее. Бельмонт и Сифа раскрывают планы по воскрешению знаменитого вампира. Алукард пытается принять свои человеческие качества.",
+      "poster_path": "/1y74WH7RU7Rgdf8DGJNFLi7ebpU.jpg",
+      "season_number": 4,
+      "vote_average": 8.0
+    }
+  ],
+  "softcore": false,
+  "spoken_languages": [
+    {
+      "english_name": "English",
+      "iso_639_1": "en",
+      "name": "English"
+    }
+  ],
+  "status": "Ended",
+  "tagline": "Кровь тянется к крови",
+  "type": "Scripted",
+  "vote_average": 8.271,
+  "vote_count": 1621
+}

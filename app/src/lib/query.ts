@@ -48,7 +48,11 @@ function matchesSearch(title: Pick<Title, 'title'>, query?: string | null): bool
   return title.title.toLowerCase().indexOf(query.toLowerCase()) !== -1;
 }
 
-function sortTitles<T extends Title>(titles: T[], sortKey?: string): T[] {
+// A caught-up title («Ждёт продолжения», spec 2.4) has nothing to watch
+// right now: it sorts after «В бэклоге», before «Ещё не вышло».
+var WAITING_PRIORITY = 1.5;
+
+function sortTitles<T extends Title>(titles: T[], sortKey?: string, isWaiting?: (t: T) => boolean): T[] {
   var copy = titles.slice();
   switch (sortKey) {
     case 'name':
@@ -56,7 +60,8 @@ function sortTitles<T extends Title>(titles: T[], sortKey?: string): T[] {
     case 'year':
       return copy.sort(function (a, b) { return (b.year || 0) - (a.year || 0); });
     case 'status':
-      return copy.sort(function (a, b) { return STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]; });
+      var rank = function (t: T) { return isWaiting && isWaiting(t) ? WAITING_PRIORITY : STATUS_PRIORITY[t.status]; };
+      return copy.sort(function (a, b) { return rank(a) - rank(b); });
     case 'added':
     default:
       return copy;

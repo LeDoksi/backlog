@@ -63,8 +63,9 @@ describe('periodStats', () => {
   // A done title with no date is one migrated from before completed_at existed.
   const movie = (id: string, completedAt: string | null, genres: string[] = []): Title =>
     ({ id, title: id, category: 'movie', status: 'done', genres, completedAt });
-  const show: Title = { id: 'show', title: 'S', category: 'series', status: 'in_progress', genres: [], parts: [{ name: '1' }, { name: '2' }, { name: '3' }] };
-  const ticks: Record<string, Record<string, string>> = { show: { '0': at(7), '1': at(8, 3) } };
+  // An OVA ticked this month is in the extras block: not a season.
+  const show: Title = { id: 'show', title: 'S', category: 'series', status: 'in_progress', genres: [], parts: [{ name: '1' }, { name: '2' }, { name: '3' }, { name: 'OVA', extra: true }] };
+  const ticks: Record<string, Record<string, string>> = { show: { '0': at(7), '1': at(8, 3), '3': at(8, 4) } };
   const list = [movie('a', at(8, 1), ['драма']), movie('b', at(8, 15)), movie('c', at(7)), movie('d', at(2)), movie('old', null), show];
   const run = (p: 'month' | 'year' | 'all') => periodStats(list, (id) => ticks[id] ?? {}, p, now);
 

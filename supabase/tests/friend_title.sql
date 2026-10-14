@@ -1,6 +1,6 @@
 -- friend_title(): one title of someone else's shelf, only through visible_titles_for.
 begin;
-select plan(10);
+select plan(15);
 \ir support/social_fixture.sql
 select pg_temp.put('00000000-0000-0000-0000-0000000000b2', 'drive', 'done', false, 'tmdb-movie', '64690');
 select pg_temp.put('00000000-0000-0000-0000-0000000000b2', 'secret', 'queue', true);
@@ -28,5 +28,22 @@ update public.workspaces set visibility = 'everyone' where id = '00000000-0000-0
 set local role authenticated;
 select is(public.friend_title('00000000-0000-0000-0000-0000000000a2', 'drive')->>'mine_id', null, 'everyone board: a stranger sees it, nothing of theirs matches');
 select is(public.friend_title('00000000-0000-0000-0000-0000000000a2', 'drive')->>'status', 'done', 'with the status');
+
+-- A feed line from a shared board names its board: the friend has the same
+-- film there under another id, and the personal copy no longer hides it.
+reset role;
+update public.workspaces set visibility = 'friends' where id = '00000000-0000-0000-0000-0000000000b5';
+select pg_temp.put('00000000-0000-0000-0000-0000000000b5', 'drive-shared', 'queue', false, 'tmdb-movie', '64690');
+select pg_temp.put('00000000-0000-0000-0000-0000000000b5', 'shared-secret', 'queue', true);
+update public.workspaces set visibility = 'friends' where id = '00000000-0000-0000-0000-0000000000b1';
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-0000000000a2');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'drive-shared') is null, 'without the board: the shared copy is hidden behind the personal one');
+select is(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'drive-shared', '00000000-0000-0000-0000-0000000000b5')->>'id', 'drive-shared', 'with the board: the shared copy is found');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'shared-secret', '00000000-0000-0000-0000-0000000000b5') is null, 'a hidden title on that board is not shown');
+select pg_temp.login('00000000-0000-0000-0000-0000000000a3');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'drive-shared', '00000000-0000-0000-0000-0000000000b5') is null, 'a stranger does not see a friends board by its id');
+select pg_temp.login('00000000-0000-0000-0000-0000000000a2');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a3', 'drive-shared', '00000000-0000-0000-0000-0000000000b5') is null, 'someone who is not on that board: nothing');
 select * from finish();
 rollback;

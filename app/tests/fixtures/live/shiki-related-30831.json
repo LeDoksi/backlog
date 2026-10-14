@@ -1,0 +1,218 @@
+[
+  {
+    "relation": "Adaptation",
+    "relation_russian": "Адаптация",
+    "anime": null,
+    "manga": {
+      "id": 60553,
+      "name": "Kono Subarashii Sekai ni Shukufuku wo!",
+      "russian": "Этот замечательный мир!",
+      "image": {
+        "original": "/system/mangas/original/60553.jpg?1708786628",
+        "preview": "/system/mangas/preview/60553.jpg?1708786628",
+        "x96": "/system/mangas/x96/60553.jpg?1708786628",
+        "x48": "/system/mangas/x48/60553.jpg?1708786628"
+      },
+      "url": "/ranobe/z60553-kono-subarashii-sekai-ni-shukufuku-wo",
+      "kind": "light_novel",
+      "score": "8.61",
+      "status": "released",
+      "volumes": 17,
+      "chapters": 127,
+      "aired_on": "2013-10-01",
+      "released_on": "2020-05-01"
+    }
+  },
+  {
+    "relation": "Adaptation",
+    "relation_russian": "Адаптация",
+    "anime": null,
+    "manga": {
+      "id": 80385,
+      "name": "Kono Subarashii Sekai ni Shukufuku wo!",
+      "russian": "Этот замечательный мир!",
+      "image": {
+        "original": "/system/mangas/original/80385.jpg?1712763268",
+        "preview": "/system/mangas/preview/80385.jpg?1712763268",
+        "x96": "/system/mangas/x96/80385.jpg?1712763268",
+        "x48": "/system/mangas/x48/80385.jpg?1712763268"
+      },
+      "url": "/mangas/80385-kono-subarashii-sekai-ni-shukufuku-wo",
+      "kind": "manga",
+      "score": "8.07",
+      "status": "ongoing",
+      "volumes": 0,
+      "chapters": 0,
+      "aired_on": "2014-09-09",
+      "released_on": null
+    }
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 32380,
+      "name": "Kono Subarashii Sekai ni Shukufuku wo!: Kono Subarashii Choker ni Shukufuku wo!",
+      "russian": "Этот замечательный мир! Этот замечательный ошейник!",
+      "image": {
+        "original": "/system/animes/original/32380.jpg?1711959588",
+        "preview": "/system/animes/preview/32380.jpg?1711959588",
+        "x96": "/system/animes/x96/32380.jpg?1711959588",
+        "x48": "/system/animes/x48/32380.jpg?1711959588"
+      },
+      "url": "/animes/32380-kono-subarashii-sekai-ni-shukufuku-wo-kono-subarashii-choker-ni-shukufuku-wo",
+      "kind": "ova",
+      "score": "7.82",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2016-06-24",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Sequel",
+    "relation_russian": "Продолжение",
+    "anime": {
+      "id": 32937,
+      "name": "Kono Subarashii Sekai ni Shukufuku wo! 2",
+      "russian": "Этот замечательный мир! 2",
+      "image": {
+        "original": "/system/animes/original/32937.jpg?1711959560",
+        "preview": "/system/animes/preview/32937.jpg?1711959560",
+        "x96": "/system/animes/x96/32937.jpg?1711959560",
+        "x48": "/system/animes/x48/32937.jpg?1711959560"
+      },
+      "url": "/animes/y32937-kono-subarashii-sekai-ni-shukufuku-wo-2",
+      "kind": "tv",
+      "score": "8.24",
+      "status": "released",
+      "episodes": 10,
+      "episodes_aired": 10,
+      "aired_on": "2017-01-12",
+      "released_on": "2017-03-16"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Character",
+    "relation_russian": "Общий персонаж",
+    "anime": {
+      "id": 38472,
+      "name": "Isekai Quartet",
+      "russian": "Квартет из альтернативного мира",
+      "image": {
+        "original": "/system/animes/original/38472.jpg?1711955256",
+        "preview": "/system/animes/preview/38472.jpg?1711955256",
+        "x96": "/system/animes/x96/38472.jpg?1711955256",
+        "x48": "/system/animes/x48/38472.jpg?1711955256"
+      },
+      "url": "/animes/38472-isekai-quartet",
+      "kind": "tv",
+      "score": "7.37",
+      "status": "released",
+      "episodes": 12,
+      "episodes_aired": 12,
+      "aired_on": "2019-04-10",
+      "released_on": "2019-06-26"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Character",
+    "relation_russian": "Общий персонаж",
+    "anime": {
+      "id": 39988,
+      "name": "Isekai Quartet 2",
+      "russian": "Квартет из альтернативного мира 2",
+      "image": {
+        "original": "/system/animes/original/39988.jpg?1711955270",
+        "preview": "/system/animes/preview/39988.jpg?1711955270",
+        "x96": "/system/animes/x96/39988.jpg?1711955270",
+        "x48": "/system/animes/x48/39988.jpg?1711955270"
+      },
+      "url": "/animes/39988-isekai-quartet-2",
+      "kind": "tv",
+      "score": "7.36",
+      "status": "released",
+      "episodes": 12,
+      "episodes_aired": 12,
+      "aired_on": "2020-01-15",
+      "released_on": "2020-04-01"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Character",
+    "relation_russian": "Общий персонаж",
+    "anime": {
+      "id": 41567,
+      "name": "Isekai Quartet Movie: Another World",
+      "russian": "Квартет из альтернативного мира: Другой мир",
+      "image": {
+        "original": "/system/animes/original/41567.jpg?1711955267",
+        "preview": "/system/animes/preview/41567.jpg?1711955267",
+        "x96": "/system/animes/x96/41567.jpg?1711955267",
+        "x48": "/system/animes/x48/41567.jpg?1711955267"
+      },
+      "url": "/animes/41567-isekai-quartet-movie-another-world",
+      "kind": "movie",
+      "score": "7.46",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2022-06-10",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Spin-off",
+    "relation_russian": "Ответвление от оригинала",
+    "anime": {
+      "id": 51958,
+      "name": "Kono Subarashii Sekai ni Bakuen wo!",
+      "russian": "Одаривая этот замечательный мир взрывами!",
+      "image": {
+        "original": "/system/animes/original/51958.jpg?1710733679",
+        "preview": "/system/animes/preview/51958.jpg?1710733679",
+        "x96": "/system/animes/x96/51958.jpg?1710733679",
+        "x48": "/system/animes/x48/51958.jpg?1710733679"
+      },
+      "url": "/animes/51958-kono-subarashii-sekai-ni-bakuen-wo",
+      "kind": "tv",
+      "score": "7.52",
+      "status": "released",
+      "episodes": 12,
+      "episodes_aired": 12,
+      "aired_on": "2023-04-06",
+      "released_on": "2023-06-22"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Character",
+    "relation_russian": "Общий персонаж",
+    "anime": {
+      "id": 61851,
+      "name": "Isekai Quartet 3",
+      "russian": "Квартет из альтернативного мира 3",
+      "image": {
+        "original": "/assets/globals/missing_original.jpg",
+        "preview": "/assets/globals/missing_preview.jpg",
+        "x96": "/assets/globals/missing_x96.jpg",
+        "x48": "/assets/globals/missing_x48.jpg"
+      },
+      "url": "/animes/61851-isekai-quartet-3",
+      "kind": "tv",
+      "score": "7.43",
+      "status": "released",
+      "episodes": 11,
+      "episodes_aired": 11,
+      "aired_on": "2025-10-13",
+      "released_on": "2025-12-22"
+    },
+    "manga": null
+  }
+]
