@@ -49,8 +49,24 @@ test('Friends lists matches; a match opens the friend on the wanted shelf', asyn
   const tabs = page.getByRole('radiogroup', { name: 'Раздел' });
   if (await tabs.isVisible()) await tabs.getByRole('radio', { name: 'Совпадения 1' }).click();
   const matches = page.getByRole('list', { name: 'Совпадения' });
-  await matches.getByRole('button', { name: 'Совпадение: Ты и Вадим оба хотите «Бэтмен»' }).click();
+  await matches.getByRole('button', { name: '«Бэтмен»: Вадим хочет' }).click();
   await expect(page.getByRole('dialog', { name: 'Вадим' }).getByRole('button', { name: 'Хочет' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('one title matched with two friends is one card; it opens my own card of the title', async ({ page }) => {
+  const mine = { ...match, title: first.title };
+  await installStub(page, { signedIn: true, hasProfile: true, titles: rows, friends: [vadim, lesha],
+    matches: [mine, { ...mine, friend_id: lesha.id, friend_name: 'Лёша', friend_status: 'in_progress' }] });
+  await page.goto('./');
+  await nav(page).getByRole('button', { name: /Друзья/ }).click();
+  const tabs = page.getByRole('radiogroup', { name: 'Раздел' });
+  if (await tabs.isVisible()) await tabs.getByRole('radio', { name: 'Совпадения 1' }).click();
+  const matches = page.getByRole('list', { name: 'Совпадения' });
+  await expect(matches.getByRole('listitem')).toHaveCount(1);
+  await expect(page.getByText('Совпадение', { exact: true })).toHaveCount(0);
+  const verb = first.category === 'game' ? 'играет' : 'смотрит';
+  await matches.getByRole('button', { name: `«${first.title}»: Лёша ${verb}, Вадим хочет` }).click();
+  await expect(page.getByRole('dialog', { name: first.title })).toBeVisible();
 });
 
 test('wide desktop: a friends column beside the board, «Все» goes to Friends', async ({ page }, info) => {
@@ -59,7 +75,7 @@ test('wide desktop: a friends column beside the board, «Все» goes to Friend
   await installStub(page, { signedIn: true, hasProfile: true, titles: rows, friends: [vadim], matches: [match], feed: [feedRow] });
   await page.goto('./');
   const column = page.getByRole('complementary', { name: 'У друзей' });
-  await expect(column.getByRole('button', { name: /^Совпадение: / })).toBeVisible();
+  await expect(column.getByRole('button', { name: /^«Бэтмен»: / })).toBeVisible();
   await expect(column.getByRole('button', { name: /Вадим · завершено «Драйв»/ })).toBeVisible();
   // Looking at the column is not a visit to Friends: the badge stays.
   expect((await rpcCalls(page)).map((c) => c.name)).not.toContain('mark_feed_seen');

@@ -3,6 +3,7 @@ import { useSocial } from '../../data/socialStore';
 import { useUi } from '../../data/ui';
 import { FeedItem } from '../Friends/FeedItem';
 import { MatchCard } from '../Friends/Matches';
+import { groupMatches } from '../../data/friendsOn';
 import s from './FriendsColumn.module.css';
 
 const LINES = 4;
@@ -16,7 +17,7 @@ export function FriendsColumn() {
   useEffect(() => { void useSocial.getState().loadPeek(); }, []);
 
   const lines = (feed ?? []).slice(0, LINES);
-  const match = matches?.[0];
+  const match = matches ? groupMatches(matches)[0] : undefined;
   if (!match && lines.length === 0) return null;
   const now = new Date();
   return (
@@ -25,7 +26,7 @@ export function FriendsColumn() {
         <h2 id="friends-column" className={s.h2}>У друзей</h2>
         <button type="button" className={s.all} onClick={() => setSection('friends')}>Все</button>
       </div>
-      {match && <MatchCard match={match} />}
+      {match && <MatchCard group={match} />}
       {lines.map((r) => <FeedItem key={`${r.kind}:${r.actor_id}:${r.title_id}:${r.at}`} row={r} now={now} compact />)}
     </aside>
   );

@@ -7,6 +7,7 @@ import { useIsDesktop } from '../../ui/useMediaQuery';
 import { FeedList } from './FeedList';
 import { Requests } from './Requests';
 import { Matches } from './Matches';
+import { groupMatches } from '../../data/friendsOn';
 import { FriendsList } from './FriendsList';
 import { AddFriendSheet } from './AddFriendSheet';
 import s from './Friends.module.css';
@@ -85,7 +86,7 @@ export function Friends() {
       </div>
       <Segmented label="Раздел" value={tab} onChange={setTab} tone="inverse" options={[
         { value: 'feed', label: 'Лента' },
-        { value: 'matches', label: `Совпадения${count(matches)}` },
+        { value: 'matches', label: `Совпадения${count(matches ? groupMatches(matches) : null)}` },
         { value: 'friends', label: `Друзья${count(friends)}` }
       ]} />
       <Requests />

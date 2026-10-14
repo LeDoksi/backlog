@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { byPriority, groupByKey, matchText, statusWord, tabForStatus, titleKey } from '../../src/data/friendsOn';
+import { byPriority, groupByKey, groupMatches, matchGroupText, statusWord, tabForStatus, titleKey } from '../../src/data/friendsOn';
 import type { Match } from '../../src/lib/social';
 
 describe('friends on titles', () => {
@@ -28,11 +28,15 @@ describe('friends on titles', () => {
     expect(tabForStatus('queue')).toBe('want');
   });
 
-  it('match lines keep names in the nominative', () => {
-    const m = (my: string, fr: string, category = 'movie'): Match => ({ friend_id: 'f', friend_name: 'Вадим', title_key: 'k', title: 'Бэтмен', category, cover: null, my_status: my, friend_status: fr });
-    expect(matchText(m('queue', 'queue'))).toBe('Ты и Вадим оба хотите «Бэтмен»');
-    expect(matchText(m('queue', 'in_progress'))).toBe('Вадим уже смотрит «Бэтмен»');
-    expect(matchText(m('in_progress', 'queue'))).toBe('Вадим хочет «Бэтмен», а ты уже смотришь');
-    expect(matchText(m('in_progress', 'in_progress', 'game'))).toBe('Ты и Вадим оба играете в «Бэтмен»');
+  it('matches of one title make one group, the one playing or watching first', () => {
+    const m = (id: string, name: string, key: string, fr: string, my = 'queue', category = 'movie'): Match =>
+      ({ friend_id: id, friend_name: name, title_key: key, title: key, category, cover: null, my_status: my, friend_status: fr });
+    const groups = groupMatches([m('l', 'Лёша', 'k1', 'queue'), m('o', 'Оля', 'k2', 'queue'), m('v', 'Вадим', 'k1', 'in_progress')]);
+    expect(groups.map((g) => g.title_key)).toEqual(['k1', 'k2']);
+    expect(groups[0]!.friends.map((f) => f.name)).toEqual(['Вадим', 'Лёша']);
+    expect(matchGroupText(groups[0]!)).toBe('Вадим смотрит, Лёша хочет');
+    expect(matchGroupText(groupMatches([m('v', 'Вадим', 'g', 'in_progress', 'queue', 'game'), m('l', 'Лёша', 'g', 'queue', 'queue', 'game')])[0]!)).toBe('Вадим играет, Лёша хочет');
+    expect(matchGroupText(groupMatches([m('v', 'Вадим', 'k', 'in_progress', 'in_progress')])[0]!)).toBe('Ты и Вадим оба смотрите');
+    expect(matchGroupText(groupMatches([m('v', 'Вадим', 'k', 'queue')])[0]!)).toBe('Вадим хочет');
   });
 });
