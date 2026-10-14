@@ -95,7 +95,9 @@ export function periodStats(titles: Title[], ticks: Ticks, period: Period, now: 
   });
   titles.forEach((t) => {
     if (t.category !== 'series' && t.category !== 'anime') return;
-    if (hasPartsChecklist(t)) byCategory[t.category].seasons! += Object.values(ticks(t.id)).filter((d) => within(d, r)).length;
+    // Extras (OVA, specials) are not seasons (spec 2.2).
+    if (hasPartsChecklist(t)) byCategory[t.category].seasons! += Object.entries(ticks(t.id))
+      .filter(([k, d]) => /^\d+$/.test(k) && !t.parts[Number(k)]?.extra && within(d, r)).length;
   });
   const genres = [...genreMap].map(([genre, count]) => ({ genre, count })).sort((a, b) => b.count - a.count || a.genre.localeCompare(b.genre, 'ru'));
   return {

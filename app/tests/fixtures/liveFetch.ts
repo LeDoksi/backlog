@@ -1,10 +1,11 @@
 // A fetch that answers from the live responses recorded 2026-10-14
 // (tests/fixtures/live). Unknown URLs answer 404.
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { FetchLike } from '../../src/lib/types';
 
-const dir = join(__dirname, 'live');
+const dir = join(dirname(fileURLToPath(import.meta.url)), 'live');
 
 const SEARCHES: Record<string, string> = {
   'атака титанов': 'attack-on-titan', 'адский рай': 'hells-paradise', 'синяя тюрьма': 'blue-lock',

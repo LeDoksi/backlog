@@ -11,7 +11,7 @@ async function mockTmdb(page: Page) {
   } }));
 }
 
-test('search, add with +, stay in the field, and refuse a duplicate', async ({ page }) => {
+test('search, add with +, stay in the field, and mark what is already there', async ({ page }) => {
   await installStub(page, { signedIn: true, hasProfile: true, titles: [] });
   await mockTmdb(page);
   await page.goto('./');
@@ -25,8 +25,9 @@ test('search, add with +, stay in the field, and refuse a duplicate', async ({ p
   await expect(field).toHaveValue('');
   await expect(field).toBeFocused();
   await field.fill('Дюна');
-  await panel.getByRole('button', { name: 'Добавить «Дюна»', exact: true }).click();
-  await expect(panel.getByText('Этот тайтл уже есть в бэклоге')).toBeVisible();
+  // A title already on the board is marked in the results instead of offered again.
+  await expect(panel.getByText('Уже в бэклоге')).toBeVisible();
+  await expect(panel.getByRole('button', { name: 'Добавить «Дюна»', exact: true })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(page.locator('article')).toHaveCount(1);
   await expect(page.locator('article')).toContainText('Дюна');
