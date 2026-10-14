@@ -6,6 +6,10 @@ export const CATEGORY_LABEL: Record<Category, string> = { anime: 'Аниме', m
 export const CATEGORY_OPTIONS: { value: Category; label: string }[] = (['movie', 'series', 'anime', 'game'] as const).map((value) => ({ value, label: CATEGORY_LABEL[value] }));
 export const CATEGORY_TAB: Record<'all' | Category, string> = { all: 'Всё', anime: 'Аниме', movie: 'Кино', series: 'Сериалы', game: 'Игры' };
 export const STATUS_CARD: Record<Status, string> = { queue: 'В бэклоге', in_progress: 'Смотрю', done: 'Завершено', unreleased: 'Ещё не вышло' };
+/** The card's status word; a game in progress is «Играю». */
+export function statusLabel(status: Status, category: Category): string {
+  return status === 'in_progress' && category === 'game' ? 'Играю' : STATUS_CARD[status];
+}
 export const STATUS_FILTER: Record<Status, string> = { queue: 'В бэклоге', in_progress: 'В процессе', done: 'Завершено', unreleased: 'Ещё не вышло' };
 
 export function metaLine(t: Title): string {

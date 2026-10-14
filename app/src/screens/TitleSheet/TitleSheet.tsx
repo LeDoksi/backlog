@@ -71,7 +71,7 @@ export function TitleSheet() {
             ) : (
               <>
                 {title.status === 'unreleased' && <p className={s.unreleased}>Ещё не вышло. Когда выйдет, сними отметку в редактировании.</p>}
-                {title.status !== 'unreleased' && <StatusControl value={title.status} onChange={(st) => store().setStatus(title.id, st)} />}
+                {title.status !== 'unreleased' && <StatusControl value={title.status} category={title.category} onChange={(st) => store().setStatus(title.id, st)} />}
               </>
             )}
 

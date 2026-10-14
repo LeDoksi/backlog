@@ -80,11 +80,12 @@ test('deleting asks first and removes the card', async ({ page }) => {
   await expect(page.locator(`article[data-id="${name}"]`)).toHaveCount(0);
 });
 
-test('«Что посмотреть?» never picks a game on the games tab', async ({ page }) => {
+test('on the games tab «Во что поиграть?» opens a game', async ({ page }) => {
   await page.getByRole('navigation', { name: 'Категории' }).getByRole('button', { name: /^Игры/ }).click();
-  await page.getByRole('button', { name: /Что посмотреть/ }).click({ force: true });
-  await expect(page.getByText('Игры не смотрят').first()).toBeVisible();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Во что поиграть?' }).click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet).toBeVisible();
+  await expect(sheet.getByText(/^Игра/).first()).toBeVisible();
 });
 
 // iOS Safari zooms the page in on focus when a field's text is under 16px.

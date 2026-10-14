@@ -20,8 +20,8 @@ test('a feed line opens the friend on the right tab with the taste match; removi
   await expect(sheet.getByText('@vadim, в друзьях с 14 августа')).toBeVisible();
   await expect(sheet.getByRole('region', { name: 'Совпадение вкусов' })).toContainText('72%');
   await expect(sheet.getByRole('region', { name: 'Совпадение вкусов' })).toContainText('14 общих тайтлов');
-  await expect(sheet.getByRole('button', { name: 'Смотрит' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(sheet.getByRole('list', { name: 'Смотрит' }).getByRole('listitem')).toHaveCount(1);
+  await expect(sheet.getByRole('button', { name: 'В процессе' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(sheet.getByRole('list', { name: 'В процессе' }).getByRole('listitem')).toHaveCount(1);
   await sheet.getByRole('button', { name: 'Завершено' }).click();
   const done = sheet.getByRole('list', { name: 'Завершено' });
   await expect(done.getByRole('listitem')).toHaveCount(2);

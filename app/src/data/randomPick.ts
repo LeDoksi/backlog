@@ -2,14 +2,23 @@ import { isCaughtUp } from '../lib/storage';
 import { pickRandom } from '../lib/query';
 import type { Category, Title } from '../lib/types';
 
-// Only what can be started right now: not finished, not unannounced, not a
-// game (nobody "watches" one tonight), and not a show whose every released
-// part is already watched while more is still coming.
+// Only what can be started right now: not finished, not unannounced, and
+// not a show whose every released part is already watched while more is
+// still coming. Games only on their own tab («Во что поиграть?»): a game is
+// not what «Что посмотреть?» means.
 export function randomCandidates(titles: Title[], category: 'all' | Category, checked: (id: string) => number[]): Title[] {
   return titles.filter((t) =>
     (category === 'all' || t.category === category) &&
-    t.category !== 'game' && t.status !== 'done' && t.status !== 'unreleased' &&
+    (category === 'game' || t.category !== 'game') && t.status !== 'done' && t.status !== 'unreleased' &&
     !isCaughtUp(t, checked(t.id)));
+}
+
+export function randomLabel(category: 'all' | Category): 'Во что поиграть?' | 'Что посмотреть?' {
+  return category === 'game' ? 'Во что поиграть?' : 'Что посмотреть?';
+}
+
+export function randomEmpty(category: 'all' | Category): 'Тут всё пройдено' | 'Тут всё посмотрено' {
+  return category === 'game' ? 'Тут всё пройдено' : 'Тут всё посмотрено';
 }
 
 export function pickNext(titles: Title[], category: 'all' | Category, checked: (id: string) => number[]): Title | null {

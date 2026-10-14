@@ -55,7 +55,7 @@ export function Stats() {
               <span className={s.bigText}>{plural(ps.done, 'тайтл', 'тайтла', 'тайтлов')}<br />завершено</span>
             </div>
             <span className={s.sub}>
-              {versus ? `${versus}.` : `Из ${st.total} в бэклоге. Смотришь ${st.inProgress}, ждут своей очереди ${st.queue}.`}
+              {versus ? `${versus}.` : `Из ${st.total} в бэклоге. В процессе ${st.inProgress}, ждут своей очереди ${st.queue}.`}
               {st.waiting > 0 && ` Ещё ${st.waiting} ${plural(st.waiting, 'ждёт', 'ждут', 'ждут')} новых сезонов.`}
             </span>
           </section>

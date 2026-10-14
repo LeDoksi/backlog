@@ -14,7 +14,7 @@ import { TasteCard } from './TasteCard';
 import s from './FriendProfile.module.css';
 
 const TABS: { value: ShelfTab; label: string }[] = [
-  { value: 'done', label: 'Завершено' }, { value: 'watching', label: 'Смотрит' }, { value: 'want', label: 'Хочет' }
+  { value: 'done', label: 'Завершено' }, { value: 'watching', label: 'В процессе' }, { value: 'want', label: 'Хочет' }
 ];
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 
