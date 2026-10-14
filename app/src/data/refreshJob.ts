@@ -1,12 +1,15 @@
 // refreshJob.ts — once a day, on the first open of a board, its series and
 // anime are checked against TMDb and Shikimori (spec 2.5, BL-94, BL-95,
 // BL-109): missing seasons are filled in, new ones appended, duplicates of
-// a franchise merged. Everything goes to the server in one quiet
+// a franchise merged; games get a tall cover and a Russian description in
+// place of a wide or missing one and an English or empty one (spec 3.4).
+// Everything goes to the server in one quiet
 // apply_title_refresh() call, so friends see none of it in the feed.
 import * as Enrich from '../lib/enrich';
 import { materialize } from '../lib/derive';
 import { partsFromFranchise, partsFromTmdb } from '../lib/franchise';
-import { fillTicksForDone, mergeParts, planMerge, ticksWith, type FreshPart } from '../lib/refresh';
+import { cardFor } from './cardSources';
+import { cardFixes, fillTicksForDone, mergeParts, planMerge, ticksWith, type FreshPart } from '../lib/refresh';
 import { checkedIndices, fromRow, type CheckedParts, type TitleRow } from '../lib/titleRow';
 import type { FetchLike, Part, StorageLike, SupabaseLike, Title } from '../lib/types';
 
@@ -22,6 +25,9 @@ export interface RefreshDeps {
   now: Date;
   tmdbKey: string;
   proxy: string | null;
+  /** Games (wave 3): RAWG's key and a check that a picture loads tall. */
+  rawgKey?: string;
+  loadImage?: (url: string) => Promise<boolean>;
   pause?: (ms: number) => Promise<void>;
 }
 
@@ -52,6 +58,17 @@ function markDone(storage: StorageLike, board: string, now: Date) {
 }
 
 const base = (r: TitleRow) => ({ parts: r.parts ?? null, checked_parts: r.checked_parts ?? {}, status: r.status });
+/** The base also names every card field the update changes: an edit made meanwhile makes the write stale. */
+export function cardBase(r: TitleRow, cols: Partial<TitleRow>) {
+  const out: Record<string, unknown> = base(r);
+  Object.keys(cols).forEach((k) => { out[k] = (r as unknown as Record<string, unknown>)[k] ?? null; });
+  return out;
+}
+
+/** A game whose card the daily pass may improve: a wide or missing cover, an English or empty description. */
+export function gameNeedsCard(r: TitleRow): boolean {
+  return cardFixes(r, { cover: 'https://tall.example/cover.jpg', synopsis: 'Описание.' }, 'daily') !== null;
+}
 
 export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult> {
   const none: RefreshResult = { ran: false, updated: 0, merged: 0, skipped: 0, changes: [] };
@@ -92,6 +109,20 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       franchise[r.id] = { key: String(f.rootId), ref: `shiki:${id}`, main: !!f.nodes.find((n) => n.id === id)?.main };
       firstTv[String(f.rootId)] = `shiki:${f.rootId}`;
     }
+  }
+
+  // Games (spec 3.4): one at a time too.
+  const cards: Record<string, Partial<TitleRow>> = {};
+  const games = deps.rows.filter((r) => r.category === 'game' && r.source_id && (r.source === 'steam' || r.source === 'rawg')
+    && !deps.pendingIds.has(r.id) && gameNeedsCard(r));
+  for (const r of games) {
+    if (asked++) await pause(PAUSE_MS);
+    const card = await cardFor(r.source!, r.source_id!, {
+      fetchFn: deps.fetchFn, proxy: deps.proxy ?? '', tmdbKey: deps.tmdbKey, rawgKey: deps.rawgKey ?? '', loadImage: deps.loadImage ?? (async () => false)
+    });
+    if (!card) { skipped++; continue; }
+    const fix = cardFixes(r, card, 'daily');
+    if (fix) cards[r.id] = fix;
   }
 
   const titles = new Map<string, { row: TitleRow; title: Title; ticks: CheckedParts }>();
@@ -148,6 +179,11 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       === JSON.stringify([cols.parts, cols.checked_parts, cols.status, cols.manual_status, cols.airing_status, cols.rating]);
     if (same) continue;
     updates.push({ id, base: base(row), ...cols });
+    changes.push({ id, cols });
+  }
+  for (const [id, cols] of Object.entries(cards)) {
+    const row = deps.rows.find((r) => r.id === id)!;
+    updates.push({ id, base: cardBase(row, cols), ...cols });
     changes.push({ id, cols });
   }
   const deletes = [...absorbed].map((id) => ({ id, base: base(titles.get(id)!.row) }));

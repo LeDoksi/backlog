@@ -141,3 +141,38 @@ describe('runDailyRefresh', () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 });
+
+describe('runDailyRefresh: games (spec 3.4)', () => {
+  const HEADER = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/abc/header.jpg';
+  const steam620 = (synopsis: string): FetchLike => (u) => Promise.resolve(/appdetails\?appids=620&/.test(u)
+    ? { ok: true, json: () => Promise.resolve({ 620: { success: true, data: { name: 'Portal 2', short_description: synopsis, header_image: HEADER, platforms: { windows: true } } } }) }
+    : { ok: false, status: 404, json: () => Promise.resolve({}) });
+  const game = (extra: Partial<TitleRow> = {}): TitleRow => ({ workspace_id: 'b1', id: 'portal', title: 'Portal 2', category: 'game', status: 'queue',
+    source: 'steam', source_id: '620', checked_parts: {}, parts: null, cover: HEADER, synopsis: 'Old English text about testing.', ...extra });
+
+  it('a Steam header becomes the tall cover and the English text the Russian one, quietly, with the fields in the base', async () => {
+    const { d, args } = deps([game()], { fetchFn: steam620('Программа тестирования расширена.'), loadImage: async () => true });
+    const r = await runDailyRefresh(d);
+    expect(r.updated).toBe(1);
+    const u = args().p_updates[0]!;
+    expect(u.cover).toMatch(/\/620\/library_600x900\.jpg$/);
+    expect(u.synopsis).toBe('Программа тестирования расширена.');
+    expect(u.base).toEqual({ parts: null, checked_parts: {}, status: 'queue', cover: HEADER, synopsis: 'Old English text about testing.' });
+    expect(u.title).toBeUndefined();
+  });
+
+  it('a cover someone chose and a Russian description: the game is not even asked about', async () => {
+    const calls: string[] = [];
+    const f: FetchLike = (u, i) => { calls.push(u); return steam620('x')(u, i); };
+    const { d, rpc } = deps([game({ cover: 'data:image/jpeg;base64,AAA', synopsis: 'Своё описание.' })], { fetchFn: f, loadImage: async () => true });
+    await runDailyRefresh(d);
+    expect(calls).toEqual([]);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('nothing better found: no write, and the next pass finds nothing new either', async () => {
+    const { d, rpc } = deps([game({ synopsis: 'Своё описание.' })], { fetchFn: steam620('Программа.'), loadImage: async () => false });
+    await runDailyRefresh(d);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
