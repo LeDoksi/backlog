@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Eye, EyeSlash, PencilSimple, Trash } from '@phosphor-icons/react';
+import { DotsThree, EyeSlash, PencilSimple } from '@phosphor-icons/react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
-import { Confirm } from '../../ui/Confirm';
 import { useTitles } from '../../data/titlesStore';
 import { useUi } from '../../data/ui';
 import { busy } from '../../data/busy';
@@ -23,7 +22,7 @@ export function TitleSheet() {
   const title = useTitles((t) => (id ? t.titles.find((x) => x.id === id) : undefined));
   const checked = useTitles((t) => (id ? t.checked[id] : undefined)) ?? [];
   const store = useTitles.getState;
-  const [confirming, setConfirming] = useState(false);
+  const [menu, setMenu] = useState(false);
   const open = !!id && !!title;
   useEffect(() => {
     if (!open) return;
@@ -31,8 +30,18 @@ export function TitleSheet() {
     return () => busy.leave('sheet');
   }, [open]);
 
+  useEffect(() => { setMenu(false); }, [id]);
+
   // The title can vanish under the panel (deleted on another device).
   useEffect(() => { if (id && !title) close(); }, [id, title, close]);
+
+  // Gone at once; «Отменить» on the note brings it back (spec 1.7).
+  function remove(titleId: string, name: string) {
+    setMenu(false);
+    close();
+    store().deleteTitle(titleId);
+    useUi.getState().showToast(`Удалено «${name}»`, { label: 'Отменить', run: () => store().undoDelete() });
+  }
 
   const cover = title ? resolveCover(title.cover, ASSET_ROOT) : '';
   const meta = title ? [metaLine(title), (title.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
@@ -42,10 +51,19 @@ export function TitleSheet() {
       <Sheet open={open} onClose={close} labelledBy="title-sheet-title" footer={title && (
         <>
           <Button variant="inverse" className={s.edit} icon={<PencilSimple size={20} aria-hidden="true" />} onClick={() => openEdit(title.id)}>Редактировать</Button>
-          <Button variant="neutral" className={s.iconBtn} aria-label={title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'} onClick={() => store().editTitle(title.id, { hidden: !title.hidden })}>
-            {title.hidden ? <Eye size={20} /> : <EyeSlash size={20} />}
-          </Button>
-          <Button variant="danger" className={s.iconBtn} aria-label="Удалить тайтл" onClick={() => setConfirming(true)}><Trash size={20} /></Button>
+          <div className={s.moreWrap}>
+            <Button variant="neutral" className={s.iconBtn} aria-label="Ещё" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
+              <DotsThree size={24} weight="bold" />
+            </Button>
+            {menu && (
+              <div className={s.menu} role="group" aria-label="Ещё">
+                <button type="button" className={s.menuItem} onClick={() => { setMenu(false); store().editTitle(title.id, { hidden: !title.hidden }); }}>
+                  {title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'}
+                </button>
+                <button type="button" className={`${s.menuItem} ${s.menuDanger}`} onClick={() => remove(title.id, title.title)}>Удалить</button>
+              </div>
+            )}
+          </div>
         </>
       )}>
         {title && (
@@ -84,10 +102,6 @@ export function TitleSheet() {
           </div>
         )}
       </Sheet>
-      <Confirm open={confirming && !!title} danger confirm="Удалить"
-        title={title ? `Удалить «${title.title}»?` : ''} text="Это нельзя отменить."
-        onCancel={() => setConfirming(false)}
-        onConfirm={() => { setConfirming(false); if (title) { close(); store().deleteTitle(title.id); } }} />
     </>
   );
 }

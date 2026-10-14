@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import type { Section } from '../ui/TabBar';
 
+export interface ToastAction { label: string; run(): void }
+/** `n` tells two notes with the same text apart, so the second one restarts the timer. */
+export interface Toast { text: string; action?: ToastAction; n: number }
+let toastN = 0;
+
 // Which overlay is up. Panels have no URL of their own (Back closes them via
 // the Sheet's history entry), so this store is the only place they live.
 interface UiState {
@@ -22,9 +27,9 @@ interface UiState {
   friendTitle: { owner: string; id: string; name: string } | null;
   openFriendTitle(owner: string, id: string, name: string): void;
   closeFriendTitle(): void;
-  /** A short note at the bottom of the screen (the invite link outcome). */
-  toast: string | null;
-  showToast(text: string | null): void;
+  /** A short note at the bottom of the screen, with an optional action («Отменить»). */
+  toast: Toast | null;
+  showToast(text: string | null, action?: ToastAction): void;
   /** Asked from elsewhere (the leaderboard): Profile opens its privacy panel and clears this. */
   privacyRequested: boolean;
   openPrivacy(): void;
@@ -49,7 +54,7 @@ export const useUi = create<UiState>()((set) => ({
   openFriendTitle: (owner, id, name) => set({ friendTitle: { owner, id, name } }),
   closeFriendTitle: () => set({ friendTitle: null }),
   toast: null,
-  showToast: (text) => set({ toast: text }),
+  showToast: (text, action) => set({ toast: text ? { text, action, n: ++toastN } : null }),
   privacyRequested: false,
   openPrivacy: () => { set({ section: 'profile', privacyRequested: true }); window.scrollTo(0, 0); },
   clearPrivacyRequest: () => set({ privacyRequested: false })

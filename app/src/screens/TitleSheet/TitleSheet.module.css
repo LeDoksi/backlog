@@ -33,6 +33,11 @@
 .platform { padding: 6px 12px; border-radius: var(--r-pill); background: var(--sunken); font-size: var(--fs-sm); color: var(--text-2); }
 .edit { flex: 1; }
 .iconBtn { width: 56px; padding: 0; flex-shrink: 0; }
+.moreWrap { position: relative; flex-shrink: 0; }
+.menu { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 2; min-width: 210px; padding: 6px; border-radius: var(--r-md); background: var(--surface); box-shadow: var(--shadow-glass); display: flex; flex-direction: column; gap: 2px; }
+.menuItem { min-height: 48px; padding: 0 14px; border: 0; border-radius: var(--r-sm); background: none; color: var(--text); font: inherit; font-size: var(--fs-base); font-weight: 600; text-align: left; white-space: nowrap; }
+.menuItem:hover { background: var(--sunken); }
+.menuDanger { color: var(--danger); }
 @media (min-width: 1024px) {
   .poster { width: 150px; height: 225px; }
   .name { font-size: 24px; }

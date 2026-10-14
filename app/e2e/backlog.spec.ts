@@ -70,14 +70,34 @@ test('ticking a season derives the status', async ({ page }) => {
   await expect(page.locator('article').first()).toContainText('Смотрю');
 });
 
-test('deleting asks first and removes the card', async ({ page }) => {
+const deletes = (page: import('@playwright/test').Page) => page.evaluate(() =>
+  ((window as unknown as { __writes?: { op: string; id?: string }[] }).__writes ?? []).filter((w) => w.op === 'delete'));
+
+async function deleteFirst(page: import('@playwright/test').Page) {
   const first = page.locator('article').first();
-  const name = (await first.getAttribute('data-id'))!;
+  const id = (await first.getAttribute('data-id'))!;
   await first.locator(':scope > button').first().click();
-  await page.getByRole('button', { name: 'Удалить тайтл' }).click();
-  await expect(page.getByText('Это нельзя отменить.')).toBeVisible();
-  await page.getByRole('button', { name: 'Удалить', exact: true }).click();
-  await expect(page.locator(`article[data-id="${name}"]`)).toHaveCount(0);
+  await page.getByRole('dialog').getByRole('button', { name: 'Ещё' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Удалить', exact: true }).click();
+  return id;
+}
+
+test('«Удалить» in the menu removes at once; «Отменить» brings it back and nothing is sent', async ({ page }) => {
+  const id = await deleteFirst(page);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator(`article[data-id="${id}"]`)).toHaveCount(0);
+  await expect(page.getByRole('status').getByText(/^Удалено «/)).toBeVisible();
+  await page.getByRole('button', { name: 'Отменить' }).click();
+  await expect(page.locator(`article[data-id="${id}"]`)).toHaveCount(1);
+  await page.waitForTimeout(6500);
+  expect(await deletes(page)).toEqual([]);
+});
+
+test('without «Отменить» the delete is sent when the note is gone', async ({ page }) => {
+  const id = await deleteFirst(page);
+  expect(await deletes(page)).toEqual([]);
+  await expect(page.getByRole('status').getByText(/^Удалено «/)).toBeHidden({ timeout: 8000 });
+  await expect.poll(() => deletes(page)).toEqual([expect.objectContaining({ id })]);
 });
 
 test('on the games tab «Во что поиграть?» opens a game', async ({ page }) => {
