@@ -23,7 +23,7 @@ test('the badge counts new lines, the tab groups them and opening it clears the 
   await friendsTab.click();
   await expect(page.getByRole('heading', { name: 'Друзья', level: 1 })).toBeVisible();
   const today = page.getByRole('region', { name: 'Сегодня' });
-  await expect(today.getByRole('button')).toHaveCount(2);
+  await expect(today.getByRole('button', { name: /^(Даша|Лёша) · / })).toHaveCount(2);
   await expect(today).toContainText('Даша · 2 сезона «Фрирен»');
   await expect(today).toContainText('общая доска');
   await expect(today).toContainText('Лёша · +12 тайтлов');
@@ -32,6 +32,49 @@ test('the badge counts new lines, the tab groups them and opening it clears the 
   expect(await rpcNames(page)).toContain('mark_feed_seen');
   await nav(page).getByRole('button', { name: /Бэклог/ }).click();
   await expect(nav(page).getByRole('button', { name: /Друзья/ })).not.toContainText(/\d/);
+});
+
+const vadim = { id: '00000000-0000-4000-8000-0000000000e2', name: 'Вадим', nickname: 'vadim', since: '2026-08-14T10:00:00Z' };
+const long = 'Очень длинное название фильма, которое никак не помещается в одну строку и должно переноситься внутри своей колонки';
+
+test('a long line wraps beside the cover; a tap opens the title, the name opens the friend', async ({ page }) => {
+  await installStub(page, {
+    signedIn: true, hasProfile: true, friends: [vadim],
+    feed: [{ ...base, actor_id: vadim.id, actor_name: 'Вадим', kind: 'completed', title_id: 'long-2020', title: long, category: 'movie', count: 1, cover: 'images/covers/drive-2011.jpg', at: ago(1), rating: 8 }],
+    friendTitles: { [`${vadim.id}:long-2020`]: { id: 'long-2020', title: long, original_title: null, category: 'movie', year: 2020, genres: [], synopsis: '', cover: null, platforms: null, parts: null, checked: [], status: 'done', rating: 8, title_key: 'slug:long-2020', mine_id: null } }
+  });
+  await page.goto('./');
+  await nav(page).getByRole('button', { name: /Друзья/ }).click();
+  const line = page.getByRole('button', { name: /^Вадим · завершено/ });
+  const today = page.getByRole('region', { name: 'Сегодня' });
+  await expect(today).toContainText('8/10');
+  const text = (await today.getByText(/Очень длинное/).boundingBox())!;
+  const cover = (await page.getByRole('region', { name: 'Сегодня' }).locator('img[src*="drive-2011"]').first().boundingBox())!;
+  const viewport = page.viewportSize()!;
+  expect(text.x + text.width).toBeLessThanOrEqual(cover.x + 1);
+  expect(cover.x + cover.width).toBeLessThanOrEqual(viewport.width);
+  await line.click();
+  await expect(page.getByRole('dialog', { name: long })).toBeVisible();
+  await page.goBack();
+  await page.getByRole('button', { name: 'Вадим', exact: true }).first().click();
+  await expect(page.getByRole('dialog', { name: 'Вадим' })).toBeVisible();
+});
+
+test('a cover in an additions line opens that title', async ({ page }) => {
+  await installStub(page, {
+    signedIn: true, hasProfile: true, friends: [vadim],
+    feed: [{ ...base, actor_id: vadim.id, actor_name: 'Вадим', kind: 'added', title_id: 'a', title: 'A', category: 'movie', count: 3, at: ago(1),
+      covers: ['images/covers/drive-2011.jpg', 'images/covers/drive-2011.jpg', 'images/covers/drive-2011.jpg'], title_ids: ['a', 'b', 'c'] }],
+    shelves: { [vadim.id]: { want: [{ id: 'a', title: 'Альфа', category: 'movie', year: 2020, cover: null, common: false },
+      { id: 'b', title: 'Бета', category: 'movie', year: 2021, cover: null, common: false }, { id: 'c', title: 'Гамма', category: 'movie', year: 2022, cover: null, common: false }] } }
+  });
+  await page.goto('./');
+  await nav(page).getByRole('button', { name: /Друзья/ }).click();
+  await page.getByRole('button', { name: 'Обложка 2 из 3' }).click();
+  await expect(page.getByRole('dialog', { name: 'Бета' })).toBeVisible();
+  await page.goBack();
+  await page.getByRole('button', { name: /^Вадим · \+3 тайтла/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Вадим' }).getByRole('button', { name: 'Хочет' })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('an empty feed says what will appear there', async ({ page }) => {

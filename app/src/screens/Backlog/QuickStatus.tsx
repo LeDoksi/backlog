@@ -1,7 +1,7 @@
 import { Check, ListChecks, Queue, Play } from '@phosphor-icons/react';
 import { useTitles } from '../../data/titlesStore';
 import { openTitle } from '../../data/ui';
-import { STATUS_CARD } from '../../data/labels';
+import { statusLabel } from '../../data/labels';
 import { hasPartsChecklist } from '../../lib/storage';
 import type { Status, Title } from '../../lib/types';
 import s from './QuickStatus.module.css';
@@ -36,7 +36,7 @@ export function QuickStatus({ title, open, onDone, onChange }: Props) {
   return (
     <div role="group" aria-label={`Статус: ${title.title}`} className={open ? `${s.quick} ${s.open}` : s.quick}>
       {ACTIONS.map(({ status, icon: Icon }) => (
-        <button key={status} type="button" aria-pressed={title.status === status} aria-label={STATUS_CARD[status]} title={STATUS_CARD[status]}
+        <button key={status} type="button" aria-pressed={title.status === status} aria-label={statusLabel(status, title.category)} title={statusLabel(status, title.category)}
           className={title.status === status ? `${s.btn} ${s.on}` : s.btn}
           onClick={() => { onChange(); setStatus(title.id, status); vibrate(); onDone(); }}>
           <Icon size={20} weight={title.status === status ? 'bold' : 'regular'} aria-hidden="true" />

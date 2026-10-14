@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { createTitlesStore } from '../../src/data/titlesStore';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createTitlesStore, UNDO_MS } from '../../src/data/titlesStore';
+import { TOAST_MS } from '../../src/data/ui';
 import { busy } from '../../src/data/busy';
 import { createOutbox } from '../../src/lib/syncTitles';
 import { fakeStorage, tick } from './fakes';
@@ -139,12 +140,90 @@ describe('titles store', () => {
     expect(title('frieren-2023').manualStatus).toBeNull();
   });
 
-  it('deleteTitle removes the row and sends the delete', async () => {
-    const { store, client } = setup();
+  it('deleteTitle removes the row at once and sends the delete only after the undo window', async () => {
+    vi.useFakeTimers();
+    const { store, client, outbox } = setup();
     store.getState().deleteTitle('drive-2011');
     expect(store.getState().titles.map((t) => t.id)).toEqual(['frieren-2023']);
+    expect(outbox.length()).toBe(0);
+    vi.advanceTimersByTime(UNDO_MS - 1);
+    expect(outbox.list()).toEqual([]);
+    vi.advanceTimersByTime(1);
+    expect(outbox.list()).toMatchObject([{ kind: 'delete', board: 'b1', id: 'drive-2011' }]);
+    vi.useRealTimers();
     await settle();
     expect(client.log.some((e) => e.op === 'delete' && e.filters?.id === 'drive-2011')).toBe(true);
+  });
+
+  it('setRating sends the rating alone; null clears it', () => {
+    const { store, title, outbox } = setup(true);
+    store.getState().setRating('drive-2011', 7);
+    expect(title('drive-2011').rating).toBe(7);
+    expect(outbox.list()).toMatchObject([{ kind: 'patch', id: 'drive-2011', cols: { rating: 7 } }]);
+    store.getState().setRating('drive-2011', null);
+    expect(title('drive-2011').rating).toBeNull();
+  });
+
+  describe('undo delete', () => {
+    beforeEach(() => { vi.useFakeTimers(); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    it('undo brings the title back whole and nothing is sent', () => {
+      const { store, title, outbox } = setup(true);
+      store.getState().setPartChecked('frieren-2023', 0, true);
+      store.getState().editTitle('frieren-2023', { rating: 8 });
+      const before = title('frieren-2023');
+      const queued = outbox.length();
+      store.getState().deleteTitle('frieren-2023');
+      expect(store.getState().undoDelete()).toBe(true);
+      expect(title('frieren-2023')).toEqual(before);
+      expect(store.getState().checked['frieren-2023']).toEqual([0]);
+      vi.advanceTimersByTime(10_000);
+      expect(outbox.list().some((o) => o.kind === 'delete')).toBe(false);
+      expect(outbox.length()).toBe(queued);
+      expect(store.getState().undoDelete()).toBe(false);
+    });
+
+    it('a pull while the delete waits does not bring the title back', () => {
+      const { store } = setup();
+      store.getState().deleteTitle('drive-2011');
+      store.getState().applyPulled('b1', [frieren, drive] as never);
+      store.getState().applyChange('b1', { type: 'upsert', id: 'drive-2011', row: drive as never });
+      expect(store.getState().titles.map((t) => t.id)).toEqual(['frieren-2023']);
+      expect(store.getState().undoDelete()).toBe(true);
+      expect(store.getState().titles.map((t) => t.id).sort()).toEqual(['drive-2011', 'frieren-2023']);
+    });
+
+    it('a delete left waiting when the tab closed is sent on the next start', () => {
+      const { storage, store } = setup(true);
+      store.getState().deleteTitle('drive-2011');
+      const outbox = createOutbox(storage);
+      const next = createTitlesStore({ storage, client: () => null, outbox });
+      next.getState().setBoard('b1');
+      expect(outbox.list()).toMatchObject([{ kind: 'delete', board: 'b1', id: 'drive-2011' }]);
+      expect(next.getState().titles.map((t) => t.id)).toEqual(['frieren-2023']);
+    });
+
+    it('a pull that replays a queued insert does not bring a waiting delete back', () => {
+      const { store } = setup(true);
+      store.getState().addTitle({ id: 'new-2026', title: 'Новое', category: 'movie', status: 'queue', genres: [] });
+      store.getState().deleteTitle('new-2026');
+      store.getState().applyPulled('b1', [frieren, drive] as never);
+      expect(store.getState().titles.map((t) => t.id)).not.toContain('new-2026');
+    });
+
+    it('the undo window outlasts the note, so a last-moment «Отменить» still works', () => {
+      expect(UNDO_MS).toBeGreaterThanOrEqual(TOAST_MS + 1000);
+    });
+
+    it('a second delete sends the first one at once', () => {
+      const { store, outbox } = setup(true);
+      store.getState().deleteTitle('drive-2011');
+      store.getState().deleteTitle('frieren-2023');
+      expect(outbox.list()).toMatchObject([{ kind: 'delete', id: 'drive-2011' }]);
+      expect(store.getState().undoDelete()).toBe(true);
+      expect(store.getState().titles.map((t) => t.id)).toEqual(['frieren-2023']);
+    });
   });
 
   it('a remote change while busy waits until busy.leave', () => {

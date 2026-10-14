@@ -13,6 +13,7 @@ export function clearMirror(): void {
     }
   } catch { /* storage unavailable: nothing was mirrored either */ }
   keys.forEach((k) => mirror.removeItem?.(k));
+  mirror.removeItem?.('pending-delete');
   outbox.clear();
   useBoards.getState().reset();
   useTitles.setState({ loading: true });
@@ -23,5 +24,6 @@ export function clearMirror(): void {
 // last try would drop them. Whatever still fails is lost, which the sign-out
 // confirm warns about.
 export async function flushQueue(): Promise<void> {
+  useTitles.getState().commitPendingDelete();
   if (getSupabase() && outbox.length()) await useTitles.getState().flush();
 }

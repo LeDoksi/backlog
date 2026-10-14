@@ -1,10 +1,11 @@
 -- feed(): what a viewer sees of others' events, and how lines merge.
 begin;
-select plan(17);
+select plan(21);
 \ir support/social_fixture.sql
 update public.workspaces set visibility = 'friends' where id in ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000b3');
 select pg_temp.put('00000000-0000-0000-0000-0000000000b2', 'fr-2020', 'in_progress', false, null, null, 'anime');
 select pg_temp.put('00000000-0000-0000-0000-0000000000b2', 'done-2020', 'done');
+update public.titles set rating = 9 where id = 'done-2020';
 select pg_temp.put('00000000-0000-0000-0000-0000000000b3', 'st-2020', 'done');
 select pg_temp.put('00000000-0000-0000-0000-0000000000b5', 'sh-2020', 'done');
 -- Events written directly: the trigger is covered by activity.sql; here the
@@ -42,6 +43,10 @@ select is((select json_array_length(covers) from f where kind = 'added'), 12, 'w
 select is((select count(*)::int from f where actor_id = '00000000-0000-0000-0000-0000000000a3'), 0, 'a stranger''s friends board is not in my feed');
 select is((select on_shared_board from f where actor_id = '00000000-0000-0000-0000-0000000000a4'), true, 'a board mate''s event on our board is, marked shared');
 select is((select count(*)::int from f where title_id = 'old-2020'), 0, 'older than 14 days is gone');
+select is((select rating from f where title_id = 'done-2020'), 9, 'a completion carries the rating');
+select is((select rating from f where kind = 'parts' and title_id = 'fr-2020'), null, 'other lines carry none');
+select is((select cardinality(title_ids) from f where kind = 'added'), 12, 'an additions line carries every title id');
+select is((select title_ids[1] || ',' || title_ids[12] from f where kind = 'added'), 'add-12,add-1', 'in the order of the covers');
 select is((select actor_name from f where actor_id = '00000000-0000-0000-0000-0000000000a2' limit 1), 'Друг', 'name, no email');
 
 reset role;

@@ -41,7 +41,7 @@ test('desktop: the feed on the left; requests, friends and matches on the right'
   await expect(aside.getByRole('region', { name: 'Заявки' })).toContainText('Катя');
   await expect(aside.getByRole('list', { name: 'Друзья' }).getByRole('listitem')).toHaveCount(2);
   await expect(aside.getByRole('button', { name: /совпадение вкусов 72%/ })).toBeVisible();
-  await expect(aside.getByRole('list', { name: 'Совпадения' })).toContainText('Ты и Вадим оба хотите «Бэтмен»');
+  await expect(aside.getByRole('list', { name: 'Совпадения' })).toContainText('Вадим хочет');
   await aside.getByRole('button', { name: 'Добавить', exact: true }).click();
   await expect(page.getByRole('dialog', { name: /Добавить/ })).toBeVisible();
 });

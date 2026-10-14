@@ -36,5 +36,5 @@ test('the ⋯ button opens the same menu from the keyboard', async ({ page }) =>
   const card = page.locator(`article[data-id="${plain.id}"]`);
   await card.getByRole('button', { name: `Быстрые действия: ${plain.title}` }).focus();
   await page.keyboard.press('Enter');
-  await expect(card.getByRole('button', { name: 'В процессе' }).or(card.getByRole('button', { name: 'Смотрю' }))).toBeVisible();
+  await expect(card.getByRole('button', { name: /^(В процессе|Смотрю|Играю)$/ })).toBeVisible();
 });

@@ -104,10 +104,12 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
         <button type="button" className={s.row} onClick={() => setPanel('privacy')}>
           <LockSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Приватность</span><CaretRight size={18} aria-hidden="true" />
         </button>
-        <button type="button" className={s.row} onClick={() => setPanel('hidden')}>
-          <EyeSlash size={22} aria-hidden="true" /><span className={s.rowLabel}>Скрытые тайтлы</span>
-          {hiddenCount !== null && <span className={s.count}>{hiddenCount}</span>}<CaretRight size={18} aria-hidden="true" />
-        </button>
+        {hiddenCount !== null && hiddenCount > 0 && (
+          <button type="button" className={s.row} onClick={() => setPanel('hidden')}>
+            <EyeSlash size={22} aria-hidden="true" /><span className={s.rowLabel}>Скрытые тайтлы</span>
+            <span className={s.count}>{hiddenCount}</span><CaretRight size={18} aria-hidden="true" />
+          </button>
+        )}
         <button type="button" className={s.row} onClick={() => setPanel('link')}>
           <LinkSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить в Бэклог</span><CaretRight size={18} aria-hidden="true" />
         </button>

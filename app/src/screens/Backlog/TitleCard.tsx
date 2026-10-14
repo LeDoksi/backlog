@@ -6,7 +6,7 @@ import { resolveCover } from '../../lib/covers';
 import { isStillAiring } from '../../lib/query';
 import { ASSET_ROOT } from '../../config';
 import { openTitle } from '../../data/ui';
-import { cardProgress, metaLine, STATUS_CARD } from '../../data/labels';
+import { cardProgress, metaLine, statusLabel } from '../../data/labels';
 import type { Title } from '../../lib/types';
 import type { FriendOn } from '../../lib/social';
 import { Avatar } from '../../ui/Avatar';
@@ -17,7 +17,7 @@ import s from './TitleCard.module.css';
 const PLACEHOLDER = resolveCover(undefined, ASSET_ROOT);
 
 export function cardLabel(t: Title, friend?: FriendOn): string {
-  return [t.title, STATUS_CARD[t.status], isStillAiring(t) ? 'всё ещё выходит' : '',
+  return [t.title, statusLabel(t.status, t.category), t.rating ? `оценка ${t.rating}` : '', isStillAiring(t) ? 'всё ещё выходит' : '',
     friend ? `${friend.friend_name} ${statusWord(friend.status, t.category)}` : ''].filter(Boolean).join(' — ');
 }
 
@@ -50,7 +50,7 @@ export const TitleCard = memo(function TitleCard({ title, checked, friend, onQui
           <img src={resolveCover(title.cover, ASSET_ROOT)} alt="" loading="lazy" decoding="async" draggable={false}
             onError={(e) => { if (e.currentTarget.src !== PLACEHOLDER) e.currentTarget.src = PLACEHOLDER; }} />
         </div>
-        <div className={s.pill}><StatusPill status={title.status} onPoster /></div>
+        <div className={s.pill}><StatusPill status={title.status} category={title.category} onPoster /></div>
         {progress && (
           <div className={s.progress} aria-hidden="true">
             <div className={s.progressText}><span>{progress.left}</span><span>{progress.right}</span></div>
@@ -62,7 +62,7 @@ export const TitleCard = memo(function TitleCard({ title, checked, friend, onQui
       <div className={s.body}>
         <div className={s.title}>{title.title}</div>
         <div className={s.metaRow}>
-          <span className={s.meta}>{metaLine(title)}</span>
+          <span className={s.meta}>{metaLine(title)}{title.rating ? ` · ${title.rating}` : ''}</span>
           {friend && <span className={s.friend} aria-hidden="true"><Avatar userId={friend.friend_id} name={friend.friend_name} size={18} /><span className={s.friendName}>{friend.friend_name}</span></span>}
         </div>
       </div>

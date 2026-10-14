@@ -11,9 +11,9 @@ export interface Stats {
   genres: { genre: string; count: number }[];
 }
 
-// Series and anime are counted in seasons, since a long show is many evenings
-// and one "done" would undersell it. A finished show without a parts list
-// still counts as one season rather than vanishing from the tile.
+// Tiles count finished titles; series and anime also show their ticked
+// seasons under the number. A title without a parts list (an anime film) is
+// a title, not a season (spec 1.6).
 export function computeStats(titles: Title[], checked: (id: string) => number[]): Stats {
   const byCategory: Stats['byCategory'] = { movie: { done: 0 }, series: { done: 0, seasons: 0 }, anime: { done: 0, seasons: 0 }, game: { done: 0 } };
   const genreMap = new Map<string, number>();
@@ -27,7 +27,7 @@ export function computeStats(titles: Title[], checked: (id: string) => number[])
     if (t.status === 'in_progress') inProgress += 1;
     if (isCaughtUp(t, checked(t.id))) waiting += 1;
     if (t.category === 'series' || t.category === 'anime') {
-      const seasons = hasPartsChecklist(t) ? partsProgress(t.parts, checked(t.id)).watched : t.status === 'done' ? 1 : 0;
+      const seasons = hasPartsChecklist(t) ? partsProgress(t.parts, checked(t.id)).watched : 0;
       byCategory[t.category].seasons! += seasons;
     }
   });
@@ -95,9 +95,7 @@ export function periodStats(titles: Title[], ticks: Ticks, period: Period, now: 
   });
   titles.forEach((t) => {
     if (t.category !== 'series' && t.category !== 'anime') return;
-    byCategory[t.category].seasons! += hasPartsChecklist(t)
-      ? Object.values(ticks(t.id)).filter((d) => within(d, r)).length
-      : finished.includes(t) ? 1 : 0;
+    if (hasPartsChecklist(t)) byCategory[t.category].seasons! += Object.values(ticks(t.id)).filter((d) => within(d, r)).length;
   });
   const genres = [...genreMap].map(([genre, count]) => ({ genre, count })).sort((a, b) => b.count - a.count || a.genre.localeCompare(b.genre, 'ru'));
   return {

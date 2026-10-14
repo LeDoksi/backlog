@@ -6,7 +6,7 @@
 
 | Волна | План | Канбан | Что нужно от Георгия |
 |---|---|---|---|
-| 1. Полировка | [wave1-polish](2026-10-14-wave1-polish.md) | BL-E11: BL-96…107 | запустить SQL в Supabase до слияния |
+| 1. Полировка | [wave1-polish](2026-10-14-wave1-polish.md) | BL-E11: BL-96…107 | SQL запущен 2026-10-14; волна выложена |
 | 2. Сезоны и франшизы | [wave2-seasons](2026-10-14-wave2-seasons.md) | BL-E10: BL-90, 94, 95, 108…110 | Remote Control на компьютере, SQL |
 | 3. Карточки игр | [wave3-game-cards](2026-10-14-wave3-game-cards.md) | BL-E10: BL-91…93 | ключ SteamGridDB (и переводчика), посредник Cloudflare, SQL |
 | 4. Админка и Telegram | [wave4-admin](2026-10-14-wave4-admin.md) | BL-E9: BL-82, 84…89 | SQL, бот у @BotFather и секреты |

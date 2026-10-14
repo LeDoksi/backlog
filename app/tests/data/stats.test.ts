@@ -16,6 +16,17 @@ describe('computeStats', () => {
     const g = computeStats(titles, () => []).genres;
     for (let i = 1; i < g.length; i++) expect(g[i - 1]!.count).toBeGreaterThanOrEqual(g[i]!.count);
   });
+  it('tiles count titles; seasons are only ticked parts', () => {
+    const movie: Title = { id: 'am', title: 'Фильм-аниме', category: 'anime', status: 'done', genres: [] };
+    const show: Title = { id: 'sh', title: 'Шоу', category: 'series', status: 'in_progress', genres: [],
+      parts: [{ name: 'S1' }, { name: 'S2' }, { name: 'S3' }, { name: 'S4' }] };
+    const st = computeStats([movie, show], (id) => (id === 'sh' ? [0, 1, 2] : []));
+    expect(st.byCategory.anime).toEqual({ done: 1, seasons: 0 });
+    expect(st.byCategory.series).toEqual({ done: 0, seasons: 3 });
+    const ps = periodStats([{ ...movie, completedAt: new Date().toISOString() }], () => ({}), 'month');
+    expect(ps.byCategory.anime).toEqual({ done: 1, seasons: 0 });
+  });
+
   it('counts watched seasons and titles waiting for more', () => {
     const show: Title = { id: 's', title: 'S', category: 'anime', status: 'in_progress', genres: [], parts: [{ name: '1' }, { name: '2' }, { name: '3', released: false }] };
     const s = computeStats([show], () => [0, 1]);

@@ -130,6 +130,16 @@ describe('friend page wrappers', () => {
     expect(await Social.tasteMatch(rpcClient(fail).client, 'u')).toBeNull();
   });
 
+  it('friendTitle sends owner and id; no title is none, a failure is null', async () => {
+    const t = { id: 'drive', title: 'Драйв', original_title: 'Drive', category: 'movie', year: 2011, genres: ['драма'], synopsis: '', cover: null,
+      platforms: null, parts: null, checked: [], status: 'done', rating: 9, title_key: 'tmdb-movie:64690', mine_id: null };
+    const r = rpcClient(ok(t));
+    expect(await Social.friendTitle(r.client, 'u', 'drive')).toEqual(t);
+    expect(r.calls[0]).toEqual({ name: 'friend_title', args: { p_owner: 'u', p_id: 'drive' } });
+    expect(await Social.friendTitle(rpcClient(ok(null)).client, 'u', 'drive')).toBe('none');
+    expect(await Social.friendTitle(rpcClient(fail).client, 'u', 'drive')).toBeNull();
+  });
+
   it('leaderboard passes category and period; off and failure are told apart', async () => {
     const board = { status: 'ok', rows: [{ board_id: 'b', kind: 'shared', name: 'Вадим + Лёша', members: ['u', 'v'], score: 5, place: 1, mine: false }],
       mine: [{ board_id: 'm', kind: 'personal', name: 'Я', score: 0, place: null }] };

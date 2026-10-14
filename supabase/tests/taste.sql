@@ -1,6 +1,6 @@
 -- taste_match and friend_shelf: over what each may see of the other.
 begin;
-select plan(15);
+select plan(17);
 \ir support/social_fixture.sql
 update public.workspaces set visibility = 'friends' where id in ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000b6');
 -- Me and friend: the same five finished titles, the same genres, one shared want.
@@ -27,6 +27,17 @@ select is(public.taste_match('00000000-0000-0000-0000-0000000000a3')->>'status',
 reset role;
 update public.profiles set share_matches = true where id = '00000000-0000-0000-0000-0000000000a3';
 set local role authenticated;
+
+-- Ratings: the same marks keep 100, opposite marks on three shared titles cost 20% of the finished part.
+reset role;
+update public.titles set rating = 8 where id in ('t3-2000', 't4-2000', 't5-2000') and workspace_id in ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000b2');
+set local role authenticated;
+select is(public.taste_match('00000000-0000-0000-0000-0000000000a2')->>'percent', '100', 'same ratings: still 100');
+reset role;
+update public.titles set rating = 1 where id in ('t3-2000', 't4-2000', 't5-2000') and workspace_id = '00000000-0000-0000-0000-0000000000b1';
+update public.titles set rating = 10 where id in ('t3-2000', 't4-2000', 't5-2000') and workspace_id = '00000000-0000-0000-0000-0000000000b2';
+set local role authenticated;
+select is(public.taste_match('00000000-0000-0000-0000-0000000000a2')->>'percent', '88', 'opposite ratings lower the match');
 
 -- Hidden titles do not count: hide one of the friend's finished ones.
 reset role;

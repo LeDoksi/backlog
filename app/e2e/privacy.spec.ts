@@ -42,11 +42,18 @@ test('hiding a title from friends writes hidden and it shows up in «Скрыт�
   const card = page.locator(`article[data-id="${String(rows[0]!.id)}"]`);
   await card.locator(':scope > button').first().click();
   const sheet = page.getByRole('dialog', { name: String(rows[0]!.title) });
+  await sheet.getByRole('button', { name: 'Ещё' }).click();
   await sheet.getByRole('button', { name: 'Скрыть от друзей' }).click();
   await expect(sheet.getByText('Скрыт от друзей')).toBeVisible();
+  await sheet.getByRole('button', { name: 'Ещё' }).click();
   await expect(sheet.getByRole('button', { name: 'Показать друзьям' })).toBeVisible();
   expect(await writes(page)).toContainEqual(expect.objectContaining({ op: 'update', id: rows[0]!.id, row: { hidden: true } }));
+  // Esc closes the menu first and leaves the panel open; a second Esc closes the panel.
   await page.keyboard.press('Escape');
+  await expect(sheet.getByRole('button', { name: 'Показать друзьям' })).toBeHidden();
+  await expect(sheet).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toBeHidden();
   await openProfile(page);
   await expect(page.getByRole('button', { name: /Скрытые тайтлы/ })).toContainText('1');
   await page.getByRole('button', { name: /Скрытые тайтлы/ }).click();

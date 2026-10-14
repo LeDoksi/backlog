@@ -19,12 +19,19 @@ export interface TitlesState {
   online: boolean;
   setBoard(id: string | null): void;
   setStatus(id: string, status: Status): void;
+  /** My own 1–10, or null to clear it. */
+  setRating(id: string, rating: number | null): void;
   setPartChecked(id: string, index: number, checked: boolean): void;
   setAllReleasedChecked(id: string): void;
   addTitle(t: Title): 'ok' | 'duplicate';
   /** `checked` carries watched parts across a reorder or removal of parts. */
   editTitle(id: string, patch: Partial<Title>, checked?: number[]): void;
+  /** Removes the title at once; the delete is sent once the undo window (6 s) is over. */
   deleteTitle(id: string): void;
+  /** Brings back the title deleted last, while its delete still waits. */
+  undoDelete(): boolean;
+  /** Sends the waiting delete now. */
+  commitPendingDelete(): void;
   /** Kept for QuickAdd: v2 deletes a title whole, so no id is left behind. */
   leftoverIds(): string[];
   /** A pulled board, replacing its mirror (queued edits stay on top). */
@@ -45,12 +52,35 @@ export interface TitlesDeps {
 }
 
 const mirrorKey = (board: string) => `titles:${board}`;
+/** The one delete still inside its undo window: survives a closed tab. */
+const PENDING_DELETE = 'pending-delete';
+// Longer than the note (6 s) and its fade: «Отменить» tapped at the very end still finds the delete waiting.
+export const UNDO_MS = 7000;
+interface PendingDelete { board: string; id: string; row: TitleRow; at: string }
 
 export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<TitlesState>> {
   const { storage } = deps;
   const outbox = deps.outbox ?? createOutbox(storage);
   const now = deps.now ?? (() => new Date().toISOString());
   let stale = false;
+  let undoTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function pendingDelete(): PendingDelete | null {
+    try {
+      const p = JSON.parse(storage.getItem(PENDING_DELETE) || 'null');
+      return p && typeof p.board === 'string' && typeof p.id === 'string' && p.row ? p as PendingDelete : null;
+    } catch {
+      return null;
+    }
+  }
+  function setPendingDelete(p: PendingDelete | null) {
+    try {
+      if (p) storage.setItem(PENDING_DELETE, JSON.stringify(p));
+      else if (storage.removeItem) storage.removeItem(PENDING_DELETE);
+      else storage.setItem(PENDING_DELETE, 'null');
+    } catch { /* quota: the delete is then sent at once by the caller */ }
+  }
+  const hiddenByDelete = (board: string) => { const p = pendingDelete(); return p && p.board === board ? p.id : null; };
 
   function readRows(board: string | null): TitleRow[] {
     if (!board) return [];
@@ -158,6 +188,11 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
         patch(id, { status });
       },
 
+      setRating(id, rating) {
+        const valid = rating === null || (Number.isInteger(rating) && rating >= 1 && rating <= 10);
+        if (valid) patch(id, { rating });
+      },
+
       setPartChecked(id, index, on) {
         const current = get().checked[id] ?? [];
         setTicks(id, on ? [...current, index] : current.filter((i) => i !== index));
@@ -214,10 +249,35 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
 
       deleteTitle(id) {
         const board = get().boardId;
-        if (!board) return;
+        const gone = row(id);
+        if (!board || !gone) return;
+        // One undo at a time: an earlier delete still waiting goes now.
+        get().commitPendingDelete();
         writeRows(board, readRows(board).filter((r) => r.id !== id));
-        outbox.add({ kind: 'delete', board, id });
+        setPendingDelete({ board, id, row: gone, at: now() });
+        if (pendingDelete()?.id !== id) { outbox.add({ kind: 'delete', board, id }); void flush(); }
+        else undoTimer = setTimeout(() => get().commitPendingDelete(), UNDO_MS);
         compute();
+      },
+
+      undoDelete() {
+        const p = pendingDelete();
+        if (!p) return false;
+        clearTimeout(undoTimer);
+        setPendingDelete(null);
+        const rows = readRows(p.board);
+        if (!rows.some((r) => r.id === p.id)) writeRows(p.board, [...rows, p.row]);
+        if (p.board === get().boardId) compute();
+        return true;
+      },
+
+      commitPendingDelete() {
+        const p = pendingDelete();
+        clearTimeout(undoTimer);
+        if (!p) return;
+        setPendingDelete(null);
+        outbox.add({ kind: 'delete', board: p.board, id: p.id });
+        set({ pending: outbox.length() });
         void flush();
       },
 
@@ -227,12 +287,15 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
 
       applyPulled(board, rows) {
         const queued = outbox.list().filter((o) => o.board === board);
+        const waiting = hiddenByDelete(board);
         let next = rows.slice();
         queued.forEach((op) => {
           if (op.kind === 'delete') next = next.filter((r) => r.id !== op.id);
           else if (op.kind === 'insert') next = next.some((r) => r.id === op.id) ? next : [...next, { ...op.row, created_at: now() }];
           else next = next.map((r) => (r.id === op.id ? { ...r, ...op.cols } as TitleRow : r));
         });
+        // After the replay: a queued insert must not bring back a delete that waits for its undo window.
+        if (waiting) next = next.filter((r) => r.id !== waiting);
         writeRows(board, next);
         if (board === get().boardId) {
           set({ loading: false });
@@ -242,7 +305,7 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
 
       applyChange(board, change) {
         // Our own queued edit is newer than anything the server says now.
-        if (outbox.pendingIds(board).has(change.id)) return;
+        if (outbox.pendingIds(board).has(change.id) || hiddenByDelete(board) === change.id) return;
         const rows = readRows(board);
         if (change.type === 'delete') {
           if (!rows.some((r) => r.id === change.id)) return;
@@ -265,6 +328,9 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
   });
 
   busy.onIdle(() => { if (stale) store.getState().refresh(true); });
+  // A delete whose undo window was cut short by closing the tab is sent now
+  // (there is no plate left to undo it from).
+  store.getState().commitPendingDelete();
   return store;
 }
 

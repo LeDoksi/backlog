@@ -1,3 +1,6 @@
 .wrap { position: fixed; left: 16px; right: 16px; bottom: calc(110px + env(safe-area-inset-bottom)); z-index: 60; display: flex; justify-content: center; pointer-events: none; }
-.toast { pointer-events: auto; max-width: 420px; min-height: 48px; padding: 12px 18px; border: 0; border-radius: var(--r-md); background: var(--inverse); color: var(--on-inverse); font-size: var(--fs-base); font-weight: 600; line-height: 1.35; text-align: center; box-shadow: var(--shadow-glass); }
+.toast { pointer-events: auto; max-width: 420px; min-height: 48px; display: flex; align-items: center; border-radius: var(--r-md); background: var(--inverse); color: var(--on-inverse); box-shadow: var(--shadow-glass); overflow: hidden; }
+.text { flex: 1; min-width: 0; min-height: 48px; padding: 12px 18px; border: 0; background: none; color: inherit; font: inherit; font-size: var(--fs-base); font-weight: 600; line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+.withAction .text { text-align: left; padding-right: 8px; }
+.action { flex-shrink: 0; min-height: 48px; padding: 0 18px; border: 0; border-left: 1px solid color-mix(in srgb, var(--on-inverse) 20%, transparent); background: none; color: inherit; text-decoration: underline; text-underline-offset: 3px; font: inherit; font-size: var(--fs-base); font-weight: 700; }
 @media (min-width: 1024px) { .wrap { bottom: 32px; } }

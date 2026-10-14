@@ -12,7 +12,7 @@ const feedLine = { actor_id: vadim.id, actor_name: 'Вадим', kind: 'complete
 async function openArrival(page: Page) {
   await page.goto('./');
   await nav(page).getByRole('button', { name: /Друзья/ }).click();
-  await page.getByRole('button', { name: /^Вадим · завершено/ }).click();
+  await page.getByRole('button', { name: 'Вадим', exact: true }).first().click();
   await page.getByRole('dialog', { name: 'Вадим' }).getByRole('button', { name: 'Прибытие' }).click();
   return page.getByRole('dialog', { name: 'Прибытие' });
 }

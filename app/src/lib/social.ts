@@ -4,7 +4,7 @@
 // empty answer from the server.
 import { callRpc, type SignupStatus } from './auth';
 import { normalizeNick } from './boards';
-import type { SupabaseLike } from './types';
+import type { Part, SupabaseLike } from './types';
 import type { FeedRow } from '../data/feedFormat';
 
 export type InviteStatus = 'requested' | 'friends' | 'already_friends' | 'self' | 'expired';
@@ -135,6 +135,22 @@ export async function friendShelf(client: SupabaseLike, userId: string, tab: 'do
 export async function tasteMatch(client: SupabaseLike, userId: string): Promise<Taste | null> {
   const t = data<Taste>(await callRpc(client, 'taste_match', { p_user: userId }));
   return t && typeof t.status === 'string' ? t : null;
+}
+
+/** One title of someone's shelf, as friend_title() shows it (spec 1.3). */
+export interface FriendTitleData {
+  id: string; title: string; original_title: string | null; category: string; year: number | null; genres: string[];
+  synopsis: string; cover: string | null; platforms: string[] | null; parts: Part[] | null; checked: number[];
+  status: string; rating: number | null; title_key: string;
+  /** My own copy of the same title, if I have one. */
+  mine_id: string | null;
+}
+
+/** `null` when the call failed; `'none'` when the title is not mine to see. */
+export async function friendTitle(client: SupabaseLike, owner: string, id: string): Promise<FriendTitleData | 'none' | null> {
+  const res = await callRpc(client, 'friend_title', { p_owner: owner, p_id: id });
+  if (res.error) return null;
+  return res.data && typeof res.data === 'object' ? res.data as FriendTitleData : 'none';
 }
 
 // ── Matches and friends on a title ─────────────────────────────────────

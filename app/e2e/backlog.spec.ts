@@ -70,21 +70,42 @@ test('ticking a season derives the status', async ({ page }) => {
   await expect(page.locator('article').first()).toContainText('Смотрю');
 });
 
-test('deleting asks first and removes the card', async ({ page }) => {
+const deletes = (page: import('@playwright/test').Page) => page.evaluate(() =>
+  ((window as unknown as { __writes?: { op: string; id?: string }[] }).__writes ?? []).filter((w) => w.op === 'delete'));
+
+async function deleteFirst(page: import('@playwright/test').Page) {
   const first = page.locator('article').first();
-  const name = (await first.getAttribute('data-id'))!;
+  const id = (await first.getAttribute('data-id'))!;
   await first.locator(':scope > button').first().click();
-  await page.getByRole('button', { name: 'Удалить тайтл' }).click();
-  await expect(page.getByText('Это нельзя отменить.')).toBeVisible();
-  await page.getByRole('button', { name: 'Удалить', exact: true }).click();
-  await expect(page.locator(`article[data-id="${name}"]`)).toHaveCount(0);
+  await page.getByRole('dialog').getByRole('button', { name: 'Ещё' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Удалить', exact: true }).click();
+  return id;
+}
+
+test('«Удалить» in the menu removes at once; «Отменить» brings it back and nothing is sent', async ({ page }) => {
+  const id = await deleteFirst(page);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.locator(`article[data-id="${id}"]`)).toHaveCount(0);
+  await expect(page.getByRole('status').getByText(/^Удалено «/)).toBeVisible();
+  await page.getByRole('button', { name: 'Отменить' }).click();
+  await expect(page.locator(`article[data-id="${id}"]`)).toHaveCount(1);
+  await page.waitForTimeout(7500);
+  expect(await deletes(page)).toEqual([]);
 });
 
-test('«Что посмотреть?» never picks a game on the games tab', async ({ page }) => {
+test('without «Отменить» the delete is sent when the note is gone', async ({ page }) => {
+  const id = await deleteFirst(page);
+  expect(await deletes(page)).toEqual([]);
+  await expect(page.getByRole('status').getByText(/^Удалено «/)).toBeHidden({ timeout: 8000 });
+  await expect.poll(() => deletes(page)).toEqual([expect.objectContaining({ id })]);
+});
+
+test('on the games tab «Во что поиграть?» opens a game', async ({ page }) => {
   await page.getByRole('navigation', { name: 'Категории' }).getByRole('button', { name: /^Игры/ }).click();
-  await page.getByRole('button', { name: /Что посмотреть/ }).click({ force: true });
-  await expect(page.getByText('Игры не смотрят').first()).toBeVisible();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Во что поиграть?' }).click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet).toBeVisible();
+  await expect(sheet.getByText(/^Игра/).first()).toBeVisible();
 });
 
 // iOS Safari zooms the page in on focus when a field's text is under 16px.
@@ -115,4 +136,19 @@ test('the phone filter sheet fits the screen, sort options included', async ({ p
   expect(box.x + box.width).toBeLessThanOrEqual(375);
   await byName.click();
   await expect(byName).toHaveAttribute('aria-checked', 'true');
+});
+
+test('finishing a title asks «Как тебе?»; the rating shows on its card', async ({ page }) => {
+  const plain = catalogTitles.find((t) => !t.parts && t.status === 'queue')!;
+  const card = page.locator(`article[data-id="${plain.id}"]`);
+  await card.locator(':scope > button').first().click();
+  const sheet = page.getByRole('dialog', { name: plain.title });
+  await expect(sheet.getByRole('radiogroup', { name: 'Оценка' })).toBeVisible();
+  await sheet.getByRole('radio', { name: 'Завершено' }).click();
+  const ask = sheet.getByRole('radiogroup', { name: 'Как тебе?' });
+  await expect(ask).toBeVisible();
+  await ask.getByRole('radio', { name: '8' }).click();
+  await expect(sheet.getByRole('radiogroup', { name: 'Оценка' }).getByRole('radio', { name: '8' })).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Escape');
+  await expect(card).toContainText(/· 8$/);
 });
