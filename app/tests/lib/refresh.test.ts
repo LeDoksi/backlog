@@ -51,6 +51,21 @@ describe('mergeParts', () => {
     expect(mergeParts(cur, [])).toEqual({ parts: cur, changed: false });
   });
 
+  it('a hand-made list is lined up only as season 1, 2, … in order, and never with lineUp off', () => {
+    const fresh = [season(1), season(2), season(3)];
+    expect(mergeParts([{ name: 'Сезон 1' }, { name: 'Сезон 3' }], fresh).changed).toBe(false);
+    expect(mergeParts([{ name: 'Сезон 2' }], fresh).changed).toBe(false);
+    expect(mergeParts([{ name: 'Сезон 1' }], fresh, { lineUp: false }).changed).toBe(false);
+  });
+
+  it('a main part linked between parts already on the list goes to the extras; a new last season does not', () => {
+    const film: FreshPart = { name: 'Фильм', year: 2019, released: true, ref: 'shiki:7' };
+    const ova: FreshPart = { name: 'OVA', year: 2015, released: true, ref: 'shiki:9', extra: true };
+    const cur = mergeParts(undefined, [season(1), season(2), ova]).parts;
+    const r = mergeParts(cur, [season(1), film, season(2), season(3, false), ova]);
+    expect(r.parts.slice(3).map((p) => [p.name, !!p.extra])).toEqual([['Фильм', true], ['Сезон 3', false]]);
+  });
+
   it('a hand-made «season N» list gets refs and the seasons after it', () => {
     const cur: Part[] = [{ name: '1', year: null, released: true }, { name: 'Сезон 2 «Квартал»', year: null, released: false }];
     const r = mergeParts(cur, [season(1), season(2), season(3, false)]);
@@ -118,7 +133,7 @@ describe('planMerge', () => {
   it('two finished seasons become one title with both ticked', () => {
     const plans = planMerge(
       [t('hell-2', 'done', '2026-01-01', 7), t('hell', 'done', '2026-02-01', 9)],
-      { hell: { key: 'hp', ref: 'shiki:46569' }, 'hell-2': { key: 'hp', ref: 'shiki:55825' } },
+      { hell: { key: 'hp', ref: 'shiki:46569', main: true }, 'hell-2': { key: 'hp', ref: 'shiki:55825', main: true } },
       { hp: 'shiki:46569' },
       { hell: hellParts }
     );
@@ -129,22 +144,34 @@ describe('planMerge', () => {
     const parts: Part[] = [{ name: 'Сезон 1', ref: 'shiki:1' }, { name: 'Против сборной', ref: 'shiki:2' }];
     const plans = planMerge(
       [t('bl', 'done', '2026-01-01'), t('bl-movie', 'queue', '2026-02-01')],
-      { bl: { key: 'b', ref: 'shiki:1' }, 'bl-movie': { key: 'b', ref: 'shiki:2' } }, { b: 'shiki:1' }, { bl: parts });
+      { bl: { key: 'b', ref: 'shiki:1', main: true }, 'bl-movie': { key: 'b', ref: 'shiki:2', main: true } }, { b: 'shiki:1' }, { bl: parts });
     expect(plans).toEqual([{ keep: 'bl', absorb: ['bl-movie'], ticks: [], rating: null }]);
   });
 
-  it('without the first TV season, the title added first is kept', () => {
+  it('without the first TV season, the main-story title added first is kept', () => {
+    const parts: Part[] = [{ name: 's2', ref: 'shiki:2' }, { name: 's3', ref: 'shiki:3' }, { name: 'ova', ref: 'shiki:9', extra: true }];
     const plans = planMerge(
-      [t('ova', 'queue', '2026-03-01'), t('s3', 'queue', '2026-01-01', null)],
-      { ova: { key: 'k', ref: 'shiki:9' }, s3: { key: 'k', ref: 'shiki:3' } }, { k: 'shiki:1' },
-      { s3: [{ name: 's3', ref: 'shiki:3' }, { name: 'ova', ref: 'shiki:9', extra: true }] });
-    expect(plans[0]!.keep).toBe('s3');
+      [t('ova', 'queue', '2025-01-01'), t('s3', 'queue', '2026-02-01'), t('s2', 'queue', '2026-01-01')],
+      { ova: { key: 'k', ref: 'shiki:9', main: false }, s3: { key: 'k', ref: 'shiki:3', main: true }, s2: { key: 'k', ref: 'shiki:2', main: true } },
+      { k: 'shiki:1' }, { s2: parts, s3: parts });
+    expect(plans).toEqual([{ keep: 's2', absorb: ['s3'], ticks: [], rating: null }]);
+  });
+
+  it('only what lands whole is absorbed: spin-offs, titles in progress or with ticks stay', () => {
+    const parts: Part[] = [{ name: 's1', ref: 'shiki:1' }, { name: 's2', ref: 'shiki:2' }, { name: 's3', ref: 'shiki:3' }, { name: 's4', ref: 'shiki:4' },
+      { name: 'school', ref: 'shiki:8', extra: true }];
+    const plans = planMerge(
+      [t('s1', 'queue', '1'), t('s2', 'in_progress', '2'), t('s3', 'queue', '3'), t('s4', 'done', '4'), t('school', 'queue', '5')],
+      { s1: { key: 'k', ref: 'shiki:1', main: true }, s2: { key: 'k', ref: 'shiki:2', main: true }, s3: { key: 'k', ref: 'shiki:3', main: true },
+        s4: { key: 'k', ref: 'shiki:4', main: true }, school: { key: 'k', ref: 'shiki:8', main: false } },
+      { k: 'shiki:1' }, { s1: parts }, new Set(['s3']));
+    expect(plans).toEqual([{ keep: 's1', absorb: ['s4'], ticks: [3], rating: null }]);
   });
 
   it('the keep has no part for the duplicate: nothing is merged', () => {
     const plans = planMerge(
       [t('hell', 'done', '2026-01-01'), t('hell-2', 'done', '2026-02-01')],
-      { hell: { key: 'hp', ref: 'shiki:46569' }, 'hell-2': { key: 'hp', ref: 'shiki:55825' } }, { hp: 'shiki:46569' },
+      { hell: { key: 'hp', ref: 'shiki:46569', main: true }, 'hell-2': { key: 'hp', ref: 'shiki:55825', main: true } }, { hp: 'shiki:46569' },
       { hell: [{ name: '1' }] });
     expect(plans).toEqual([]);
   });

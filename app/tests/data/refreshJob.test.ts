@@ -77,20 +77,44 @@ describe('runDailyRefresh', () => {
     expect(args().p_updates[0]!.parts).toEqual([{ name: 'Мой сезон', ref: 'tmdb-season:1', released: true, year: 1999 }]);
   });
 
-  it('duplicates of a franchise merge into the first season', async () => {
+  it('duplicates of a franchise merge into the first season; a spin-off and a title in progress stay', async () => {
     const { d, args } = deps([
       row('konosuba-3', 'anime', 'shikimori', '49458', 'done', { created_at: '2026-01-01T00:00:00Z', rating: 9, completed_at: '2026-02-01T00:00:00Z' }),
-      row('konosuba', 'anime', 'shikimori', '30831', 'in_progress', { created_at: '2026-03-01T00:00:00Z', rating: 7 }),
-      row('konosuba-ova', 'anime', 'shikimori', '32380', 'queue')
+      row('konosuba', 'anime', 'shikimori', '30831', 'queue', { created_at: '2026-03-01T00:00:00Z', rating: 7 }),
+      row('konosuba-2', 'anime', 'shikimori', '32937', 'in_progress'),
+      row('megumin', 'anime', 'shikimori', '51958', 'queue')
     ]);
     const r = await runDailyRefresh(d);
-    expect(r.merged).toBe(2);
-    expect(args().p_deletes.map((x) => x.id).sort()).toEqual(['konosuba-3', 'konosuba-ova']);
+    expect(r.merged).toBe(1);
+    expect(args().p_deletes.map((x) => x.id)).toEqual(['konosuba-3']);
     const u = args().p_updates.find((x) => x.id === 'konosuba')!;
     const parts = u.parts as { ref: string }[];
     expect(u.checked_parts).toEqual({ [String(parts.findIndex((p) => p.ref === 'shiki:49458'))]: '2026-02-01T00:00:00Z' });
     expect(u.rating).toBe(9);
-    expect(args().p_updates).toHaveLength(1);
+    expect(u.status).toBe('in_progress');
+    expect(args().p_updates.map((x) => x.id)).not.toContain('konosuba-2');
+  });
+
+  it('a first list only where the status survives it', async () => {
+    const { d, rpc } = deps([
+      row('twd', 'series', 'tmdb-series', '1402', 'in_progress'),
+      row('aot-3', 'anime', 'shikimori', '35760', 'done')
+    ]);
+    await runDailyRefresh(d);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('a finished title on no known day gets its ticks dated before every period', async () => {
+    const { d, args } = deps([row('twd', 'series', 'tmdb-series', '1402', 'done')]);
+    await runDailyRefresh(d);
+    expect(new Set(Object.values(args().p_updates[0]!.checked_parts as object))).toEqual(new Set(['1970-01-01T00:00:00.000Z']));
+  });
+
+  it('a hand-made Shikimori list is not lined up (its TV entries are not seasons)', async () => {
+    const legacy = [1, 2, 3, 4].map((n) => ({ name: `Сезон ${n}`, released: true }));
+    const { d, rpc } = deps([row('aot', 'anime', 'shikimori', '16498', 'done', { parts: legacy, checked_parts: { '0': 'a', '1': 'a', '2': 'a', '3': 'a' }, manual_status: 'done', airing_status: 'completed' })]);
+    await runDailyRefresh(d);
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it('a lone recap film is not turned into the franchise', async () => {
@@ -104,7 +128,10 @@ describe('runDailyRefresh', () => {
     rpc.mockResolvedValueOnce({ data: -1, error: null });
     const r = await runDailyRefresh(d);
     expect(r.changes).toEqual([]);
+    // Not again on every pull, but after a while.
     await runDailyRefresh(d);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    await runDailyRefresh({ ...d, now: new Date(now.getTime() + 31 * 60 * 1000) });
     expect(rpc).toHaveBeenCalledTimes(2);
   });
 

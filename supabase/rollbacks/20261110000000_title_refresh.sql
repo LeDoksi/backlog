@@ -1,4 +1,5 @@
--- Undo 20261110000000_title_refresh.
+-- Undo 20261110000000_title_refresh. Roll the app back first: the wave 2
+-- client writes parts_manual, and its saves fail once the column is gone.
 
 drop function public.apply_title_refresh(uuid, jsonb, jsonb);
 drop function public.refresh_base_ok(public.titles, jsonb);

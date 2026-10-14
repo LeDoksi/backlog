@@ -35,7 +35,12 @@ export interface RefreshResult {
 }
 
 const PAUSE_MS = 250;
+/** After a failed write the next try waits this long (every good pull would otherwise refetch the board). */
+const RETRY_MS = 30 * 60 * 1000;
+/** The date of a tick the refresh adds for a title finished on no known day: before every period but «за всё время». */
+const UNDATED = '1970-01-01T00:00:00.000Z';
 const key = (board: string) => `refresh:${board}`;
+const retryKey = (board: string) => `refresh-retry:${board}`;
 const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export function refreshedToday(storage: StorageLike, board: string, now: Date): boolean {
@@ -52,12 +57,16 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   const none: RefreshResult = { ran: false, updated: 0, merged: 0, skipped: 0, changes: [] };
   const { board, storage, now } = deps;
   if (!deps.client || refreshedToday(storage, board, now)) return none;
+  try {
+    const failed = Date.parse(storage.getItem(retryKey(board)) ?? '');
+    if (now.getTime() - failed < RETRY_MS) return none;
+  } catch { /* no storage: try */ }
   const pause = deps.pause ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
 
   const rows = deps.rows.filter((r) => (r.category === 'series' || r.category === 'anime') && r.source_id
     && (r.source === 'tmdb-series' || r.source === 'shikimori') && !deps.pendingIds.has(r.id));
   const fresh: Record<string, FreshPart[]> = {};
-  const franchise: Record<string, { key: string; ref: string }> = {};
+  const franchise: Record<string, { key: string; ref: string; main: boolean }> = {};
   const firstTv: Record<string, string> = {};
   const franchises = new Map<number, Enrich.Franchise>();
   let skipped = 0;
@@ -80,7 +89,7 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
         f.nodes.forEach((n) => franchises.set(n.id, f!));
       }
       fresh[r.id] = partsFromFranchise(f, now);
-      franchise[r.id] = { key: String(f.rootId), ref: `shiki:${id}` };
+      franchise[r.id] = { key: String(f.rootId), ref: `shiki:${id}`, main: !!f.nodes.find((n) => n.id === id)?.main };
       firstTv[String(f.rootId)] = `shiki:${f.rootId}`;
     }
   }
@@ -92,27 +101,36 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   const partsAfter: Record<string, Part[]> = {};
   Object.keys(fresh).forEach((id) => {
     const t = titles.get(id)!;
-    // A lone OVA or recap film is not the franchise: it is not turned into one.
-    const own = franchise[id] && fresh[id]!.find((p) => p.ref === franchise[id]!.ref);
-    if (own?.extra && !(t.title.parts ?? []).length) return;
-    const m = mergeParts(t.title.parts, fresh[id]!, { manual: !!t.row.parts_manual });
+    const f = fresh[id]!;
+    if (!(t.title.parts ?? []).length) {
+      // A first list only where the status survives it (spec 2.5 p.1):
+      // a lone OVA or recap film is not the franchise; «Смотрю» does not
+      // say which seasons were seen; a finished later season («Атака
+      // титанов 3») does not say the earlier ones were; a finished show
+      // whose seasons all read as not out yet would turn «Не вышло».
+      if (franchise[id] && !franchise[id]!.main) return;
+      if (t.title.status === 'in_progress') return;
+      if (t.title.status === 'done' && (franchise[id] && franchise[id]!.key !== franchise[id]!.ref.slice(6)
+        || !f.some((p) => !p.extra && p.released !== false))) return;
+    }
+    const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series' });
     partsAfter[id] = m.parts;
   });
 
   // A keep left without new parts would lose what the duplicates carry: no merge then.
-  const plans = planMerge(rows.filter((r) => franchise[r.id]).map((r) => titles.get(r.id)!.title), franchise, firstTv, partsAfter)
+  const ticked = new Set([...titles].filter(([, t]) => checkedIndices(t.ticks).length).map(([id]) => id));
+  const plans = planMerge(rows.filter((r) => franchise[r.id]).map((r) => titles.get(r.id)!.title), franchise, firstTv, partsAfter, ticked)
     .filter((p) => partsAfter[p.keep]);
   const absorbed = new Set(plans.flatMap((p) => p.absorb));
 
   const updates: Record<string, unknown>[] = [];
   const changes: RefreshResult['changes'] = [];
-  const stamp = now.toISOString();
   for (const [id, parts] of Object.entries(partsAfter)) {
     if (absorbed.has(id)) continue;
     const { row, title, ticks } = titles.get(id)!;
     let next = ticks;
     // A finished title that just got its list keeps «Завершено» (spec 2.5 p.1).
-    if (!(title.parts ?? []).length && title.status === 'done') next = ticksWith(next, fillTicksForDone(parts, 'done'), title.completedAt ?? stamp);
+    if (!(title.parts ?? []).length && title.status === 'done') next = ticksWith(next, fillTicksForDone(parts, 'done'), title.completedAt ?? UNDATED);
     const plan = plans.find((p) => p.keep === id);
     let rating = title.rating ?? null;
     if (plan) {
@@ -120,7 +138,7 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       plan.absorb.forEach((a) => {
         const gone = titles.get(a)!.title;
         const tick = parts.findIndex((p) => p.ref === franchise[a]!.ref);
-        if (gone.status === 'done' && tick >= 0) next = ticksWith(next, [tick], gone.completedAt ?? stamp);
+        if (gone.status === 'done' && tick >= 0) next = ticksWith(next, [tick], gone.completedAt ?? UNDATED);
       });
       rating = plan.rating;
     }
@@ -148,7 +166,10 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   }
   // -1: a row changed meanwhile; an error: the network or the server. Either
   // way nothing was written and the next open tries again.
-  if (res.error || typeof res.data !== 'number' || res.data < 0) return { ...none, ran: true, skipped };
+  if (res.error || typeof res.data !== 'number' || res.data < 0) {
+    try { storage.setItem(retryKey(board), now.toISOString()); } catch { /* it tries on the next pull */ }
+    return { ...none, ran: true, skipped };
+  }
   // A source that did not answer is skipped until tomorrow (spec 2.5).
   markDone(storage, board, now);
   return { ran: true, updated: updates.length, merged: deletes.length, skipped, changes };
