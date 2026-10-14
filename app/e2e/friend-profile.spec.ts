@@ -15,7 +15,7 @@ test('a feed line opens the friend on the right tab with the taste match; removi
   });
   await page.goto('./');
   await nav(page).getByRole('button', { name: /Друзья/ }).click();
-  await page.getByRole('button', { name: /Вадим · 2 сезона «Тед Лассо»/ }).click();
+  await page.getByRole('button', { name: 'Вадим', exact: true }).first().click();
   const sheet = page.getByRole('dialog', { name: 'Вадим' });
   await expect(sheet.getByText('@vadim, в друзьях с 14 августа')).toBeVisible();
   await expect(sheet.getByRole('region', { name: 'Совпадение вкусов' })).toContainText('72%');
@@ -41,10 +41,10 @@ test('too little to compare says so; a switched-off match hides the card', async
   });
   await page.goto('./');
   await nav(page).getByRole('button', { name: /Друзья/ }).click();
-  await page.getByRole('button', { name: /^Вадим · завершено/ }).click();
+  await page.getByRole('button', { name: 'Вадим', exact: true }).first().click();
   await expect(page.getByRole('dialog', { name: 'Вадим' }).getByText('Пока мало данных для сравнения')).toBeVisible();
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /^Лёша · завершено/ }).click();
+  await page.getByRole('button', { name: 'Лёша', exact: true }).first().click();
   await expect(page.getByRole('dialog', { name: 'Лёша' }).getByText('Здесь пусто', { exact: false })).toBeVisible();
   await expect(page.getByRole('dialog', { name: 'Лёша' }).getByRole('region', { name: 'Совпадение вкусов' })).toHaveCount(0);
 });

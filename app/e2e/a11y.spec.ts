@@ -84,7 +84,7 @@ for (const theme of ['light', 'dark'] as const) {
       await nav(page, 'Друзья');
       await expect(page.getByRole('button', { name: /Вадим · завершено «Драйв»/ })).toBeVisible();
       await audit(page, 'friends');
-      await page.getByRole('button', { name: /Вадим · завершено «Драйв»/ }).click();
+      await page.getByRole('button', { name: 'Вадим', exact: true }).first().click();
       await expect(page.getByRole('region', { name: 'Совпадение вкусов' })).toBeVisible();
       await audit(page, 'friend page');
       await page.keyboard.press('Escape');

@@ -12,6 +12,11 @@ describe('feed texts (no guessed verb gender)', () => {
     expect(feedText(row({ kind: 'started', title: 'Тед Лассо', category: 'series' }))).toBe('начато «Тед Лассо»');
   });
 
+  it('a completion carries the rating when there is one', () => {
+    expect(feedText(row({ rating: 9 }))).toBe('завершено «Драйв» · 9/10');
+    expect(feedText(row({ rating: null }))).toBe('завершено «Драйв»');
+  });
+
   it('parts decline сезон for series and anime, часть otherwise', () => {
     expect(feedText(row({ kind: 'parts', count: 1, title: 'Фрирен', category: 'anime' }))).toBe('1 сезон «Фрирен»');
     expect(feedText(row({ kind: 'parts', count: 2, title: 'Фрирен', category: 'anime' }))).toBe('2 сезона «Фрирен»');

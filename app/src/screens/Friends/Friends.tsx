@@ -4,8 +4,6 @@ import { useSocial } from '../../data/socialStore';
 import { Skeleton } from '../../ui/Skeleton';
 import { Segmented } from '../../ui/Segmented';
 import { useIsDesktop } from '../../ui/useMediaQuery';
-import { shelfTabFor, type FeedRow } from '../../data/feedFormat';
-import { useUi } from '../../data/ui';
 import { FeedList } from './FeedList';
 import { Requests } from './Requests';
 import { Matches } from './Matches';
@@ -26,14 +24,12 @@ export function Friends() {
 
   useEffect(() => { void useSocial.getState().openFriends(); }, []);
 
-  const openFriend = useUi((u) => u.openFriend);
-  const open = (row: FeedRow) => openFriend(row.actor_id, shelfTabFor(row.kind));
   const hasFriends = !!friends && friends.length > 0;
 
   const feedBlock = (
     <>
       {feed === null && !failed && <><Skeleton kind="row" /><Skeleton kind="row" /><Skeleton kind="row" /></>}
-      {feed && feed.length > 0 && <FeedList rows={feed} onOpen={open} />}
+      {feed && feed.length > 0 && <FeedList rows={feed} />}
       {feed && feed.length === 0 && (
         <p className={s.note}>{hasFriends
           ? 'За две недели у друзей ничего нового. Здесь появится, что они начинают, завершают и добавляют.'

@@ -16,12 +16,16 @@ export interface FeedRow {
   covers: string[] | null;
   at: string;
   on_shared_board: boolean;
+  /** A completion's rating at the time the feed was read. */
+  rating?: number | null;
+  /** An additions line: the title behind each of `covers`, in the same order. */
+  title_ids?: string[] | null;
 }
 export type ShelfTab = 'done' | 'watching' | 'want';
 
 export function feedText(r: FeedRow): string {
   switch (r.kind) {
-    case 'completed': return `завершено «${r.title}»`;
+    case 'completed': return r.rating ? `завершено «${r.title}» · ${r.rating}/10` : `завершено «${r.title}»`;
     case 'started': return `начато «${r.title}»`;
     case 'parts': {
       const seasons = r.category === 'series' || r.category === 'anime';
