@@ -35,6 +35,8 @@ export interface StubOptions {
   inviteOutcome?: Row;
   /** friend_shelf rows by user and tab. */
   shelves?: Record<string, Partial<Record<'done' | 'watching' | 'want', Row[]>>>;
+  /** friend_title answers by `${owner}:${id}`; a title on a shelf above is answered from its shelf row when not listed here. */
+  friendTitles?: Record<string, Row | null>;
   /** taste_match answers by user. */
   taste?: Record<string, Row>;
   /** Friends my_friends() returns. */
@@ -199,6 +201,17 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
         return { data: f ? { id: f.id, name: f.name, nickname: f.nickname, is_friend: true, since: f.since } : null, error: null };
       },
       friend_shelf: (a) => ({ data: opts.shelves?.[String(a.p_user)]?.[a.p_status as 'done'] ?? [], error: null }),
+      friend_title: (a) => {
+        const key = `${a.p_owner}:${a.p_id}`;
+        if (opts.friendTitles && key in opts.friendTitles) return { data: opts.friendTitles[key], error: null };
+        const shelf = opts.shelves?.[String(a.p_owner)] ?? {};
+        const tab = (['done', 'watching', 'want'] as const).find((t) => (shelf[t] ?? []).some((r) => r.id === a.p_id));
+        const src = tab ? shelf[tab]!.find((r) => r.id === a.p_id)! : null;
+        if (!src) return { data: null, error: null };
+        const status = tab === 'done' ? 'done' : tab === 'watching' ? 'in_progress' : 'queue';
+        return { data: { original_title: null, genres: [], synopsis: '', platforms: null, parts: null, checked: [], rating: null,
+          title_key: `slug:${src.id}`, mine_id: null, status, ...src }, error: null };
+      },
       taste_match: (a) => ({ data: opts.taste?.[String(a.p_user)] ?? { status: 'not_enough' }, error: null }),
       feed: () => ({ data: opts.feed ?? [], error: null }),
       mark_feed_seen: () => { feedSeen = true; return { data: null, error: null }; },

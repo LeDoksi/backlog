@@ -22,6 +22,8 @@
 .part { min-height: 52px; padding: 0 14px; border-radius: 18px; background: var(--sunken); display: flex; align-items: center; gap: 12px; font-size: var(--fs-md); font-weight: 500; cursor: pointer; }
 .part input { width: 22px; height: 22px; accent-color: var(--accent); flex-shrink: 0; }
 .partSoon { background: transparent; border: 2px dashed var(--dash); color: var(--muted); cursor: default; }
+.partReadOnly { cursor: default; }
+.partReadOnly input:disabled { opacity: 1; }
 .partName { flex: 1; min-width: 0; }
 .partYear { color: var(--muted); font-size: var(--fs-sm); white-space: nowrap; }
 .markAll { align-self: flex-start; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; font-size: var(--fs-base); }

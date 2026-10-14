@@ -18,6 +18,10 @@ interface UiState {
   friend: { id: string; tab: 'done' | 'watching' | 'want' } | null;
   openFriend(id: string, tab?: 'done' | 'watching' | 'want'): void;
   closeFriend(): void;
+  /** A friend's title, read-only, over whatever is open (spec 1.3). */
+  friendTitle: { owner: string; id: string; name: string } | null;
+  openFriendTitle(owner: string, id: string, name: string): void;
+  closeFriendTitle(): void;
   /** A short note at the bottom of the screen (the invite link outcome). */
   toast: string | null;
   showToast(text: string | null): void;
@@ -41,6 +45,9 @@ export const useUi = create<UiState>()((set) => ({
   friend: null,
   openFriend: (id, tab = 'done') => set({ friend: { id, tab } }),
   closeFriend: () => set({ friend: null }),
+  friendTitle: null,
+  openFriendTitle: (owner, id, name) => set({ friendTitle: { owner, id, name } }),
+  closeFriendTitle: () => set({ friendTitle: null }),
   toast: null,
   showToast: (text) => set({ toast: text }),
   privacyRequested: false,
