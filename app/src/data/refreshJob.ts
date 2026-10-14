@@ -1,0 +1,155 @@
+// refreshJob.ts — once a day, on the first open of a board, its series and
+// anime are checked against TMDb and Shikimori (spec 2.5, BL-94, BL-95,
+// BL-109): missing seasons are filled in, new ones appended, duplicates of
+// a franchise merged. Everything goes to the server in one quiet
+// apply_title_refresh() call, so friends see none of it in the feed.
+import * as Enrich from '../lib/enrich';
+import { materialize } from '../lib/derive';
+import { partsFromFranchise, partsFromTmdb } from '../lib/franchise';
+import { fillTicksForDone, mergeParts, planMerge, ticksWith, type FreshPart } from '../lib/refresh';
+import { checkedIndices, fromRow, type CheckedParts, type TitleRow } from '../lib/titleRow';
+import type { FetchLike, Part, StorageLike, SupabaseLike, Title } from '../lib/types';
+
+export interface RefreshDeps {
+  board: string;
+  /** The board's rows as the mirror holds them: what the server is asked to change from. */
+  rows: TitleRow[];
+  /** Titles with edits still waiting to be sent: left for another day. */
+  pendingIds: Set<string>;
+  fetchFn: FetchLike;
+  client: SupabaseLike | null;
+  storage: StorageLike;
+  now: Date;
+  tmdbKey: string;
+  proxy: string | null;
+  pause?: (ms: number) => Promise<void>;
+}
+
+export interface RefreshResult {
+  ran: boolean;
+  updated: number;
+  merged: number;
+  skipped: number;
+  /** Rows to write locally (the server took them). */
+  changes: { id: string; cols: Partial<TitleRow> | null }[];
+}
+
+const PAUSE_MS = 250;
+const key = (board: string) => `refresh:${board}`;
+const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+export function refreshedToday(storage: StorageLike, board: string, now: Date): boolean {
+  try { return storage.getItem(key(board)) === localDay(now); } catch { return false; }
+}
+
+function markDone(storage: StorageLike, board: string, now: Date) {
+  try { storage.setItem(key(board), localDay(now)); } catch { /* quota: it runs again next open */ }
+}
+
+const base = (r: TitleRow) => ({ parts: r.parts ?? null, checked_parts: r.checked_parts ?? {}, status: r.status });
+
+export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult> {
+  const none: RefreshResult = { ran: false, updated: 0, merged: 0, skipped: 0, changes: [] };
+  const { board, storage, now } = deps;
+  if (!deps.client || refreshedToday(storage, board, now)) return none;
+  const pause = deps.pause ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+
+  const rows = deps.rows.filter((r) => (r.category === 'series' || r.category === 'anime') && r.source_id
+    && (r.source === 'tmdb-series' || r.source === 'shikimori') && !deps.pendingIds.has(r.id));
+  const fresh: Record<string, FreshPart[]> = {};
+  const franchise: Record<string, { key: string; ref: string }> = {};
+  const firstTv: Record<string, string> = {};
+  const franchises = new Map<number, Enrich.Franchise>();
+  let skipped = 0;
+  let asked = 0;
+
+  // One request at a time (Shikimori asks for at most 5 a second).
+  for (const r of rows) {
+    const id = Number(r.source_id);
+    if (r.source === 'tmdb-series') {
+      if (asked++) await pause(PAUSE_MS);
+      const s = await Enrich.fetchTmdbSeasons(deps.fetchFn, deps.proxy, deps.tmdbKey, r.source_id!);
+      if (!s || !s.seasons.length) { skipped++; continue; }
+      fresh[r.id] = partsFromTmdb(s.seasons, now);
+    } else {
+      let f = franchises.get(id);
+      if (!f) {
+        if (asked++) await pause(PAUSE_MS);
+        f = (await Enrich.fetchShikimoriFranchise(deps.fetchFn, id)) ?? undefined;
+        if (!f) { skipped++; continue; }
+        f.nodes.forEach((n) => franchises.set(n.id, f!));
+      }
+      fresh[r.id] = partsFromFranchise(f, now);
+      franchise[r.id] = { key: String(f.rootId), ref: `shiki:${id}` };
+      firstTv[String(f.rootId)] = `shiki:${f.rootId}`;
+    }
+  }
+
+  const titles = new Map<string, { row: TitleRow; title: Title; ticks: CheckedParts }>();
+  rows.forEach((row) => { const { title, checked } = fromRow(row); titles.set(row.id, { row, title, ticks: checked }); });
+
+  // New parts per title.
+  const partsAfter: Record<string, Part[]> = {};
+  Object.keys(fresh).forEach((id) => {
+    const t = titles.get(id)!;
+    // A lone OVA or recap film is not the franchise: it is not turned into one.
+    const own = franchise[id] && fresh[id]!.find((p) => p.ref === franchise[id]!.ref);
+    if (own?.extra && !(t.title.parts ?? []).length) return;
+    const m = mergeParts(t.title.parts, fresh[id]!, { manual: !!t.row.parts_manual });
+    partsAfter[id] = m.parts;
+  });
+
+  // A keep left without new parts would lose what the duplicates carry: no merge then.
+  const plans = planMerge(rows.filter((r) => franchise[r.id]).map((r) => titles.get(r.id)!.title), franchise, firstTv, partsAfter)
+    .filter((p) => partsAfter[p.keep]);
+  const absorbed = new Set(plans.flatMap((p) => p.absorb));
+
+  const updates: Record<string, unknown>[] = [];
+  const changes: RefreshResult['changes'] = [];
+  const stamp = now.toISOString();
+  for (const [id, parts] of Object.entries(partsAfter)) {
+    if (absorbed.has(id)) continue;
+    const { row, title, ticks } = titles.get(id)!;
+    let next = ticks;
+    // A finished title that just got its list keeps «Завершено» (spec 2.5 p.1).
+    if (!(title.parts ?? []).length && title.status === 'done') next = ticksWith(next, fillTicksForDone(parts, 'done'), title.completedAt ?? stamp);
+    const plan = plans.find((p) => p.keep === id);
+    let rating = title.rating ?? null;
+    if (plan) {
+      // Each finished duplicate ticks its own part, dated when it was finished.
+      plan.absorb.forEach((a) => {
+        const gone = titles.get(a)!.title;
+        const tick = parts.findIndex((p) => p.ref === franchise[a]!.ref);
+        if (gone.status === 'done' && tick >= 0) next = ticksWith(next, [tick], gone.completedAt ?? stamp);
+      });
+      rating = plan.rating;
+    }
+    const m = materialize({ ...title, parts }, checkedIndices(next));
+    const cols = { parts, checked_parts: next, status: m.status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating };
+    const same = JSON.stringify([row.parts ?? null, row.checked_parts ?? {}, row.status, row.manual_status ?? null, row.airing_status ?? null, row.rating ?? null])
+      === JSON.stringify([cols.parts, cols.checked_parts, cols.status, cols.manual_status, cols.airing_status, cols.rating]);
+    if (same) continue;
+    updates.push({ id, base: base(row), ...cols });
+    changes.push({ id, cols });
+  }
+  const deletes = [...absorbed].map((id) => ({ id, base: base(titles.get(id)!.row) }));
+  deletes.forEach((d) => changes.push({ id: d.id, cols: null }));
+
+  if (!updates.length && !deletes.length) {
+    markDone(storage, board, now);
+    return { ran: true, updated: 0, merged: 0, skipped, changes: [] };
+  }
+
+  let res: { data: unknown; error: unknown };
+  try {
+    res = await deps.client.rpc('apply_title_refresh', { p_workspace: board, p_updates: updates, p_deletes: deletes });
+  } catch (e) {
+    res = { data: null, error: e };
+  }
+  // -1: a row changed meanwhile; an error: the network or the server. Either
+  // way nothing was written and the next open tries again.
+  if (res.error || typeof res.data !== 'number' || res.data < 0) return { ...none, ran: true, skipped };
+  // A source that did not answer is skipped until tomorrow (spec 2.5).
+  markDone(storage, board, now);
+  return { ran: true, updated: updates.length, merged: deletes.length, skipped, changes };
+}

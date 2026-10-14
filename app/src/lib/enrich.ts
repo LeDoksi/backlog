@@ -127,7 +127,7 @@ function fetchTmdbDetails(fetchFn: FetchLike, proxyBase: string | null | undefin
       cover: tmdbPoster(d.poster_path)
     };
     // A series answer already lists its seasons: no second request on add.
-    if (category === 'series') out.tmdbSeasons = tmdbSeasons(d);
+    if (category === 'series' && Array.isArray(d.seasons)) out.tmdbSeasons = tmdbSeasons(d);
     return out;
   });
 }

@@ -201,6 +201,7 @@ test('searchShikimori normalizes an anime search result (bare array response)', 
   assert.deepEqual(candidates, [
     {
       id: 52991,
+      kind: 'tv',
       title: 'Провожающая в последний путь Фрирен',
       year: 2023,
       poster: 'https://shikimori.io/system/animes/original/52991.jpg?1710731127'

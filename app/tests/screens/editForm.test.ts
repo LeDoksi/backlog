@@ -23,6 +23,15 @@ describe('edit form', () => {
     const f = { ...init, parts: [...init.parts, { key: 999, name: '', year: '', released: true }] };
     expect(patchFromForm(f, init)).toEqual({});
   });
+  it('a changed list of parts is marked as edited by hand and keeps refs and extras', () => {
+    const s: Title = { ...t, category: 'anime', parts: [{ name: 'S1', year: 2020, released: true, ref: 'shiki:1' }, { name: 'OVA', year: 2021, released: true, ref: 'shiki:2', extra: true }] };
+    const init = formFromTitle(s);
+    const f = { ...init, parts: [{ ...init.parts[0]!, name: 'Первый' }, init.parts[1]!] };
+    expect(patchFromForm(f, init)).toEqual({ parts: [
+      { name: 'Первый', year: 2020, released: true, ref: 'shiki:1' },
+      { name: 'OVA', year: 2021, released: true, ref: 'shiki:2', extra: true }
+    ], partsManual: true });
+  });
   it('validates the title and year', () => {
     expect(validateForm({ ...formFromTitle(t), title: ' ', year: '20' })).toEqual({ title: 'Нужно название', year: 'Год из четырёх цифр' });
   });

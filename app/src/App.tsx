@@ -4,6 +4,7 @@ import { useSession } from './data/session';
 import { useTitles, mirror, outbox } from './data/titlesStore';
 import { useBoards } from './data/boardsStore';
 import { startSync } from './data/syncEngine';
+import { refreshBoardDaily } from './data/dailyRefresh';
 import { getSupabase } from './data/supabase';
 import { useUi } from './data/ui';
 import { SignIn } from './screens/SignIn';
@@ -39,7 +40,7 @@ function Signed({ profile, onProfile, onSignOut }: SignedProps) {
   const setSection = useUi((u) => u.setSection);
   const setQuickAdd = useUi((u) => u.setQuickAdd);
 
-  useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase }), []);
+  useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase, onPulled: refreshBoardDaily }), []);
   useEffect(() => { void useBoards.getState().refresh(); }, []);
   const badge = useSocial((st) => st.badge);
   useEffect(() => {

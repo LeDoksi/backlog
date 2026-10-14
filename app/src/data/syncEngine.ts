@@ -9,6 +9,8 @@ export interface SyncEngineDeps {
   outbox: Outbox;
   client: () => SupabaseLike | null;
   win?: Pick<Window, 'addEventListener' | 'removeEventListener'>;
+  /** After a good pull of a board: the daily refresh starts from here. */
+  onPulled?: (board: string) => void;
 }
 
 // Client C's mirror of the old tables. Dropped after the first good pull of
@@ -49,6 +51,7 @@ export function startSync(deps: SyncEngineDeps): () => void {
     store.getState().applyPulled(board, res.rows);
     if (!legacyCleared) { LEGACY_KEYS.forEach((k) => storage.removeItem?.(k)); legacyCleared = true; }
     listen(board);
+    deps.onPulled?.(board);
   }
 
   function current() {

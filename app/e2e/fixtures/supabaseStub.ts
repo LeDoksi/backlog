@@ -75,6 +75,9 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
     sharedTitles: options.sharedTitles ? withParts(options.sharedTitles, SHARED, options.parts) : null,
     ids: { user: E2E_USER, personal: PERSONAL, shared: SHARED }
   };
+  // Seasons come from TMDb and Shikimori once a day: unless a test answers
+  // for them, they are unreachable, so a run never depends on the live sites.
+  await page.route(/api\.themoviedb\.org|shikimori\.(io|one)|workers\.dev/, (r) => r.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, json: {} }));
   await page.addInitScript((opts: typeof prepared) => {
     const { user: userId, personal, shared } = opts.ids;
     const w = window as unknown as { __writes?: Row[]; __rpcCalls?: Row[]; __blSupabaseStub: unknown };
@@ -173,6 +176,21 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       remove_board_member: (a) => { sharedMembers = sharedMembers?.filter((m) => m.id !== a.p_user) ?? null; return { data: null, error: null }; },
       set_board_visibility: (a) => { visibility[String(a.p_workspace)] = String(a.p_visibility); return { data: null, error: null }; },
       set_board_leaderboard: (a) => { sharedInLeaderboard = !!a.p_on; return { data: null, error: null }; },
+      // The daily refresh's quiet write: rows of that board change, duplicates go.
+      apply_title_refresh: (a) => {
+        let n = 0;
+        ((a.p_updates as Row[]) ?? []).forEach((u) => {
+          const t = titles.find((x) => x.workspace_id === a.p_workspace && x.id === u.id);
+          if (!t) return;
+          const { id: _id, base: _base, ...cols } = u;
+          Object.assign(t, cols); n++;
+        });
+        ((a.p_deletes as Row[]) ?? []).forEach((d) => {
+          const at = titles.findIndex((x) => x.workspace_id === a.p_workspace && x.id === d.id);
+          if (at >= 0) { titles.splice(at, 1); n++; }
+        });
+        return { data: n, error: null };
+      },
       set_privacy: (a) => {
         Object.assign(me, { in_leaderboard: a.p_in_leaderboard, share_activity: a.p_share_activity, share_matches: a.p_share_matches, findable_by_nick: a.p_findable_by_nick });
         return { data: null, error: null };

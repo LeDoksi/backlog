@@ -27,6 +27,10 @@
 .partName { flex: 1; min-width: 0; }
 .partYear { color: var(--muted); font-size: var(--fs-sm); white-space: nowrap; }
 .markAll { align-self: flex-start; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; font-size: var(--fs-base); }
+.extrasToggle { align-self: flex-start; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--accent-text); font-weight: 600; font-size: var(--fs-base); display: inline-flex; align-items: center; gap: 6px; }
+.caret { transition: transform .18s ease; }
+.caretOpen { transition: transform .18s ease; transform: rotate(180deg); }
+.extras { display: flex; flex-direction: column; gap: 8px; }
 .synopsis { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--text-2); }
 .seasonInfo { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--muted); white-space: pre-line; }
 .platforms { display: flex; flex-wrap: wrap; gap: 6px; }

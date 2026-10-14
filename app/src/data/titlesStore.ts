@@ -32,6 +32,8 @@ export interface TitlesState {
   undoDelete(): boolean;
   /** Sends the waiting delete now. */
   commitPendingDelete(): void;
+  /** The open board's rows as mirrored (the daily refresh's starting point). */
+  boardRows(): TitleRow[];
   /** Kept for QuickAdd: v2 deletes a title whole, so no id is left behind. */
   leftoverIds(): string[];
   /** A pulled board, replacing its mirror (queued edits stay on top). */
@@ -201,7 +203,7 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
       setAllReleasedChecked(id) {
         const title = get().titles.find((t) => t.id === id);
         if (!title || !Storage.hasPartsChecklist(title)) return;
-        const released = title.parts.map((p, i) => (p && p.released === false ? -1 : i)).filter((i) => i >= 0);
+        const released = title.parts.map((p, i) => (p && (p.released === false || p.extra) ? -1 : i)).filter((i) => i >= 0);
         setTicks(id, [...(get().checked[id] ?? []), ...released]);
       },
 
@@ -283,6 +285,10 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
 
       leftoverIds() {
         return [];
+      },
+
+      boardRows() {
+        return readRows(get().boardId);
       },
 
       applyPulled(board, rows) {
