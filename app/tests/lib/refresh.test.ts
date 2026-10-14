@@ -66,6 +66,19 @@ describe('mergeParts', () => {
     expect(r.parts.slice(3).map((p) => [p.name, !!p.extra])).toEqual([['Фильм', true], ['Сезон 3', false]]);
   });
 
+  it('a part the provider now counts as a side piece moves to the extras, never back', () => {
+    const cur: Part[] = [{ name: 'S1', ref: 'shiki:1', released: true, year: 2020 }, { name: 'OVA', ref: 'shiki:2', released: true, year: 2021 },
+      { name: 'Фильм', ref: 'shiki:7', released: true, year: 2019, extra: true }];
+    const r = mergeParts(cur, [{ name: 'S1', ref: 'shiki:1', year: 2020, released: true }, { name: 'Фильм', ref: 'shiki:7', year: 2019, released: true },
+      { name: 'OVA', ref: 'shiki:2', year: 2021, released: true, extra: true }]);
+    expect(r.parts.map((p) => !!p.extra)).toEqual([false, true, true]);
+  });
+
+  it('OVAs and specials named so in a hand-made list go to the extras', () => {
+    const cur: Part[] = [{ name: 'Сезон 1' }, { name: 'OVA «Ледяные узы»' }, { name: 'Спешл' }, { name: 'Ovation' }];
+    expect(mergeParts(cur, [season(1)], { lineUp: false }).parts.map((p) => !!p.extra)).toEqual([false, true, true, false]);
+  });
+
   it('a hand-made «season N» list gets refs and the seasons after it', () => {
     const cur: Part[] = [{ name: '1', year: null, released: true }, { name: 'Сезон 2 «Квартал»', year: null, released: false }];
     const r = mergeParts(cur, [season(1), season(2), season(3, false)]);

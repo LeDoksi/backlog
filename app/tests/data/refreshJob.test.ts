@@ -96,12 +96,42 @@ describe('runDailyRefresh', () => {
   });
 
   it('a first list only where the status survives it', async () => {
-    const { d, rpc } = deps([
-      row('twd', 'series', 'tmdb-series', '1402', 'in_progress'),
-      row('aot-3', 'anime', 'shikimori', '35760', 'done')
-    ]);
+    const { d, rpc } = deps([row('aot-3', 'anime', 'shikimori', '35760', 'done'), row('aot-3b', 'anime', 'shikimori', '35760', 'in_progress')]);
     await runDailyRefresh(d);
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('«Смотрю» without seasons gets them, nothing ticked, still «Смотрю»', async () => {
+    const { d, args } = deps([row('twd', 'series', 'tmdb-series', '1402', 'in_progress')]);
+    await runDailyRefresh(d);
+    const u = args().p_updates[0]!;
+    expect((u.parts as unknown[]).length).toBe(12);
+    expect(u.checked_parts).toEqual({});
+    expect(u.status).toBe('in_progress');
+  });
+
+  it('a film on its own gets no list, and one given earlier is taken back', async () => {
+    const film = 999001;
+    const lone: FetchLike = (u, i) => (u.includes(`/animes/${film}/franchise`)
+      ? Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ nodes: [{ id: film, name: 'Фильм', kind: 'Фильм', year: 2016, date: 1470000000 }], links: [] }) })
+      : liveFetch(u, i));
+    const given = [{ name: 'Фильм', ref: `shiki:${film}`, year: 2016, released: true }];
+    const { d, args } = deps([
+      row('new', 'anime', 'shikimori', String(film), 'queue'),
+      row('old', 'anime', 'shikimori', String(film), 'done', { parts: given, checked_parts: { '0': '1970-01-01T00:00:00.000Z' }, manual_status: 'done' })
+    ], { fetchFn: lone });
+    await runDailyRefresh(d);
+    expect(args().p_updates).toHaveLength(1);
+    expect(args().p_updates[0]).toMatchObject({ id: 'old', parts: [], checked_parts: {}, status: 'done' });
+  });
+
+  it('OVAs in a hand-made anime list move to the extras block', async () => {
+    const legacy = [{ name: 'Сезон 1', released: true }, { name: 'OVA «Memory Snow»', released: true }, { name: 'Сезон 2', released: true }];
+    const { d, args } = deps([row('frieren', 'anime', 'shikimori', '52991', 'in_progress', { parts: legacy, checked_parts: { '0': 'a' } })]);
+    await runDailyRefresh(d);
+    const u = args().p_updates[0]!;
+    expect((u.parts as { extra?: boolean }[]).map((p) => !!p.extra)).toEqual([false, true, false]);
+    expect(u.checked_parts).toEqual({ '0': 'a' });
   });
 
   it('a finished title on no known day gets its ticks dated before every period', async () => {

@@ -5,7 +5,7 @@
 // apply_title_refresh() call, so friends see none of it in the feed.
 import * as Enrich from '../lib/enrich';
 import { materialize } from '../lib/derive';
-import { partsFromFranchise, partsFromTmdb } from '../lib/franchise';
+import { isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise';
 import { fillTicksForDone, mergeParts, planMerge, ticksWith, type FreshPart } from '../lib/refresh';
 import { checkedIndices, fromRow, type CheckedParts, type TitleRow } from '../lib/titleRow';
 import type { FetchLike, Part, StorageLike, SupabaseLike, Title } from '../lib/types';
@@ -39,7 +39,8 @@ const PAUSE_MS = 250;
 const RETRY_MS = 30 * 60 * 1000;
 /** The date of a tick the refresh adds for a title finished on no known day: before every period but «за всё время». */
 const UNDATED = '1970-01-01T00:00:00.000Z';
-const key = (board: string) => `refresh:${board}`;
+// The rules version is in the key: a fix to them runs again the same day.
+const key = (board: string) => `refresh:2:${board}`;
 const retryKey = (board: string) => `refresh-retry:${board}`;
 const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -102,16 +103,25 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   Object.keys(fresh).forEach((id) => {
     const t = titles.get(id)!;
     const f = fresh[id]!;
-    if (!(t.title.parts ?? []).length) {
+    const have = t.title.parts ?? [];
+    if (isLoneWork(f)) {
+      // A film on its own gets no list; one this pass gave it earlier
+      // (every part from the provider, not edited by hand) is taken back.
+      const ours = have.length > 0 && !t.row.parts_manual && have.every((p) => p?.ref && f.some((x) => x.ref === p.ref));
+      if (ours) partsAfter[id] = [];
+      return;
+    }
+    if (!have.length) {
       // A first list only where the status survives it (spec 2.5 p.1):
-      // a lone OVA or recap film is not the franchise; «Смотрю» does not
-      // say which seasons were seen; a finished later season («Атака
-      // титанов 3») does not say the earlier ones were; a finished show
-      // whose seasons all read as not out yet would turn «Не вышло».
+      // a lone OVA or recap film is not the franchise; a later season
+      // being watched or finished («Атака титанов 3») does not say where in
+      // the franchise someone is; a finished show whose seasons all read as
+      // not out yet would turn «Не вышло». «Смотрю» on the show itself gets
+      // the list with nothing ticked and stays «Смотрю» until something is.
+      const later = franchise[id] && franchise[id]!.key !== franchise[id]!.ref.slice('shiki:'.length);
       if (franchise[id] && !franchise[id]!.main) return;
-      if (t.title.status === 'in_progress') return;
-      if (t.title.status === 'done' && (franchise[id] && franchise[id]!.key !== franchise[id]!.ref.slice(6)
-        || !f.some((p) => !p.extra && p.released !== false))) return;
+      if (later && t.title.status !== 'queue' && t.title.status !== 'unreleased') return;
+      if (t.title.status === 'done' && !f.some((p) => !p.extra && p.released !== false)) return;
     }
     const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series' });
     partsAfter[id] = m.parts;
@@ -128,7 +138,7 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   for (const [id, parts] of Object.entries(partsAfter)) {
     if (absorbed.has(id)) continue;
     const { row, title, ticks } = titles.get(id)!;
-    let next = ticks;
+    let next = parts.length ? ticks : {};
     // A finished title that just got its list keeps «Завершено» (spec 2.5 p.1).
     if (!(title.parts ?? []).length && title.status === 'done') next = ticksWith(next, fillTicksForDone(parts, 'done'), title.completedAt ?? UNDATED);
     const plan = plans.find((p) => p.keep === id);
@@ -143,7 +153,9 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       rating = plan.rating;
     }
     const m = materialize({ ...title, parts }, checkedIndices(next));
-    const cols = { parts, checked_parts: next, status: m.status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating };
+    // «Смотрю» with nothing ticked yet stays «Смотрю» (the list alone would read «В очереди»).
+    const status = m.status === 'queue' && row.status === 'in_progress' && !checkedIndices(next).length ? 'in_progress' : m.status;
+    const cols = { parts, checked_parts: next, status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating };
     const same = JSON.stringify([row.parts ?? null, row.checked_parts ?? {}, row.status, row.manual_status ?? null, row.airing_status ?? null, row.rating ?? null])
       === JSON.stringify([cols.parts, cols.checked_parts, cols.status, cols.manual_status, cols.airing_status, cols.rating]);
     if (same) continue;
