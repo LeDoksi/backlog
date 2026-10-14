@@ -10,6 +10,9 @@ import { EmptyState } from '../../ui/EmptyState';
 import { Leaderboard } from './Leaderboard';
 import s from './Stats.module.css';
 
+/** «20 сезонов» under a tile; nothing when none are ticked. */
+const seasonsLine = (n = 0) => (n > 0 ? `${n} ${plural(n, 'сезон', 'сезона', 'сезонов')}` : null);
+
 export function Stats() {
   const titles = useTitles((t) => t.titles);
   const checked = useTitles((t) => t.checked);
@@ -27,8 +30,8 @@ export function Stats() {
 
   const tiles = [
     { n: ps.byCategory.movie.done, label: plural(ps.byCategory.movie.done, 'фильм', 'фильма', 'фильмов') },
-    { n: ps.byCategory.series.seasons ?? 0, label: plural(ps.byCategory.series.seasons ?? 0, 'сезон сериалов', 'сезона сериалов', 'сезонов сериалов') },
-    { n: ps.byCategory.anime.seasons ?? 0, label: plural(ps.byCategory.anime.seasons ?? 0, 'сезон аниме', 'сезона аниме', 'сезонов аниме') },
+    { n: ps.byCategory.series.done, label: plural(ps.byCategory.series.done, 'сериал', 'сериала', 'сериалов'), sub: seasonsLine(ps.byCategory.series.seasons) },
+    { n: ps.byCategory.anime.done, label: 'аниме', sub: seasonsLine(ps.byCategory.anime.seasons) },
     { n: ps.byCategory.game.done, label: plural(ps.byCategory.game.done, 'игра', 'игры', 'игр') }
   ];
 
@@ -61,7 +64,7 @@ export function Stats() {
           </section>
           <div className={s.tiles}>
             {tiles.map((t) => (
-              <div key={t.label} className={s.tile}><span className={s.tileNum}>{t.n}</span><span className={s.tileLabel}>{t.label}</span></div>
+              <div key={t.label} className={s.tile}><span className={s.tileNum}>{t.n}</span><span className={s.tileLabel}>{t.label}</span>{'sub' in t && t.sub && <span className={s.tileSub}>{t.sub}</span>}</div>
             ))}
           </div>
           {ps.genres.length > 0 && (

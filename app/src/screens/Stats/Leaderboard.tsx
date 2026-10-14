@@ -86,7 +86,7 @@ export function Leaderboard({ period }: { period: Period }) {
           <span className={s.lbScore}>{m.score}</span>
         </p>
       ))}
-      <p className={s.lbHint}>Личные и общие доски считаются отдельно. В кино считаем фильмы, в сериалах и аниме сезоны, в играх пройденные игры.</p>
+      <p className={s.lbHint}>Личные и общие доски считаются отдельно. В кино и играх считаем завершённые, в сериалах и аниме отмеченные сезоны.</p>
     </section>
   );
 }
