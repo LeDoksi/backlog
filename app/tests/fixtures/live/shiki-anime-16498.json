@@ -1,0 +1,218 @@
+{
+  "id": 16498,
+  "name": "Shingeki no Kyojin",
+  "russian": "Атака титанов",
+  "image": {
+    "original": "/system/animes/original/16498.jpg?1711973439",
+    "preview": "/system/animes/preview/16498.jpg?1711973439",
+    "x96": "/system/animes/x96/16498.jpg?1711973439",
+    "x48": "/system/animes/x48/16498.jpg?1711973439"
+  },
+  "url": "/animes/16498-shingeki-no-kyojin",
+  "kind": "tv",
+  "score": "8.58",
+  "status": "released",
+  "episodes": 25,
+  "episodes_aired": 25,
+  "aired_on": "2013-04-07",
+  "released_on": "2013-09-29",
+  "rating": "r",
+  "english": [
+    "Attack on Titan"
+  ],
+  "japanese": [
+    "進撃の巨人"
+  ],
+  "synonyms": [
+    "Вторжение гигантов",
+    "Атакующий титан",
+    "Вторжение титанов",
+    "AoT"
+  ],
+  "license_name_ru": "Атака титанов",
+  "duration": 24,
+  "description": "С давних времён человечество ведёт свою борьбу с титанами. Титаны — это огромные существа, ростом с многоэтажный дом, которые не обладают большим интеллектом, но сила их просто ужасна. Они едят людей и получают от этого удовольствие. После продолжительной борьбы остатки человечества создали стену, окружившую мир людей, через которую не пройдут даже титаны.\nС тех пор прошло сто лет. Человечество мирно живёт под защитой стены. Но в один день мальчик Эрен [エレン・イェーガー] и его приёмная сестра Микаса [ミカサ・アッカーマン] становятся свидетелями страшного события: участок стены был разрушен супертитаном, появившимся прямо из воздуха. Титаны атакуют город, и двое детей в ужасе видят, как один из монстров заживо съедает их мать.\nБрат и сестра выживают, и Эрен клянётся, что убьёт всех титанов и отомстит за всё человечество!",
+  "description_html": "<div class=\"b-text_with_paragraphs\">С давних времён человечество ведёт свою борьбу с титанами. Титаны — это огромные существа, ростом с многоэтажный дом, которые не обладают большим интеллектом, но сила их просто ужасна. Они едят людей и получают от этого удовольствие. После продолжительной борьбы остатки человечества создали стену, окружившую мир людей, через которую не пройдут даже титаны.<br>С тех пор прошло сто лет. Человечество мирно живёт под защитой стены. Но в один день мальчик <a href=\"https://shikimori.io/characters/40882-eren-yeager\" title=\"Eren Yeager\" class=\"bubbled b-link\" data-tooltip_url=\"https://shikimori.io/characters/40882-eren-yeager/tooltip\" data-attrs=\"{&quot;id&quot;:40882,&quot;type&quot;:&quot;character&quot;,&quot;name&quot;:&quot;Eren Yeager&quot;,&quot;russian&quot;:&quot;Эрен Йегер&quot;}\">Эрен</a> и его приёмная сестра <a href=\"https://shikimori.io/characters/40881-mikasa-ackerman\" title=\"Mikasa Ackerman\" class=\"bubbled b-link\" data-tooltip_url=\"https://shikimori.io/characters/40881-mikasa-ackerman/tooltip\" data-attrs=\"{&quot;id&quot;:40881,&quot;type&quot;:&quot;character&quot;,&quot;name&quot;:&quot;Mikasa Ackerman&quot;,&quot;russian&quot;:&quot;Микаса Аккерман&quot;}\">Микаса</a> становятся свидетелями страшного события: участок стены был разрушен супертитаном, появившимся прямо из воздуха. Титаны атакуют город, и двое детей в ужасе видят, как один из монстров заживо съедает их мать.<br>Брат и сестра выживают, и <a href=\"https://shikimori.io/characters/40882-eren-yeager\" title=\"Eren Yeager\" class=\"bubbled b-link\" data-tooltip_url=\"https://shikimori.io/characters/40882-eren-yeager/tooltip\" data-attrs=\"{&quot;id&quot;:40882,&quot;type&quot;:&quot;character&quot;,&quot;name&quot;:&quot;Eren Yeager&quot;,&quot;russian&quot;:&quot;Эрен Йегер&quot;}\">Эрен</a> клянётся, что убьёт всех титанов и отомстит за всё человечество!</div>",
+  "description_source": null,
+  "franchise": "shingeki_no_kyojin",
+  "favoured": false,
+  "anons": false,
+  "ongoing": false,
+  "thread_id": 88387,
+  "topic_id": 88387,
+  "myanimelist_id": 16498,
+  "rates_scores_stats": [
+    {
+      "name": 10,
+      "value": 59917
+    },
+    {
+      "name": 9,
+      "value": 36943
+    },
+    {
+      "name": 8,
+      "value": 34910
+    },
+    {
+      "name": 7,
+      "value": 18251
+    },
+    {
+      "name": 6,
+      "value": 6909
+    },
+    {
+      "name": 5,
+      "value": 3093
+    },
+    {
+      "name": 4,
+      "value": 1359
+    },
+    {
+      "name": 3,
+      "value": 602
+    },
+    {
+      "name": 2,
+      "value": 411
+    },
+    {
+      "name": 1,
+      "value": 1010
+    }
+  ],
+  "rates_statuses_stats": [
+    {
+      "name": "Запланировано",
+      "value": 19445
+    },
+    {
+      "name": "Просмотрено",
+      "value": 302220
+    },
+    {
+      "name": "Смотрю",
+      "value": 8540
+    },
+    {
+      "name": "Брошено",
+      "value": 5884
+    },
+    {
+      "name": "Отложено",
+      "value": 1981
+    }
+  ],
+  "updated_at": "2026-10-13T21:48:15.494+03:00",
+  "next_episode_at": null,
+  "fansubbers": [
+    "GMC",
+    "Nesitach & Stan WarHammer & Kitsune",
+    "Wakanim",
+    "Firegorn Team",
+    "Antravoco",
+    "Gezell Studio",
+    "Crunchyroll"
+  ],
+  "fandubbers": [
+    "AniMedia",
+    "KANSAI Studio",
+    "AniDUB",
+    "Gezell Studio",
+    "AnimeReactor",
+    "AniLibria",
+    "Renegade Team",
+    "AniFilm",
+    "Wakanim",
+    "Naruto-Base",
+    "OpenDub",
+    "2x2",
+    "AOS Team",
+    "FassaD"
+  ],
+  "licensors": [
+    "Wakanim",
+    "Crunchyroll",
+    "2x2",
+    "FAN"
+  ],
+  "genres": [
+    {
+      "id": 27,
+      "name": "Shounen",
+      "russian": "Сёнен",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 1,
+      "name": "Action",
+      "russian": "Экшен",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 8,
+      "name": "Drama",
+      "russian": "Драма",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 41,
+      "name": "Thriller",
+      "russian": "Триллер",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 38,
+      "name": "Military",
+      "russian": "Военное",
+      "kind": "genre",
+      "entry_type": "Anime"
+    }
+  ],
+  "studios": [
+    {
+      "id": 858,
+      "name": "Wit Studio",
+      "filtered_name": "Wit",
+      "real": true,
+      "image": "/system/studios/original/858.png?1366652107"
+    }
+  ],
+  "videos": [
+    {
+      "id": 3,
+      "url": "https://youtu.be/KKzmOh4SuBc",
+      "image_url": "http://img.youtube.com/vi/KKzmOh4SuBc/hqdefault.jpg",
+      "player_url": "http://youtube.com/embed/KKzmOh4SuBc",
+      "name": "PV1",
+      "kind": "pv",
+      "hosting": "youtube"
+    },
+    {
+      "id": 15880,
+      "url": "https://youtu.be/nk2BHu3Mbes",
+      "image_url": "http://img.youtube.com/vi/nk2BHu3Mbes/hqdefault.jpg",
+      "player_url": "http://youtube.com/embed/nk2BHu3Mbes",
+      "name": "Трейлер Madman",
+      "kind": "pv",
+      "hosting": "youtube"
+    }
+  ],
+  "screenshots": [
+    {
+      "original": "/system/screenshots/original/6bd6bcd45831dec851e029486d8b08bea5bd5615.jpg?1656089341",
+      "preview": "/system/screenshots/x332/6bd6bcd45831dec851e029486d8b08bea5bd5615.jpg?1656089341"
+    },
+    {
+      "original": "/system/screenshots/original/3d5d710f743d74634ba03a79c0ee0f03d41475ac.jpg?1656089344",
+      "preview": "/system/screenshots/x332/3d5d710f743d74634ba03a79c0ee0f03d41475ac.jpg?1656089344"
+    }
+  ],
+  "user_rate": null
+}

@@ -1,0 +1,314 @@
+[
+  {
+    "relation": "Adaptation",
+    "relation_russian": "Адаптация",
+    "anime": null,
+    "manga": {
+      "id": 23390,
+      "name": "Shingeki no Kyojin",
+      "russian": "Атака титанов",
+      "image": {
+        "original": "/system/mangas/original/23390.jpg?1708879475",
+        "preview": "/system/mangas/preview/23390.jpg?1708879475",
+        "x96": "/system/mangas/x96/23390.jpg?1708879475",
+        "x48": "/system/mangas/x48/23390.jpg?1708879475"
+      },
+      "url": "/mangas/23390-shingeki-no-kyojin",
+      "kind": "manga",
+      "score": "8.56",
+      "status": "released",
+      "volumes": 34,
+      "chapters": 141,
+      "aired_on": "2009-09-09",
+      "released_on": "2021-04-09"
+    }
+  },
+  {
+    "relation": "Summary",
+    "relation_russian": "Обобщение",
+    "anime": {
+      "id": 19285,
+      "name": "Shingeki no Kyojin: Ano Hi Kara",
+      "russian": "Атака титанов: Рекап",
+      "image": {
+        "original": "/system/animes/original/19285.jpg?1711973437",
+        "preview": "/system/animes/preview/19285.jpg?1711973437",
+        "x96": "/system/animes/x96/19285.jpg?1711973437",
+        "x48": "/system/animes/x48/19285.jpg?1711973437"
+      },
+      "url": "/animes/19285-shingeki-no-kyojin-ano-hi-kara",
+      "kind": "tv_special",
+      "score": "7.45",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2013-07-07",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 19391,
+      "name": "Shingeki no Kyojin Picture Drama",
+      "russian": "Атака титанов: Театр с монстрами — Вперёд, кадетский корпус!",
+      "image": {
+        "original": "/system/animes/original/19391.jpg?1711973474",
+        "preview": "/system/animes/preview/19391.jpg?1711973474",
+        "x96": "/system/animes/x96/19391.jpg?1711973474",
+        "x48": "/system/animes/x48/19391.jpg?1711973474"
+      },
+      "url": "/animes/19391-shingeki-no-kyojin-picture-drama",
+      "kind": "special",
+      "score": "6.63",
+      "status": "released",
+      "episodes": 9,
+      "episodes_aired": 0,
+      "aired_on": "2013-07-17",
+      "released_on": "2014-03-19"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 18397,
+      "name": "Shingeki no Kyojin OVA",
+      "russian": "Атака титанов OVA",
+      "image": {
+        "original": "/system/animes/original/18397.jpg?1711973466",
+        "preview": "/system/animes/preview/18397.jpg?1711973466",
+        "x96": "/system/animes/x96/18397.jpg?1711973466",
+        "x48": "/system/animes/x48/18397.jpg?1711973466"
+      },
+      "url": "/animes/18397-shingeki-no-kyojin-ova",
+      "kind": "ova",
+      "score": "7.89",
+      "status": "released",
+      "episodes": 3,
+      "episodes_aired": 3,
+      "aired_on": "2013-12-09",
+      "released_on": "2014-08-08"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Summary",
+    "relation_russian": "Обобщение",
+    "anime": {
+      "id": 23775,
+      "name": "Shingeki no Kyojin Movie 1: Guren no Yumiya",
+      "russian": "Атака титанов: Багровые луки и стрелы",
+      "image": {
+        "original": "/system/animes/original/23775.jpg?1711973465",
+        "preview": "/system/animes/preview/23775.jpg?1711973465",
+        "x96": "/system/animes/x96/23775.jpg?1711973465",
+        "x48": "/system/animes/x48/23775.jpg?1711973465"
+      },
+      "url": "/animes/23775-shingeki-no-kyojin-movie-1-guren-no-yumiya",
+      "kind": "movie",
+      "score": "7.89",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2014-11-22",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Spin-off",
+    "relation_russian": "Ответвление от оригинала",
+    "anime": {
+      "id": 25781,
+      "name": "Shingeki no Kyojin: Kuinaki Sentaku",
+      "russian": "Атака титанов: Выбор без сожалений",
+      "image": {
+        "original": "/system/animes/original/25781.jpg?1711973510",
+        "preview": "/system/animes/preview/25781.jpg?1711973510",
+        "x96": "/system/animes/x96/25781.jpg?1711973510",
+        "x48": "/system/animes/x48/25781.jpg?1711973510"
+      },
+      "url": "/animes/25781-shingeki-no-kyojin-kuinaki-sentaku",
+      "kind": "ova",
+      "score": "8.42",
+      "status": "released",
+      "episodes": 2,
+      "episodes_aired": 1,
+      "aired_on": "2014-12-09",
+      "released_on": "2015-04-09"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Summary",
+    "relation_russian": "Обобщение",
+    "anime": {
+      "id": 23777,
+      "name": "Shingeki no Kyojin Movie 2: Jiyuu no Tsubasa",
+      "russian": "Атака титанов: Крылья свободы",
+      "image": {
+        "original": "/system/animes/original/23777.jpg?1711973436",
+        "preview": "/system/animes/preview/23777.jpg?1711973436",
+        "x96": "/system/animes/x96/23777.jpg?1711973436",
+        "x48": "/system/animes/x48/23777.jpg?1711973436"
+      },
+      "url": "/animes/23777-shingeki-no-kyojin-movie-2-jiyuu-no-tsubasa",
+      "kind": "movie",
+      "score": "8.03",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2015-06-27",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Spin-off",
+    "relation_russian": "Ответвление от оригинала",
+    "anime": {
+      "id": 31374,
+      "name": "Shingeki! Kyojin Chuugakkou",
+      "russian": "Атака! Титаны средней школы",
+      "image": {
+        "original": "/system/animes/original/31374.jpg?1711973457",
+        "preview": "/system/animes/preview/31374.jpg?1711973457",
+        "x96": "/system/animes/x96/31374.jpg?1711973457",
+        "x48": "/system/animes/x48/31374.jpg?1711973457"
+      },
+      "url": "/animes/31374-shingeki-kyojin-chuugakkou",
+      "kind": "tv",
+      "score": "7.22",
+      "status": "released",
+      "episodes": 12,
+      "episodes_aired": 12,
+      "aired_on": "2015-10-04",
+      "released_on": "2015-12-20"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Sequel",
+    "relation_russian": "Продолжение",
+    "anime": {
+      "id": 25777,
+      "name": "Shingeki no Kyojin Season 2",
+      "russian": "Атака титанов 2",
+      "image": {
+        "original": "/system/animes/original/25777.jpg?1711973455",
+        "preview": "/system/animes/preview/25777.jpg?1711973455",
+        "x96": "/system/animes/x96/25777.jpg?1711973455",
+        "x48": "/system/animes/x48/25777.jpg?1711973455"
+      },
+      "url": "/animes/25777-shingeki-no-kyojin-season-2",
+      "kind": "tv",
+      "score": "8.54",
+      "status": "released",
+      "episodes": 12,
+      "episodes_aired": 12,
+      "aired_on": "2017-04-01",
+      "released_on": "2017-06-17"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 35122,
+      "name": "Shingeki no Kyotou",
+      "russian": "Атака титанов: Оборона Skytree",
+      "image": {
+        "original": "/system/animes/original/35122.jpg?1711973493",
+        "preview": "/system/animes/preview/35122.jpg?1711973493",
+        "x96": "/system/animes/x96/35122.jpg?1711973493",
+        "x48": "/system/animes/x48/35122.jpg?1711973493"
+      },
+      "url": "/animes/35122-shingeki-no-kyotou",
+      "kind": "movie",
+      "score": "6.38",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2017-04-10",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Spin-off",
+    "relation_russian": "Ответвление от оригинала",
+    "anime": {
+      "id": 36106,
+      "name": "Shingeki no Kyojin: Lost Girls",
+      "russian": "Атака титанов: Потерянные девушки",
+      "image": {
+        "original": "/system/animes/original/36106.jpg?1711973469",
+        "preview": "/system/animes/preview/36106.jpg?1711973469",
+        "x96": "/system/animes/x96/36106.jpg?1711973469",
+        "x48": "/system/animes/x48/36106.jpg?1711973469"
+      },
+      "url": "/animes/36106-shingeki-no-kyojin-lost-girls",
+      "kind": "ova",
+      "score": "7.83",
+      "status": "released",
+      "episodes": 3,
+      "episodes_aired": 3,
+      "aired_on": "2017-12-08",
+      "released_on": "2018-08-09"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Character",
+    "relation_russian": "Общий персонаж",
+    "anime": {
+      "id": 49739,
+      "name": "Snickers x Shingeki no Kyojin",
+      "russian": "Атака титанов x Сникерс",
+      "image": {
+        "original": "/system/animes/original/49739.jpg?1706499231",
+        "preview": "/system/animes/preview/49739.jpg?1706499231",
+        "x96": "/system/animes/x96/49739.jpg?1706499231",
+        "x48": "/system/animes/x48/49739.jpg?1706499231"
+      },
+      "url": "/animes/49739-snickers-x-shingeki-no-kyojin",
+      "kind": "cm",
+      "score": "6.0",
+      "status": "released",
+      "episodes": 2,
+      "episodes_aired": 0,
+      "aired_on": "2019-10-01",
+      "released_on": "2019-11-01"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Summary",
+    "relation_russian": "Обобщение",
+    "anime": {
+      "id": 42091,
+      "name": "Shingeki no Kyojin: Chronicle",
+      "russian": "Атака титанов: Хроника",
+      "image": {
+        "original": "/system/animes/original/42091.jpg?1711973475",
+        "preview": "/system/animes/preview/42091.jpg?1711973475",
+        "x96": "/system/animes/x96/42091.jpg?1711973475",
+        "x48": "/system/animes/x48/42091.jpg?1711973475"
+      },
+      "url": "/animes/42091-shingeki-no-kyojin-chronicle",
+      "kind": "movie",
+      "score": "7.85",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2020-07-17",
+      "released_on": null
+    },
+    "manga": null
+  }
+]

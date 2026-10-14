@@ -1,0 +1,1171 @@
+{
+  "links": [
+    {
+      "id": 47791841,
+      "source_id": 918,
+      "target_id": 2951,
+      "source": 37,
+      "target": 38,
+      "weight": 17,
+      "relation": "side_story"
+    },
+    {
+      "id": 47791842,
+      "source_id": 918,
+      "target_id": 6945,
+      "source": 37,
+      "target": 36,
+      "weight": 17,
+      "relation": "side_story"
+    },
+    {
+      "id": 47791847,
+      "source_id": 918,
+      "target_id": 7472,
+      "source": 37,
+      "target": 34,
+      "weight": 17,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 47791839,
+      "source_id": 918,
+      "target_id": 9969,
+      "source": 37,
+      "target": 32,
+      "weight": 17,
+      "relation": "sequel"
+    },
+    {
+      "id": 47791843,
+      "source_id": 918,
+      "target_id": 10643,
+      "source": 37,
+      "target": 35,
+      "weight": 17,
+      "relation": "side_story"
+    },
+    {
+      "id": 47791851,
+      "source_id": 918,
+      "target_id": 15335,
+      "source": 37,
+      "target": 29,
+      "weight": 17,
+      "relation": "other"
+    },
+    {
+      "id": 47791852,
+      "source_id": 918,
+      "target_id": 19261,
+      "source": 37,
+      "target": 28,
+      "weight": 17,
+      "relation": "other"
+    },
+    {
+      "id": 47791848,
+      "source_id": 918,
+      "target_id": 21899,
+      "source": 37,
+      "target": 31,
+      "weight": 17,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 47791844,
+      "source_id": 918,
+      "target_id": 25313,
+      "source": 37,
+      "target": 27,
+      "weight": 17,
+      "relation": "side_story"
+    },
+    {
+      "id": 47791845,
+      "source_id": 918,
+      "target_id": 32122,
+      "source": 37,
+      "target": 25,
+      "weight": 17,
+      "relation": "side_story"
+    },
+    {
+      "id": 47791853,
+      "source_id": 918,
+      "target_id": 37864,
+      "source": 37,
+      "target": 20,
+      "weight": 17,
+      "relation": "other"
+    },
+    {
+      "id": 47791850,
+      "source_id": 918,
+      "target_id": 40323,
+      "source": 37,
+      "target": 18,
+      "weight": 17,
+      "relation": "character"
+    },
+    {
+      "id": 47791846,
+      "source_id": 918,
+      "target_id": 54757,
+      "source": 37,
+      "target": 1,
+      "weight": 17,
+      "relation": "spin_off"
+    },
+    {
+      "id": 47791854,
+      "source_id": 918,
+      "target_id": 54761,
+      "source": 37,
+      "target": 9,
+      "weight": 17,
+      "relation": "other"
+    },
+    {
+      "id": 47791855,
+      "source_id": 918,
+      "target_id": 57670,
+      "source": 37,
+      "target": 7,
+      "weight": 17,
+      "relation": "other"
+    },
+    {
+      "id": 47791849,
+      "source_id": 918,
+      "target_id": 62277,
+      "source": 37,
+      "target": 0,
+      "weight": 17,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 47791856,
+      "source_id": 918,
+      "target_id": 62640,
+      "source": 37,
+      "target": 2,
+      "weight": 17,
+      "relation": "other"
+    },
+    {
+      "id": 48895736,
+      "source_id": 62277,
+      "target_id": 918,
+      "source": 0,
+      "target": 37,
+      "weight": 1,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 48179034,
+      "source_id": 37864,
+      "target_id": 918,
+      "source": 20,
+      "target": 37,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 47855957,
+      "source_id": 54761,
+      "target_id": 918,
+      "source": 9,
+      "target": 37,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 47855958,
+      "source_id": 54761,
+      "target_id": 54757,
+      "source": 9,
+      "target": 1,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 47855963,
+      "source_id": 54757,
+      "target_id": 918,
+      "source": 1,
+      "target": 37,
+      "weight": 2,
+      "relation": "parent_story"
+    },
+    {
+      "id": 47855964,
+      "source_id": 54757,
+      "target_id": 54761,
+      "source": 1,
+      "target": 9,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48113129,
+      "source_id": 32122,
+      "target_id": 28977,
+      "source": 25,
+      "target": 26,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 47936105,
+      "source_id": 40323,
+      "target_id": 918,
+      "source": 18,
+      "target": 37,
+      "weight": 1,
+      "relation": "character"
+    },
+    {
+      "id": 48051425,
+      "source_id": 10643,
+      "target_id": 918,
+      "source": 35,
+      "target": 37,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48035603,
+      "source_id": 7472,
+      "target_id": 918,
+      "source": 34,
+      "target": 37,
+      "weight": 2,
+      "relation": "alternative_version"
+    },
+    {
+      "id": 48035604,
+      "source_id": 7472,
+      "target_id": 9735,
+      "source": 34,
+      "target": 33,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48018754,
+      "source_id": 6945,
+      "target_id": 918,
+      "source": 36,
+      "target": 37,
+      "weight": 3,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48018755,
+      "source_id": 6945,
+      "target_id": 2951,
+      "source": 36,
+      "target": 38,
+      "weight": 3,
+      "relation": "other"
+    },
+    {
+      "id": 48018756,
+      "source_id": 6945,
+      "target_id": 25313,
+      "source": 36,
+      "target": 27,
+      "weight": 3,
+      "relation": "other"
+    },
+    {
+      "id": 47935467,
+      "source_id": 21899,
+      "target_id": 918,
+      "source": 31,
+      "target": 37,
+      "weight": 2,
+      "relation": "parent_story"
+    },
+    {
+      "id": 47935468,
+      "source_id": 21899,
+      "target_id": 9969,
+      "source": 31,
+      "target": 32,
+      "weight": 2,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48036136,
+      "source_id": 9969,
+      "target_id": 918,
+      "source": 32,
+      "target": 37,
+      "weight": 4,
+      "relation": "prequel"
+    },
+    {
+      "id": 48036137,
+      "source_id": 9969,
+      "target_id": 15417,
+      "source": 32,
+      "target": 30,
+      "weight": 4,
+      "relation": "sequel"
+    },
+    {
+      "id": 48036139,
+      "source_id": 9969,
+      "target_id": 21899,
+      "source": 32,
+      "target": 31,
+      "weight": 4,
+      "relation": "summary"
+    },
+    {
+      "id": 48036140,
+      "source_id": 9969,
+      "target_id": 56544,
+      "source": 32,
+      "target": 8,
+      "weight": 4,
+      "relation": "summary"
+    },
+    {
+      "id": 48083355,
+      "source_id": 25313,
+      "target_id": 15417,
+      "source": 27,
+      "target": 30,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48898549,
+      "source_id": 57670,
+      "target_id": 918,
+      "source": 7,
+      "target": 37,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 47966577,
+      "source_id": 2951,
+      "target_id": 918,
+      "source": 38,
+      "target": 37,
+      "weight": 3,
+      "relation": "parent_story"
+    },
+    {
+      "id": 47966578,
+      "source_id": 2951,
+      "target_id": 6945,
+      "source": 38,
+      "target": 36,
+      "weight": 3,
+      "relation": "other"
+    },
+    {
+      "id": 47966579,
+      "source_id": 2951,
+      "target_id": 25313,
+      "source": 38,
+      "target": 27,
+      "weight": 3,
+      "relation": "other"
+    },
+    {
+      "id": 48052663,
+      "source_id": 15335,
+      "target_id": 15417,
+      "source": 29,
+      "target": 30,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48895476,
+      "source_id": 62640,
+      "target_id": 918,
+      "source": 2,
+      "target": 37,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48895477,
+      "source_id": 62640,
+      "target_id": 50789,
+      "source": 2,
+      "target": 11,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 47671869,
+      "source_id": 56544,
+      "target_id": 9969,
+      "source": 8,
+      "target": 32,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 47983796,
+      "source_id": 50789,
+      "target_id": 51465,
+      "source": 11,
+      "target": 13,
+      "weight": 6,
+      "relation": "side_story"
+    },
+    {
+      "id": 47983793,
+      "source_id": 50789,
+      "target_id": 51525,
+      "source": 11,
+      "target": 12,
+      "weight": 6,
+      "relation": "prequel"
+    },
+    {
+      "id": 47983794,
+      "source_id": 50789,
+      "target_id": 53766,
+      "source": 11,
+      "target": 10,
+      "weight": 6,
+      "relation": "sequel"
+    },
+    {
+      "id": 47983797,
+      "source_id": 50789,
+      "target_id": 55394,
+      "source": 11,
+      "target": 17,
+      "weight": 6,
+      "relation": "other"
+    },
+    {
+      "id": 47983795,
+      "source_id": 50789,
+      "target_id": 57753,
+      "source": 11,
+      "target": 6,
+      "weight": 6,
+      "relation": "sequel"
+    },
+    {
+      "id": 47983798,
+      "source_id": 50789,
+      "target_id": 62640,
+      "source": 11,
+      "target": 2,
+      "weight": 6,
+      "relation": "other"
+    },
+    {
+      "id": 48036002,
+      "source_id": 9735,
+      "target_id": 7472,
+      "source": 33,
+      "target": 34,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48052762,
+      "source_id": 15417,
+      "target_id": 9969,
+      "source": 30,
+      "target": 32,
+      "weight": 6,
+      "relation": "prequel"
+    },
+    {
+      "id": 48052765,
+      "source_id": 15417,
+      "target_id": 15335,
+      "source": 30,
+      "target": 29,
+      "weight": 6,
+      "relation": "side_story"
+    },
+    {
+      "id": 48052766,
+      "source_id": 15417,
+      "target_id": 25313,
+      "source": 30,
+      "target": 27,
+      "weight": 6,
+      "relation": "side_story"
+    },
+    {
+      "id": 48052763,
+      "source_id": 15417,
+      "target_id": 28977,
+      "source": 30,
+      "target": 26,
+      "weight": 6,
+      "relation": "sequel"
+    },
+    {
+      "id": 48052767,
+      "source_id": 15417,
+      "target_id": 58091,
+      "source": 30,
+      "target": 4,
+      "weight": 6,
+      "relation": "summary"
+    },
+    {
+      "id": 48052768,
+      "source_id": 15417,
+      "target_id": 59688,
+      "source": 30,
+      "target": 3,
+      "weight": 6,
+      "relation": "summary"
+    },
+    {
+      "id": 47821764,
+      "source_id": 28977,
+      "target_id": 15417,
+      "source": 26,
+      "target": 30,
+      "weight": 4,
+      "relation": "prequel"
+    },
+    {
+      "id": 47821767,
+      "source_id": 28977,
+      "target_id": 32122,
+      "source": 26,
+      "target": 25,
+      "weight": 4,
+      "relation": "side_story"
+    },
+    {
+      "id": 47821768,
+      "source_id": 28977,
+      "target_id": 32366,
+      "source": 26,
+      "target": 24,
+      "weight": 4,
+      "relation": "side_story"
+    },
+    {
+      "id": 47821765,
+      "source_id": 28977,
+      "target_id": 34096,
+      "source": 26,
+      "target": 23,
+      "weight": 4,
+      "relation": "sequel"
+    },
+    {
+      "id": 48898338,
+      "source_id": 58091,
+      "target_id": 15417,
+      "source": 4,
+      "target": 30,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 47270184,
+      "source_id": 53766,
+      "target_id": 50789,
+      "source": 10,
+      "target": 11,
+      "weight": 1,
+      "relation": "prequel"
+    },
+    {
+      "id": 47727933,
+      "source_id": 55394,
+      "target_id": 50789,
+      "source": 17,
+      "target": 11,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 47727934,
+      "source_id": 55394,
+      "target_id": 58792,
+      "source": 17,
+      "target": 5,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48178536,
+      "source_id": 32366,
+      "target_id": 28977,
+      "source": 24,
+      "target": 26,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48897463,
+      "source_id": 59688,
+      "target_id": 15417,
+      "source": 3,
+      "target": 30,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48485089,
+      "source_id": 51525,
+      "target_id": 50789,
+      "source": 12,
+      "target": 11,
+      "weight": 1,
+      "relation": "sequel"
+    },
+    {
+      "id": 48485053,
+      "source_id": 51465,
+      "target_id": 50789,
+      "source": 13,
+      "target": 11,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48898532,
+      "source_id": 57753,
+      "target_id": 50789,
+      "source": 6,
+      "target": 11,
+      "weight": 1,
+      "relation": "prequel"
+    },
+    {
+      "id": 48178711,
+      "source_id": 34096,
+      "target_id": 28977,
+      "source": 23,
+      "target": 26,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48178712,
+      "source_id": 34096,
+      "target_id": 35843,
+      "source": 23,
+      "target": 22,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48898017,
+      "source_id": 58792,
+      "target_id": 55394,
+      "source": 5,
+      "target": 17,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48222445,
+      "source_id": 35843,
+      "target_id": 34096,
+      "source": 22,
+      "target": 23,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48222446,
+      "source_id": 35843,
+      "target_id": 36838,
+      "source": 22,
+      "target": 21,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48178950,
+      "source_id": 36838,
+      "target_id": 35843,
+      "source": 21,
+      "target": 22,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48178951,
+      "source_id": 36838,
+      "target_id": 37491,
+      "source": 21,
+      "target": 19,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48162669,
+      "source_id": 37491,
+      "target_id": 36838,
+      "source": 19,
+      "target": 21,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48162670,
+      "source_id": 37491,
+      "target_id": 44087,
+      "source": 19,
+      "target": 14,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48194047,
+      "source_id": 44087,
+      "target_id": 37491,
+      "source": 14,
+      "target": 19,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48194048,
+      "source_id": 44087,
+      "target_id": 39486,
+      "source": 14,
+      "target": 15,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48179560,
+      "source_id": 39486,
+      "target_id": 44087,
+      "source": 15,
+      "target": 14,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48179562,
+      "source_id": 39486,
+      "target_id": 48436,
+      "source": 15,
+      "target": 16,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 47936284,
+      "source_id": 48436,
+      "target_id": 39486,
+      "source": 16,
+      "target": 15,
+      "weight": 1,
+      "relation": "other"
+    }
+  ],
+  "nodes": [
+    {
+      "id": 62277,
+      "date": 1770930000,
+      "name": "Гинтама: Ёшивара в огне",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/62277-gintama-movie-3-yoshiwara-daienjou",
+      "year": 2026,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 54757,
+      "date": 1759784400,
+      "name": "Гинтама: 3-Z класс Гинпачи-сэнсэя",
+      "image_url": "https://shikimori.io/system/animes/x96/54757.jpg?1718912834",
+      "url": "/animes/54757-3-nen-z-gumi-ginpachi-sensei",
+      "year": 2025,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 62640,
+      "date": 1759438800,
+      "name": "Душа маджонга и Гинтама",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/62640-jantama-x-gintama-collab-kettei-promotion-anime",
+      "year": 2025,
+      "kind": "Проморолик",
+      "weight": 2
+    },
+    {
+      "id": 59688,
+      "date": 1732222800,
+      "name": "Гинтама в кино: Кинтама",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/59688-gintama-on-theater-2d-kintama-hen",
+      "year": 2024,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 58091,
+      "date": 1718917200,
+      "name": "Гинтама в кино: Куртизанка нации",
+      "image_url": "https://shikimori.io/system/animes/x96/58091.jpg?1717529690",
+      "url": "/animes/58091-gintama-on-theater-2d-ikkoku-keisei-hen",
+      "year": 2024,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 58792,
+      "date": 1713992400,
+      "name": "Душа маджонга: Пятая годовщина",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/58792-jantama-5-shuunen-kinen-pv",
+      "year": 2024,
+      "kind": "Проморолик",
+      "weight": 1
+    },
+    {
+      "id": 57753,
+      "date": 1713992400,
+      "name": "Душа маджонга: Кан!",
+      "image_url": "https://shikimori.io/system/animes/x96/57753.jpg?1718889351",
+      "url": "/animes/57753-jantama-kan",
+      "year": 2024,
+      "kind": "ONA",
+      "weight": 1
+    },
+    {
+      "id": 57670,
+      "date": 1701378000,
+      "name": "Гинтама x «Мета Квест 3»",
+      "image_url": "https://shikimori.io/system/animes/x96/57670.jpg?1715715506",
+      "url": "/animes/57670-gintama-x-meta-quest-3-collaboration-cm",
+      "year": 2023,
+      "kind": "Реклама",
+      "weight": 1
+    },
+    {
+      "id": 56544,
+      "date": 1699563600,
+      "name": "Гинтама в кино: Барагаки",
+      "image_url": "https://shikimori.io/system/animes/x96/56544.jpg?1711396863",
+      "url": "/animes/56544-gintama-on-theater-2d-baragaki-hen",
+      "year": 2023,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 54761,
+      "date": 1679173200,
+      "name": "Гинтама: 3-Z класс Гинпачи-сэнсэя — Спецвыпуск",
+      "image_url": "https://shikimori.io/system/animes/x96/54761.jpg?1714353038",
+      "url": "/animes/54761-3-nen-z-gumi-ginpachi-sensei-announcement-special",
+      "year": 2023,
+      "kind": "Спецвыпуск",
+      "weight": 2
+    },
+    {
+      "id": 53766,
+      "date": 1666731600,
+      "name": "Душа маджонга: Пон — Спецвыпуск",
+      "image_url": "https://shikimori.io/system/animes/x96/53766.jpg?1711934808",
+      "url": "/animes/53766-jantama-pong-special",
+      "year": 2022,
+      "kind": "Спецвыпуск",
+      "weight": 1
+    },
+    {
+      "id": 50789,
+      "date": 1649451600,
+      "name": "Душа маджонга: Пон",
+      "image_url": "https://shikimori.io/system/animes/x96/50789.jpg?1716776600",
+      "url": "/animes/50789-jantama-pong",
+      "year": 2022,
+      "kind": "TV Сериал",
+      "weight": 6
+    },
+    {
+      "id": 51525,
+      "date": 1648760400,
+      "name": "Душа маджонга: Пон — Эпизод 0",
+      "image_url": "https://shikimori.io/system/animes/x96/51525.jpg?1716775764",
+      "url": "/animes/51525-jantama-pong-episode-0",
+      "year": 2022,
+      "kind": "Спецвыпуск",
+      "weight": 1
+    },
+    {
+      "id": 51465,
+      "date": 1648501200,
+      "name": "Душа маджонга: Пон ONA",
+      "image_url": "https://shikimori.io/system/animes/x96/51465.jpg?1716775859",
+      "url": "/animes/51465-jantama-pong-web-special",
+      "year": 2022,
+      "kind": "ONA",
+      "weight": 1
+    },
+    {
+      "id": 44087,
+      "date": 1610658000,
+      "name": "Гинтама: Полуфинал",
+      "image_url": "https://shikimori.io/system/animes/x96/44087.jpg?1711951376",
+      "url": "/animes/44087-gintama-the-semi-final",
+      "year": 2021,
+      "kind": "Спецвыпуск",
+      "weight": 2
+    },
+    {
+      "id": 39486,
+      "date": 1610053200,
+      "name": "Гинтама: Финал",
+      "image_url": "https://shikimori.io/system/animes/x96/39486.jpg?1711951459",
+      "url": "/animes/39486-gintama-the-final",
+      "year": 2021,
+      "kind": "Фильм",
+      "weight": 2
+    },
+    {
+      "id": 48436,
+      "date": 1606856400,
+      "name": "Гинтама: Финал x Фасоль",
+      "image_url": "https://shikimori.io/system/animes/x96/48436.jpg?1708739282",
+      "url": "/animes/48436-gintama-the-final-x-mameshiba",
+      "year": 2020,
+      "kind": "Реклама",
+      "weight": 1
+    },
+    {
+      "id": 55394,
+      "date": 1592773200,
+      "name": "Душа маджонга: Реклама",
+      "image_url": "https://shikimori.io/system/animes/x96/55394.jpg?1718812132",
+      "url": "/animes/55394-jantama-cms",
+      "year": 2020,
+      "kind": "Реклама",
+      "weight": 2
+    },
+    {
+      "id": 40323,
+      "date": 1567026000,
+      "name": "Гинтама x Удар монстра",
+      "image_url": "https://shikimori.io/system/animes/x96/40323.jpg?1711951404",
+      "url": "/animes/z40323-gintama-monster-strike-hen",
+      "year": 2019,
+      "kind": "ONA",
+      "weight": 1
+    },
+    {
+      "id": 37491,
+      "date": 1531083600,
+      "name": "Гинтама 8",
+      "image_url": "https://shikimori.io/system/animes/x96/37491.jpg?1711951341",
+      "url": "/animes/37491-gintama-shirogane-no-tamashii-hen-kouhan-sen",
+      "year": 2018,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 37864,
+      "date": 1525813200,
+      "name": "Гинтама и KFC Китай",
+      "image_url": "https://shikimori.io/system/animes/x96/37864.jpg?1711982563",
+      "url": "/animes/37864-yinhun-x-kfc",
+      "year": 2018,
+      "kind": "Реклама",
+      "weight": 1
+    },
+    {
+      "id": 36838,
+      "date": 1515358800,
+      "name": "Гинтама 7",
+      "image_url": "https://shikimori.io/system/animes/x96/36838.jpg?1711951349",
+      "url": "/animes/36838-gintama-shirogane-no-tamashii-hen",
+      "year": 2018,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 35843,
+      "date": 1506891600,
+      "name": "Гинтама 6",
+      "image_url": "https://shikimori.io/system/animes/x96/35843.jpg?1711951375",
+      "url": "/animes/z35843-gintama-porori-hen",
+      "year": 2017,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 34096,
+      "date": 1483909200,
+      "name": "Гинтама 5",
+      "image_url": "https://shikimori.io/system/animes/x96/34096.jpg?1711951316",
+      "url": "/animes/z34096-gintama",
+      "year": 2017,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 32366,
+      "date": 1470258000,
+      "name": "Гинтама 4: Любовные благовония",
+      "image_url": "https://shikimori.io/system/animes/x96/32366.jpg?1711951355",
+      "url": "/animes/32366-gintama-aizome-kaori-hen",
+      "year": 2016,
+      "kind": "OVA",
+      "weight": 1
+    },
+    {
+      "id": 32122,
+      "date": 1446498000,
+      "name": "Гинтама: Джамп Феста 2015",
+      "image_url": "https://shikimori.io/system/animes/x96/32122.jpg?1711951347",
+      "url": "/animes/32122-gintama-umai-mono-wa-atomawashi-ni-suru-to-yokodorisareru-kara-yappari-saki-ni-kue",
+      "year": 2015,
+      "kind": "Спецвыпуск",
+      "weight": 1
+    },
+    {
+      "id": 28977,
+      "date": 1428440400,
+      "name": "Гинтама 4",
+      "image_url": "https://shikimori.io/system/animes/x96/28977.jpg?1711951367",
+      "url": "/animes/z28977-gintama",
+      "year": 2015,
+      "kind": "TV Сериал",
+      "weight": 4
+    },
+    {
+      "id": 25313,
+      "date": 1428008400,
+      "name": "Гинтама: Джамп Феста 2014",
+      "image_url": "https://shikimori.io/system/animes/x96/25313.jpg?1711951356",
+      "url": "/animes/25313-gintama-futon-ni-haitte-kara-buki-nokoshi-ni-kizuite-neru-ni-nerenai-toki-mo-aru",
+      "year": 2015,
+      "kind": "Спецвыпуск",
+      "weight": 1
+    },
+    {
+      "id": 19261,
+      "date": 1386014400,
+      "name": "Гинтама x Фасоль",
+      "image_url": "https://shikimori.io/system/animes/x96/19261.jpg?1711951303",
+      "url": "/animes/19261-gintama-x-mameshiba",
+      "year": 2013,
+      "kind": "Реклама",
+      "weight": 0
+    },
+    {
+      "id": 15335,
+      "date": 1373054400,
+      "name": "Гинтама: Финальная арка — Ёродзуя навсегда!",
+      "image_url": "https://shikimori.io/system/animes/x96/15335.jpg?1711951370",
+      "url": "/animes/z15335-gintama-movie-2-kanketsu-hen-yorozuya-yo-eien-nare",
+      "year": 2013,
+      "kind": "Фильм",
+      "weight": 1
+    },
+    {
+      "id": 15417,
+      "date": 1349294400,
+      "name": "Гинтама 3",
+      "image_url": "https://shikimori.io/system/animes/x96/15417.jpg?1711951342",
+      "url": "/animes/z15417-gintama-enchousen",
+      "year": 2012,
+      "kind": "TV Сериал",
+      "weight": 6
+    },
+    {
+      "id": 21899,
+      "date": 1345924800,
+      "name": "Гинтама: Лучшее из «Гинтамы» в кино",
+      "image_url": "https://shikimori.io/system/animes/x96/21899.jpg?1711951338",
+      "url": "/animes/21899-gintama-yorinuki-gintama-san-on-theater-2d",
+      "year": 2012,
+      "kind": "Фильм",
+      "weight": 2
+    },
+    {
+      "id": 9969,
+      "date": 1301860800,
+      "name": "Гинтама 2",
+      "image_url": "https://shikimori.io/system/animes/x96/9969.jpg?1711951325",
+      "url": "/animes/z9969-gintama",
+      "year": 2011,
+      "kind": "TV Сериал",
+      "weight": 4
+    },
+    {
+      "id": 9735,
+      "date": 1292360400,
+      "name": "Гинтама: Сказание о Бэнидзакуре — Дополнение",
+      "image_url": "https://shikimori.io/system/animes/x96/9735.jpg?1711952115",
+      "url": "/animes/9735-gintama-shinyaku-benizakura-hen",
+      "year": 2010,
+      "kind": "Спецвыпуск",
+      "weight": 1
+    },
+    {
+      "id": 7472,
+      "date": 1272052800,
+      "name": "Гинтама: Сказание о Бэнидзакуре",
+      "image_url": "https://shikimori.io/system/animes/x96/7472.jpg?1711951382",
+      "url": "/animes/z7472-gintama-movie-1-shinyaku-benizakura-hen",
+      "year": 2010,
+      "kind": "Фильм",
+      "weight": 2
+    },
+    {
+      "id": 10643,
+      "date": 1269464400,
+      "name": "Гинтама: Грандиозное собрание",
+      "image_url": "https://shikimori.io/system/animes/x96/10643.jpg?1711951346",
+      "url": "/animes/z10643-gintama-dai-hanseikai",
+      "year": 2010,
+      "kind": "Спецвыпуск",
+      "weight": 1
+    },
+    {
+      "id": 6945,
+      "date": 1221940800,
+      "name": "Гинтама: Рождение Белого Демона",
+      "image_url": "https://shikimori.io/system/animes/x96/6945.jpg?1711951393",
+      "url": "/animes/z6945-gintama-shiroyasha-koutan",
+      "year": 2008,
+      "kind": "Спецвыпуск",
+      "weight": 3
+    },
+    {
+      "id": 918,
+      "date": 1144094400,
+      "name": "Гинтама",
+      "image_url": "https://shikimori.io/system/animes/x96/918.jpg?1711951372",
+      "url": "/animes/z918-gintama",
+      "year": 2006,
+      "kind": "TV Сериал",
+      "weight": 17
+    },
+    {
+      "id": 2951,
+      "date": 1127505600,
+      "name": "Гинтама: Джамп Феста 2005",
+      "image_url": "https://shikimori.io/system/animes/x96/2951.jpg?1711951329",
+      "url": "/animes/z2951-gintama-nanigoto-mo-saisho-ga-kanjin-nanode-tashou-senobisuru-kurai-ga-choudoyoi",
+      "year": 2005,
+      "kind": "Спецвыпуск",
+      "weight": 3
+    }
+  ],
+  "current_id": 918
+}

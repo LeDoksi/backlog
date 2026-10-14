@@ -1,0 +1,185 @@
+{
+  "links": [
+    {
+      "id": 47999858,
+      "source_id": 52991,
+      "target_id": 56805,
+      "source": 6,
+      "target": 5,
+      "weight": 4,
+      "relation": "other"
+    },
+    {
+      "id": 47999857,
+      "source_id": 52991,
+      "target_id": 56885,
+      "source": 6,
+      "target": 4,
+      "weight": 4,
+      "relation": "side_story"
+    },
+    {
+      "id": 47999859,
+      "source_id": 52991,
+      "target_id": 58313,
+      "source": 6,
+      "target": 3,
+      "weight": 4,
+      "relation": "other"
+    },
+    {
+      "id": 47999855,
+      "source_id": 52991,
+      "target_id": 59978,
+      "source": 6,
+      "target": 1,
+      "weight": 4,
+      "relation": "sequel"
+    },
+    {
+      "id": 48898259,
+      "source_id": 58313,
+      "target_id": 52991,
+      "source": 3,
+      "target": 6,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48898260,
+      "source_id": 58313,
+      "target_id": 60462,
+      "source": 3,
+      "target": 2,
+      "weight": 2,
+      "relation": "other"
+    },
+    {
+      "id": 48897252,
+      "source_id": 59978,
+      "target_id": 52991,
+      "source": 1,
+      "target": 6,
+      "weight": 2,
+      "relation": "prequel"
+    },
+    {
+      "id": 48897253,
+      "source_id": 59978,
+      "target_id": 63816,
+      "source": 1,
+      "target": 0,
+      "weight": 2,
+      "relation": "sequel"
+    },
+    {
+      "id": 48423054,
+      "source_id": 56885,
+      "target_id": 52991,
+      "source": 4,
+      "target": 6,
+      "weight": 1,
+      "relation": "parent_story"
+    },
+    {
+      "id": 48423090,
+      "source_id": 56805,
+      "target_id": 52991,
+      "source": 5,
+      "target": 6,
+      "weight": 1,
+      "relation": "other"
+    },
+    {
+      "id": 48931169,
+      "source_id": 63816,
+      "target_id": 59978,
+      "source": 0,
+      "target": 1,
+      "weight": 1,
+      "relation": "prequel"
+    },
+    {
+      "id": 48896897,
+      "source_id": 60462,
+      "target_id": 58313,
+      "source": 2,
+      "target": 3,
+      "weight": 1,
+      "relation": "other"
+    }
+  ],
+  "nodes": [
+    {
+      "id": 63816,
+      "date": 1822338000,
+      "name": "Провожающая в последний путь Фрирен: Золотая земля",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/63816-sousou-no-frieren-ougonkyou-hen",
+      "year": 2027,
+      "kind": "TV Сериал",
+      "weight": 1
+    },
+    {
+      "id": 59978,
+      "date": 1768510800,
+      "name": "Провожающая в последний путь Фрирен 2",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/59978-sousou-no-frieren-2nd-season",
+      "year": 2026,
+      "kind": "TV Сериал",
+      "weight": 2
+    },
+    {
+      "id": 60462,
+      "date": 1733259600,
+      "name": "Пойте вместе с SUI",
+      "image_url": "https://shikimori.io/assets/globals/missing_x96.jpg",
+      "url": "/animes/60462-sui-to-utaeba",
+      "year": 2024,
+      "kind": "Реклама",
+      "weight": 1
+    },
+    {
+      "id": 58313,
+      "date": 1709586000,
+      "name": "Солнечный",
+      "image_url": "https://shikimori.io/system/animes/x96/58313.jpg?1717702311",
+      "url": "/animes/58313-haru-2024",
+      "year": 2024,
+      "kind": "Клип",
+      "weight": 2
+    },
+    {
+      "id": 56885,
+      "date": 1696971600,
+      "name": "Провожающая в последний путь Фрирен: Магия ●●",
+      "image_url": "https://shikimori.io/system/animes/x96/56885.jpg?1718913269",
+      "url": "/animes/56885-sousou-no-frieren-no-mahou",
+      "year": 2023,
+      "kind": "ONA",
+      "weight": 1
+    },
+    {
+      "id": 56805,
+      "date": 1695934800,
+      "name": "Герой",
+      "image_url": "https://shikimori.io/system/animes/x96/56805.jpg?1712951814",
+      "url": "/animes/56805-yuusha",
+      "year": 2023,
+      "kind": "Клип",
+      "weight": 1
+    },
+    {
+      "id": 52991,
+      "date": 1695934800,
+      "name": "Провожающая в последний путь Фрирен",
+      "image_url": "https://shikimori.io/system/animes/x96/52991.jpg?1710731127",
+      "url": "/animes/52991-sousou-no-frieren",
+      "year": 2023,
+      "kind": "TV Сериал",
+      "weight": 4
+    }
+  ],
+  "current_id": 52991
+}

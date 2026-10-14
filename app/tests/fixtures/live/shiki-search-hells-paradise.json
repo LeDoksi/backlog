@@ -1,0 +1,192 @@
+[
+  {
+    "id": 46569,
+    "name": "Jigokuraku",
+    "russian": "Адский рай",
+    "image": {
+      "original": "/system/animes/original/46569.jpg?1711955691",
+      "preview": "/system/animes/preview/46569.jpg?1711955691",
+      "x96": "/system/animes/x96/46569.jpg?1711955691",
+      "x48": "/system/animes/x48/46569.jpg?1711955691"
+    },
+    "url": "/animes/46569-jigokuraku",
+    "kind": "tv",
+    "score": "8.08",
+    "status": "released",
+    "episodes": 13,
+    "episodes_aired": 13,
+    "aired_on": "2023-04-01",
+    "released_on": "2023-07-01"
+  },
+  {
+    "id": 55825,
+    "name": "Jigokuraku 2nd Season",
+    "russian": "Адский рай 2",
+    "image": {
+      "original": "/system/animes/original/55825.jpg?1712184582",
+      "preview": "/system/animes/preview/55825.jpg?1712184582",
+      "x96": "/system/animes/x96/55825.jpg?1712184582",
+      "x48": "/system/animes/x48/55825.jpg?1712184582"
+    },
+    "url": "/animes/55825-jigokuraku-2nd-season",
+    "kind": "tv",
+    "score": "8.17",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2026-01-11",
+    "released_on": "2026-03-29"
+  },
+  {
+    "id": 4353,
+    "name": "Gakuen Heaven: Hamu Hamu Heaven",
+    "russian": "Райская школа: Хаму-хаму рай",
+    "image": {
+      "original": "/system/animes/original/4353.jpg?1711950172",
+      "preview": "/system/animes/preview/4353.jpg?1711950172",
+      "x96": "/system/animes/x96/4353.jpg?1711950172",
+      "x48": "/system/animes/x48/4353.jpg?1711950172"
+    },
+    "url": "/animes/4353-gakuen-heaven-hamu-hamu-heaven",
+    "kind": "special",
+    "score": "6.62",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 0,
+    "aired_on": "2006-07-07",
+    "released_on": "2006-12-08"
+  },
+  {
+    "id": 4618,
+    "name": "RideBack",
+    "russian": "Райдбэк",
+    "image": {
+      "original": "/system/animes/original/4618.jpg?1711970833",
+      "preview": "/system/animes/preview/4618.jpg?1711970833",
+      "x96": "/system/animes/x96/4618.jpg?1711970833",
+      "x48": "/system/animes/x48/4618.jpg?1711970833"
+    },
+    "url": "/animes/4618-rideback",
+    "kind": "tv",
+    "score": "7.26",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 0,
+    "aired_on": "2009-01-12",
+    "released_on": "2009-03-30"
+  },
+  {
+    "id": 3490,
+    "name": "Rayca",
+    "russian": "Райка",
+    "image": {
+      "original": "/system/animes/original/3490.jpg?1711970064",
+      "preview": "/system/animes/preview/3490.jpg?1711970064",
+      "x96": "/system/animes/x96/3490.jpg?1711970064",
+      "x48": "/system/animes/x48/3490.jpg?1711970064"
+    },
+    "url": "/animes/3490-rayca",
+    "kind": "ova",
+    "score": "4.71",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2002-03-05",
+    "released_on": null
+  },
+  {
+    "id": 50698,
+    "name": "Paradise (Music)",
+    "russian": "Рай",
+    "image": {
+      "original": "/system/animes/original/50698.jpg?1716776635",
+      "preview": "/system/animes/preview/50698.jpg?1716776635",
+      "x96": "/system/animes/x96/50698.jpg?1716776635",
+      "x48": "/system/animes/x48/50698.jpg?1716776635"
+    },
+    "url": "/animes/50698-paradise-music",
+    "kind": "music",
+    "score": "5.81",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2018-08-23",
+    "released_on": null
+  },
+  {
+    "id": 52316,
+    "name": "Letu",
+    "russian": "Рай",
+    "image": {
+      "original": "/system/animes/original/52316.jpg?1716774598",
+      "preview": "/system/animes/preview/52316.jpg?1716774598",
+      "x96": "/system/animes/x96/52316.jpg?1716774598",
+      "x48": "/system/animes/x48/52316.jpg?1716774598"
+    },
+    "url": "/animes/52316-letu",
+    "kind": "movie",
+    "score": "0.0",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "1986-01-01",
+    "released_on": null
+  },
+  {
+    "id": 56986,
+    "name": "Riseman",
+    "russian": "Райзмен",
+    "image": {
+      "original": "/system/animes/original/56986.jpg?1716642303",
+      "preview": "/system/animes/preview/56986.jpg?1716642303",
+      "x96": "/system/animes/x96/56986.jpg?1716642303",
+      "x48": "/system/animes/x48/56986.jpg?1716642303"
+    },
+    "url": "/animes/56986-riseman",
+    "kind": "tv",
+    "score": "0.0",
+    "status": "released",
+    "episodes": 26,
+    "episodes_aired": 0,
+    "aired_on": "2023-10-18",
+    "released_on": "2024-01-10"
+  },
+  {
+    "id": 29727,
+    "name": "Paradise",
+    "russian": "Рай",
+    "image": {
+      "original": "/system/animes/original/29727.jpg?1711968515",
+      "preview": "/system/animes/preview/29727.jpg?1711968515",
+      "x96": "/system/animes/x96/29727.jpg?1711968515",
+      "x48": "/system/animes/x48/29727.jpg?1711968515"
+    },
+    "url": "/animes/29727-paradise",
+    "kind": "movie",
+    "score": "5.83",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2013-01-01",
+    "released_on": null
+  },
+  {
+    "id": 37179,
+    "name": "Mao Yu Tao Hua Yuan",
+    "russian": "Большой кошачий побег",
+    "image": {
+      "original": "/system/animes/original/37179.jpg?1711962840",
+      "preview": "/system/animes/preview/37179.jpg?1711962840",
+      "x96": "/system/animes/x96/37179.jpg?1711962840",
+      "x48": "/system/animes/x48/37179.jpg?1711962840"
+    },
+    "url": "/animes/37179-mao-yu-tao-hua-yuan",
+    "kind": "movie",
+    "score": "6.27",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 1,
+    "aired_on": "2018-04-05",
+    "released_on": null
+  }
+]

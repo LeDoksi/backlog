@@ -1,0 +1,213 @@
+{
+  "id": 918,
+  "name": "Gintama",
+  "russian": "Гинтама",
+  "image": {
+    "original": "/system/animes/original/918.jpg?1711951372",
+    "preview": "/system/animes/preview/918.jpg?1711951372",
+    "x96": "/system/animes/x96/918.jpg?1711951372",
+    "x48": "/system/animes/x48/918.jpg?1711951372"
+  },
+  "url": "/animes/z918-gintama",
+  "kind": "tv",
+  "score": "8.93",
+  "status": "released",
+  "episodes": 201,
+  "episodes_aired": 0,
+  "aired_on": "2006-04-04",
+  "released_on": "2010-03-25",
+  "rating": "pg_13",
+  "english": [
+    "Gintama"
+  ],
+  "japanese": [
+    "銀魂"
+  ],
+  "synonyms": [
+    "Gin Tama",
+    "Silver Soul",
+    "Yorinuki Gintama-san"
+  ],
+  "license_name_ru": null,
+  "duration": 24,
+  "description": "Жить в феодальной Японии непросто... особенно если вас завоевали инопланетяне. Да, конечно, новая система здравоохранения хороша, но запрет на ношение меча ставит истинных самураев в безвыходное положение. Вдвойне это относится к Гинтоки Сакате [坂田 銀時], последнему самураю, в ком ещё жив истинно японский дух.\nГинтоки живёт с Кагурой [神楽], представительницей одной из сильнейших рас во вселенной, и очкариком Шинпачи Шимурой [志村新八]. Втроём они создают агентство под названием «Мастера на все руки [[Гинтоки]]-сана» и берутся за любые странные и нелепые поручения, с которыми к ним приходят, будь то поиск пропавшей кошки или спасение мира. Ведь платить им нечем не только за аренду жилья, но и за еду.",
+  "description_html": "<div class=\"b-text_with_paragraphs\">Жить в феодальной Японии непросто... особенно если вас завоевали инопланетяне. Да, конечно, новая система здравоохранения хороша, но запрет на ношение меча ставит истинных самураев в безвыходное положение. Вдвойне это относится к <a href=\"https://shikimori.io/characters/672-gintoki-sakata\" title=\"Gintoki Sakata\" class=\"bubbled b-link\" data-tooltip_url=\"https://shikimori.io/characters/672-gintoki-sakata/tooltip\" data-attrs=\"{&quot;id&quot;:672,&quot;type&quot;:&quot;character&quot;,&quot;name&quot;:&quot;Gintoki Sakata&quot;,&quot;russian&quot;:&quot;Гинтоки Саката&quot;}\">Гинтоки Сакате</a>, последнему самураю, в ком ещё жив истинно японский дух.<br><a href=\"https://shikimori.io/characters/672-gintoki-sakata\" title=\"Gintoki Sakata\" class=\"bubbled b-link\" data-tooltip_url=\"https://shikimori.io/characters/672-gintoki-sakata/tooltip\" data-attrs=\"{&quot;id&quot;:672,&quot;type&quot;:&quot;character&quot;,&quot;name&quot;:&quot;Gintoki Sakata&quot;,&quot;russian&quot;:&quot;Гинтоки Саката&quot;}\">Гинтоки</a> живёт с <a href=\"https://shikimori.io/characters/674-kagura\" title=\"Kagura\" class=\"bubbled b-link\" data-tooltip_url=\"https://shikimori.io/characters/674-kagura/tooltip\" data-attrs=\"{&quot;id&quot;:674,&quot;type&quot;:&quot;character&quot;,&quot;name&quot;:&quot;Kagura&quot;,&quot;russian&quot;:&quot;Кагура&quot;}\">Кагурой</a>, представительницей одной из сильнейших рас во вселенной, и очкариком <a href=\"https://shikimori.io/characters/673-shinpachi-shimura\" title=\"Shinpachi Shimura\" class=\"bubbled b-link\" data-tooltip_url=\"https://shikimori.io/characters/673-shinpachi-shimura/tooltip\" data-attrs=\"{&quot;id&quot;:673,&quot;type&quot;:&quot;character&quot;,&quot;name&quot;:&quot;Shinpachi Shimura&quot;,&quot;russian&quot;:&quot;Шинпачи Шимура&quot;}\">Шинпачи Шимурой</a>. Втроём они создают агентство под названием «Мастера на все руки Гинтоки-сана» и берутся за любые странные и нелепые поручения, с которыми к ним приходят, будь то поиск пропавшей кошки или спасение мира. Ведь платить им нечем не только за аренду жилья, но и за еду.</div>",
+  "description_source": null,
+  "franchise": "gintama",
+  "favoured": false,
+  "anons": false,
+  "ongoing": false,
+  "thread_id": 3541,
+  "topic_id": 3541,
+  "myanimelist_id": 918,
+  "rates_scores_stats": [
+    {
+      "name": 10,
+      "value": 11469
+    },
+    {
+      "name": 9,
+      "value": 4644
+    },
+    {
+      "name": 8,
+      "value": 3732
+    },
+    {
+      "name": 7,
+      "value": 2152
+    },
+    {
+      "name": 6,
+      "value": 975
+    },
+    {
+      "name": 5,
+      "value": 612
+    },
+    {
+      "name": 4,
+      "value": 347
+    },
+    {
+      "name": 3,
+      "value": 185
+    },
+    {
+      "name": 2,
+      "value": 133
+    },
+    {
+      "name": 1,
+      "value": 276
+    }
+  ],
+  "rates_statuses_stats": [
+    {
+      "name": "Запланировано",
+      "value": 38590
+    },
+    {
+      "name": "Просмотрено",
+      "value": 35040
+    },
+    {
+      "name": "Смотрю",
+      "value": 17145
+    },
+    {
+      "name": "Брошено",
+      "value": 8489
+    },
+    {
+      "name": "Отложено",
+      "value": 7450
+    }
+  ],
+  "updated_at": "2026-10-12T13:40:54.884+03:00",
+  "next_episode_at": null,
+  "fansubbers": [
+    "Sir Paulo",
+    "FrostLich & Krusnik007",
+    "Максимов",
+    "BO3DYX"
+  ],
+  "fandubbers": [
+    "AniMedia",
+    "Zodik",
+    "AniDUB",
+    "Persona99"
+  ],
+  "licensors": [],
+  "genres": [
+    {
+      "id": 27,
+      "name": "Shounen",
+      "russian": "Сёнен",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 1,
+      "name": "Action",
+      "russian": "Экшен",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 4,
+      "name": "Comedy",
+      "russian": "Комедия",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 24,
+      "name": "Sci-Fi",
+      "russian": "Фантастика",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 13,
+      "name": "Historical",
+      "russian": "Исторический",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 20,
+      "name": "Parody",
+      "russian": "Пародия",
+      "kind": "genre",
+      "entry_type": "Anime"
+    },
+    {
+      "id": 21,
+      "name": "Samurai",
+      "russian": "Самураи",
+      "kind": "genre",
+      "entry_type": "Anime"
+    }
+  ],
+  "studios": [
+    {
+      "id": 14,
+      "name": "Sunrise",
+      "filtered_name": "Sunrise",
+      "real": true,
+      "image": "/system/studios/original/14.jpg?1630137154"
+    }
+  ],
+  "videos": [
+    {
+      "id": 19445,
+      "url": "https://youtu.be/DnWCcJ7OTtA",
+      "image_url": "http://img.youtube.com/vi/DnWCcJ7OTtA/hqdefault.jpg",
+      "player_url": "http://youtube.com/embed/DnWCcJ7OTtA",
+      "name": "OP5 «Donten» — DOES",
+      "kind": "op",
+      "hosting": "youtube"
+    },
+    {
+      "id": 6462,
+      "url": "https://youtu.be/-kzxu8aNtDE",
+      "image_url": "http://img.youtube.com/vi/-kzxu8aNtDE/hqdefault.jpg",
+      "player_url": "http://youtube.com/embed/-kzxu8aNtDE",
+      "name": "OP7 «Stairway Generation» — Base Ball Bear",
+      "kind": "op",
+      "hosting": "youtube"
+    }
+  ],
+  "screenshots": [
+    {
+      "original": "/system/screenshots/original/7c897d1b0714f71cf237cca14ba5134febb5132e.jpg?1656787956",
+      "preview": "/system/screenshots/x332/7c897d1b0714f71cf237cca14ba5134febb5132e.jpg?1656787956"
+    },
+    {
+      "original": "/system/screenshots/original/d6fae82351175c679eccc67bc7d336bfe3125308.jpg?1656787956",
+      "preview": "/system/screenshots/x332/d6fae82351175c679eccc67bc7d336bfe3125308.jpg?1656787956"
+    }
+  ],
+  "user_rate": null
+}

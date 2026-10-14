@@ -1,0 +1,192 @@
+[
+  {
+    "id": 918,
+    "name": "Gintama",
+    "russian": "Гинтама",
+    "image": {
+      "original": "/system/animes/original/918.jpg?1711951372",
+      "preview": "/system/animes/preview/918.jpg?1711951372",
+      "x96": "/system/animes/x96/918.jpg?1711951372",
+      "x48": "/system/animes/x48/918.jpg?1711951372"
+    },
+    "url": "/animes/z918-gintama",
+    "kind": "tv",
+    "score": "8.93",
+    "status": "released",
+    "episodes": 201,
+    "episodes_aired": 0,
+    "aired_on": "2006-04-04",
+    "released_on": "2010-03-25"
+  },
+  {
+    "id": 36838,
+    "name": "Gintama. Shirogane no Tamashii-hen",
+    "russian": "Гинтама 7",
+    "image": {
+      "original": "/system/animes/original/36838.jpg?1711951349",
+      "preview": "/system/animes/preview/36838.jpg?1711951349",
+      "x96": "/system/animes/x96/36838.jpg?1711951349",
+      "x48": "/system/animes/x48/36838.jpg?1711951349"
+    },
+    "url": "/animes/36838-gintama-shirogane-no-tamashii-hen",
+    "kind": "tv",
+    "score": "8.81",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2018-01-08",
+    "released_on": "2018-03-26"
+  },
+  {
+    "id": 36553,
+    "name": "Yinhun x He Wei Dao",
+    "russian": "Гинтама x He Wei Dao",
+    "image": {
+      "original": "/system/animes/original/36553.jpg?1711982505",
+      "preview": "/system/animes/preview/36553.jpg?1711982505",
+      "x96": "/system/animes/x96/36553.jpg?1711982505",
+      "x48": "/system/animes/x48/36553.jpg?1711982505"
+    },
+    "url": "/animes/36553-yinhun-x-he-wei-dao",
+    "kind": "cm",
+    "score": "7.02",
+    "status": "released",
+    "episodes": 3,
+    "episodes_aired": 2,
+    "aired_on": "2017-08-29",
+    "released_on": "2017-11-23"
+  },
+  {
+    "id": 35843,
+    "name": "Gintama. Porori-hen",
+    "russian": "Гинтама 6",
+    "image": {
+      "original": "/system/animes/original/35843.jpg?1711951375",
+      "preview": "/system/animes/preview/35843.jpg?1711951375",
+      "x96": "/system/animes/x96/35843.jpg?1711951375",
+      "x48": "/system/animes/x48/35843.jpg?1711951375"
+    },
+    "url": "/animes/z35843-gintama-porori-hen",
+    "kind": "tv",
+    "score": "8.51",
+    "status": "released",
+    "episodes": 13,
+    "episodes_aired": 13,
+    "aired_on": "2017-10-02",
+    "released_on": "2017-12-25"
+  },
+  {
+    "id": 32122,
+    "name": "Gintama°: Umai-mono wa Atomawashi ni Suru to Yokodorisareru kara Yappari Saki ni Kue",
+    "russian": "Гинтама: Джамп Феста 2015",
+    "image": {
+      "original": "/system/animes/original/32122.jpg?1711951347",
+      "preview": "/system/animes/preview/32122.jpg?1711951347",
+      "x96": "/system/animes/x96/32122.jpg?1711951347",
+      "x48": "/system/animes/x48/32122.jpg?1711951347"
+    },
+    "url": "/animes/32122-gintama-umai-mono-wa-atomawashi-ni-suru-to-yokodorisareru-kara-yappari-saki-ni-kue",
+    "kind": "special",
+    "score": "8.09",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2015-11-03",
+    "released_on": null
+  },
+  {
+    "id": 32366,
+    "name": "Gintama°: Aizome Kaori-hen",
+    "russian": "Гинтама 4: Любовные благовония",
+    "image": {
+      "original": "/system/animes/original/32366.jpg?1711951355",
+      "preview": "/system/animes/preview/32366.jpg?1711951355",
+      "x96": "/system/animes/x96/32366.jpg?1711951355",
+      "x48": "/system/animes/x48/32366.jpg?1711951355"
+    },
+    "url": "/animes/32366-gintama-aizome-kaori-hen",
+    "kind": "ova",
+    "score": "8.37",
+    "status": "released",
+    "episodes": 2,
+    "episodes_aired": 0,
+    "aired_on": "2016-08-04",
+    "released_on": "2016-11-04"
+  },
+  {
+    "id": 34096,
+    "name": "Gintama.",
+    "russian": "Гинтама 5",
+    "image": {
+      "original": "/system/animes/original/34096.jpg?1711951316",
+      "preview": "/system/animes/preview/34096.jpg?1711951316",
+      "x96": "/system/animes/x96/34096.jpg?1711951316",
+      "x48": "/system/animes/x48/34096.jpg?1711951316"
+    },
+    "url": "/animes/z34096-gintama",
+    "kind": "tv",
+    "score": "8.98",
+    "status": "released",
+    "episodes": 12,
+    "episodes_aired": 12,
+    "aired_on": "2017-01-09",
+    "released_on": "2017-03-27"
+  },
+  {
+    "id": 44087,
+    "name": "Gintama: The Semi-Final",
+    "russian": "Гинтама: Полуфинал",
+    "image": {
+      "original": "/system/animes/original/44087.jpg?1711951376",
+      "preview": "/system/animes/preview/44087.jpg?1711951376",
+      "x96": "/system/animes/x96/44087.jpg?1711951376",
+      "x48": "/system/animes/x48/44087.jpg?1711951376"
+    },
+    "url": "/animes/44087-gintama-the-semi-final",
+    "kind": "special",
+    "score": "8.45",
+    "status": "released",
+    "episodes": 2,
+    "episodes_aired": 0,
+    "aired_on": "2021-01-15",
+    "released_on": "2021-01-20"
+  },
+  {
+    "id": 40323,
+    "name": "Gintama: Monster Strike-hen",
+    "russian": "Гинтама x Удар монстра",
+    "image": {
+      "original": "/system/animes/original/40323.jpg?1711951404",
+      "preview": "/system/animes/preview/40323.jpg?1711951404",
+      "x96": "/system/animes/x96/40323.jpg?1711951404",
+      "x48": "/system/animes/x48/40323.jpg?1711951404"
+    },
+    "url": "/animes/z40323-gintama-monster-strike-hen",
+    "kind": "ona",
+    "score": "7.49",
+    "status": "released",
+    "episodes": 2,
+    "episodes_aired": 0,
+    "aired_on": "2019-08-29",
+    "released_on": "2019-09-04"
+  },
+  {
+    "id": 39486,
+    "name": "Gintama: The Final",
+    "russian": "Гинтама: Финал",
+    "image": {
+      "original": "/system/animes/original/39486.jpg?1711951459",
+      "preview": "/system/animes/preview/39486.jpg?1711951459",
+      "x96": "/system/animes/x96/39486.jpg?1711951459",
+      "x48": "/system/animes/x48/39486.jpg?1711951459"
+    },
+    "url": "/animes/39486-gintama-the-final",
+    "kind": "movie",
+    "score": "9.05",
+    "status": "released",
+    "episodes": 1,
+    "episodes_aired": 0,
+    "aired_on": "2021-01-08",
+    "released_on": null
+  }
+]

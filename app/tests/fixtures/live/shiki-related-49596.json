@@ -1,0 +1,122 @@
+[
+  {
+    "relation": "Adaptation",
+    "relation_russian": "Адаптация",
+    "anime": null,
+    "manga": {
+      "id": 114745,
+      "name": "Blue Lock",
+      "russian": "Синяя тюрьма: Блю Лок",
+      "image": {
+        "original": "/system/mangas/original/114745.jpg?1712723857",
+        "preview": "/system/mangas/preview/114745.jpg?1712723857",
+        "x96": "/system/mangas/x96/114745.jpg?1712723857",
+        "x48": "/system/mangas/x48/114745.jpg?1712723857"
+      },
+      "url": "/mangas/114745-blue-lock",
+      "kind": "manga",
+      "score": "8.41",
+      "status": "ongoing",
+      "volumes": 0,
+      "chapters": 0,
+      "aired_on": "2018-08-01",
+      "released_on": null
+    }
+  },
+  {
+    "relation": "Adaptation",
+    "relation_russian": "Адаптация",
+    "anime": null,
+    "manga": {
+      "id": 154487,
+      "name": "Shousetsu Blue Lock",
+      "russian": "Синяя тюрьма: Блю Лок",
+      "image": {
+        "original": "/system/mangas/original/154487.jpg?1712850842",
+        "preview": "/system/mangas/preview/154487.jpg?1712850842",
+        "x96": "/system/mangas/x96/154487.jpg?1712850842",
+        "x48": "/system/mangas/x48/154487.jpg?1712850842"
+      },
+      "url": "/ranobe/154487-shousetsu-blue-lock",
+      "kind": "novel",
+      "score": "7.48",
+      "status": "ongoing",
+      "volumes": 0,
+      "chapters": 0,
+      "aired_on": "2022-11-17",
+      "released_on": null
+    }
+  },
+  {
+    "relation": "Spin-off",
+    "relation_russian": "Ответвление от оригинала",
+    "anime": {
+      "id": 54866,
+      "name": "Blue Lock: Episode Nagi",
+      "russian": "Синяя тюрьма: Блю Лок — Эпизод с Наги",
+      "image": {
+        "original": "/system/animes/original/54866.jpg?1711514722",
+        "preview": "/system/animes/preview/54866.jpg?1711514722",
+        "x96": "/system/animes/x96/54866.jpg?1711514722",
+        "x48": "/system/animes/x48/54866.jpg?1711514722"
+      },
+      "url": "/animes/54866-blue-lock-episode-nagi",
+      "kind": "movie",
+      "score": "7.27",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2024-04-19",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Sequel",
+    "relation_russian": "Продолжение",
+    "anime": {
+      "id": 54865,
+      "name": "Blue Lock vs. U-20 Japan",
+      "russian": "Синяя тюрьма: Блю Лок против юношеской сборной Японии",
+      "image": {
+        "original": "/system/animes/original/54865.jpg?1711514722",
+        "preview": "/system/animes/preview/54865.jpg?1711514722",
+        "x96": "/system/animes/x96/54865.jpg?1711514722",
+        "x48": "/system/animes/x48/54865.jpg?1711514722"
+      },
+      "url": "/animes/54865-blue-lock-vs-u-20-japan",
+      "kind": "tv",
+      "score": "7.5",
+      "status": "released",
+      "episodes": 14,
+      "episodes_aired": 14,
+      "aired_on": "2024-10-06",
+      "released_on": "2024-12-28"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 60775,
+      "name": "Blue Lock Additional Time",
+      "russian": "Синяя тюрьма: Блю Лок — Дополнительное время",
+      "image": {
+        "original": "/assets/globals/missing_original.jpg",
+        "preview": "/assets/globals/missing_preview.jpg",
+        "x96": "/assets/globals/missing_x96.jpg",
+        "x48": "/assets/globals/missing_x48.jpg"
+      },
+      "url": "/animes/60775-blue-lock-additional-time",
+      "kind": "ona",
+      "score": "6.78",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2024-10-06",
+      "released_on": null
+    },
+    "manga": null
+  }
+]

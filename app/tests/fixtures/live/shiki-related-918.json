@@ -1,0 +1,434 @@
+[
+  {
+    "relation": "Adaptation",
+    "relation_russian": "Адаптация",
+    "anime": null,
+    "manga": {
+      "id": 44,
+      "name": "Gintama",
+      "russian": "Гинтама",
+      "image": {
+        "original": "/system/mangas/original/44.jpg?1712740384",
+        "preview": "/system/mangas/preview/44.jpg?1712740384",
+        "x96": "/system/mangas/x96/44.jpg?1712740384",
+        "x48": "/system/mangas/x48/44.jpg?1712740384"
+      },
+      "url": "/mangas/z44-gintama",
+      "kind": "manga",
+      "score": "8.65",
+      "status": "released",
+      "volumes": 77,
+      "chapters": 709,
+      "aired_on": "2003-12-08",
+      "released_on": "2019-06-20"
+    }
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 2951,
+      "name": "Gintama: Nanigoto mo Saisho ga Kanjin nanode Tashou Senobisuru Kurai ga Choudoyoi",
+      "russian": "Гинтама: Джамп Феста 2005",
+      "image": {
+        "original": "/system/animes/original/2951.jpg?1711951329",
+        "preview": "/system/animes/preview/2951.jpg?1711951329",
+        "x96": "/system/animes/x96/2951.jpg?1711951329",
+        "x48": "/system/animes/x48/2951.jpg?1711951329"
+      },
+      "url": "/animes/z2951-gintama-nanigoto-mo-saisho-ga-kanjin-nanode-tashou-senobisuru-kurai-ga-choudoyoi",
+      "kind": "special",
+      "score": "8.07",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2005-09-24",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 6945,
+      "name": "Gintama: Shiroyasha Koutan",
+      "russian": "Гинтама: Рождение Белого Демона",
+      "image": {
+        "original": "/system/animes/original/6945.jpg?1711951393",
+        "preview": "/system/animes/preview/6945.jpg?1711951393",
+        "x96": "/system/animes/x96/6945.jpg?1711951393",
+        "x48": "/system/animes/x48/6945.jpg?1711951393"
+      },
+      "url": "/animes/z6945-gintama-shiroyasha-koutan",
+      "kind": "special",
+      "score": "8.36",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2008-09-21",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 10643,
+      "name": "Gintama: Dai Hanseikai",
+      "russian": "Гинтама: Грандиозное собрание",
+      "image": {
+        "original": "/system/animes/original/10643.jpg?1711951346",
+        "preview": "/system/animes/preview/10643.jpg?1711951346",
+        "x96": "/system/animes/x96/10643.jpg?1711951346",
+        "x48": "/system/animes/x48/10643.jpg?1711951346"
+      },
+      "url": "/animes/z10643-gintama-dai-hanseikai",
+      "kind": "special",
+      "score": "8.05",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2010-03-25",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Alternative Version",
+    "relation_russian": "Альтернативная история",
+    "anime": {
+      "id": 7472,
+      "name": "Gintama Movie 1: Shinyaku Benizakura-hen",
+      "russian": "Гинтама: Сказание о Бэнидзакуре",
+      "image": {
+        "original": "/system/animes/original/7472.jpg?1711951382",
+        "preview": "/system/animes/preview/7472.jpg?1711951382",
+        "x96": "/system/animes/x96/7472.jpg?1711951382",
+        "x48": "/system/animes/x48/7472.jpg?1711951382"
+      },
+      "url": "/animes/z7472-gintama-movie-1-shinyaku-benizakura-hen",
+      "kind": "movie",
+      "score": "8.52",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2010-04-24",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Sequel",
+    "relation_russian": "Продолжение",
+    "anime": {
+      "id": 9969,
+      "name": "Gintama'",
+      "russian": "Гинтама 2",
+      "image": {
+        "original": "/system/animes/original/9969.jpg?1711951325",
+        "preview": "/system/animes/preview/9969.jpg?1711951325",
+        "x96": "/system/animes/x96/9969.jpg?1711951325",
+        "x48": "/system/animes/x48/9969.jpg?1711951325"
+      },
+      "url": "/animes/z9969-gintama",
+      "kind": "tv",
+      "score": "9.02",
+      "status": "released",
+      "episodes": 51,
+      "episodes_aired": 252,
+      "aired_on": "2011-04-04",
+      "released_on": "2012-03-26"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Alternative Version",
+    "relation_russian": "Альтернативная история",
+    "anime": {
+      "id": 21899,
+      "name": "Gintama: Yorinuki Gintama-san on Theater 2D",
+      "russian": "Гинтама: Лучшее из «Гинтамы» в кино",
+      "image": {
+        "original": "/system/animes/original/21899.jpg?1711951338",
+        "preview": "/system/animes/preview/21899.jpg?1711951338",
+        "x96": "/system/animes/x96/21899.jpg?1711951338",
+        "x48": "/system/animes/x48/21899.jpg?1711951338"
+      },
+      "url": "/animes/21899-gintama-yorinuki-gintama-san-on-theater-2d",
+      "kind": "movie",
+      "score": "8.41",
+      "status": "released",
+      "episodes": 2,
+      "episodes_aired": 0,
+      "aired_on": "2012-08-26",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 15335,
+      "name": "Gintama Movie 2: Kanketsu-hen - Yorozuya yo Eien Nare",
+      "russian": "Гинтама: Финальная арка — Ёродзуя навсегда!",
+      "image": {
+        "original": "/system/animes/original/15335.jpg?1711951370",
+        "preview": "/system/animes/preview/15335.jpg?1711951370",
+        "x96": "/system/animes/x96/15335.jpg?1711951370",
+        "x48": "/system/animes/x48/15335.jpg?1711951370"
+      },
+      "url": "/animes/z15335-gintama-movie-2-kanketsu-hen-yorozuya-yo-eien-nare",
+      "kind": "movie",
+      "score": "8.89",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2013-07-06",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 19261,
+      "name": "Gintama x Mameshiba",
+      "russian": "Гинтама x Фасоль",
+      "image": {
+        "original": "/system/animes/original/19261.jpg?1711951303",
+        "preview": "/system/animes/preview/19261.jpg?1711951303",
+        "x96": "/system/animes/x96/19261.jpg?1711951303",
+        "x48": "/system/animes/x48/19261.jpg?1711951303"
+      },
+      "url": "/animes/19261-gintama-x-mameshiba",
+      "kind": "cm",
+      "score": "6.69",
+      "status": "released",
+      "episodes": 6,
+      "episodes_aired": 0,
+      "aired_on": "2013-12-03",
+      "released_on": "2013-12-18"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 25313,
+      "name": "Gintama': Futon ni Haitte kara Buki Nokoshi ni Kizuite Neru ni Nerenai Toki mo Aru",
+      "russian": "Гинтама: Джамп Феста 2014",
+      "image": {
+        "original": "/system/animes/original/25313.jpg?1711951356",
+        "preview": "/system/animes/preview/25313.jpg?1711951356",
+        "x96": "/system/animes/x96/25313.jpg?1711951356",
+        "x48": "/system/animes/x48/25313.jpg?1711951356"
+      },
+      "url": "/animes/25313-gintama-futon-ni-haitte-kara-buki-nokoshi-ni-kizuite-neru-ni-nerenai-toki-mo-aru",
+      "kind": "special",
+      "score": "8.12",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2015-04-03",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Side Story",
+    "relation_russian": "Другая история",
+    "anime": {
+      "id": 32122,
+      "name": "Gintama°: Umai-mono wa Atomawashi ni Suru to Yokodorisareru kara Yappari Saki ni Kue",
+      "russian": "Гинтама: Джамп Феста 2015",
+      "image": {
+        "original": "/system/animes/original/32122.jpg?1711951347",
+        "preview": "/system/animes/preview/32122.jpg?1711951347",
+        "x96": "/system/animes/x96/32122.jpg?1711951347",
+        "x48": "/system/animes/x48/32122.jpg?1711951347"
+      },
+      "url": "/animes/32122-gintama-umai-mono-wa-atomawashi-ni-suru-to-yokodorisareru-kara-yappari-saki-ni-kue",
+      "kind": "special",
+      "score": "8.09",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2015-11-03",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 37864,
+      "name": "Yinhun x KFC",
+      "russian": "Гинтама и KFC Китай",
+      "image": {
+        "original": "/system/animes/original/37864.jpg?1711982563",
+        "preview": "/system/animes/preview/37864.jpg?1711982563",
+        "x96": "/system/animes/x96/37864.jpg?1711982563",
+        "x48": "/system/animes/x48/37864.jpg?1711982563"
+      },
+      "url": "/animes/37864-yinhun-x-kfc",
+      "kind": "cm",
+      "score": "6.87",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 1,
+      "aired_on": "2018-05-09",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Character",
+    "relation_russian": "Общий персонаж",
+    "anime": {
+      "id": 40323,
+      "name": "Gintama: Monster Strike-hen",
+      "russian": "Гинтама x Удар монстра",
+      "image": {
+        "original": "/system/animes/original/40323.jpg?1711951404",
+        "preview": "/system/animes/preview/40323.jpg?1711951404",
+        "x96": "/system/animes/x96/40323.jpg?1711951404",
+        "x48": "/system/animes/x48/40323.jpg?1711951404"
+      },
+      "url": "/animes/z40323-gintama-monster-strike-hen",
+      "kind": "ona",
+      "score": "7.49",
+      "status": "released",
+      "episodes": 2,
+      "episodes_aired": 0,
+      "aired_on": "2019-08-29",
+      "released_on": "2019-09-04"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 54761,
+      "name": "3-nen Z-gumi Ginpachi-sensei Announcement Special",
+      "russian": "Гинтама: 3-Z класс Гинпачи-сэнсэя — Спецвыпуск",
+      "image": {
+        "original": "/system/animes/original/54761.jpg?1714353038",
+        "preview": "/system/animes/preview/54761.jpg?1714353038",
+        "x96": "/system/animes/x96/54761.jpg?1714353038",
+        "x48": "/system/animes/x48/54761.jpg?1714353038"
+      },
+      "url": "/animes/54761-3-nen-z-gumi-ginpachi-sensei-announcement-special",
+      "kind": "special",
+      "score": "7.23",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2023-03-19",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 57670,
+      "name": "Gintama x Meta Quest 3 Collaboration CM",
+      "russian": "Гинтама x «Мета Квест 3»",
+      "image": {
+        "original": "/system/animes/original/57670.jpg?1715715506",
+        "preview": "/system/animes/preview/57670.jpg?1715715506",
+        "x96": "/system/animes/x96/57670.jpg?1715715506",
+        "x48": "/system/animes/x48/57670.jpg?1715715506"
+      },
+      "url": "/animes/57670-gintama-x-meta-quest-3-collaboration-cm",
+      "kind": "cm",
+      "score": "5.57",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2023-12-01",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Other",
+    "relation_russian": "Прочее",
+    "anime": {
+      "id": 62640,
+      "name": "Jantama x Gintama Collab Kettei Promotion Anime",
+      "russian": "Душа маджонга и Гинтама",
+      "image": {
+        "original": "/assets/globals/missing_original.jpg",
+        "preview": "/assets/globals/missing_preview.jpg",
+        "x96": "/assets/globals/missing_x96.jpg",
+        "x48": "/assets/globals/missing_x48.jpg"
+      },
+      "url": "/animes/62640-jantama-x-gintama-collab-kettei-promotion-anime",
+      "kind": "pv",
+      "score": "6.62",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2025-10-03",
+      "released_on": null
+    },
+    "manga": null
+  },
+  {
+    "relation": "Spin-off",
+    "relation_russian": "Ответвление от оригинала",
+    "anime": {
+      "id": 54757,
+      "name": "3-nen Z-gumi Ginpachi-sensei",
+      "russian": "Гинтама: 3-Z класс Гинпачи-сэнсэя",
+      "image": {
+        "original": "/system/animes/original/54757.jpg?1718912834",
+        "preview": "/system/animes/preview/54757.jpg?1718912834",
+        "x96": "/system/animes/x96/54757.jpg?1718912834",
+        "x48": "/system/animes/x48/54757.jpg?1718912834"
+      },
+      "url": "/animes/54757-3-nen-z-gumi-ginpachi-sensei",
+      "kind": "tv",
+      "score": "7.63",
+      "status": "released",
+      "episodes": 12,
+      "episodes_aired": 12,
+      "aired_on": "2025-10-07",
+      "released_on": "2025-12-23"
+    },
+    "manga": null
+  },
+  {
+    "relation": "Alternative Version",
+    "relation_russian": "Альтернативная история",
+    "anime": {
+      "id": 62277,
+      "name": "Gintama Movie 3: Yoshiwara Daienjou",
+      "russian": "Гинтама: Ёшивара в огне",
+      "image": {
+        "original": "/assets/globals/missing_original.jpg",
+        "preview": "/assets/globals/missing_preview.jpg",
+        "x96": "/assets/globals/missing_x96.jpg",
+        "x48": "/assets/globals/missing_x48.jpg"
+      },
+      "url": "/animes/62277-gintama-movie-3-yoshiwara-daienjou",
+      "kind": "movie",
+      "score": "8.79",
+      "status": "released",
+      "episodes": 1,
+      "episodes_aired": 0,
+      "aired_on": "2026-02-13",
+      "released_on": null
+    },
+    "manga": null
+  }
+]
