@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import type { Section } from '../ui/TabBar';
 
+/** How long a note stays up. */
+export const TOAST_MS = 6000;
+
 export interface ToastAction { label: string; run(): void }
 /** `n` tells two notes with the same text apart, so the second one restarts the timer. */
 export interface Toast { text: string; action?: ToastAction; n: number }

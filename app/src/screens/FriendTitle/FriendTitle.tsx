@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
 import { useUi } from '../../data/ui';
+import { useTitles } from '../../data/titlesStore';
 import { getSupabase } from '../../data/supabase';
 import { friendTitle, type FriendTitleData } from '../../lib/social';
 import { CATEGORY_LABEL } from '../../data/labels';
@@ -36,6 +37,8 @@ export function FriendTitle() {
   }, [target]);
 
   const d = data && data !== 'none' ? data : null;
+  // «Открыть мой» only opens a title on the board in front of me.
+  const mineHere = useTitles((t) => !!d?.mine_id && t.titles.some((x) => x.id === d.mine_id));
   const cover = resolveCover(d?.cover ?? undefined, ASSET_ROOT);
   const meta = d ? [[CATEGORY_LABEL[d.category as Category], d.year].filter(Boolean).join(', '), (d.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
   const parts = d && (d.category === 'series' || d.category === 'anime') && Array.isArray(d.parts) && d.parts.length > 0 ? d.parts : null;
@@ -44,8 +47,8 @@ export function FriendTitle() {
     <Sheet open={!!target} onClose={close} labelledBy="friend-title-name" footer={target && d && (
       d.mine_id ? (
         <div className={s.mine}>
-          <span className={s.have}>Уже у тебя</span>
-          <Button variant="inverse" onClick={() => { const id = d.mine_id!; close(); openTitle(id); }}>Открыть мой</Button>
+          <span className={s.have}>{mineHere ? 'Уже у тебя' : 'Уже у тебя на другой доске'}</span>
+          {mineHere && <Button variant="inverse" onClick={() => { const id = d.mine_id!; close(); openTitle(id); }}>Открыть мой</Button>}
         </div>
       ) : <div className={s.add}><CopyButtons owner={target.owner} id={target.id} /></div>
     )}>

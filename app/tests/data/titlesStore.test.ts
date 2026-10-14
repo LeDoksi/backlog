@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTitlesStore } from '../../src/data/titlesStore';
+import { createTitlesStore, UNDO_MS } from '../../src/data/titlesStore';
+import { TOAST_MS } from '../../src/data/ui';
 import { busy } from '../../src/data/busy';
 import { createOutbox } from '../../src/lib/syncTitles';
 import { fakeStorage, tick } from './fakes';
@@ -145,7 +146,7 @@ describe('titles store', () => {
     store.getState().deleteTitle('drive-2011');
     expect(store.getState().titles.map((t) => t.id)).toEqual(['frieren-2023']);
     expect(outbox.length()).toBe(0);
-    vi.advanceTimersByTime(5999);
+    vi.advanceTimersByTime(UNDO_MS - 1);
     expect(outbox.list()).toEqual([]);
     vi.advanceTimersByTime(1);
     expect(outbox.list()).toMatchObject([{ kind: 'delete', board: 'b1', id: 'drive-2011' }]);
@@ -201,6 +202,18 @@ describe('titles store', () => {
       next.getState().setBoard('b1');
       expect(outbox.list()).toMatchObject([{ kind: 'delete', board: 'b1', id: 'drive-2011' }]);
       expect(next.getState().titles.map((t) => t.id)).toEqual(['frieren-2023']);
+    });
+
+    it('a pull that replays a queued insert does not bring a waiting delete back', () => {
+      const { store } = setup(true);
+      store.getState().addTitle({ id: 'new-2026', title: 'Новое', category: 'movie', status: 'queue', genres: [] });
+      store.getState().deleteTitle('new-2026');
+      store.getState().applyPulled('b1', [frieren, drive] as never);
+      expect(store.getState().titles.map((t) => t.id)).not.toContain('new-2026');
+    });
+
+    it('the undo window outlasts the note, so a last-moment «Отменить» still works', () => {
+      expect(UNDO_MS).toBeGreaterThanOrEqual(TOAST_MS + 1000);
     });
 
     it('a second delete sends the first one at once', () => {

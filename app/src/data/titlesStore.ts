@@ -54,7 +54,8 @@ export interface TitlesDeps {
 const mirrorKey = (board: string) => `titles:${board}`;
 /** The one delete still inside its undo window: survives a closed tab. */
 const PENDING_DELETE = 'pending-delete';
-export const UNDO_MS = 6000;
+// Longer than the note (6 s) and its fade: «Отменить» tapped at the very end still finds the delete waiting.
+export const UNDO_MS = 7000;
 interface PendingDelete { board: string; id: string; row: TitleRow; at: string }
 
 export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<TitlesState>> {
@@ -287,12 +288,14 @@ export function createTitlesStore(deps: TitlesDeps): UseBoundStore<StoreApi<Titl
       applyPulled(board, rows) {
         const queued = outbox.list().filter((o) => o.board === board);
         const waiting = hiddenByDelete(board);
-        let next = rows.filter((r) => r.id !== waiting);
+        let next = rows.slice();
         queued.forEach((op) => {
           if (op.kind === 'delete') next = next.filter((r) => r.id !== op.id);
           else if (op.kind === 'insert') next = next.some((r) => r.id === op.id) ? next : [...next, { ...op.row, created_at: now() }];
           else next = next.map((r) => (r.id === op.id ? { ...r, ...op.cols } as TitleRow : r));
         });
+        // After the replay: a queued insert must not bring back a delete that waits for its undo window.
+        if (waiting) next = next.filter((r) => r.id !== waiting);
         writeRows(board, next);
         if (board === get().boardId) {
           set({ loading: false });

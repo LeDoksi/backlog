@@ -89,7 +89,7 @@ test('«Удалить» in the menu removes at once; «Отменить» bring
   await expect(page.getByRole('status').getByText(/^Удалено «/)).toBeVisible();
   await page.getByRole('button', { name: 'Отменить' }).click();
   await expect(page.locator(`article[data-id="${id}"]`)).toHaveCount(1);
-  await page.waitForTimeout(6500);
+  await page.waitForTimeout(7500);
   expect(await deletes(page)).toEqual([]);
 });
 

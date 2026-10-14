@@ -1,16 +1,14 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useUi } from '../data/ui';
+import { TOAST_MS, useUi } from '../data/ui';
 import s from './Toast.module.css';
-
-const SHOW_MS = 6000;
 
 export function Toast() {
   const toast = useUi((u) => u.toast);
   const reduce = useReducedMotion();
   useEffect(() => {
     if (!toast) return;
-    const t = window.setTimeout(() => useUi.getState().showToast(null), SHOW_MS);
+    const t = window.setTimeout(() => useUi.getState().showToast(null), TOAST_MS);
     return () => window.clearTimeout(t);
   }, [toast]);
   const hide = () => useUi.getState().showToast(null);

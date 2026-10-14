@@ -14,6 +14,7 @@ vi.mock('../../src/data/supabase', () => ({ getSupabase: () => ({}) }));
 const { FriendTitle } = await import('../../src/screens/FriendTitle/FriendTitle');
 const { useUi } = await import('../../src/data/ui');
 const { useBoards } = await import('../../src/data/boardsStore');
+const { useTitles } = await import('../../src/data/titlesStore');
 
 const show: FriendTitleData = {
   id: 'ozark', title: 'Озарк', original_title: 'Ozark', category: 'series', year: 2017, genres: ['драма'],
@@ -46,12 +47,21 @@ test('shows the friend\'s title read-only with the add button', async () => {
 });
 
 test('a title I already have offers mine instead of adding', async () => {
+  useTitles.setState({ titles: [{ id: 'ozark-2017', title: 'Озарк', category: 'series', status: 'queue', genres: [] }] });
   await open({ ...show, mine_id: 'ozark-2017' });
   expect(screen.queryByRole('button', { name: 'Добавить к себе' })).not.toBeInTheDocument();
   expect(screen.getByText('Уже у тебя')).toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: 'Открыть мой' }));
   expect(useUi.getState().openTitleId).toBe('ozark-2017');
   expect(useUi.getState().friendTitle).toBeNull();
+});
+
+test('my copy on another board: «Уже у тебя» without a button that would open nothing', async () => {
+  useTitles.setState({ titles: [] });
+  await open({ ...show, mine_id: 'ozark-2017' });
+  expect(screen.getByText('Уже у тебя на другой доске')).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Открыть мой' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Добавить к себе' })).not.toBeInTheDocument();
 });
 
 test('a title gone from sight says so', async () => {
