@@ -32,6 +32,8 @@ export interface Candidate {
 // The fields a picked hit fills in on the quick-add form.
 export interface Details {
   title: string;
+  /** The name the title was released under at home, where the source says. */
+  originalTitle?: string;
   year: number | null;
   genres: string[];
   synopsis: string;
@@ -121,6 +123,7 @@ function fetchTmdbDetails(fetchFn: FetchLike, proxyBase: string | null | undefin
     if (!d || d.id == null) return null;
     var out: Details = {
       title: d.title || d.name || '',
+      originalTitle: d.original_title || d.original_name || '',
       year: yearFromDate(d.release_date || d.first_air_date),
       genres: names(d.genres),
       synopsis: d.overview || '',
@@ -181,6 +184,7 @@ function fetchRawgDetails(fetchFn: FetchLike, key: string, rawgId: number | stri
     if (!d || d.id == null) return null;
     return {
       title: d.name || '',
+      originalTitle: d.name || '',
       year: yearFromDate(d.released),
       genres: names(d.genres),
       platforms: Array.isArray(d.platforms)
@@ -346,6 +350,7 @@ function fetchShikimoriDetails(fetchFn: FetchLike, id: number | string): Promise
     if (!d || d.id == null) return null;
     return {
       title: shikimoriTitle(d),
+      originalTitle: d.name || '',
       year: shikimoriYear(d),
       genres: shikimoriGenres(d.genres),
       synopsis: stripBBCode(d.description || ''),
@@ -454,6 +459,7 @@ function fetchSteamDetails(fetchFn: FetchLike, proxyBase: string, appid: number 
     var d = entry.data;
     return {
       title: d.name || '',
+      originalTitle: d.name || '',
       year: yearFromSteamDate(d.release_date && d.release_date.date),
       genres: steamGenres(d.genres),
       synopsis: d.short_description || stripHtml(d.detailed_description || ''),
@@ -463,7 +469,140 @@ function fetchSteamDetails(fetchFn: FetchLike, proxyBase: string, appid: number 
   });
 }
 
+// ── Wave 3: tall game covers, Russian descriptions (BL-91, BL-92) ────────
+//
+// The cover slot is 2:3 and Steam's `header_image` is 460×215, so a game's
+// cover is looked for in this order (spec 3.1, 3.2): Steam's library art
+// (600×900), then SteamGridDB, and only then a landscape picture.
+
+var STEAM_ASSETS = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/';
+
+/** Steam's own tall cover, when the image actually loads as a portrait picture. */
+async function steamTallCover(appid: number | string, loadImage: (url: string) => Promise<boolean>): Promise<string | null> {
+  if (!/^\d+$/.test(String(appid))) return null;
+  var url = STEAM_ASSETS + appid + '/library_600x900.jpg';
+  try {
+    return (await loadImage(url)) ? url : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+var SGDB_API = 'https://www.steamgriddb.com/api/v2';
+
+function firstGrid(body: any): string | null {
+  if (!body || body.success === false || !Array.isArray(body.data)) return null;
+  var hit = body.data.find(function (g: any) { return g && typeof g.url === 'string' && /^https:\/\//.test(g.url); });
+  return hit ? hit.url : null;
+}
+
+/**
+ * SteamGridDB's first tall grid (600×900), by Steam appid when the game has
+ * one, else by name. Goes through the proxy, which adds the key; a proxy
+ * without the key answers 503, which lands here as "nothing found".
+ */
+async function sgdbTallCover(fetchFn: FetchLike, proxyBase: string, query: { steamAppId?: string | null; name: string }): Promise<string | null> {
+  var grids = '?dimensions=600x900&types=static&nsfw=false&humor=false';
+  if (query.steamAppId && /^\d+$/.test(query.steamAppId)) {
+    var bySteam = firstGrid(await safeFetch(fetchFn, proxyBase + SGDB_API + '/grids/steam/' + query.steamAppId + grids));
+    if (bySteam) return bySteam;
+  }
+  if (!query.name || !query.name.trim()) return null;
+  var found = await safeFetch(fetchFn, proxyBase + SGDB_API + '/search/autocomplete/' + encodeURIComponent(query.name.trim()));
+  var game = found && Array.isArray(found.data) ? found.data[0] : null;
+  if (!game || game.id == null) return null;
+  return firstGrid(await safeFetch(fetchFn, proxyBase + SGDB_API + '/grids/game/' + game.id + grids));
+}
+
+// Letters only: «Hogwarts Legacy — это…» is Russian, a Latin description
+// with one Russian word is not.
+function isLatin(text: string): boolean {
+  var letters = (text || '').match(/\p{L}/gu) || [];
+  if (!letters.length) return false;
+  var latin = letters.filter(function (c) { return /[A-Za-z]/.test(c); }).length;
+  return latin / letters.length > 0.6;
+}
+
+export function sameName(a: string, b: string): boolean {
+  var norm = function (x: string) {
+    return x.replace(/\s*\([^)]*\)\s*$/, '').toLowerCase().replace(/[ё]/g, 'е').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  };
+  var x = norm(a);
+  var y = norm(b);
+  return !!x && !!y && (x === y || x.indexOf(y) === 0 || y.indexOf(x) === 0);
+}
+
+var RU_WIKI = 'https://ru.wikipedia.org/w/api.php';
+
+/**
+ * The first paragraph of the Russian Wikipedia article about the game
+ * (spec 3.3), or null. An article counts only when its title is the game's
+ * name and it is about a game: «(игра)» in the title or «игр…» in the first
+ * paragraph, so a film or a book of the same name is never taken.
+ * Wikipedia answers browsers directly with `origin=*`.
+ */
+async function ruWikiSummary(fetchFn: FetchLike, name: string): Promise<string | null> {
+  if (!name || !name.trim()) return null;
+  var found = await safeFetch(fetchFn, RU_WIKI + '?action=query&list=search&srsearch=' + encodeURIComponent(name.trim() + ' игра') +
+    '&srlimit=5&format=json&origin=*');
+  var hits = found && found.query && Array.isArray(found.query.search) ? found.query.search : [];
+  var titles: string[] = hits.map(function (h: any) { return String(h.title || ''); })
+    .filter(function (t: string) { return sameName(t, name); });
+  // «Название (игра)» first.
+  titles.sort(function (a, b) { return Number(/\(.*игр/i.test(b)) - Number(/\(.*игр/i.test(a)); });
+  for (var i = 0; i < Math.min(titles.length, 2); i++) {
+    var title = titles[i]!;
+    var page = await safeFetch(fetchFn, RU_WIKI + '?action=query&prop=extracts&exintro=1&explaintext=1&redirects=1&format=json&origin=*&titles=' +
+      encodeURIComponent(title));
+    var pages = page && page.query && page.query.pages ? Object.keys(page.query.pages).map(function (k) { return page.query.pages[k]; }) : [];
+    var extract = pages[0] && typeof pages[0].extract === 'string' ? pages[0].extract : '';
+    var first = extract.split('\n').map(function (l: string) { return l.trim(); }).filter(Boolean)[0] || '';
+    // Pronunciation and stress leftovers: «( )», «(англ. )», doubled spaces.
+    first = first.replace(/́/g, '').replace(/\s*\((?:[а-яё]+\.\s*)?[;,]?\s*\)/gi, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.])/g, '$1').trim();
+    if (!first || first.length < 40) continue;
+    if (/\(.*игр/i.test(title) || /игр/i.test(first)) return first;
+  }
+  return null;
+}
+
+var MYMEMORY = 'https://api.mymemory.translated.net/get';
+var TRANSLATE_MAX = 450;
+
+/** The opening of a long description, cut at a sentence end, short enough for one free request. */
+function opening(text: string): string {
+  var para = (text || '').split(/\n+/).map(function (l) { return l.trim(); })
+    .filter(function (l) { return l && !/^#/.test(l); })[0] || '';
+  if (para.length <= TRANSLATE_MAX) return para;
+  var cut = para.slice(0, TRANSLATE_MAX);
+  var end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+  return end > 80 ? cut.slice(0, end + 1) : cut.replace(/\s+\S*$/, '') + '…';
+}
+
+/**
+ * English → Russian through MyMemory (free, no key, a daily limit). Null when the service is out of quota or says anything but
+ * a translation, so the English text simply stays (spec 3.3).
+ */
+async function translateToRu(fetchFn: FetchLike, proxyBase: string, text: string): Promise<string | null> {
+  var q = opening(text);
+  if (!q) return null;
+  // Direct first: the free quota is per address, and the proxy's address is
+  // shared with everyone else on Cloudflare. A blocked request (CORS,
+  // network) gets one retry through the proxy.
+  var url = MYMEMORY + '?q=' + encodeURIComponent(q) + '&langpair=en|ru';
+  var body = await safeFetchWithFallback(fetchFn, url, proxyBase ? proxyBase + url : null);
+  if (!body || Number(body.responseStatus) !== 200 || body.quotaFinished) return null;
+  var out = body.responseData && typeof body.responseData.translatedText === 'string' ? body.responseData.translatedText.trim() : '';
+  if (!out || /MYMEMORY WARNING|QUERY LENGTH LIMIT|INVALID/i.test(out) || isLatin(out)) return null;
+  return out;
+}
+
 export {
+  steamTallCover,
+  sgdbTallCover,
+  ruWikiSummary,
+  translateToRu,
+  isLatin,
+  opening,
   searchTmdb,
   fetchTmdbDetails,
   searchRawg,

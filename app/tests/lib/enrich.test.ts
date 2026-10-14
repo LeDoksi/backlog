@@ -94,6 +94,7 @@ test('fetchTmdbDetails normalizes a tv details response', async () => {
   var fetchFn = okJson({
     id: 76479,
     name: 'Пацаны',
+    original_name: 'The Boys',
     first_air_date: '2019-07-25',
     genres: [{ id: 10765, name: 'НФ и Фэнтези' }, { id: 10759, name: 'Боевик и Приключения' }],
     overview: 'Отряд мстителей без суперсил.',
@@ -102,6 +103,7 @@ test('fetchTmdbDetails normalizes a tv details response', async () => {
   var details = await fetchTmdbDetails(fetchFn, '', 'k', 'series', 76479);
   assert.deepEqual(details, {
     title: 'Пацаны',
+    originalTitle: 'The Boys',
     year: 2019,
     genres: ['НФ и Фэнтези', 'Боевик и Приключения'],
     synopsis: 'Отряд мстителей без суперсил.',
@@ -163,6 +165,7 @@ test('fetchRawgDetails normalizes a game details response', async () => {
   var details = await fetchRawgDetails(fetchFn, 'k', 324997);
   assert.deepEqual(details, {
     title: "Baldur's Gate III",
+    originalTitle: "Baldur's Gate III",
     year: 2023,
     genres: ['Adventure', 'RPG'],
     platforms: ['PC', 'PlayStation 5'],
@@ -242,6 +245,7 @@ test('fetchShikimoriDetails normalizes a details response, preferring Russian ge
   var details = await fetchShikimoriDetails(fetchFn, 52991);
   assert.deepEqual(details, {
     title: 'Провожающая в последний путь Фрирен',
+    originalTitle: 'Sousou no Frieren',
     year: 2023,
     genres: ['Драма', 'Фэнтези'],
     synopsis: 'Отряд героя Химмеля вернулся домой.',
@@ -323,6 +327,7 @@ test('fetchSteamDetails normalizes a details response (Russian genres, plain-tex
   var details = await fetchSteamDetails(fetchFn, '', 620);
   assert.deepEqual(details, {
     title: 'Portal 2',
+    originalTitle: 'Portal 2',
     year: 2011,
     genres: ['Экшены', 'Приключенческие игры'],
     synopsis: 'Программа вечного тестирования расширена.',
