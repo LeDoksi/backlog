@@ -75,9 +75,10 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
     sharedTitles: options.sharedTitles ? withParts(options.sharedTitles, SHARED, options.parts) : null,
     ids: { user: E2E_USER, personal: PERSONAL, shared: SHARED }
   };
-  // Seasons come from TMDb and Shikimori once a day: unless a test answers
-  // for them, they are unreachable, so a run never depends on the live sites.
-  await page.route(/api\.themoviedb\.org|shikimori\.(io|one)|workers\.dev/, (r) => r.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, json: {} }));
+  // Seasons, game covers and descriptions come from outside sites (daily
+  // refresh, one-time normalization): unless a test answers for them, they
+  // are unreachable, so a run never depends on the live sites.
+  await page.route(/api\.themoviedb\.org|shikimori\.(io|one)|workers\.dev|api\.rawg\.io|store\.steampowered\.com|steamstatic\.com|steamgriddb\.com|wikipedia\.org|mymemory\.translated\.net/, (r) => r.fulfill({ status: 404, headers: { 'access-control-allow-origin': '*' }, json: {} }));
   await page.addInitScript((opts: typeof prepared) => {
     const { user: userId, personal, shared } = opts.ids;
     const w = window as unknown as { __writes?: Row[]; __rpcCalls?: Row[]; __blSupabaseStub: unknown };
