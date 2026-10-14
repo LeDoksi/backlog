@@ -25,6 +25,8 @@ export interface Candidate {
   title: string;
   year: number | null;
   poster: string;
+  /** Shikimori's kind (tv, movie, ova, music, cm…), where the source says. */
+  kind?: string;
 }
 
 // The fields a picked hit fills in on the quick-add form.
@@ -117,13 +119,42 @@ function fetchTmdbDetails(fetchFn: FetchLike, proxyBase: string | null | undefin
     '?api_key=' + key + '&language=ru-RU';
   return safeFetchWithFallback(fetchFn, url, proxyBase ? proxyBase + url : null).then(function (d) {
     if (!d || d.id == null) return null;
-    return {
+    var out: Details = {
       title: d.title || d.name || '',
       year: yearFromDate(d.release_date || d.first_air_date),
       genres: names(d.genres),
       synopsis: d.overview || '',
       cover: tmdbPoster(d.poster_path)
     };
+    // A series answer already lists its seasons: no second request on add.
+    if (category === 'series') out.tmdbSeasons = tmdbSeasons(d);
+    return out;
+  });
+}
+
+// ── TMDb seasons (wave 2) ────────────────────────────────────────────────
+// Confirmed live 2026-10-14 (tests/fixtures/live/tmdb-tv-*.json): `/tv/{id}`
+// carries `status` ("Ended", "Returning Series", …) and `seasons[]` with
+// `season_number` (0 is «Спецматериалы»), `name` («Сезон 3»), `air_date`
+// (null for an announced season with no date) and `episode_count`.
+export interface TmdbSeason { number: number; name: string; year: number | null; airDate: string | null }
+export interface TmdbSeasons { status: string | null; seasons: TmdbSeason[] }
+
+function tmdbSeasons(d: any): TmdbSeasons {
+  var list = Array.isArray(d.seasons) ? d.seasons : [];
+  return {
+    status: typeof d.status === 'string' ? d.status : null,
+    seasons: list.filter(function (x: any) { return x && typeof x.season_number === 'number'; }).map(function (x: any) {
+      return { number: x.season_number, name: x.name || '', year: yearFromDate(x.air_date), airDate: x.air_date || null };
+    })
+  };
+}
+
+function fetchTmdbSeasons(fetchFn: FetchLike, proxyBase: string | null | undefined, key: string, tvId: number | string): Promise<TmdbSeasons | null> {
+  var url = 'https://api.themoviedb.org/3/tv/' + tvId + '?api_key=' + key + '&language=ru-RU';
+  return safeFetchWithFallback(fetchFn, url, proxyBase ? proxyBase + url : null).then(function (d) {
+    if (!d || d.id == null || !Array.isArray(d.seasons)) return null;
+    return tmdbSeasons(d);
   });
 }
 
@@ -219,19 +250,94 @@ function stripBBCode(text: any) {
   return typeof text === 'string' ? text.replace(/\[\/?[a-z_]+(?:=[^\]]*)?\]/gi, '') : '';
 }
 
-function searchShikimori(fetchFn: FetchLike, query: string): Promise<Candidate[]> {
-  var url = SHIKIMORI_BASE + '/api/animes?search=' + encodeURIComponent(query) + '&limit=' + MAX_CANDIDATES;
+function searchShikimori(fetchFn: FetchLike, query: string, limit: number = MAX_CANDIDATES): Promise<Candidate[]> {
+  var url = SHIKIMORI_BASE + '/api/animes?search=' + encodeURIComponent(query) + '&limit=' + limit;
   return shikimoriGet(fetchFn, url).then(function (data) {
     if (!Array.isArray(data)) return [];
-    return data.slice(0, MAX_CANDIDATES).map(function (r) {
+    return data.slice(0, limit).map(function (r) {
       return {
         id: r.id,
         title: shikimoriTitle(r),
         year: shikimoriYear(r),
-        poster: shikimoriCover(r.image)
+        poster: shikimoriCover(r.image),
+        kind: typeof r.kind === 'string' ? r.kind : undefined
       };
     });
   });
+}
+
+// ── Shikimori franchise (wave 2) ─────────────────────────────────────────
+// Confirmed live 2026-10-14 (tests/fixtures/live/shiki-franchise-*.json):
+// `/api/animes/{id}/franchise` is `{ nodes, links, current_id }`. A node is
+// `{ id, date (unix seconds), name (Russian), image_url, url, year (null for
+// an announcement), kind, weight }` with `kind` in Russian: «TV Сериал»,
+// «TV Спецвыпуск», «Фильм», «OVA», «ONA», «Спецвыпуск», «Клип», «Реклама»,
+// «Проморолик». A link is `{ source_id, target_id, relation }`, relation in
+// sequel, prequel, side_story, spin_off, summary, full_story, parent_story,
+// alternative_version, character, other. There is no «announced» flag: an
+// announcement has `year: null` (its `date` is a placeholder) or a future
+// date.
+//
+// The main list (spec 2.1, rule chosen on the live answers): the root is
+// the franchise's earliest «TV Сериал»; main parts are the nodes joined to it
+// by sequel/prequel links, whatever their kind — that is the story in order
+// (Konosuba's film «Багровая легенда» sits between seasons 2 and 3, Gintama's
+// «Полуфинал» and «Финал» close it). Everything else is an extra, except
+// clips, ads and promos, which are not something to watch.
+export interface FranchiseNode {
+  id: number;
+  name: string;
+  kind: string;
+  year: number | null;
+  date: string | null;
+  image: string;
+  main: boolean;
+}
+export interface Franchise { rootId: number; nodes: FranchiseNode[] }
+
+var NOT_WATCHABLE = ['Клип', 'Реклама', 'Проморолик'];
+
+function franchiseFrom(data: any, askedId: number): Franchise | null {
+  if (!data || !Array.isArray(data.nodes) || !data.nodes.length) return null;
+  var nodes: FranchiseNode[] = data.nodes
+    .filter(function (n: any) { return n && typeof n.id === 'number' && NOT_WATCHABLE.indexOf(n.kind) === -1; })
+    .map(function (n: any) {
+      var image = typeof n.image_url === 'string' ? n.image_url : '';
+      return {
+        id: n.id,
+        name: typeof n.name === 'string' ? n.name : '',
+        kind: typeof n.kind === 'string' ? n.kind : '',
+        year: typeof n.year === 'number' ? n.year : null,
+        date: typeof n.date === 'number' ? new Date(n.date * 1000).toISOString() : null,
+        image: /missing/.test(image) ? '' : (/^https?:\/\//.test(image) ? image : (image ? SHIKIMORI_BASE + image : '')),
+        main: false
+      };
+    });
+  if (!nodes.length) return null;
+  var byDate = function (a: FranchiseNode, b: FranchiseNode) { return (a.date || '9999').localeCompare(b.date || '9999') || a.id - b.id; };
+  nodes.sort(byDate);
+  var tv = nodes.filter(function (n) { return n.kind === 'TV Сериал'; });
+  var root = (tv[0] || nodes.filter(function (n) { return n.id === askedId; })[0] || nodes[0]) as FranchiseNode;
+  var next: Record<number, number[]> = {};
+  (Array.isArray(data.links) ? data.links : []).forEach(function (l: any) {
+    if (!l || (l.relation !== 'sequel' && l.relation !== 'prequel')) return;
+    (next[l.source_id] = next[l.source_id] || []).push(l.target_id);
+    (next[l.target_id] = next[l.target_id] || []).push(l.source_id);
+  });
+  var seen: Record<number, boolean> = {};
+  var queue = [root.id];
+  seen[root.id] = true;
+  while (queue.length) {
+    var id = queue.shift() as number;
+    (next[id] || []).forEach(function (to) { if (!seen[to]) { seen[to] = true; queue.push(to); } });
+  }
+  nodes.forEach(function (n) { n.main = !!seen[n.id]; });
+  return { rootId: root.id, nodes: nodes };
+}
+
+function fetchShikimoriFranchise(fetchFn: FetchLike, id: number | string): Promise<Franchise | null> {
+  var url = SHIKIMORI_BASE + '/api/animes/' + id + '/franchise';
+  return shikimoriGet(fetchFn, url).then(function (d) { return franchiseFrom(d, Number(id)); });
 }
 
 function fetchShikimoriDetails(fetchFn: FetchLike, id: number | string): Promise<Details | null> {
@@ -364,6 +470,8 @@ export {
   fetchRawgDetails,
   searchShikimori,
   fetchShikimoriDetails,
+  fetchShikimoriFranchise,
+  fetchTmdbSeasons,
   searchSteam,
   fetchSteamDetails
 };
