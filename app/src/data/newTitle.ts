@@ -1,9 +1,9 @@
 import { makeId, slugify, uniqueId } from '../lib/slug';
-import type { Category, Title } from '../lib/types';
+import type { Category, Part, Title } from '../lib/types';
 
 export const PLACEHOLDER_COVER = 'images/covers/_placeholder.svg';
 
-interface Picked { title?: string; year?: number | null; genres?: string[]; synopsis?: string; cover?: string; platforms?: string[]; source?: string; sourceId?: string }
+interface Picked { title?: string; year?: number | null; genres?: string[]; synopsis?: string; cover?: string; platforms?: string[]; source?: string; sourceId?: string; parts?: Part[] }
 
 // A known year makes the id `slug-year`, the same id a re-add of the same
 // title would produce, so a clash with a title of the same category is a real
@@ -27,5 +27,6 @@ export function buildTitle(category: Category, typed: string, picked: Picked, ex
     source: picked.source ?? null, sourceId: picked.sourceId ?? null
   };
   if (category === 'game' && picked.platforms?.length) t.platforms = picked.platforms;
+  if ((category === 'series' || category === 'anime') && picked.parts?.length) t.parts = picked.parts;
   return t;
 }

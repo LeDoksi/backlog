@@ -5,7 +5,7 @@ import { MagnifyingGlass, X } from '@phosphor-icons/react';
 import { useUi } from '../../data/ui';
 import { useTitles } from '../../data/titlesStore';
 import { busy } from '../../data/busy';
-import { search, details, providerFor, PROVIDER_LABEL, type Hit } from '../../data/enrichSearch';
+import { search, details, providerFor, alreadyOnBoard, PROVIDER_LABEL, type Hit } from '../../data/enrichSearch';
 import { buildTitle } from '../../data/newTitle';
 import { useHistoryEntry } from '../../ui/history';
 import { useVisualViewport } from '../../ui/useVisualViewport';
@@ -40,6 +40,7 @@ function Panel() {
   const setQuickAdd = useUi((u) => u.setQuickAdd);
   const close = () => setQuickAdd(false);
   const addTitle = useTitles((t) => t.addTitle);
+  const boardTitles = useTitles((t) => t.titles);
   const [category, setCategory] = useState<Category>('movie');
   const [query, setQuery] = useState('');
   const [state, setState] = useState<State>({ kind: 'idle' });
@@ -97,7 +98,8 @@ function Panel() {
     setBusyId(null);
     // Details can fail on their own (a proxy hiccup): the hit itself still
     // carries a name, year and poster worth keeping.
-    const picked = d ?? { title: hit.title, year: hit.year, cover: hit.poster, source: hit.provider, sourceId: String(hit.id) };
+    const picked = d ?? { title: hit.title, year: hit.year, cover: hit.poster, source: hit.provider, sourceId: String(hit.id),
+      parts: hit.parts?.map(({ season: _season, ...p }) => p) };
     add(buildTitle(category, query, picked, useTitles.getState().titles, useTitles.getState().leftoverIds()));
   }
 
@@ -150,7 +152,8 @@ function Panel() {
           {state.kind === 'error' && <p className={s.muted}>{state.text}</p>}
           {state.kind === 'hits' && state.hits.length === 0 && <p className={s.muted}>Ничего не нашлось.</p>}
           {state.kind === 'hits' && state.hits.map((h) => (
-            <ResultRow key={`${h.provider}:${h.id}`} hit={h} category={category} busy={busyId === `${h.provider}:${h.id}`} onAdd={() => void pick(h)} />
+            <ResultRow key={`${h.provider}:${h.id}`} hit={h} category={category} busy={busyId === `${h.provider}:${h.id}`}
+              inBacklog={alreadyOnBoard(h, boardTitles)} onAdd={() => void pick(h)} />
           ))}
           {query.trim() && (
             <button type="button" className={s.manual} onClick={manual}>Нет нужного? Добавить «{query.trim()}» вручную</button>

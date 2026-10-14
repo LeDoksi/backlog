@@ -4,7 +4,8 @@ import type { Hit } from '../../data/enrichSearch';
 import type { Category } from '../../lib/types';
 import s from './QuickAdd.module.css';
 
-export function ResultRow({ hit, category, busy, onAdd }: { hit: Hit; category: Category; busy: boolean; onAdd: () => void }) {
+/** `inBacklog`: the title (or, for anime, its franchise) is already on the board. */
+export function ResultRow({ hit, category, busy, inBacklog = false, onAdd }: { hit: Hit; category: Category; busy: boolean; inBacklog?: boolean; onAdd: () => void }) {
   const name = hit.title || 'Без названия';
   return (
     <div className={s.row}>
@@ -12,8 +13,11 @@ export function ResultRow({ hit, category, busy, onAdd }: { hit: Hit; category: 
       <div className={s.rowText}>
         <span className={s.rowTitle}>{name}</span>
         <span className={s.rowMeta}>{[CATEGORY_LABEL[category], hit.year].filter(Boolean).join(', ')}</span>
+        {hit.label && <span className={s.rowMeta}>{hit.label}</span>}
       </div>
-      <button type="button" className={s.add} aria-label={`Добавить «${name}»`} disabled={busy} onClick={onAdd}><Plus size={22} weight="bold" /></button>
+      {inBacklog
+        ? <span className={s.already}>Уже в бэклоге</span>
+        : <button type="button" className={s.add} aria-label={`Добавить «${name}»`} disabled={busy} onClick={onAdd}><Plus size={22} weight="bold" /></button>}
     </div>
   );
 }

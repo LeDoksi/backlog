@@ -23,6 +23,7 @@
 .rowMeta { font-size: var(--fs-xs); color: var(--muted); }
 .add { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--accent); color: var(--on-accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .add:disabled { opacity: .5; }
+.already { flex-shrink: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--muted); padding: 0 6px; }
 .manual { min-height: 44px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--accent-text); font-weight: 600; font-size: var(--fs-base); white-space: normal; text-align: center; padding: 6px 10px; }
 /* Keyboard up on a phone: no heading row, close button beside the categories, tighter rows. */
 .compact { padding: 12px 12px 0; gap: 10px; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
