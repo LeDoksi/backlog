@@ -18,8 +18,10 @@ update public.titles set completed_at = now() where id in ('dune', 'dune-2021', 
 update public.titles set completed_at = date_trunc('month', now()) - interval '1 day' where id = 'last-month';
 -- Anime: two seasons ticked, one this month and one years ago; a finished series with no parts is one season.
 select pg_temp.put('00000000-0000-0000-0000-0000000000b1', 'frieren', 'in_progress', false, null, null, 'anime');
-update public.titles set parts = '[{"name":"1"},{"name":"2"}]',
-  checked_parts = jsonb_build_object('0', to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), '1', '2020-01-01T00:00:00Z') where id = 'frieren';
+-- An OVA from the extras block, ticked this month, is not a season.
+update public.titles set parts = '[{"name":"1"},{"name":"2"},{"name":"OVA","extra":true}]',
+  checked_parts = jsonb_build_object('0', to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'), '1', '2020-01-01T00:00:00Z',
+                                     '2', to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')) where id = 'frieren';
 select pg_temp.put('00000000-0000-0000-0000-0000000000b1', 'mini', 'done', false, null, null, 'anime');
 update public.titles set completed_at = now() where id = 'mini';
 -- The friend finished three films this month; the stranger (not taking part) ten.
@@ -42,8 +44,8 @@ select results_eq('select name, score from mine', $$values ('Я'::text, 3), ('Я
   'all time: the personal board counts the undated and last month, the shared board only its own title');
 select is((public.leaderboard('movie', 'year')->'mine'->0->>'score')::int,
   case when date_trunc('month', now()) = date_trunc('year', now()) then 1 else 2 end, 'year counts last month when it is this year');
-select is((public.leaderboard('anime', 'month')->'mine'->0->>'score')::int, 2, 'anime this month: one season ticked, one finished title without parts');
-select is((public.leaderboard('anime', 'all')->'mine'->0->>'score')::int, 3, 'anime all time: both ticks count');
+select is((public.leaderboard('anime', 'month')->'mine'->0->>'score')::int, 2, 'anime this month: one season ticked, one finished title without parts, the OVA left out');
+select is((public.leaderboard('anime', 'all')->'mine'->0->>'score')::int, 3, 'anime all time: both season ticks count, the OVA does not');
 select is((public.leaderboard('game', 'month')->'mine'->0)::jsonb - 'board_id',
   '{"kind": "personal", "name": "Я", "score": 0, "place": null}'::jsonb, 'nothing done: my row with no place');
 select is(json_array_length(public.leaderboard('game', 'month')->'rows'), 0, 'nobody with zero is listed');
