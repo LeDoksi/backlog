@@ -279,11 +279,12 @@ function searchShikimori(fetchFn: FetchLike, query: string, limit: number = MAX_
 // date.
 //
 // The main list (spec 2.1, rule chosen on the live answers): the root is
-// the franchise's earliest «TV Сериал»; main parts are the nodes joined to it
-// by sequel/prequel links, whatever their kind — that is the story in order
-// (Konosuba's film «Багровая легенда» sits between seasons 2 and 3, Gintama's
-// «Полуфинал» and «Финал» close it). Everything else is an extra, except
-// clips, ads and promos, which are not something to watch.
+// the franchise's earliest «TV Сериал»; main parts are the TV seasons, TV
+// specials and films joined to it by sequel/prequel links — that is the
+// story in order (Konosuba's film «Багровая легенда» sits between seasons 2
+// and 3, Gintama's «Финал» closes it). OVAs, ONAs and specials stay extras
+// even inside the chain (Re:Zero's «Memory Snow» is linked as a sequel, but
+// nobody counts it as a season). Clips, ads and promos are not taken at all.
 export interface FranchiseNode {
   id: number;
   name: string;
@@ -296,6 +297,7 @@ export interface FranchiseNode {
 export interface Franchise { rootId: number; nodes: FranchiseNode[] }
 
 var NOT_WATCHABLE = ['Клип', 'Реклама', 'Проморолик'];
+var MAIN_KINDS = ['TV Сериал', 'TV Спецвыпуск', 'Фильм'];
 
 function franchiseFrom(data: any, askedId: number): Franchise | null {
   if (!data || !Array.isArray(data.nodes) || !data.nodes.length) return null;
@@ -331,7 +333,7 @@ function franchiseFrom(data: any, askedId: number): Franchise | null {
     var id = queue.shift() as number;
     (next[id] || []).forEach(function (to) { if (!seen[to]) { seen[to] = true; queue.push(to); } });
   }
-  nodes.forEach(function (n) { n.main = !!seen[n.id]; });
+  nodes.forEach(function (n) { n.main = !!seen[n.id] && MAIN_KINDS.indexOf(n.kind) !== -1; });
   return { rootId: root.id, nodes: nodes };
 }
 
