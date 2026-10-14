@@ -31,6 +31,8 @@
 .caret { transition: transform .18s ease; }
 .caretOpen { transition: transform .18s ease; transform: rotate(180deg); }
 .extras { display: flex; flex-direction: column; gap: 8px; }
+.synopsisWrap { display: flex; flex-direction: column; gap: 4px; }
+.mtNote { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
 .synopsis { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--text-2); }
 .seasonInfo { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--muted); white-space: pre-line; }
 .platforms { display: flex; flex-wrap: wrap; gap: 6px; }

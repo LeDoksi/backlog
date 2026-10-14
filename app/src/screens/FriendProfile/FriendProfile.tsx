@@ -8,6 +8,7 @@ import { useSocial } from '../../data/socialStore';
 import { getSupabase } from '../../data/supabase';
 import { friendProfile, friendShelf, removeFriend, tasteMatch, type FriendPage, type ShelfItem, type Taste } from '../../lib/social';
 import { resolveCover } from '../../lib/covers';
+import { Cover } from '../../ui/Cover';
 import { ASSET_ROOT } from '../../config';
 import type { ShelfTab } from '../../data/feedFormat';
 import { TasteCard } from './TasteCard';
@@ -97,7 +98,7 @@ export function FriendProfile() {
                   <li key={t.id}>
                     <button type="button" className={s.item} aria-label={t.title} onClick={() => info && openFriendTitle(info.id, t.id, info.name)}>
                       <div className={s.poster}>
-                        <img src={resolveCover(t.cover ?? undefined, ASSET_ROOT)} alt="" loading="lazy" decoding="async" />
+                        <Cover src={resolveCover(t.cover ?? undefined, ASSET_ROOT)} alt="" loading="lazy" decoding="async" />
                         {t.common && <span className={s.common}>общее</span>}
                       </div>
                       <div className={s.caption}>{t.title}</div>

@@ -8,10 +8,12 @@ import { friendTitle, type FriendTitleData } from '../../lib/social';
 import { CATEGORY_LABEL } from '../../data/labels';
 import { statusWord } from '../../data/friendsOn';
 import { resolveCover } from '../../lib/covers';
+import { Cover } from '../../ui/Cover';
 import { ASSET_ROOT } from '../../config';
 import type { Category } from '../../lib/types';
 import { PartsChecklist } from '../TitleSheet/PartsChecklist';
 import { CopyButtons } from '../FriendProfile/CopyFromFriend';
+import { Synopsis } from '../TitleSheet/TitleSheet';
 import t from '../TitleSheet/TitleSheet.module.css';
 import s from './FriendTitle.module.css';
 
@@ -64,7 +66,7 @@ export function FriendTitle() {
         <div className={t.content}>
           <img className={t.backdrop} src={cover} alt="" aria-hidden="true" />
           <div className={t.hero}>
-            <div className={t.poster}><img src={cover} alt="" /></div>
+            <div className={t.poster}><Cover src={cover} alt="" /></div>
             <div className={t.heading}>
               <h2 id="friend-title-name" className={t.name}>{d.title}</h2>
               {d.original_title && d.original_title !== d.title && <div className={t.original}>{d.original_title}</div>}
@@ -73,7 +75,7 @@ export function FriendTitle() {
           </div>
           <p className={s.status}>{friendStatusLine(target.name, d)}</p>
           {parts && <PartsChecklist parts={parts} checked={d.checked ?? []} readOnly />}
-          {d.synopsis && <p className={t.synopsis}>{d.synopsis}</p>}
+          <Synopsis text={d.synopsis} />
           {d.category === 'game' && d.platforms && d.platforms.length > 0 && (
             <div className={t.platforms} aria-label="Платформы">{d.platforms.map((p) => <span key={p} className={t.platform}>{p}</span>)}</div>
           )}

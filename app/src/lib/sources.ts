@@ -7,6 +7,7 @@
 // Change the order only together with the spec's table.
 import { isLatin, type Details } from './enrich';
 import type { Category } from './types';
+import { MT_PREFIX } from './synopsis';
 
 export type Field = 'title' | 'originalTitle' | 'synopsis' | 'cover' | 'genres' | 'year' | 'platforms';
 export type SourceName = 'tmdb' | 'shikimori' | 'steam' | 'rawg' | 'steamTall' | 'sgdb' | 'wiki' | 'translate';
@@ -35,8 +36,7 @@ export const SOURCES: Record<Category, Partial<Record<Field, SourceName[]>>> = {
   }
 };
 
-/** Prefix of a machine-translated description (no column of its own). */
-export const MT_PREFIX = '[mt] ';
+export { MT_PREFIX };
 
 function present(v: unknown): boolean {
   if (v == null) return false;
@@ -86,3 +86,4 @@ export async function assemble(category: Category, load: (source: SourceName) =>
 export function pick(category: Category, raw: Partial<Record<SourceName, Raw | null>>): Promise<Raw> {
   return assemble(category, (s) => Promise.resolve(raw[s] ?? null));
 }
+

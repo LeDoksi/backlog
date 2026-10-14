@@ -9,6 +9,8 @@ import { busy } from '../../data/busy';
 import { metaLine } from '../../data/labels';
 import { hasPartsChecklist } from '../../lib/storage';
 import { resolveCover } from '../../lib/covers';
+import { Cover } from '../../ui/Cover';
+import { synopsisText } from '../../lib/synopsis';
 import { isStillAiring } from '../../lib/query';
 import { ASSET_ROOT } from '../../config';
 import { StatusControl } from './StatusControl';
@@ -74,7 +76,7 @@ export function TitleSheet() {
             <img className={s.backdrop} src={cover} alt="" aria-hidden="true" />
             <div className={s.hero}>
               <div className={s.poster}>
-                <img src={cover} alt="" />
+                <Cover src={cover} alt="" />
               </div>
               <div className={s.heading}>
                 <h2 id="title-sheet-title" className={s.name}>{title.title}</h2>
@@ -102,7 +104,7 @@ export function TitleSheet() {
             )}
 
             <FriendsOnTitle title={title} />
-            {title.synopsis && <p className={s.synopsis}>{title.synopsis}</p>}
+            <Synopsis text={title.synopsis} />
             {title.seasonInfo && <p className={s.seasonInfo}>{title.seasonInfo}</p>}
             {title.category === 'game' && title.platforms && title.platforms.length > 0 && (
               <div className={s.platforms} aria-label="Платформы">{title.platforms.map((p) => <span key={p} className={s.platform}>{p}</span>)}</div>
@@ -111,5 +113,17 @@ export function TitleSheet() {
         )}
       </Sheet>
     </>
+  );
+}
+
+/** The description; a machine translation (spec 3.3) says so under it. */
+export function Synopsis({ text }: { text: string | null | undefined }) {
+  const { text: body, machine } = synopsisText(text);
+  if (!body) return null;
+  return (
+    <div className={s.synopsisWrap}>
+      <p className={s.synopsis}>{body}</p>
+      {machine && <p className={s.mtNote}>Машинный перевод</p>}
+    </div>
   );
 }
