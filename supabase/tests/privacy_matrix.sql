@@ -4,7 +4,7 @@
 -- privacy switch. A hidden title never shows; only a friend sees the feed,
 -- matches and «У друзей».
 begin;
-select plan(52);
+select plan(70);
 \ir support/social_fixture.sql
 update public.profiles set share_activity = true, share_matches = true, findable_by_nick = true, in_leaderboard = false;
 update public.workspaces set visibility = 'everyone' where id <> '00000000-0000-0000-0000-0000000000b1';
@@ -34,18 +34,24 @@ select is((select count(*)::int from public.friends_on_titles(array['slug:dune',
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / friend / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / friend / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'not_enough', 'private / friend / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 0, 'private / friend / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'private / friend / hidden title');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a3');
 select is((select count(*)::int from public.friend_shelf('00000000-0000-0000-0000-0000000000a1', 'want')), 0, 'private / stranger / shelf');
 select is((select count(*)::int from public.friends_on_titles(array['slug:dune', 'slug:secret']) where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / stranger / on');
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / stranger / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / stranger / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'not_enough', 'private / stranger / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 0, 'private / stranger / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'private / stranger / hidden title');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a4');
 select is((select count(*)::int from public.friend_shelf('00000000-0000-0000-0000-0000000000a1', 'want')), 0, 'private / mate / shelf');
 select is((select count(*)::int from public.friends_on_titles(array['slug:dune', 'slug:secret']) where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / mate / on');
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / mate / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'private / mate / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'not_enough', 'private / mate / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 0, 'private / mate / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'private / mate / hidden title');
 reset role;
 
 -- My board: friends.
@@ -57,18 +63,24 @@ select is((select count(*)::int from public.friends_on_titles(array['slug:dune',
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 1, 'friends / friend / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 1, 'friends / friend / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'ok', 'friends / friend / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 1, 'friends / friend / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'friends / friend / hidden title');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a3');
 select is((select count(*)::int from public.friend_shelf('00000000-0000-0000-0000-0000000000a1', 'want')), 0, 'friends / stranger / shelf');
 select is((select count(*)::int from public.friends_on_titles(array['slug:dune', 'slug:secret']) where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'friends / stranger / on');
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'friends / stranger / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'friends / stranger / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'not_enough', 'friends / stranger / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 0, 'friends / stranger / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'friends / stranger / hidden title');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a4');
 select is((select count(*)::int from public.friend_shelf('00000000-0000-0000-0000-0000000000a1', 'want')), 0, 'friends / mate / shelf');
 select is((select count(*)::int from public.friends_on_titles(array['slug:dune', 'slug:secret']) where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'friends / mate / on');
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'friends / mate / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'friends / mate / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'not_enough', 'friends / mate / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 0, 'friends / mate / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'friends / mate / hidden title');
 reset role;
 
 -- My board: everyone.
@@ -80,18 +92,24 @@ select is((select count(*)::int from public.friends_on_titles(array['slug:dune',
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 1, 'everyone / friend / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 1, 'everyone / friend / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'ok', 'everyone / friend / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 1, 'everyone / friend / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'everyone / friend / hidden title');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a3');
 select is((select count(*)::int from public.friend_shelf('00000000-0000-0000-0000-0000000000a1', 'want')), 1, 'everyone / stranger / shelf');
 select is((select count(*)::int from public.friends_on_titles(array['slug:dune', 'slug:secret']) where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'everyone / stranger / on');
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'everyone / stranger / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'everyone / stranger / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'ok', 'everyone / stranger / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 1, 'everyone / stranger / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'everyone / stranger / hidden title');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a4');
 select is((select count(*)::int from public.friend_shelf('00000000-0000-0000-0000-0000000000a1', 'want')), 1, 'everyone / mate / shelf');
 select is((select count(*)::int from public.friends_on_titles(array['slug:dune', 'slug:secret']) where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'everyone / mate / on');
 select is((select count(*)::int from public.matches() where friend_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'everyone / mate / matches');
 select is((select coalesce(sum(count), 0)::int from public.feed() where actor_id = '00000000-0000-0000-0000-0000000000a1'), 0, 'everyone / mate / feed');
 select is(public.taste_match('00000000-0000-0000-0000-0000000000a1')->>'status', 'ok', 'everyone / mate / taste');
+select is((public.friend_title('00000000-0000-0000-0000-0000000000a1', 'dune') is not null)::int, 1, 'everyone / mate / title');
+select ok(public.friend_title('00000000-0000-0000-0000-0000000000a1', 'secret') is null, 'everyone / mate / hidden title');
 reset role;
 
 -- Switches, with the board open to everyone.
