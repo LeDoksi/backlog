@@ -106,3 +106,20 @@ test('stats open on this month when something was finished in it', async ({ page
   await expect(page.getByText('За всё время', { exact: true })).toBeVisible();
   await expect(page.getByText('Из 2 в бэклоге', { exact: false })).toBeVisible();
 });
+
+test('«Скрытые тайтлы» shows only when something is hidden', async ({ page }) => {
+  const rows = catalogRows(3);
+  await installStub(page, { signedIn: true, hasProfile: true, titles: rows });
+  await page.goto('./');
+  await openProfile(page);
+  await expect(page.getByRole('button', { name: 'Приватность' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Скрытые тайтлы/ })).toHaveCount(0);
+});
+
+test('with a hidden title the row is there with its count', async ({ page }) => {
+  const rows = catalogRows(3).map((r, i) => (i === 0 ? { ...r, hidden: true } : r));
+  await installStub(page, { signedIn: true, hasProfile: true, titles: rows });
+  await page.goto('./');
+  await openProfile(page);
+  await expect(page.getByRole('button', { name: /Скрытые тайтлы/ })).toContainText('1');
+});
