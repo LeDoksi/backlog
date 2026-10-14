@@ -18,6 +18,7 @@ import { Profile } from './screens/Profile/Profile';
 import { Friends } from './screens/Friends/Friends';
 import { FriendProfile } from './screens/FriendProfile/FriendProfile';
 import { FriendTitle } from './screens/FriendTitle/FriendTitle';
+import { FeedBatch } from './screens/FeedBatch/FeedBatch';
 import { useSocial } from './data/socialStore';
 import { clearMirror, flushQueue } from './data/mirror';
 import { SyncStatus } from './ui/SyncStatus';
@@ -62,6 +63,7 @@ function Signed({ profile, onProfile, onSignOut }: SignedProps) {
       <EditTitle />
       <QuickAdd />
       <FriendProfile />
+      <FeedBatch />
       <FriendTitle />
       <SyncStatus />
       <Toast />

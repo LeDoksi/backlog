@@ -25,7 +25,7 @@ test('a title on a friend\'s shelf opens its card; adding goes through copy_from
   const friend = await openFriend(page);
   await friend.getByRole('button', { name: 'Озарк' }).click();
   const card = page.getByRole('dialog', { name: 'Озарк' });
-  await expect(card.getByText('Вадим · завершено, 9/10')).toBeVisible();
+  await expect(card.getByText('Вадим · завершено, оценка 9/10')).toBeVisible();
   await expect(card.getByText('Финансист отмывает деньги.')).toBeVisible();
   await expect(card.getByRole('checkbox')).toHaveCount(2);
   await expect(card.getByRole('checkbox').first()).toBeDisabled();

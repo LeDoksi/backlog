@@ -102,7 +102,7 @@ for (const theme of ['light', 'dark'] as const) {
       });
       await page.goto('./');
       await nav(page, 'Друзья');
-      await expect(page.getByRole('button', { name: /Даша · 2 сезона «Фрирен»/ })).toBeVisible();
+      await expect(page.getByRole('button', { name: /Даша · просмотрено 2 сезона «Фрирен»/ })).toBeVisible();
       await shot(page, `${theme}-friends`);
     });
   });

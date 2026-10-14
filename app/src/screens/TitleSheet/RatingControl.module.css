@@ -1,12 +1,11 @@
 .box { display: flex; flex-direction: column; gap: 8px; }
-.prompt { padding: 14px; border-radius: var(--r-card); background: var(--accent-soft); }
+.prompt { padding: 12px; border-radius: var(--r-card); background: var(--accent-soft); }
 .title { margin: 0; font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; }
 .prompt .title { color: var(--accent-text); }
-/* Two rows of five: ten in a row would shrink each mark under the 44px tap minimum on a phone. */
-.marks { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-.mark { height: var(--tap-min); padding: 0; border: 0; border-radius: var(--r-pill); background: var(--sunken); color: var(--text); font: inherit; font-size: var(--fs-sm); font-weight: 600; display: grid; place-items: center; transition: transform var(--dur-fast) var(--ease-out); }
-.prompt .mark { background: var(--surface); }
+/* One row, like the segmented controls: the ten marks share a 44px-high capsule,
+   so a tap anywhere in it lands on a mark even where one is narrower than 44px. */
+.marks { display: flex; gap: 2px; padding: 3px; border-radius: var(--r-pill); background: var(--sunken); }
+.prompt .marks { background: var(--surface); }
+.mark { flex: 1; min-width: 0; height: 38px; padding: 0; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text-2); font: inherit; font-size: var(--fs-sm); font-weight: 600; transition: transform var(--dur-fast) var(--ease-out); }
 .mark:active { transform: scale(0.97); }
-.on, .prompt .on { background: var(--accent); color: var(--on-accent); font-weight: 700; }
-/* The desktop panel is wide enough for all ten in one row. */
-@media (min-width: 1024px) { .marks { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+.on { background: var(--accent); color: var(--on-accent); font-weight: 700; }

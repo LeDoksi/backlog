@@ -9,6 +9,8 @@ export interface ToastAction { label: string; run(): void }
 export interface Toast { text: string; action?: ToastAction; n: number }
 let toastN = 0;
 
+export interface FeedBatch { owner: string; name: string; ids: string[]; count: number }
+
 // Which overlay is up. Panels have no URL of their own (Back closes them via
 // the Sheet's history entry), so this store is the only place they live.
 interface UiState {
@@ -30,6 +32,10 @@ interface UiState {
   friendTitle: { owner: string; id: string; name: string } | null;
   openFriendTitle(owner: string, id: string, name: string): void;
   closeFriendTitle(): void;
+  /** The titles behind one «+N тайтлов» feed line: `ids` in the feed's order, `count` all it added. */
+  feedBatch: FeedBatch | null;
+  openFeedBatch(batch: FeedBatch): void;
+  closeFeedBatch(): void;
   /** A short note at the bottom of the screen, with an optional action («Отменить»). */
   toast: Toast | null;
   showToast(text: string | null, action?: ToastAction): void;
@@ -56,6 +62,9 @@ export const useUi = create<UiState>()((set) => ({
   friendTitle: null,
   openFriendTitle: (owner, id, name) => set({ friendTitle: { owner, id, name } }),
   closeFriendTitle: () => set({ friendTitle: null }),
+  feedBatch: null,
+  openFeedBatch: (batch) => set({ feedBatch: batch }),
+  closeFeedBatch: () => set({ feedBatch: null }),
   toast: null,
   showToast: (text, action) => set({ toast: text ? { text, action, n: ++toastN } : null }),
   privacyRequested: false,

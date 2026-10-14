@@ -13,21 +13,22 @@ describe('feed texts (no guessed verb gender)', () => {
   });
 
   it('a completion carries the rating when there is one', () => {
-    expect(feedText(row({ rating: 9 }))).toBe('завершено «Драйв» · 9/10');
+    expect(feedText(row({ rating: 9 }))).toBe('завершено «Драйв» · оценка 9/10');
     expect(feedText(row({ rating: null }))).toBe('завершено «Драйв»');
   });
 
-  it('parts decline сезон for series and anime, часть otherwise', () => {
-    expect(feedText(row({ kind: 'parts', count: 1, title: 'Фрирен', category: 'anime' }))).toBe('1 сезон «Фрирен»');
-    expect(feedText(row({ kind: 'parts', count: 2, title: 'Фрирен', category: 'anime' }))).toBe('2 сезона «Фрирен»');
-    expect(feedText(row({ kind: 'parts', count: 5, title: 'Бойз', category: 'series' }))).toBe('5 сезонов «Бойз»');
-    expect(feedText(row({ kind: 'parts', count: 2, title: 'Дюна', category: 'movie' }))).toBe('2 части «Дюна»');
+  it('parts say what was done and decline сезон for series and anime, часть otherwise', () => {
+    expect(feedText(row({ kind: 'parts', count: 1, title: 'Фрирен', category: 'anime' }))).toBe('просмотрено 1 сезон «Фрирен»');
+    expect(feedText(row({ kind: 'parts', count: 2, title: 'Фрирен', category: 'anime' }))).toBe('просмотрено 2 сезона «Фрирен»');
+    expect(feedText(row({ kind: 'parts', count: 5, title: 'Бойз', category: 'series' }))).toBe('просмотрено 5 сезонов «Бойз»');
+    expect(feedText(row({ kind: 'parts', count: 2, title: 'Ведьмак', category: 'game' }))).toBe('пройдено 2 части «Ведьмак»');
+    expect(feedText(row({ kind: 'parts', count: 2, title: 'Дюна', category: 'movie' }))).toBe('просмотрено 2 части «Дюна»');
   });
 
   it('added: one title by name, many as a count', () => {
     expect(feedText(row({ kind: 'added', count: 1, title: 'Суздаль' }))).toBe('добавлено «Суздаль»');
-    expect(feedText(row({ kind: 'added', count: 12 }))).toBe('+12 тайтлов');
-    expect(feedText(row({ kind: 'added', count: 21 }))).toBe('+21 тайтл');
+    expect(feedText(row({ kind: 'added', count: 12 }))).toBe('добавлено 12 тайтлов');
+    expect(feedText(row({ kind: 'added', count: 21 }))).toBe('добавлено 21 тайтл');
   });
 });
 
