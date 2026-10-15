@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { feedText, feedGroup, feedWhen, groupFeed, shelfTabFor, type FeedRow } from '../../src/data/feedFormat';
+import { collapseFeed, feedText, feedGroup, feedWhen, groupFeed, shelfTabFor, type FeedRow } from '../../src/data/feedFormat';
 
 const row = (p: Partial<FeedRow>): FeedRow => ({
   actor_id: 'u', actor_name: 'Лёша', kind: 'completed', title_id: 't', workspace_id: 'w', title: 'Драйв', category: 'movie',
@@ -58,5 +58,58 @@ describe('feed grouping and times', () => {
     expect(shelfTabFor('started')).toBe('watching');
     expect(shelfTabFor('parts')).toBe('watching');
     expect(shelfTabFor('added')).toBe('want');
+  });
+});
+
+describe('a busy day folds into one line per friend and kind', () => {
+  const at = (d: number, h: number, m = 0) => new Date(2026, 9, d, h, m).toISOString();
+
+  it('says how many were started or completed', () => {
+    expect(feedText(row({ kind: 'started', count: 3 }))).toBe('начато 3 тайтла');
+    expect(feedText(row({ kind: 'completed', count: 5, rating: 9 }))).toBe('завершено 5 тайтлов');
+  });
+
+  it('folds same friend, same kind, same day; the line sits where the latest event was', () => {
+    const rows = [
+      row({ kind: 'completed', title_id: 'c2', title: 'C2', cover: 'c2.jpg', at: at(7, 21), rating: 9 }),
+      row({ actor_id: 'v', actor_name: 'Вадим', kind: 'started', title_id: 'v1', at: at(7, 20) }),
+      row({ kind: 'started', title_id: 's1', title: 'S1', cover: 's1.jpg', at: at(7, 19) }),
+      row({ kind: 'completed', title_id: 'c1', title: 'C1', cover: null, at: at(7, 10) }),
+      row({ kind: 'started', title_id: 's0', title: 'S0', cover: 's0.jpg', at: at(7, 9) })
+    ];
+    const out = collapseFeed(rows);
+    expect(out.map((r) => [r.actor_id, r.kind, r.count])).toEqual([['u', 'completed', 2], ['v', 'started', 1], ['u', 'started', 2]]);
+    expect(out[0]).toMatchObject({ title_id: 'c2', title: 'C2', at: at(7, 21), covers: ['c2.jpg', null], title_ids: ['c2', 'c1'], rating: null });
+    expect(out[2]).toMatchObject({ covers: ['s1.jpg', 's0.jpg'], title_ids: ['s1', 's0'] });
+    expect(out[1]).toBe(rows[1]);
+  });
+
+  it('keeps different days and seasons apart', () => {
+    const rows = [
+      row({ kind: 'started', title_id: 'a', at: at(7, 0, 30) }),
+      row({ kind: 'started', title_id: 'b', at: at(6, 23, 30) }),
+      row({ kind: 'parts', title_id: 'p1', count: 1, at: at(6, 22) }),
+      row({ kind: 'parts', title_id: 'p2', count: 2, at: at(6, 21) })
+    ];
+    expect(collapseFeed(rows)).toEqual(rows);
+  });
+
+  it('adds up additions batches of one day, covers and titles still in step', () => {
+    const rows = [
+      row({ kind: 'added', title_id: 'a3', count: 2, covers: ['a3.jpg', 'a2.jpg'], title_ids: ['a3', 'a2'], at: at(7, 18) }),
+      row({ kind: 'added', title_id: 'a1', count: 1, cover: 'a1.jpg', covers: ['a1.jpg'], title_ids: ['a1'], at: at(7, 9) }),
+      row({ kind: 'added', title_id: 'a0', count: 3, covers: null, title_ids: null, at: at(7, 8) })
+    ];
+    const [one, ...rest] = collapseFeed(rows);
+    expect(rest).toEqual([]);
+    expect(one).toMatchObject({ count: 6, title_id: 'a3', covers: ['a3.jpg', 'a2.jpg', 'a1.jpg'], title_ids: ['a3', 'a2', 'a1'] });
+  });
+
+  it('a line on a shared board stays marked only when every event was there', () => {
+    const rows = [
+      row({ kind: 'started', title_id: 'a', at: at(7, 12), on_shared_board: true }),
+      row({ kind: 'started', title_id: 'b', at: at(7, 11), on_shared_board: false })
+    ];
+    expect(collapseFeed(rows)[0]!.on_shared_board).toBe(false);
   });
 });

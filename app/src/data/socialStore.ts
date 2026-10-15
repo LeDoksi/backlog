@@ -1,7 +1,7 @@
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import * as Social from '../lib/social';
 import type { SupabaseLike } from '../lib/types';
-import type { FeedRow } from './feedFormat';
+import { collapseFeed, type FeedRow } from './feedFormat';
 import { groupByKey } from './friendsOn';
 import { getSupabase } from './supabase';
 
@@ -59,7 +59,7 @@ export function createSocialStore(deps: SocialDeps): UseBoundStore<StoreApi<Soci
         Social.feed(deps.client(), deps.tz()), Social.myInbox(deps.client()), Social.myFriends(deps.client()), Social.matches(deps.client())
       ]);
       set((st) => ({
-        feed: feed ?? st.feed, inbox: inbox ?? st.inbox, friends: friends ?? st.friends, matches: matches ?? st.matches,
+        feed: feed ? collapseFeed(feed) : st.feed, inbox: inbox ?? st.inbox, friends: friends ?? st.friends, matches: matches ?? st.matches,
         failed: !feed || !inbox || !friends || !matches
       }));
       // Only a feed that was actually shown counts as seen.
@@ -83,7 +83,7 @@ export function createSocialStore(deps: SocialDeps): UseBoundStore<StoreApi<Soci
 
     async loadPeek() {
       const [feed, matches] = await Promise.all([Social.feed(deps.client(), deps.tz()), Social.matches(deps.client())]);
-      set((st) => ({ feed: feed ?? st.feed, matches: matches ?? st.matches }));
+      set((st) => ({ feed: feed ? collapseFeed(feed) : st.feed, matches: matches ?? st.matches }));
     },
 
     async loadFriendsOn(keys) {

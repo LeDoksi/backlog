@@ -98,8 +98,12 @@ export async function myHiddenTitles(client: SupabaseLike): Promise<HiddenTitle[
 // ── Feed and badge ─────────────────────────────────────────────────────
 
 
+// Enough rows that one busy friend, folded to a line a day on the device,
+// does not push everyone else off the page. The server allows up to 200.
+const FEED_ROWS = 150;
+
 export async function feed(client: SupabaseLike, tz: string, before?: string): Promise<FeedRow[] | null> {
-  const rows = data<FeedRow[]>(await callRpc(client, 'feed', { p_before: before ?? new Date().toISOString(), p_limit: 60, p_tz: tz }));
+  const rows = data<FeedRow[]>(await callRpc(client, 'feed', { p_before: before ?? new Date().toISOString(), p_limit: FEED_ROWS, p_tz: tz }));
   return Array.isArray(rows) ? rows : null;
 }
 
