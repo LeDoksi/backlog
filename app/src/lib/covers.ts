@@ -16,5 +16,5 @@ const PLACEHOLDER = 'images/covers/_placeholder.svg';
 export function isLandscapeCover(url: string | null | undefined): boolean {
   if (!url) return false;
   if (/media\.rawg\.io\//.test(url)) return true;
-  return /steamstatic\.com\/|steampowered\.com\/|akamaihd\.net\//.test(url) && /\/(header|capsule_[^/]*)\.jpg/.test(url);
+  return /steamstatic\.com\/|steampowered\.com\/|akamaihd\.net\//.test(url) && /\/(header[^/]*|capsule_[^/]*)\.jpg/.test(url);
 }

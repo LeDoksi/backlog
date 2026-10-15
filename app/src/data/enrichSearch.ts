@@ -104,11 +104,18 @@ async function groupByFranchise(fetchFn: FetchLike, hits: Hit[]): Promise<Hit[]>
   return rows;
 }
 
-/** The hit is already on the board: the same source id, or (anime) any entry of its franchise. */
-export function alreadyOnBoard(hit: Hit, titles: { source?: string | null; sourceId?: string | null; parts?: Part[] | null }[]): boolean {
+/**
+ * The hit is already on the board: the same source id, (anime) any entry of
+ * its franchise, or (games) a game of the same name taken from another
+ * source: one added from RAWG when Steam did not answer, or by hand.
+ */
+export function alreadyOnBoard(hit: Hit, titles: { source?: string | null; sourceId?: string | null; parts?: Part[] | null; title?: string; originalTitle?: string | null; category?: string }[]): boolean {
   const refs = new Set(hit.refs ?? (hit.provider === 'shikimori' ? [`shiki:${hit.id}`] : []));
+  const game = hit.provider === 'steam' || hit.provider === 'rawg';
   return titles.some((t) => {
     if (t.source === hit.provider && t.sourceId === String(hit.id)) return true;
+    if (game && t.category === 'game' && t.source !== hit.provider
+      && [t.title, t.originalTitle].some((n) => !!n && Enrich.sameName(n, hit.title))) return true;
     if (!refs.size) return false;
     if (t.source === 'shikimori' && t.sourceId && refs.has(`shiki:${t.sourceId}`)) return true;
     return (t.parts ?? []).some((p) => !!p?.ref && refs.has(p.ref));
