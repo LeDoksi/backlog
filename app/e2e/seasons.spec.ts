@@ -75,3 +75,25 @@ test('the daily refresh fills in seasons quietly on open', async ({ page }) => {
   const again = await page.evaluate(() => (window as unknown as { __rpcCalls?: { name: string }[] }).__rpcCalls?.filter((c) => c.name === 'apply_title_refresh').length ?? 0);
   expect(again).toBe(0);
 });
+
+test('«Обновить сезоны» builds an old-site list again from the source, ticks carried over', async ({ page }) => {
+  const legacy = [{ name: 'Сезон 1', released: true }, { name: 'Сезон 2', released: true }, { name: 'Сезон 3', released: false }];
+  await installStub(page, {
+    signedIn: true, hasProfile: true,
+    titles: [row('frieren', 'Фрирен', 'anime', 'in_progress', { parts: legacy, source: 'shikimori', source_id: '52991' })],
+    parts: [{ id: 'frieren', indices: [0] }]
+  });
+  await liveApis(page);
+  await page.goto('./');
+  await page.locator('article', { hasText: 'Фрирен' }).getByRole('button', { name: /^Фрирен/ }).click();
+  await page.getByRole('button', { name: 'Ещё', exact: true }).click();
+  await page.getByRole('button', { name: 'Обновить сезоны' }).click();
+  await expect(page.getByRole('status').getByText('Сезоны обновлены. Проверь отметки')).toBeVisible();
+  await expect(page.getByText(/^Просмотрено 1 из \d+/)).toBeVisible();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: test.info().outputPath('rebuilt.png') });
+  const sent = await page.evaluate(() => (window as unknown as { __rpcCalls: { name: string; args: { p_updates: { id: string; parts?: { ref?: string }[] }[] } }[] }).__rpcCalls
+    .filter((c) => c.name === 'apply_title_refresh').flatMap((c) => c.args.p_updates).filter((u) => u.id === 'frieren' && u.parts));
+  expect(sent).toHaveLength(1);
+  expect(sent[0]!.parts!.every((p) => p.ref)).toBe(true);
+});
