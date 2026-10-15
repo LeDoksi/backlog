@@ -8,14 +8,15 @@ import { getSupabase } from '../../data/supabase';
 import { friendTitle, type FriendTitleData } from '../../lib/social';
 import { resolveCover } from '../../lib/covers';
 import { CATEGORY_LABEL } from '../../data/labels';
-import { batchText, shelfTabFor } from '../../data/feedFormat';
+import { actionsText } from '../../data/feedFormat';
 import { ASSET_ROOT } from '../../config';
 import type { Category } from '../../lib/types';
 import s from './FeedBatch.module.css';
 
-// The titles behind a feed line of several («добавлено 5 тайтлов», «начато
-// 3 тайтла»), big enough to tell apart. A tap opens the title's own card
-// over this list; the friend's shelf for that kind is one tap away.
+// The titles behind a feed line of several («добавлено 5 тайтлов», or a
+// friend's whole day), big enough to tell apart, each with what was done to
+// it that day. A tap opens the title's own card over this list; the
+// friend's shelf is one tap away.
 const SHELF_LABEL = { want: 'Хочет', watching: 'В процессе', done: 'Завершено' } as const;
 export function FeedBatch() {
   const batch = useUi((u) => u.feedBatch);
@@ -41,32 +42,32 @@ export function FeedBatch() {
   function toShelf() {
     if (!batch) return;
     close();
-    useUi.getState().openFriend(batch.owner, tab);
+    useUi.getState().openFriend(batch.owner, batch.tab);
   }
 
-  const kind = batch?.kind ?? 'added';
-  const tab = shelfTabFor(kind);
-  const meta = (t: FriendTitleData) => {
-    const base = [CATEGORY_LABEL[t.category as Category], t.year].filter(Boolean).join(', ');
-    return kind === 'completed' && t.rating ? `${base} · оценка ${t.rating}/10` : base;
+  const meta = (t: FriendTitleData) => [CATEGORY_LABEL[t.category as Category], t.year].filter(Boolean).join(', ');
+  const did = (t: FriendTitleData) => {
+    const actions = batch?.actions?.[t.id];
+    return actions ? actionsText(actions, t) : null;
   };
   return (
     <Sheet open={!!batch} onClose={close} labelledBy="feed-batch-title"
-      footer={batch && <Button variant="tonal" className={s.shelf} onClick={toShelf}>Вся полка «{SHELF_LABEL[tab]}»</Button>}>
+      footer={batch && <Button variant="tonal" className={s.shelf} onClick={toShelf}>{batch.mixed ? 'Все полки' : `Вся полка «${SHELF_LABEL[batch.tab]}»`}</Button>}>
       {batch && (
         <>
-          <h2 id="feed-batch-title" className={s.title}>{batch.name} · {batchText(kind, batch.count)}</h2>
+          <h2 id="feed-batch-title" className={s.title}>{batch.name} · {batch.heading}</h2>
           {failed && <p role="alert" className={s.error}>Не загрузилось. Проверь сеть.</p>}
           {!rows && !failed && <div className={s.list}>{batch.ids.slice(0, 4).map((id) => <Skeleton key={id} kind="row" />)}</div>}
           {rows && (
             <ul className={s.list}>
               {rows.map((t) => (
                 <li key={t.id}>
-                  <button type="button" className={s.row} aria-label={`«${t.title}», ${meta(t)}`} onClick={() => openFriendTitle(batch.owner, t.id, batch.name)}>
+                  <button type="button" className={s.row} aria-label={[`«${t.title}»`, meta(t), did(t)].filter(Boolean).join(', ')} onClick={() => openFriendTitle(batch.owner, t.id, batch.name)}>
                     <img className={s.cover} src={resolveCover(t.cover ?? undefined, ASSET_ROOT)} alt="" loading="lazy" decoding="async" />
                     <span className={s.text}>
                       <span className={s.name}>{t.title}</span>
                       <span className={s.meta}>{meta(t)}</span>
+                      {did(t) && <span className={s.did}>{did(t)}</span>}
                     </span>
                     <CaretRight size={18} className={s.caret} aria-hidden="true" />
                   </button>
