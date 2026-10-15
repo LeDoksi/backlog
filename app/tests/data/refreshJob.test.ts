@@ -223,6 +223,23 @@ describe('runDailyRefresh: games (spec 3.4)', () => {
     expect(calls).toEqual([]);
   });
 
+  it('Steam turning a request down: asked again after a pause, and a game it never answers for is asked again the next day', async () => {
+    let n = 0;
+    const flaky: FetchLike = (u, i) => (/appdetails/.test(u) && n++ === 0
+      ? Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({}) }) : steam620('Программа тестирования.')(u, i));
+    const { d } = deps([game()], { fetchFn: flaky, loadImage: async () => true });
+    expect((await runDailyRefresh(d)).updated).toBe(1);
+
+    const calls: string[] = [];
+    const down: FetchLike = (u) => { calls.push(u); return Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({}) }); };
+    const off = deps([game()], { fetchFn: down, loadImage: async () => true });
+    await runDailyRefresh(off.d);
+    expect(calls.filter((u) => /appdetails/.test(u)).length).toBe(2);
+    calls.length = 0;
+    await runDailyRefresh({ ...off.d, now: new Date('2026-10-16T12:00:00Z') });
+    expect(calls.filter((u) => /appdetails/.test(u)).length).toBe(2);
+  });
+
   it('seasons and games are separate writes: a stale game does not cost the seasons theirs', async () => {
     const rpc = vi.fn(async (_n: string, a: { p_updates: { id: string }[] }) => ({ data: a.p_updates.some((u) => u.id === 'portal') ? -1 : 1, error: null }));
     const both: FetchLike = (u, i) => (/appdetails/.test(u) ? steam620('Программа.')(u, i) : liveFetch(u, i));

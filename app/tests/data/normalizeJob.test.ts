@@ -82,11 +82,42 @@ describe('runNormalize', () => {
     expect(r.done).toBe(false);
   });
 
-  it('a title whose source never answers is given up after three opens', async () => {
-    const { d } = deps([movie('gone', '404')]);
-    expect((await runNormalize(d)).done).toBe(false);
-    expect((await runNormalize(d)).done).toBe(false);
+  it('a title whose source fails it while answering for others is given up on the third such open', async () => {
+    const { d } = deps([movie('dune', '438631'), movie('gone', '404')]);
+    (d.storage as ReturnType<typeof memory>).data['normalize:2:b1'] = JSON.stringify({ done: [], fails: { gone: 2 } });
     expect((await runNormalize(d)).done).toBe(true);
     expect((await runNormalize(d)).ran).toBe(false);
+  });
+
+  it('a lone dead id is not given up while its source answers nothing: it costs one ask per open', async () => {
+    const calls: string[] = [];
+    const { d } = deps([movie('gone', '404')], { fetchFn: (u, i) => { calls.push(u); return tmdb(u, i); } });
+    for (let k = 0; k < 4; k++) expect((await runNormalize(d)).done).toBe(false);
+    expect(calls.length).toBe(4 * 2);
+  });
+
+  it('a source that does not answer once is asked again after a pause', async () => {
+    let first = true;
+    const flaky: FetchLike = (u, i) => {
+      if (first) { first = false; return Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({}) }); }
+      return tmdb(u, i);
+    };
+    const pauses: number[] = [];
+    const { d, rpc } = deps([movie('dune', '438631')], { fetchFn: flaky, pause: async (ms) => { pauses.push(ms); } });
+    expect(await runNormalize(d)).toMatchObject({ done: true, updated: 1 });
+    expect(pauses).toContain(2000);
+    expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('a source that is down is left for the next open, and none of its titles is given up', async () => {
+    const down: FetchLike = () => Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({}) });
+    const calls: string[] = [];
+    const rows = Array.from({ length: 8 }, (_, i) => movie(`m${i}`, String(1000 + i)));
+    const { d } = deps(rows, { fetchFn: (u, i) => { calls.push(u); return down(u, i); } });
+    for (let k = 0; k < 4; k++) expect((await runNormalize(d)).done).toBe(false);
+    // Four titles, each asked twice, then the source is left alone.
+    expect(calls.length).toBe(4 * 4 * 2);
+    d.fetchFn = tmdb;
+    expect(await runNormalize(d)).toMatchObject({ done: true, updated: 8 });
   });
 });

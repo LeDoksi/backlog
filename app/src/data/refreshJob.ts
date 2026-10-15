@@ -8,7 +8,7 @@
 import * as Enrich from '../lib/enrich';
 import { materialize } from '../lib/derive';
 import { isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise';
-import { cardFor } from './cardSources';
+import { cardForRetry } from './cardSources';
 import { isLandscapeCover } from '../lib/covers';
 import { good } from '../lib/sources';
 import { cardFixes, fillTicksForDone, mergeParts, planMerge, ticksWith, type FreshPart } from '../lib/refresh';
@@ -240,10 +240,11 @@ async function refreshGames(deps: RefreshDeps, pause: (ms: number) => Promise<vo
   for (const r of games) {
     if (!first) await pause(PAUSE_MS);
     first = false;
-    const card = await cardFor(r.source!, r.source_id!, {
+    const card = await cardForRetry(r.source!, r.source_id!, {
       fetchFn: deps.fetchFn, proxy: deps.proxy ?? '', tmdbKey: deps.tmdbKey, rawgKey: deps.rawgKey ?? '', loadImage: deps.loadImage ?? (async () => false)
-    });
-    asked[r.id] = now.getTime();
+    }, pause);
+    // A game whose source did not answer is asked again tomorrow, not in a week.
+    if (card) asked[r.id] = now.getTime();
     const cols = card ? cardFixes(r, card, 'daily') : null;
     if (!cols) continue;
     updates.push({ id: r.id, base: cardBase(r, cols), ...cols });

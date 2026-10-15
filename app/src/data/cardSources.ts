@@ -100,3 +100,18 @@ export async function cardFor(source: string, sourceId: string, deps: SourceDeps
   };
   return assemble('game', (s) => loaders[s]());
 }
+
+/**
+ * cardFor, asked once more after a pause when the source did not answer:
+ * Steam's store API turns down a share of requests coming through the
+ * relay (live, 2026-10-15: the same game failed in one minute and loaded
+ * in the next).
+ */
+export async function cardForRetry(source: string, sourceId: string, deps: SourceDeps, pause: (ms: number) => Promise<void>): Promise<Card | null> {
+  const card = await cardFor(source, sourceId, deps);
+  if (card) return card;
+  await pause(RETRY_MS);
+  return cardFor(source, sourceId, deps);
+}
+
+export const RETRY_MS = 2000;
