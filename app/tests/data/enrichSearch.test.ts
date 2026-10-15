@@ -59,6 +59,15 @@ describe('already on the board', () => {
     const hit = { provider: 'tmdb-series', id: 1402, title: 'x', year: 2010, poster: '' } as Hit;
     expect(alreadyOnBoard(hit, [{ source: 'tmdb-series', sourceId: '1402' }])).toBe(true);
   });
+  it('a game added from RAWG (or by hand) is found again by its Steam hit, by name', () => {
+    const hit = { provider: 'steam', id: 2001, title: 'Valor Mortis™', year: null, poster: '' } as Hit;
+    expect(alreadyOnBoard(hit, [{ source: 'rawg', sourceId: '1008986', title: 'Valor Mortis', category: 'game' }])).toBe(true);
+    expect(alreadyOnBoard(hit, [{ source: null, sourceId: null, title: 'Valor Mortis', category: 'game' }])).toBe(true);
+    // Another Steam game of the same name is a different one (a remake): the add decides.
+    expect(alreadyOnBoard(hit, [{ source: 'steam', sourceId: '1', title: 'Valor Mortis', category: 'game' }])).toBe(false);
+    // A film of the same name is not the game.
+    expect(alreadyOnBoard(hit, [{ source: 'rawg', sourceId: '1', title: 'Valor Mortis', category: 'movie' }])).toBe(false);
+  });
 });
 
 describe('a picked row comes with its parts (BL-90)', () => {

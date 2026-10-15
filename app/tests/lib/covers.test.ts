@@ -18,6 +18,7 @@ import { synopsisText } from '../../src/lib/synopsis';
 test('wide game pictures are recognised by address', () => {
   expect(isLandscapeCover('https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1086940/48a2fc/header.jpg?t=1777363040')).toBe(true);
   expect(isLandscapeCover('https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/capsule_616x353.jpg')).toBe(true);
+  expect(isLandscapeCover('https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/5006530/7cc364/header_alt_assets_0_russian.jpg?t=1788763575')).toBe(true);
   expect(isLandscapeCover('https://media.rawg.io/media/games/044/044b2ee023930ca138deda151f40c18c.jpg')).toBe(true);
   expect(isLandscapeCover('https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/library_600x900_2x.jpg')).toBe(false);
   expect(isLandscapeCover('https://cdn2.steamgriddb.com/grid/abc.png')).toBe(false);
