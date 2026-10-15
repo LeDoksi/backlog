@@ -8,7 +8,7 @@
 // a time, so the work is written in small batches through the same quiet
 // apply_title_refresh() call as the daily refresh: closing the tab halfway
 // loses at most one batch, and the next open goes on from there.
-import { cardFor, categoryOf, type SourceDeps } from './cardSources';
+import { cardForRetry, categoryOf, type SourceDeps } from './cardSources';
 import { cardBase } from './refreshJob';
 import { cardFixes } from '../lib/refresh';
 import type { TitleRow } from '../lib/titleRow';
@@ -29,7 +29,9 @@ export interface NormalizeResult { ran: boolean; done: boolean; updated: number;
 
 const BATCH = 10;
 const PAUSE_MS = 250;
-const key = (board: string) => `normalize:${board}`;
+// `2`: the first pass (2026-10-15) lost most Steam games to a relay that
+// turned Steam down, and gave up on them; every board goes over once more.
+const key = (board: string) => `normalize:2:${board}`;
 
 interface Progress { done: Set<string>; fails: Record<string, number> }
 
@@ -50,6 +52,8 @@ function save(storage: StorageLike, board: string, value: Progress | 'done') {
 
 /** A title whose source has not answered on this many opens is left as it is. */
 const GIVE_UP = 3;
+/** Failures in a row after which a source is left alone until the next open. */
+const SOURCE_DOWN = 4;
 
 export function normalizedAlready(storage: StorageLike, board: string): boolean {
   return seen(storage, board) === 'done';
@@ -67,7 +71,10 @@ export async function runNormalize(deps: NormalizeDeps): Promise<NormalizeResult
   let updated = 0;
   let skipped = 0;
   let asked = 0;
-  const failed = new Map<string, number>();
+  // A source failing several times in a row is down for this run: its
+  // titles wait for the next open, and are not given up for it.
+  const failedInRow = new Map<string, number>();
+  const answered = new Set<string>();
   for (let i = 0; i < todo.length; i += BATCH) {
     const batch = todo.slice(i, i + BATCH);
     const updates: Record<string, unknown>[] = [];
@@ -75,18 +82,23 @@ export async function runNormalize(deps: NormalizeDeps): Promise<NormalizeResult
     const finished: string[] = [];
     for (const r of batch) {
       // An edit still waiting to be sent: this title is left for the next open.
-      if (deps.pendingIds.has(r.id) || (failed.get(r.source!) ?? 0) >= 3) continue;
+      if (deps.pendingIds.has(r.id) || (failedInRow.get(r.source!) ?? 0) >= SOURCE_DOWN) continue;
       if (asked++) await pause(PAUSE_MS);
-      const card = await cardFor(r.source!, r.source_id!, deps);
-      // A source that does not answer is asked again on a later open; one
-      // that fails three times now is down, and its titles wait.
+      const card = await cardForRetry(r.source!, r.source_id!, deps, pause);
+      // A source that does not answer is asked again on a later open. Only
+      // a title its source fails for while answering others counts towards
+      // giving it up (a removed Steam page, a dead id).
       if (!card) {
         skipped++;
-        failed.set(r.source!, (failed.get(r.source!) ?? 0) + 1);
-        fails[r.id] = (fails[r.id] ?? 0) + 1;
-        if (fails[r.id]! >= GIVE_UP) finished.push(r.id);
+        failedInRow.set(r.source!, (failedInRow.get(r.source!) ?? 0) + 1);
+        if (answered.has(r.source!)) {
+          fails[r.id] = (fails[r.id] ?? 0) + 1;
+          if (fails[r.id]! >= GIVE_UP) finished.push(r.id);
+        }
         continue;
       }
+      failedInRow.set(r.source!, 0);
+      answered.add(r.source!);
       const cols = cardFixes(r, card, 'normalize');
       finished.push(r.id);
       if (!cols) continue;
