@@ -1,6 +1,6 @@
 // The daily refresh on the live answers recorded 2026-10-14 (spec 2.5).
 import { describe, expect, it, vi } from 'vitest';
-import { runDailyRefresh, type RefreshDeps } from '../../src/data/refreshJob';
+import { rebuildSeasons, runDailyRefresh, type RefreshDeps } from '../../src/data/refreshJob';
 import type { TitleRow } from '../../src/lib/titleRow';
 import type { FetchLike, StorageLike } from '../../src/lib/types';
 import { liveFetch } from '../fixtures/liveFetch';
@@ -265,5 +265,36 @@ describe('runDailyRefresh: games (spec 3.4)', () => {
     const r = await runDailyRefresh(d);
     expect(rpc).toHaveBeenCalledTimes(2);
     expect(r.changes.map((c) => c.id)).toEqual(['twd']);
+  });
+});
+
+describe('rebuildSeasons («Обновить сезоны»)', () => {
+  const legacy = [{ name: 'Сезон 1', released: true }, { name: 'OVA', extra: true, released: true }, { name: 'Сезон 2', released: true }, { name: 'Сезон 3', released: false }];
+  const call = (r: TitleRow) => {
+    const rpc = vi.fn(async (_n: string, _a: Record<string, unknown>) => ({ data: 1, error: null }));
+    return { rpc, run: () => rebuildSeasons({ board: 'b1', row: r, fetchFn: liveFetch, client: { rpc }, now, tmdbKey: 'KEY', proxy: null }) };
+  };
+
+  it('builds the list from the source and carries the main ticks over by count, quietly', async () => {
+    const { rpc, run } = call(row('frieren', 'anime', 'shikimori', '52991', 'in_progress', { parts: legacy, checked_parts: { '0': '2026-01-01', '1': '2026-01-02', '2': '2026-01-03' } }));
+    const res = await run();
+    expect(res).not.toBe('none');
+    const cols = (res as { cols: TitleRow }).cols;
+    expect((cols.parts as { ref?: string }[]).every((p) => p.ref)).toBe(true);
+    // Two main parts were ticked (the OVA does not count): the first two released main parts are.
+    expect(Object.values(cols.checked_parts as object)).toEqual(['2026-01-01', '2026-01-03']);
+    expect(rpc.mock.calls[0]![0]).toBe('apply_title_refresh');
+  });
+
+  it('a finished title stays finished', async () => {
+    const { run } = call(row('twd', 'series', 'tmdb-series', '1402', 'done', { parts: [{ name: 'Книга 1', released: true }], checked_parts: { '0': 'a' }, completed_at: '2025-05-01T00:00:00Z' }));
+    const res = await run() as { cols: TitleRow };
+    expect(res.cols.status).toBe('done');
+  });
+
+  it('a stale write says so', async () => {
+    const r = row('frieren', 'anime', 'shikimori', '52991', 'queue', { parts: legacy });
+    const rpc = vi.fn(async () => ({ data: -1, error: null }));
+    expect(await rebuildSeasons({ board: 'b1', row: r, fetchFn: liveFetch, client: { rpc }, now, tmdbKey: 'KEY', proxy: null })).toBe('stale');
   });
 });

@@ -8,7 +8,7 @@ import type { TitleRow } from '../lib/titleRow';
 import { browserLoadImage } from './cardSources';
 import { getSupabase } from './supabase';
 import { mirror, outbox, useTitles } from './titlesStore';
-import { refreshedToday, runDailyRefresh } from './refreshJob';
+import { rebuildSeasons, refreshedToday, runDailyRefresh } from './refreshJob';
 import { normalizedAlready, runNormalize } from './normalizeJob';
 
 const running = new Set<string>();
@@ -45,4 +45,22 @@ export function refreshBoardDaily(board: string): void {
   }).then((res) => land(board, res.changes))
     .catch((e) => console.warn('[refresh] daily refresh failed', e))
     .finally(() => { running.delete(board); normalizeOnce(board); });
+}
+
+/**
+ * «Обновить сезоны» on one title of the open board (BL-113). A list edited
+ * by hand stops being one: from now on the daily refresh keeps it current.
+ */
+export async function rebuildTitleSeasons(id: string): Promise<'ok' | 'none' | 'stale'> {
+  const store = useTitles.getState();
+  const board = store.boardId;
+  const row = store.boardRows().find((r) => r.id === id);
+  if (!board || !row || outbox.pendingIds(board).has(id) || typeof fetch !== 'function') return 'stale';
+  const res = await rebuildSeasons({
+    board, row, fetchFn: fetch.bind(globalThis) as FetchLike, client: getSupabase(), now: new Date(), tmdbKey: TMDB_KEY, proxy: CORS_PROXY
+  });
+  if (typeof res === 'string') return res;
+  land(board, [{ id, cols: res.cols }]);
+  if (row.parts_manual) useTitles.getState().editTitle(id, { partsManual: false });
+  return 'ok';
 }

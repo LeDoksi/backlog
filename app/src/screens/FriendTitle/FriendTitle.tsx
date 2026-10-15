@@ -13,6 +13,7 @@ import { ASSET_ROOT } from '../../config';
 import type { Category } from '../../lib/types';
 import { PartsChecklist } from '../TitleSheet/PartsChecklist';
 import { CopyButtons } from '../FriendProfile/CopyFromFriend';
+import { canonicalGenres, canonicalPlatforms } from '../../lib/gameNames';
 import { Synopsis } from '../TitleSheet/TitleSheet';
 import t from '../TitleSheet/TitleSheet.module.css';
 import s from './FriendTitle.module.css';
@@ -42,7 +43,7 @@ export function FriendTitle() {
   // «Открыть мой» only opens a title on the board in front of me.
   const mineHere = useTitles((t) => !!d?.mine_id && t.titles.some((x) => x.id === d.mine_id));
   const cover = resolveCover(d?.cover ?? undefined, ASSET_ROOT);
-  const meta = d ? [[CATEGORY_LABEL[d.category as Category], d.year].filter(Boolean).join(', '), (d.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
+  const meta = d ? [[CATEGORY_LABEL[d.category as Category], d.year].filter(Boolean).join(', '), (d.category === 'game' ? canonicalGenres(d.genres ?? []) : d.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
   const parts = d && (d.category === 'series' || d.category === 'anime') && Array.isArray(d.parts) && d.parts.length > 0 ? d.parts : null;
 
   return (
@@ -77,7 +78,7 @@ export function FriendTitle() {
           {parts && <PartsChecklist parts={parts} checked={d.checked ?? []} readOnly />}
           <Synopsis text={d.synopsis} />
           {d.category === 'game' && d.platforms && d.platforms.length > 0 && (
-            <div className={t.platforms} aria-label="Платформы">{d.platforms.map((p) => <span key={p} className={t.platform}>{p}</span>)}</div>
+            <div className={t.platforms} aria-label="Платформы">{(canonicalPlatforms(d.platforms) ?? []).map((p) => <span key={p} className={t.platform}>{p}</span>)}</div>
           )}
         </div>
       )}

@@ -1,6 +1,7 @@
 // titleRow.ts — one `titles` row ↔ the Title object the screens use.
 // The checklist travels as `checked_parts`: part index → when it was ticked,
 // the dates feeding «Итоги» by month and year.
+import { canonicalGenres, canonicalPlatforms } from './gameNames';
 import type { Title } from './types';
 
 export type CheckedParts = Record<string, string>;
@@ -61,11 +62,11 @@ export function fromRow(row: TitleRow): { title: Title; checked: CheckedParts } 
     airingStatus: row.airing_status ?? null,
     originalTitle: row.original_title ?? null,
     year: row.year ?? null,
-    genres: Array.isArray(row.genres) ? row.genres : [],
+    genres: Array.isArray(row.genres) ? (row.category === 'game' ? canonicalGenres(row.genres) : row.genres) : [],
     synopsis: row.synopsis ?? '',
     cover: row.cover ?? undefined,
     seasonInfo: row.season_info ?? null,
-    platforms: row.platforms ?? null,
+    platforms: row.category === 'game' ? canonicalPlatforms(row.platforms) : row.platforms ?? null,
     parts: row.parts ?? null,
     source: row.source ?? null,
     sourceId: row.source_id ?? null,

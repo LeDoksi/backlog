@@ -4,6 +4,7 @@ import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
 import { Popover } from '../../ui/Popover';
 import { useTitles } from '../../data/titlesStore';
+import { rebuildTitleSeasons } from '../../data/dailyRefresh';
 import { useUi } from '../../data/ui';
 import { busy } from '../../data/busy';
 import { metaLine } from '../../data/labels';
@@ -48,7 +49,17 @@ export function TitleSheet() {
     useUi.getState().showToast(`Удалено «${name}»`, { label: 'Отменить', run: () => store().undoDelete() });
   }
 
+  // The list built again from TMDb or Shikimori (BL-113); the ticks carry over by count.
+  async function rebuild(titleId: string) {
+    setMenu(false);
+    const toast = useUi.getState().showToast;
+    toast('Обновляю сезоны…');
+    const res = await rebuildTitleSeasons(titleId);
+    toast(res === 'ok' ? 'Сезоны обновлены. Проверь отметки' : res === 'stale' ? 'Не вышло: тайтл ещё сохраняется. Попробуй через минуту' : 'Не вышло: источник не ответил');
+  }
+
   const cover = title ? resolveCover(title.cover, ASSET_ROOT) : '';
+  const rebuildable = !!title && !!title.sourceId && (title.source === 'tmdb-series' || title.source === 'shikimori');
   const meta = title ? [metaLine(title), (title.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
 
   return (
@@ -65,6 +76,7 @@ export function TitleSheet() {
                 <button type="button" className={s.menuItem} onClick={() => { setMenu(false); store().editTitle(title.id, { hidden: !title.hidden }); }}>
                   {title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'}
                 </button>
+                {rebuildable && <button type="button" className={s.menuItem} onClick={() => void rebuild(title.id)}>Обновить сезоны</button>}
                 <button type="button" className={`${s.menuItem} ${s.menuDanger}`} onClick={() => remove(title.id, title.title)}>Удалить</button>
               </div>
             </Popover>
