@@ -1,7 +1,7 @@
 import * as Enrich from '../lib/enrich';
 import { CORS_PROXY, RAWG_KEY, TMDB_KEY } from '../config';
 import { browserLoadImage, cardFor } from './cardSources';
-import { franchiseLabel, partsFromFranchise, partsFromTmdb } from '../lib/franchise';
+import { franchiseLabel, isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise';
 import type { FreshPart } from '../lib/refresh';
 import type { Category, FetchLike, Part } from '../lib/types';
 
@@ -83,7 +83,8 @@ async function groupByFranchise(fetchFn: FetchLike, hits: Hit[]): Promise<Hit[]>
     const id = Number(hit.id);
     const cached = franchiseCache.has(id);
     const f = cached || calls < MAX_FRANCHISE_CALLS ? await franchiseOf(fetchFn, id, !cached && calls++ > 0) : null;
-    if (!f || f.nodes.length < 2) { rows.push(hit); continue; }
+    const parts = f ? partsFromFranchise(f, new Date()) : [];
+    if (!f || f.nodes.length < 2 || isLoneWork(parts)) { rows.push(hit); continue; }
     const ids = new Set(f.nodes.map((n) => n.id));
     const root = f.nodes.find((n) => n.id === f.rootId)!;
     const rootHit = [hit, ...pool].find((h) => Number(h.id) === root.id);
@@ -96,7 +97,7 @@ async function groupByFranchise(fetchFn: FetchLike, hits: Hit[]): Promise<Hit[]>
       poster: rootHit?.poster || root.image || hit.poster,
       kind: 'franchise',
       label: franchiseLabel(f),
-      parts: partsFromFranchise(f, new Date()),
+      parts,
       refs: [...ids].map((n) => `shiki:${n}`)
     });
   }

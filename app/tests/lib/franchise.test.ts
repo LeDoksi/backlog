@@ -2,7 +2,7 @@
 // (tests/fixtures/live, fetched on Georgy's computer through Remote Control).
 import { describe, expect, it } from 'vitest';
 import { fetchShikimoriFranchise, fetchTmdbDetails, fetchTmdbSeasons, type Franchise } from '../../src/lib/enrich';
-import { franchiseLabel, partsFromFranchise, partsFromTmdb } from '../../src/lib/franchise';
+import { franchiseLabel, isLoneWork, partsFromFranchise, partsFromTmdb } from '../../src/lib/franchise';
 import { liveFetch } from '../fixtures/liveFetch';
 
 const today = new Date('2026-10-14T12:00:00Z');
@@ -76,12 +76,20 @@ describe('Shikimori franchise', () => {
     const main = parts.filter((p) => !p.extra);
     expect(main.length).toBeLessThanOrEqual(15);
     expect(main[0]!.ref).toBe('shiki:918');
-    expect(main.slice(-2).map((p) => p.name).sort()).toEqual(['Гинтама: Полуфинал', 'Гинтама: Финал']);
+    expect(main.at(-1)!.name).toBe('Гинтама: Финал');
+    // A special inside the chain is still a side piece.
+    expect(parts.find((p) => p.name === 'Гинтама: Полуфинал')!.extra).toBe(true);
   });
 
   it('asked from a later season, the root is still the first TV season', async () => {
     const f = await fetchShikimoriFranchise(liveFetch, 16498);
     expect(f!.rootId).toBe(16498);
+  });
+
+  it('a film on its own is a lone work; one season or two films are not', () => {
+    expect(isLoneWork([{ name: 'Фильм', ref: 'shiki:1', released: true }, { name: 'OVA', ref: 'shiki:2', released: true, extra: true }])).toBe(true);
+    expect(isLoneWork([{ name: 'S1', ref: 'shiki:1', released: true, season: 1 }])).toBe(false);
+    expect(isLoneWork([{ name: 'A', ref: 'shiki:1', released: true }, { name: 'B', ref: 'shiki:2', released: true }])).toBe(false);
   });
 
   it('a network error or an empty franchise is null', async () => {

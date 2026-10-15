@@ -43,6 +43,16 @@ export function partsFromFranchise(f: Franchise, today: Date): FreshPart[] {
   return [...main, ...extra];
 }
 
+/**
+ * A film (or an OVA) on its own: no TV season in the main story and at most
+ * one main part. A checklist of one part says nothing, so such a title gets
+ * no list (and in search it stays its own row).
+ */
+export function isLoneWork(parts: FreshPart[]): boolean {
+  const main = parts.filter((p) => !p.extra);
+  return main.length <= 1 && !main.some((p) => p.season);
+}
+
 /** «4 сезона, 1 фильм» for a search row: main parts only. */
 export function franchiseLabel(f: Franchise): string {
   const main = f.nodes.filter((n) => n.main);

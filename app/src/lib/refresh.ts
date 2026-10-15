@@ -25,6 +25,10 @@ export function seasonNumber(name: string): number | null {
   return Number(m[1] ?? m[2]);
 }
 
+// A hand-made part that is a side piece by its name: «OVA «Memory Snow»»,
+// «ONA», «Спешл», «Спецвыпуск», «Special».
+const SIDE_NAME = /^\s*(?:ova|ona|oad|спешл|спецвыпуск|special)(?![a-zа-яё])/i;
+
 function clean(p: FreshPart): Part {
   const out: Part = { name: p.name, year: p.year ?? null, released: p.released !== false, ref: p.ref };
   if (p.extra) out.extra = true;
@@ -32,7 +36,7 @@ function clean(p: FreshPart): Part {
 }
 
 function sameFacts(a: Part, b: Part): boolean {
-  return (a.released !== false) === (b.released !== false) && (a.year ?? null) === (b.year ?? null);
+  return (a.released !== false) === (b.released !== false) && (a.year ?? null) === (b.year ?? null) && !!a.extra === !!b.extra;
 }
 
 export interface MergeResult { parts: Part[]; changed: boolean }
@@ -57,13 +61,18 @@ export function mergeParts(current: Part[] | null | undefined, fresh: FreshPart[
   const hasRefs = out.some((p) => p.ref);
 
   if (!hasRefs) {
-    if (opts.manual || opts.lineUp === false) return { parts: cur, changed: false };
+    if (opts.manual) return { parts: cur, changed: false };
+    // OVAs and specials in a hand-made list go to the extras block (the
+    // flag moves nothing, ticks stay on their parts).
+    const sided = out.map((p) => (!p.extra && SIDE_NAME.test(p.name ?? '') ? { ...p, extra: true } : p));
+    const unchanged = sided.every((p, i) => p === out[i]);
+    if (opts.lineUp === false) return unchanged ? { parts: cur, changed: false } : { parts: sided, changed: true };
     // Line up «season N» names with the provider's seasons: 1, 2, … k in
     // order, so nothing the provider has falls between them.
     const refs: string[] = [];
     for (const [i, p] of out.entries()) {
       const f = seasonNumber(p.name) === i + 1 ? fresh.find((x) => !x.extra && x.season === i + 1) : undefined;
-      if (!f) return { parts: cur, changed: false };
+      if (!f) return unchanged ? { parts: cur, changed: false } : { parts: sided, changed: true };
       refs.push(f.ref);
     }
     out = out.map((p, i) => ({ ...p, ref: refs[i] }));
@@ -78,7 +87,10 @@ export function mergeParts(current: Part[] | null | undefined, fresh: FreshPart[
   out = out.map((p) => {
     const f = p.ref ? byRef.get(p.ref) : undefined;
     if (!f) return p;
-    const next = opts.manual ? { ...p, released: f.released !== false } : { ...p, released: f.released !== false, year: f.year ?? p.year ?? null };
+    // A part the provider now counts as a side piece moves to the extras;
+    // never the other way (a part appended there on purpose stays).
+    const next = opts.manual ? { ...p, released: f.released !== false }
+      : { ...p, released: f.released !== false, year: f.year ?? p.year ?? null, ...(f.extra || p.extra ? { extra: true } : {}) };
     if (!sameFacts(p, next)) changed = true;
     return next;
   });
