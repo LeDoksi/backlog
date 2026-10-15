@@ -149,7 +149,9 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       if (t.title.status === 'done' && !f.some((p) => !p.extra && p.released !== false)) return;
     }
     // A hand-made list on a title nobody started gives way to the provider's.
-    const untouched = !checkedIndices(t.ticks).length && (t.title.status === 'queue' || t.title.status === 'unreleased');
+    // (Not for a side piece: an OVA's own list is not the franchise's.)
+    const untouched = !checkedIndices(t.ticks).length && (t.title.status === 'queue' || t.title.status === 'unreleased')
+      && !(franchise[id] && !franchise[id]!.main);
     const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series', untouched });
     partsAfter[id] = m.parts;
   });
