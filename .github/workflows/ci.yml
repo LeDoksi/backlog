@@ -14,6 +14,8 @@ jobs:
       - name: unit tests and types
         working-directory: app
         run: npm test && npm run typecheck
+      - name: proxy worker tests
+        run: node --test worker/proxy.test.mjs
       - name: production build and JS budget
         working-directory: app
         run: npm run build && npm run budget

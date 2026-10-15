@@ -6,7 +6,10 @@
 // The one invariant: ticks are stored by part index, so parts already on a
 // title are never reordered or removed here. New parts only ever go on the
 // end.
-import { checkedIndices, type CheckedParts } from './titleRow';
+import { checkedIndices, type CheckedParts, type TitleRow } from './titleRow';
+import { isLandscapeCover } from './covers';
+import { good, type Raw } from './sources';
+import { MT_PREFIX } from './synopsis';
 import type { Part, Status, Title } from './types';
 
 /** A part as a provider sees it: `season` is the n-th main season (1-based) for lining up hand-made lists. */
@@ -177,4 +180,62 @@ export function planMerge(
     plans.push({ keep: keep.id, absorb: absorb.map((t) => t.id), ticks, rating: ratings.length ? Math.max(...ratings) : null });
   });
   return plans;
+}
+
+// ── Card fields (wave 3: spec 3.4 and the one-time normalization) ───────
+
+/**
+ * A cover nobody chose: none, the placeholder, a file of the old site
+ * (`images/covers/…`, github.io), Shikimori's «no picture», or a wide
+ * Steam/RAWG picture. Anything else (an upload, a pasted link, a poster
+ * from search) was chosen and is never replaced.
+ */
+export function replaceableCover(cover: string | null | undefined): boolean {
+  const c = (cover ?? '').trim();
+  if (!c) return true;
+  if (/^images\/covers\//.test(c) || /\.github\.io\//.test(c)) return true;
+  if (/shikimori\.[a-z]+\/assets\/globals\/missing/.test(c)) return true;
+  return isLandscapeCover(c);
+}
+
+const RU = (s: string | null | undefined) => good('synopsis', s);
+
+/**
+ * What a title's card should change to, given its sources' card, or null.
+ * `daily` (games, spec 3.4): a wide or missing cover becomes a tall one;
+ * an English or empty description becomes a Russian one. `normalize`
+ * (titles moved from the old site, once): name, original name, cover,
+ * description, genres and year as search gives them, except that a cover
+ * someone chose stays, a tall cover never gives way to a wide one, and a
+ * Russian description never gives way to a machine translation.
+ */
+export function cardFixes(row: TitleRow, card: Raw, mode: 'daily' | 'normalize'): Partial<TitleRow> | null {
+  const out: Partial<TitleRow> = {};
+  const cover = card.cover?.trim();
+  // A source's «no picture» is never a cover.
+  if (cover && !/\/assets\/globals\/missing|_placeholder\./.test(cover) && cover !== row.cover && replaceableCover(row.cover)) {
+    const none = !(row.cover ?? '').trim() || /_placeholder\.|\/assets\/globals\/missing/.test(row.cover ?? '');
+    // Tall beats anything replaceable; a wide picture only fills a gap
+    // (an old-site file is tall, another wide one is no better).
+    if (!isLandscapeCover(cover) || none) out.cover = cover;
+  }
+  const syn = card.synopsis?.trim();
+  if (syn && syn !== (row.synopsis ?? '').trim()) {
+    const cur = (row.synopsis ?? '').trim();
+    const machine = syn.startsWith(MT_PREFIX.trim());
+    if (!cur) out.synopsis = syn;
+    else if (RU(syn) && !RU(cur)) out.synopsis = syn;
+    else if (mode === 'normalize' && RU(syn) && !machine) out.synopsis = syn;
+    else if (mode === 'normalize' && !RU(syn) && !RU(cur)) out.synopsis = syn;
+  }
+  if (mode === 'normalize') {
+    const title = card.title?.trim();
+    if (title && title !== row.title) out.title = title;
+    const name = title || row.title;
+    const orig = card.originalTitle?.trim();
+    if (orig && orig !== name && orig !== (row.original_title ?? '')) out.original_title = orig;
+    if (Array.isArray(card.genres) && card.genres.length && JSON.stringify(card.genres) !== JSON.stringify(row.genres ?? [])) out.genres = card.genres;
+    if (typeof card.year === 'number' && card.year !== (row.year ?? null)) out.year = card.year;
+  }
+  return Object.keys(out).length ? out : null;
 }

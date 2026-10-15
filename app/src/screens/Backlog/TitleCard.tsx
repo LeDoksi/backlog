@@ -13,6 +13,7 @@ import type { FriendOn } from '../../lib/social';
 import { Avatar } from '../../ui/Avatar';
 import { statusWord } from '../../data/friendsOn';
 import { QuickStatus } from './QuickStatus';
+import { Cover } from '../../ui/Cover';
 import s from './TitleCard.module.css';
 
 const PLACEHOLDER = resolveCover(undefined, ASSET_ROOT);
@@ -49,7 +50,7 @@ export const TitleCard = memo(function TitleCard({ title, checked, friend, onQui
         {/* No shared poster with the panel: flying it back on close re-projected
             the grid and read as the card reloading under the finger. */}
         <div className={s.poster}>
-          <img src={resolveCover(title.cover, ASSET_ROOT)} alt="" loading="lazy" decoding="async" draggable={false}
+          <Cover src={resolveCover(title.cover, ASSET_ROOT)} alt="" loading="lazy" decoding="async" draggable={false}
             onError={(e) => { if (e.currentTarget.src !== PLACEHOLDER) e.currentTarget.src = PLACEHOLDER; }} />
         </div>
         <div className={s.pill}><StatusPill status={title.status} category={title.category} onPoster waiting={waiting} /></div>

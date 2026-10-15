@@ -1,3 +1,5 @@
+import { cardFixes } from '../../src/lib/refresh';
+import type { TitleRow } from '../../src/lib/titleRow';
 import { describe, expect, it } from 'vitest';
 import { fillTicksForDone, mergeParts, planMerge, seasonNumber, ticksWith, type FreshPart } from '../../src/lib/refresh';
 import { isCaughtUp, partsProgress } from '../../src/lib/storage';
@@ -191,5 +193,50 @@ describe('planMerge', () => {
 
   it('titles without a franchise, or alone in theirs, are not touched', () => {
     expect(planMerge([t('a', 'queue', '1'), t('b', 'queue', '2')], { a: { key: 'x', ref: 'shiki:1' } }, {}, {})).toEqual([]);
+  });
+});
+
+describe('cardFixes (wave 3)', () => {
+  const HEADER = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/990080/abc/header.jpg?t=1';
+  const TALL = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/990080/library_600x900_2x.jpg';
+  const EN = 'Hogwarts Legacy is an immersive, open-world action RPG.';
+  const RU_TEXT = 'Hogwarts Legacy — ролевая игра с открытым миром.';
+  const row = (o: Partial<TitleRow> = {}): TitleRow => ({ id: 'h', title: 'Hogwarts Legacy', category: 'game', status: 'queue', cover: HEADER, synopsis: EN, genres: ['RPG'], year: 2023, ...o });
+
+  it('daily: a Steam header becomes the tall cover, English becomes Russian', () => {
+    expect(cardFixes(row(), { cover: TALL, synopsis: RU_TEXT }, 'daily')).toEqual({ cover: TALL, synopsis: RU_TEXT });
+  });
+  it('a cover someone chose is never replaced', () => {
+    expect(cardFixes(row({ cover: 'data:image/jpeg;base64,AAA' }), { cover: TALL }, 'daily')).toBeNull();
+    expect(cardFixes(row({ cover: 'https://example.com/my.jpg' }), { cover: TALL }, 'normalize')).toBeNull();
+    expect(cardFixes(row({ cover: 'https://rjdnpwamcxvhryiigbvt.supabase.co/storage/v1/object/public/covers/x.jpg' }), { cover: TALL }, 'normalize')).toBeNull();
+  });
+  it('an old-site file gives way to a tall cover, not to a wide one', () => {
+    expect(cardFixes(row({ cover: 'images/covers/haven-2020.jpg' }), { cover: TALL }, 'normalize')).toEqual({ cover: TALL });
+    expect(cardFixes(row({ cover: 'images/covers/haven-2020.jpg' }), { cover: HEADER }, 'normalize')).toBeNull();
+    expect(cardFixes(row({ cover: 'images/covers/_placeholder.svg' }), { cover: HEADER }, 'daily')).toEqual({ cover: HEADER });
+  });
+  it('a Russian description stays in daily mode, and never gives way to a machine translation', () => {
+    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: 'Другое русское описание.' }, 'daily')).toBeNull();
+    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: '[mt] Машинный перевод.' }, 'normalize')).toBeNull();
+    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: 'Описание из поиска.' }, 'normalize')).toEqual({ synopsis: 'Описание из поиска.' });
+    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: EN }, 'normalize')).toBeNull();
+  });
+  it('normalize: name, original name, genres and year as search gives them', () => {
+    expect(cardFixes(row({ title: 'Хогвартс', genres: ['rpg'], year: null, cover: TALL, synopsis: RU_TEXT }),
+      { title: 'Hogwarts Legacy', originalTitle: 'Hogwarts Legacy', genres: ['Ролевые игры'], year: 2023, cover: TALL, synopsis: RU_TEXT }, 'normalize'))
+      .toEqual({ title: 'Hogwarts Legacy', genres: ['Ролевые игры'], year: 2023 });
+    expect(cardFixes(row({ title: 'Дюна', category: 'movie', cover: 'https://image.tmdb.org/t/p/w500/d.jpg', synopsis: 'Наследник.' }),
+      { title: 'Дюна', originalTitle: 'Dune', cover: 'https://image.tmdb.org/t/p/w500/other.jpg', synopsis: 'Наследник.' }, 'normalize'))
+      .toEqual({ original_title: 'Dune' });
+  });
+  it('daily never touches the name, genres or year', () => {
+    expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT }), { title: 'Другое', genres: ['x'], year: 1999 }, 'daily')).toBeNull();
+  });
+  it('a second pass changes nothing', () => {
+    const card = { title: 'Hogwarts Legacy', cover: TALL, synopsis: RU_TEXT, genres: ['Ролевые игры'], year: 2023 };
+    const first = cardFixes(row(), card, 'normalize')!;
+    expect(cardFixes(row(first), card, 'normalize')).toBeNull();
+    expect(cardFixes(row(first), card, 'daily')).toBeNull();
   });
 });

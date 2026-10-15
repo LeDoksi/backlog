@@ -1,0 +1,4 @@
+.frame { position: relative; display: block; width: 100%; height: 100%; overflow: hidden; }
+.frame .img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.landscape .img { object-fit: contain; }
+.frame .blur { position: absolute; inset: -12%; width: 124%; height: 124%; max-width: none; object-fit: cover; filter: blur(18px) saturate(140%); opacity: .85; pointer-events: none; }

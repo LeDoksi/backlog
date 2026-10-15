@@ -1,4 +1,5 @@
 import type { Category, Part, Title } from '../../lib/types';
+import { synopsisText } from '../../lib/synopsis';
 
 // `from` is the part's index when the form opened: watched progress is stored
 // as part indices, so reordering or removing parts has to carry it along.
@@ -34,7 +35,8 @@ export function formFromTitle(t: Title): EditForm {
     cover: t.cover ?? '',
     platforms: (t.platforms ?? []).join(', '),
     seasonInfo: t.seasonInfo ?? '',
-    synopsis: t.synopsis ?? '',
+    // Without the machine-translation mark: edited, the text is the owner's own.
+    synopsis: synopsisText(t.synopsis).text,
     parts: (t.parts ?? []).map((p, i) => newPart(p, i)),
     unreleased: t.status === 'unreleased'
   };

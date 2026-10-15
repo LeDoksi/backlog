@@ -1,5 +1,6 @@
 import * as Enrich from '../lib/enrich';
 import { CORS_PROXY, RAWG_KEY, TMDB_KEY } from '../config';
+import { browserLoadImage, cardFor } from './cardSources';
 import { franchiseLabel, isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise';
 import type { FreshPart } from '../lib/refresh';
 import type { Category, FetchLike, Part } from '../lib/types';
@@ -114,24 +115,10 @@ export function alreadyOnBoard(hit: Hit, titles: { source?: string | null; sourc
   });
 }
 
-export async function details(hit: Hit, fetchFn: FetchLike | null = nativeFetch()): Promise<(Enrich.Details & { source: string; sourceId: string; parts?: Part[] }) | null> {
+export async function details(hit: Hit, fetchFn: FetchLike | null = nativeFetch(), loadImage: (url: string) => Promise<boolean> = browserLoadImage): Promise<(Enrich.Details & { source: string; sourceId: string; parts?: Part[] }) | null> {
   if (!fetchFn) return null;
-  let d: Enrich.Details | null = null;
-  if (hit.provider === 'tmdb-movie') d = await Enrich.fetchTmdbDetails(fetchFn, CORS_PROXY, TMDB_KEY, 'movie', hit.id);
-  else if (hit.provider === 'tmdb-series') d = await Enrich.fetchTmdbDetails(fetchFn, CORS_PROXY, TMDB_KEY, 'series', hit.id);
-  else if (hit.provider === 'shikimori') d = await Enrich.fetchShikimoriDetails(fetchFn, hit.id);
-  else if (hit.provider === 'rawg') d = await Enrich.fetchRawgDetails(fetchFn, RAWG_KEY, hit.id);
-  else if (hit.provider === 'steam') {
-    d = await Enrich.fetchSteamDetails(fetchFn, CORS_PROXY, hit.id);
-    // Steam reports only PC platforms; RAWG's top match fills in consoles.
-    if (d && RAWG_KEY) {
-      try {
-        const [top] = await Enrich.searchRawg(fetchFn, RAWG_KEY, d.title);
-        const rawg = top ? await Enrich.fetchRawgDetails(fetchFn, RAWG_KEY, top.id) : null;
-        if (rawg?.platforms?.length) d.platforms = rawg.platforms;
-      } catch { /* the supplement is best effort */ }
-    }
-  }
+  // Every field from its best source (spec 3.1, lib/sources).
+  const d = await cardFor(hit.provider, String(hit.id), { fetchFn, proxy: CORS_PROXY, tmdbKey: TMDB_KEY, rawgKey: RAWG_KEY, loadImage }) as Enrich.Details | null;
   if (!d) return null;
   // The parts of the new title (BL-90): the franchise the row was built
   // from, or the seasons the series details already carry.

@@ -64,8 +64,9 @@ test('the daily refresh fills in seasons quietly on open', async ({ page }) => {
   await liveApis(page);
   await page.goto('./');
   await expect(page.locator('article')).toContainText('11 из 11');
-  const calls = await page.evaluate(() => (window as unknown as { __rpcCalls: { name: string; args: { p_workspace: string } }[] }).__rpcCalls
-    .filter((c) => c.name === 'apply_title_refresh').map((c) => c.args.p_workspace));
+  // The seasons write (the one-time normalization of wave 3 writes the card on its own).
+  const calls = await page.evaluate(() => (window as unknown as { __rpcCalls: { name: string; args: { p_workspace: string; p_updates: { parts?: unknown }[] } }[] }).__rpcCalls
+    .filter((c) => c.name === 'apply_title_refresh' && c.args.p_updates.some((u) => u.parts)).map((c) => c.args.p_workspace));
   expect(calls).toEqual([PERSONAL]);
   // Reopening the same day does not ask again (the stub's rows start over on reload, the day mark does not).
   await page.reload();
