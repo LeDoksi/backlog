@@ -230,6 +230,13 @@ describe('cardFixes (wave 3)', () => {
       { title: 'Дюна', originalTitle: 'Dune', cover: 'https://image.tmdb.org/t/p/w500/other.jpg', synopsis: 'Наследник.' }, 'normalize'))
       .toEqual({ original_title: 'Dune' });
   });
+  it('normalize: a Russian name of a show is not given up for TMDb\'s English fallback', () => {
+    const show = row({ title: 'Локи', category: 'series', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' });
+    expect(cardFixes(show, { title: 'Loki', originalTitle: 'Loki', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' }, 'normalize'))
+      .toEqual({ original_title: 'Loki' });
+    expect(cardFixes(show, { title: 'Локи (2021)', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' }, 'normalize'))
+      .toEqual({ title: 'Локи (2021)' });
+  });
   it('daily never touches the name, genres or year', () => {
     expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT }), { title: 'Другое', genres: ['x'], year: 1999 }, 'daily')).toBeNull();
   });

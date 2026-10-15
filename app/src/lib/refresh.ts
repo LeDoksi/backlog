@@ -230,8 +230,12 @@ export function cardFixes(row: TitleRow, card: Raw, mode: 'daily' | 'normalize')
   }
   if (mode === 'normalize') {
     const title = card.title?.trim();
-    if (title && title !== row.title) out.title = title;
-    const name = title || row.title;
+    // TMDb answers with the original name when it has no Russian one: a
+    // Russian name already on a film or show («Локи») is not given up for
+    // it. Games keep their store names (Steam's own, often English).
+    const losesRussian = row.category !== 'game' && /[а-яё]/i.test(row.title ?? '') && !/[а-яё]/i.test(title ?? '');
+    if (title && title !== row.title && !losesRussian) out.title = title;
+    const name = out.title ?? row.title;
     const orig = card.originalTitle?.trim();
     if (orig && orig !== name && orig !== (row.original_title ?? '')) out.original_title = orig;
     if (Array.isArray(card.genres) && card.genres.length && JSON.stringify(card.genres) !== JSON.stringify(row.genres ?? [])) out.genres = card.genres;
