@@ -483,7 +483,10 @@ var STEAM_ASSETS = 'https://shared.akamai.steamstatic.com/store_item_assets/stea
 /** Steam's own tall cover, when the image actually loads as a portrait picture. */
 async function steamTallCover(appid: number | string, loadImage: (url: string) => Promise<boolean>): Promise<string | null> {
   if (!/^\d+$/.test(String(appid))) return null;
-  var url = STEAM_ASSETS + appid + '/library_600x900.jpg';
+  // The plain library_600x900.jpg is really 300×450; the _2x one is the
+  // full 600×900 (checked live 2026-10-15: 45 of 58 games have it, a
+  // missing one is a 404 with no placeholder picture).
+  var url = STEAM_ASSETS + appid + '/library_600x900_2x.jpg';
   try {
     return (await loadImage(url)) ? url : null;
   } catch (e) {

@@ -17,7 +17,7 @@ const PROXY = 'https://proxy.example/';
 
 describe('steamTallCover', () => {
   it('the library art when it loads as a portrait picture', async () => {
-    expect(await steamTallCover(620, async () => true)).toBe('https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/library_600x900.jpg');
+    expect(await steamTallCover(620, async () => true)).toBe('https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/library_600x900_2x.jpg');
   });
   it('null when it does not load (or loads wide)', async () => {
     expect(await steamTallCover(620, async () => false)).toBeNull();

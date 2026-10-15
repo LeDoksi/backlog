@@ -6,7 +6,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { installStub, PERSONAL } from './fixtures/supabaseStub';
 
 const HEADER = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/abc/header.jpg';
-const TALL = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/library_600x900.jpg';
+const TALL = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/620/library_600x900_2x.jpg';
 const wide = readFileSync(new URL('./fixtures/wide-header.jpg', import.meta.url));
 const tall = readFileSync(new URL('../../images/covers/a-new-dawn-2026.jpg', import.meta.url));
 

@@ -198,7 +198,7 @@ describe('planMerge', () => {
 
 describe('cardFixes (wave 3)', () => {
   const HEADER = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/990080/abc/header.jpg?t=1';
-  const TALL = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/990080/library_600x900.jpg';
+  const TALL = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/990080/library_600x900_2x.jpg';
   const EN = 'Hogwarts Legacy is an immersive, open-world action RPG.';
   const RU_TEXT = 'Hogwarts Legacy — ролевая игра с открытым миром.';
   const row = (o: Partial<TitleRow> = {}): TitleRow => ({ id: 'h', title: 'Hogwarts Legacy', category: 'game', status: 'queue', cover: HEADER, synopsis: EN, genres: ['RPG'], year: 2023, ...o });

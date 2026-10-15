@@ -40,7 +40,7 @@ describe('pick', () => {
     await assemble('game', async (s) => {
       asked.push(s);
       if (s === 'steam') return { title: 'Portal 2', synopsis: 'Программа тестирования расширена.' };
-      if (s === 'steamTall') return { cover: 'https://x/library_600x900.jpg' };
+      if (s === 'steamTall') return { cover: 'https://x/library_600x900_2x.jpg' };
       return null;
     });
     expect(asked).not.toContain('wiki');

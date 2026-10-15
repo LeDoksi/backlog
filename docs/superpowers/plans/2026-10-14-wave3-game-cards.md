@@ -37,7 +37,7 @@
 
 **Files:** `app/tests/fixtures/live/games/`; раздел «Что показали живые ответы» в этом плане; `/mnt/project-files/review/cloudflare-keys.md` (инструкция Георгию).
 
-- [ ] **Step 1:** На компьютере Георгия: для 30 игр из прода (read-only выборка `source in ('steam','rawg')`) проверить загрузку `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/<appid>/library_600x900.jpg` (и `_2x`), записать долю. Ответ SteamGridDB `/api/v2/search/autocomplete/<term>` и `/api/v2/grids/game/<id>?dimensions=600x900` (с временным ключом Георгия). Википедия: `ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=<name> игра&format=json&origin=*` и `/api/rest_v1/page/summary/<title>` для 5 консольных эксклюзивов.
+- [x] **Step 1:** На компьютере Георгия: для 30 игр из прода (read-only выборка `source in ('steam','rawg')`) проверить загрузку `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/<appid>/library_600x900.jpg` (и `_2x`), записать долю. Ответ SteamGridDB `/api/v2/search/autocomplete/<term>` и `/api/v2/grids/game/<id>?dimensions=600x900` (с временным ключом Георгия). Википедия: `ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=<name> игра&format=json&origin=*` и `/api/rest_v1/page/summary/<title>` для 5 консольных эксклюзивов.
 - [x] **Step 2:** Выбрать переводчик: бесплатный без карты и с CORS через посредник. Кандидаты по порядку: MyMemory (ключ не нужен, лимит в день), Яндекс (нужен облачный аккаунт), DeepL Free (нужна карта). Записать решение и лимиты.
 - [x] **Step 3:** Инструкция Георгию: завести ключ SteamGridDB (и переводчика, если нужен), вставить новый `worker/proxy.js` и переменные в панели Cloudflare. Коротко, по шагам.
 - [ ] **Step 4: Commit** `test: live game cover and description fixtures`.
@@ -95,6 +95,16 @@
 - [ ] **Step 2:** Георгий: ключи и новый посредник в Cloudflare (инструкция из задачи 1); SQL задачи 5 в SQL Editor — до слияния.
 - [ ] **Step 3:** PR, CI, слияние, выкладка; проверка через Remote Control: добавить консольный эксклюзив (русское описание из Википедии), Steam-игру (вертикальная обложка); read-only запрос: сколько игр с горизонтальной обложкой осталось.
 - [ ] **Step 4:** Канбан BL-91, 92, 93, 94; план; сообщение Георгию.
+
+## Что показали живые ответы (2026-10-15)
+
+Записаны через Remote Control на компьютере Георгия (скрипт `app/tests/fixtures/live/games/record.mjs`; фикстуры в репозиторий не легли: на его машине отказали в push, тесты работают на ответах того же вида, собранных вручную).
+
+- **Steam, вертикальная обложка:** у 45 из 58 игр прода она есть. Обычный `library_600x900.jpg` на самом деле 300×450, настоящие 600×900 только у `library_600x900_2x.jpg`; код берёт `_2x`. Нет обложки: ответ 404, `text/html`, 146 байт, картинки-заглушки нет (браузер получает ошибку загрузки). `appdetails` ссылок на неё не содержит. Картинки Steam отдают ACAO `*`.
+- **Википедия:** ACAO `*`. Ложные совпадения: «Interstellar игра» первым даёт фильм «Интерстеллар» (не берётся: название другое); «Dune игра» первым даёт «Dune (игра)»; «Orbitals игра» даёт обзорную статью «2026 год в компьютерных играх» (не берётся); «Haven игра» даёт «Haven (игра)».
+- **MyMemory:** ACAO `*`, работает напрямую. Текст длиннее 500 знаков: HTTP 200, но в теле `responseStatus: "403"` и «QUERY LENGTH LIMIT EXCEEDED» (код считает это «нет перевода» и сам режет до 450). Заголовков с квотой нет.
+- **SteamGridDB без ключа:** 401 `Authentication Required`, без ACAO — поэтому только через посредник.
+- **RAWG:** первые находки по названию бывают не той игрой («Orbitals» → проект с itch, «Haven» → Haven 2016), поэтому RAWG для Steam-игры берётся только при точном совпадении названия, а сами игры ищутся по своему ID.
 
 ## Отклонения при реализации
 

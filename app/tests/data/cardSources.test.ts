@@ -35,7 +35,7 @@ describe('a Steam game', () => {
       [/api\/games\/2\?/, { id: 2, name: 'Portal 2', platforms: [{ platform: { name: 'PC' } }, { platform: { name: 'Xbox 360' } }] }]
     ]), true));
     expect(card).toMatchObject({ title: 'Portal 2', year: 2011, genres: ['Экшены'], synopsis: 'Программа вечного тестирования расширена.', platforms: ['PC', 'Xbox 360'] });
-    expect(card!.cover).toMatch(/\/620\/library_600x900\.jpg$/);
+    expect(card!.cover).toMatch(/\/620\/library_600x900_2x\.jpg$/);
   });
 
   it('English on Steam, Wikipedia has it: the Wikipedia text; no tall Steam art: SteamGridDB', async () => {

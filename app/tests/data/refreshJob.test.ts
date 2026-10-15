@@ -185,7 +185,7 @@ describe('runDailyRefresh: games (spec 3.4)', () => {
     const r = await runDailyRefresh(d);
     expect(r.updated).toBe(1);
     const u = args().p_updates[0]!;
-    expect(u.cover).toMatch(/\/620\/library_600x900\.jpg$/);
+    expect(u.cover).toMatch(/\/620\/library_600x900_2x\.jpg$/);
     expect(u.synopsis).toBe('Программа тестирования расширена.');
     expect(u.base).toEqual({ parts: null, checked_parts: {}, status: 'queue', cover: HEADER, synopsis: 'Old English text about testing.' });
     expect(u.title).toBeUndefined();
