@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { collapseFeed, feedText, feedGroup, feedWhen, groupFeed, shelfTabFor, type FeedRow } from '../../src/data/feedFormat';
+import { actionsText, batchFor, collapseFeed, feedText, type ActionTitle, feedGroup, feedWhen, groupFeed, shelfTabFor, type FeedRow } from '../../src/data/feedFormat';
 
 const row = (p: Partial<FeedRow>): FeedRow => ({
   actor_id: 'u', actor_name: 'Лёша', kind: 'completed', title_id: 't', workspace_id: 'w', title: 'Драйв', category: 'movie',
@@ -61,48 +61,63 @@ describe('feed grouping and times', () => {
   });
 });
 
-describe('a busy day folds into one line per friend and kind', () => {
+describe('a busy day folds into one line per friend', () => {
   const at = (d: number, h: number, m = 0) => new Date(2026, 9, d, h, m).toISOString();
 
-  it('says how many were started or completed', () => {
+  it('says how many were added, started or completed in one go', () => {
     expect(feedText(row({ kind: 'started', count: 3 }))).toBe('начато 3 тайтла');
     expect(feedText(row({ kind: 'completed', count: 5, rating: 9 }))).toBe('завершено 5 тайтлов');
   });
 
-  it('folds same friend, same kind, same day; the line sits where the latest event was', () => {
+  it('folds a friend\'s whole day, seasons included, where the latest event was', () => {
     const rows = [
       row({ kind: 'completed', title_id: 'c2', title: 'C2', cover: 'c2.jpg', at: at(7, 21), rating: 9 }),
       row({ actor_id: 'v', actor_name: 'Вадим', kind: 'started', title_id: 'v1', at: at(7, 20) }),
-      row({ kind: 'started', title_id: 's1', title: 'S1', cover: 's1.jpg', at: at(7, 19) }),
+      row({ kind: 'parts', title_id: 'f', title: 'Фрирен', category: 'anime', count: 2, cover: 'f.jpg', at: at(7, 19) }),
+      row({ kind: 'started', title_id: 'f', title: 'Фрирен', category: 'anime', cover: 'f.jpg', at: at(7, 12) }),
+      row({ kind: 'parts', title_id: 'b', title: 'Бойз', category: 'series', count: 3, cover: null, at: at(7, 11) }),
       row({ kind: 'completed', title_id: 'c1', title: 'C1', cover: null, at: at(7, 10) }),
-      row({ kind: 'started', title_id: 's0', title: 'S0', cover: 's0.jpg', at: at(7, 9) })
+      row({ kind: 'parts', title_id: 'g', title: 'Игра', category: 'game', count: 1, cover: 'g.jpg', at: at(7, 9) })
     ];
     const out = collapseFeed(rows);
-    expect(out.map((r) => [r.actor_id, r.kind, r.count])).toEqual([['u', 'completed', 2], ['v', 'started', 1], ['u', 'started', 2]]);
-    expect(out[0]).toMatchObject({ title_id: 'c2', title: 'C2', at: at(7, 21), covers: ['c2.jpg', null], title_ids: ['c2', 'c1'], rating: null });
-    expect(out[2]).toMatchObject({ covers: ['s1.jpg', 's0.jpg'], title_ids: ['s1', 's0'] });
+    expect(out.map((r) => [r.actor_id, r.kind])).toEqual([['u', 'day'], ['v', 'started']]);
     expect(out[1]).toBe(rows[1]);
+    const day = out[0]!;
+    expect(feedText(day)).toBe('начато 1 тайтл, завершено 2 тайтла, просмотрено 5 сезонов, пройдено 1 часть');
+    expect(day).toMatchObject({ title_id: 'c2', at: at(7, 21), latest: 'completed', count: 5,
+      title_ids: ['c2', 'f', 'b', 'c1', 'g'], covers: ['c2.jpg', 'f.jpg', null, null, 'g.jpg'] });
+    expect(day.entries![1]!.actions).toEqual([{ kind: 'parts', count: 2 }, { kind: 'started', count: 1 }]);
+    expect(batchFor(day)).toMatchObject({ heading: feedText(day), tab: 'done', mixed: true, ids: day.title_ids });
   });
 
-  it('keeps different days and seasons apart', () => {
+  it('a day of one kind reads as before and leads to that shelf', () => {
+    const day = collapseFeed([
+      row({ kind: 'started', title_id: 's1', at: at(7, 19) }),
+      row({ kind: 'started', title_id: 's0', at: at(7, 9) })
+    ])[0]!;
+    expect(feedText(day)).toBe('начато 2 тайтла');
+    expect(batchFor(day)).toMatchObject({ tab: 'watching', mixed: false });
+  });
+
+  it('keeps different days apart', () => {
     const rows = [
       row({ kind: 'started', title_id: 'a', at: at(7, 0, 30) }),
-      row({ kind: 'started', title_id: 'b', at: at(6, 23, 30) }),
-      row({ kind: 'parts', title_id: 'p1', count: 1, at: at(6, 22) }),
-      row({ kind: 'parts', title_id: 'p2', count: 2, at: at(6, 21) })
+      row({ kind: 'parts', title_id: 'b', count: 2, at: at(6, 23, 30) })
     ];
     expect(collapseFeed(rows)).toEqual(rows);
   });
 
-  it('adds up additions batches of one day, covers and titles still in step', () => {
+  it('counts every addition, even those the server lists no cover for', () => {
     const rows = [
       row({ kind: 'added', title_id: 'a3', count: 2, covers: ['a3.jpg', 'a2.jpg'], title_ids: ['a3', 'a2'], at: at(7, 18) }),
-      row({ kind: 'added', title_id: 'a1', count: 1, cover: 'a1.jpg', covers: ['a1.jpg'], title_ids: ['a1'], at: at(7, 9) }),
+      row({ kind: 'added', title_id: 'a1', count: 1, cover: null, covers: null, title_ids: null, at: at(7, 9) }),
       row({ kind: 'added', title_id: 'a0', count: 3, covers: null, title_ids: null, at: at(7, 8) })
     ];
     const [one, ...rest] = collapseFeed(rows);
     expect(rest).toEqual([]);
-    expect(one).toMatchObject({ count: 6, title_id: 'a3', covers: ['a3.jpg', 'a2.jpg', 'a1.jpg'], title_ids: ['a3', 'a2', 'a1'] });
+    expect(feedText(one!)).toBe('добавлено 6 тайтлов');
+    expect(one).toMatchObject({ title_ids: ['a3', 'a2', 'a1'], covers: ['a3.jpg', 'a2.jpg', null] });
+    expect(batchFor(one!).tab).toBe('want');
   });
 
   it('a line on a shared board stays marked only when every event was there', () => {
@@ -111,5 +126,26 @@ describe('a busy day folds into one line per friend and kind', () => {
       row({ kind: 'started', title_id: 'b', at: at(7, 11), on_shared_board: false })
     ];
     expect(collapseFeed(rows)[0]!.on_shared_board).toBe(false);
+  });
+});
+
+describe('what was done to a title on a folded day', () => {
+  const t = (p: Partial<ActionTitle> = {}): ActionTitle => ({ category: 'series', parts: null, checked: [], rating: null, ...p });
+  const four = [{}, {}, {}, {}];
+
+  it('names the seasons: the last ones ticked, extras not counted', () => {
+    expect(actionsText([{ kind: 'parts', count: 3 }], t({ parts: four, checked: [0, 1, 2, 3] }))).toBe('Просмотрены сезоны 2, 3, 4');
+    expect(actionsText([{ kind: 'parts', count: 1 }], t({ parts: [{}, { extra: true }, {}], checked: [0, 1, 2] }))).toBe('Просмотрен сезон 2');
+    expect(actionsText([{ kind: 'parts', count: 2 }], t({ category: 'movie', parts: four, checked: [0, 1] }))).toBe('Просмотрены части 1, 2');
+    expect(actionsText([{ kind: 'parts', count: 1 }], t({ category: 'game', parts: four, checked: [0] }))).toBe('Пройдена часть 1');
+  });
+
+  it('says the count when the ticks do not add up', () => {
+    expect(actionsText([{ kind: 'parts', count: 3 }], t({ parts: four, checked: [0] }))).toBe('Просмотрено 3 сезона');
+  });
+
+  it('puts the actions in the order they happen, with the rating', () => {
+    expect(actionsText([{ kind: 'completed', count: 1 }, { kind: 'started', count: 1 }], t({ rating: 8 }))).toBe('Начато · завершено, оценка 8/10');
+    expect(actionsText([{ kind: 'added', count: 1 }], t())).toBe('Добавлено');
   });
 });

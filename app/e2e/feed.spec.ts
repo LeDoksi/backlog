@@ -109,30 +109,32 @@ test('a long additions line scrolls sideways and lists every title', async ({ pa
   await expect(list.getByRole('button', { name: /^«/ })).toHaveCount(10);
 });
 
-test('a busy day folds into one line per kind; it opens the list of those titles', async ({ page }) => {
+test('a busy day, seasons included, folds into one line that opens the list of those titles', async ({ page }) => {
   const yday = (h: number) => { const t = new Date(); t.setDate(t.getDate() - 1); t.setHours(h, 0, 0, 0); return t.toISOString(); };
   const cover = 'images/covers/drive-2011.jpg';
-  const ev = (kind: string, id: string, h: number) => ({ ...base, actor_id: vadim.id, actor_name: 'Вадим', kind, title_id: id, title: id, category: 'movie', count: 1, cover, at: yday(h) });
-  const row = (id: string, title: string) => ({ id, title, category: 'movie', year: 2020, cover: null, common: false });
+  const ev = (kind: string, id: string, h: number, more = {}) => ({ ...base, actor_id: vadim.id, actor_name: 'Вадим', kind, title_id: id, title: id, category: 'movie', count: 1, cover, at: yday(h), ...more });
+  const row = (id: string, title: string, more = {}) => ({ id, title, category: 'movie', year: 2020, cover: null, common: false, ...more });
   await installStub(page, {
     signedIn: true, hasProfile: true, friends: [vadim],
-    feed: [ev('completed', 'c2', 22), ev('started', 's3', 21), ev('started', 's2', 20), ev('completed', 'c1', 19), ev('started', 's1', 9)],
-    shelves: { [vadim.id]: { watching: [row('s3', 'Третий'), row('s2', 'Второй'), row('s1', 'Первый')], done: [row('c2', 'Финал'), row('c1', 'Пролог')] } }
+    feed: [ev('completed', 'c2', 22), ev('parts', 'f', 21, { category: 'anime', count: 2 }), ev('started', 's2', 20), ev('completed', 'c1', 19), ev('started', 's1', 9)],
+    shelves: { [vadim.id]: {
+      watching: [row('f', 'Фрирен', { category: 'anime', parts: [{ name: 'S1' }, { name: 'S2' }, { name: 'S3' }], checked: [0, 1, 2] }), row('s2', 'Второй'), row('s1', 'Первый')],
+      done: [row('c2', 'Финал', { rating: 9 }), row('c1', 'Пролог')]
+    } } as never
   });
   await page.goto('./');
   await nav(page).getByRole('button', { name: /Друзья/ }).click();
   const lines = page.getByRole('button', { name: /^Вадим · / });
-  await expect(lines).toHaveCount(2);
-  await expect(lines.first()).toHaveAccessibleName(/^Вадим · завершено 2 тайтла/);
-  await expect(lines.nth(1)).toHaveAccessibleName(/^Вадим · начато 3 тайтла/);
-  await page.getByRole('button', { name: 'Обложка 3 из 3' }).click();
+  await expect(lines).toHaveCount(1);
+  await expect(lines.first()).toHaveAccessibleName(/^Вадим · начато 2 тайтла, завершено 2 тайтла, просмотрено 2 сезона/);
+  await page.getByRole('button', { name: 'Обложка 5 из 5' }).click();
   await expect(page.getByRole('dialog', { name: 'Первый' })).toBeVisible();
   await page.goBack();
-  await lines.nth(1).click({ position: { x: 120, y: 20 } });
-  const list = page.getByRole('dialog', { name: 'Вадим · начато 3 тайтла' });
-  await expect(list.getByRole('button', { name: /^«/ })).toHaveText([/Третий/, /Второй/, /Первый/]);
-  await list.getByRole('button', { name: 'Вся полка «В процессе»' }).click();
-  await expect(page.getByRole('dialog', { name: 'Вадим', exact: true }).getByRole('button', { name: 'В процессе', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await lines.first().click({ position: { x: 120, y: 20 } });
+  const list = page.getByRole('dialog', { name: /^Вадим · начато 2 тайтла/ });
+  await expect(list.getByRole('button', { name: /^«/ })).toHaveText([/Финал.*Завершено, оценка 9\/10/, /Фрирен.*Просмотрены сезоны 2, 3/, /Второй.*Начато/, /Пролог/, /Первый/]);
+  await list.getByRole('button', { name: 'Все полки' }).click();
+  await expect(page.getByRole('dialog', { name: 'Вадим', exact: true }).getByRole('button', { name: 'Завершено', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('an empty feed says what will appear there', async ({ page }) => {

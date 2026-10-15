@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react';
 import { vi } from 'vitest';
 import type { FriendTitleData } from '../../src/lib/social';
+import type { FeedBatch as Batch } from '../../src/data/feedFormat';
+type FeedBatch = Batch;
 
 const shelf: Record<string, FriendTitleData | 'none' | null> = {};
 vi.mock('../../src/lib/social', async (orig) => ({
@@ -19,9 +21,9 @@ const base: FriendTitleData = {
   platforms: null, parts: null, checked: [], status: 'queue', rating: null, title_key: 'k', mine_id: null
 };
 
-async function open(ids: string[], count = ids.length, kind?: 'added' | 'started' | 'completed') {
+async function open(ids: string[], more: Partial<FeedBatch> = {}) {
   render(<FeedBatch />);
-  await act(async () => { useUi.getState().openFeedBatch({ owner: 'u2', name: 'Вадим', ids, count, kind }); });
+  await act(async () => { useUi.getState().openFeedBatch({ owner: 'u2', name: 'Вадим', ids, heading: `добавлено ${ids.length} тайтла`, tab: 'want', ...more }); });
 }
 
 beforeEach(() => {
@@ -48,7 +50,7 @@ test('a tap on a title opens its card over the list', async () => {
 
 test('titles no longer visible drop out; the shelf is one tap away', async () => {
   shelf.b = { ...base, id: 'b', title: 'Бэтмен' };
-  await open(['b', 'gone'], 5);
+  await open(['b', 'gone'], { heading: 'добавлено 5 тайтлов' });
   expect(screen.getAllByRole('button', { name: /^«/ })).toHaveLength(1);
   await userEvent.click(screen.getByRole('button', { name: 'Вся полка «Хочет»' }));
   expect(useUi.getState().friend).toEqual({ id: 'u2', tab: 'want' });
@@ -61,20 +63,26 @@ test('a failed load says so', async () => {
   expect(screen.getByRole('alert')).toHaveTextContent('Не загрузилось');
 });
 
-test('a day of completions: its heading, ratings and the «Завершено» shelf', async () => {
+test('a folded day says what was done to each title, seasons by number', async () => {
   shelf.b = { ...base, id: 'b', title: 'Бэтмен', status: 'done', rating: 9 };
-  shelf.d = { ...base, id: 'd', title: 'Драйв', year: 2011, status: 'done', rating: null };
-  await open(['b', 'd'], 2, 'completed');
-  expect(screen.getByRole('heading', { name: 'Вадим · завершено 2 тайтла' })).toBeInTheDocument();
-  expect(screen.getAllByRole('button', { name: /^«/ }).map((r) => r.getAttribute('aria-label')))
-    .toEqual(['«Бэтмен», Кино, 2022 · оценка 9/10', '«Драйв», Кино, 2011']);
-  await userEvent.click(screen.getByRole('button', { name: 'Вся полка «Завершено»' }));
+  shelf.f = { ...base, id: 'f', title: 'Фрирен', category: 'anime', year: 2023, status: 'in_progress',
+    parts: [{ name: 'S1' }, { name: 'OVA', extra: true }, { name: 'S2' }, { name: 'S3' }], checked: [0, 1, 2, 3] };
+  await open(['b', 'f'], {
+    heading: 'завершено 1 тайтл, просмотрено 2 сезона', tab: 'done', mixed: true,
+    actions: { b: [{ kind: 'completed', count: 1 }], f: [{ kind: 'parts', count: 2 }, { kind: 'started', count: 1 }] }
+  });
+  expect(screen.getByRole('heading', { name: 'Вадим · завершено 1 тайтл, просмотрено 2 сезона' })).toBeInTheDocument();
+  expect(screen.getAllByRole('button', { name: /^«/ }).map((r) => r.getAttribute('aria-label'))).toEqual([
+    '«Бэтмен», Кино, 2022, Завершено, оценка 9/10',
+    '«Фрирен», Аниме, 2023, Начато · просмотрены сезоны 2, 3'
+  ]);
+  await userEvent.click(screen.getByRole('button', { name: 'Все полки' }));
   expect(useUi.getState().friend).toEqual({ id: 'u2', tab: 'done' });
 });
 
-test('a day of starts leads to the «В процессе» shelf', async () => {
-  shelf.b = { ...base, id: 'b', title: 'Бэтмен', status: 'watching' };
-  await open(['b', 'x'], 2, 'started');
+test('a day of one kind leads to that shelf', async () => {
+  shelf.b = { ...base, id: 'b', title: 'Бэтмен', status: 'in_progress' };
+  await open(['b', 'x'], { heading: 'начато 2 тайтла', tab: 'watching', actions: { b: [{ kind: 'started', count: 1 }] } });
   expect(screen.getByRole('heading', { name: 'Вадим · начато 2 тайтла' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Вся полка «В процессе»' })).toBeInTheDocument();
 });
