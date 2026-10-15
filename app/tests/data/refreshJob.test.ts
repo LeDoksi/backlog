@@ -147,6 +147,24 @@ describe('runDailyRefresh', () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
+  it('a hand-made list nobody started gives way to the provider\'s; one with ticks or in progress stays', async () => {
+    const legacy = [{ name: 'Сезон 1', year: 2023, released: true }, { name: 'Сезон 2', year: 2026, released: false }, { name: 'Сезон 3', year: 2027, released: false }];
+    const { d, args } = deps([
+      row('queued', 'anime', 'shikimori', '52991', 'queue', { parts: legacy }),
+      row('watching', 'anime', 'shikimori', '16498', 'in_progress', { parts: legacy, checked_parts: { '0': 'a' } }),
+      row('shows', 'series', 'tmdb-series', '71024', 'queue', { parts: [{ name: 'Книга 1', released: true }, { name: 'Книга 2', released: false }] })
+    ]);
+    await runDailyRefresh(d);
+    const ups = args().p_updates;
+    expect(ups.find((u) => u.id === 'watching')?.parts ?? legacy).toEqual(legacy);
+    for (const u of ups.filter((x) => x.id !== 'watching')) {
+      expect((u.parts as { ref?: string }[]).every((p) => p.ref)).toBe(true);
+      expect(u.checked_parts).toEqual({});
+      expect(u.status).toBe('queue');
+    }
+    expect(ups.map((u) => u.id)).toEqual(expect.arrayContaining(['queued', 'shows']));
+  });
+
   it('a lone recap film is not turned into the franchise', async () => {
     const { d, rpc } = deps([row('chronicle', 'anime', 'shikimori', '42091', 'done')]);
     await runDailyRefresh(d);

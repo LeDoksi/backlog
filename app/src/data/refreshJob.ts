@@ -48,7 +48,7 @@ const RETRY_MS = 30 * 60 * 1000;
 /** The date of a tick the refresh adds for a title finished on no known day: before every period but «за всё время». */
 const UNDATED = '1970-01-01T00:00:00.000Z';
 // The rules version is in the key: a fix to them runs again the same day.
-const key = (board: string) => `refresh:2:${board}`;
+const key = (board: string) => `refresh:3:${board}`;
 const retryKey = (board: string) => `refresh-retry:${board}`;
 const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -148,7 +148,9 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       if (later && t.title.status !== 'queue' && t.title.status !== 'unreleased') return;
       if (t.title.status === 'done' && !f.some((p) => !p.extra && p.released !== false)) return;
     }
-    const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series' });
+    // A hand-made list on a title nobody started gives way to the provider's.
+    const untouched = !checkedIndices(t.ticks).length && (t.title.status === 'queue' || t.title.status === 'unreleased');
+    const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series', untouched });
     partsAfter[id] = m.parts;
   });
 

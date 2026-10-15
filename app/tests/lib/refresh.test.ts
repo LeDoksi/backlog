@@ -53,6 +53,13 @@ describe('mergeParts', () => {
     expect(mergeParts(cur, [])).toEqual({ parts: cur, changed: false });
   });
 
+  it('a hand-made list nobody started takes the provider\'s list whole', () => {
+    const fresh = [season(1), season(2), season(3, false)];
+    const r = mergeParts([{ name: 'Книга 1: Вода' }, { name: 'Сезон 5', released: false }], fresh, { untouched: true, lineUp: false });
+    expect(r).toEqual({ parts: mergeParts(undefined, fresh).parts, changed: true });
+    expect(mergeParts([{ name: 'Книга 1: Вода' }], fresh, { untouched: true, manual: true }).changed).toBe(false);
+  });
+
   it('a hand-made list is lined up only as season 1, 2, … in order, and never with lineUp off', () => {
     const fresh = [season(1), season(2), season(3)];
     expect(mergeParts([{ name: 'Сезон 1' }, { name: 'Сезон 3' }], fresh).changed).toBe(false);
