@@ -103,7 +103,7 @@ describe('feed wrappers', () => {
   it('feed passes the time zone and limit', async () => {
     const r = rpcClient(ok([]));
     expect(await Social.feed(r.client, 'Europe/Moscow', '2026-10-01T00:00:00.000Z')).toEqual([]);
-    expect(r.calls[0]).toEqual({ name: 'feed', args: { p_before: '2026-10-01T00:00:00.000Z', p_limit: 60, p_tz: 'Europe/Moscow' } });
+    expect(r.calls[0]).toEqual({ name: 'feed', args: { p_before: '2026-10-01T00:00:00.000Z', p_limit: 150, p_tz: 'Europe/Moscow' } });
     expect(await Social.feed(rpcClient(fail).client, 'UTC')).toBeNull();
   });
 

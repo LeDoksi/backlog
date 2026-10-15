@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Section } from '../ui/TabBar';
+import type { BatchKind } from './feedFormat';
 
 /** How long a note stays up. */
 export const TOAST_MS = 6000;
@@ -9,7 +10,8 @@ export interface ToastAction { label: string; run(): void }
 export interface Toast { text: string; action?: ToastAction; n: number }
 let toastN = 0;
 
-export interface FeedBatch { owner: string; name: string; ids: string[]; count: number }
+/** A feed line of several titles; `kind` is what was done to them (additions when left out). */
+export interface FeedBatch { owner: string; name: string; ids: string[]; count: number; kind?: BatchKind }
 
 // Which overlay is up. Panels have no URL of their own (Back closes them via
 // the Sheet's history entry), so this store is the only place they live.

@@ -19,9 +19,9 @@ const base: FriendTitleData = {
   platforms: null, parts: null, checked: [], status: 'queue', rating: null, title_key: 'k', mine_id: null
 };
 
-async function open(ids: string[], count = ids.length) {
+async function open(ids: string[], count = ids.length, kind?: 'added' | 'started' | 'completed') {
   render(<FeedBatch />);
-  await act(async () => { useUi.getState().openFeedBatch({ owner: 'u2', name: 'Вадим', ids, count }); });
+  await act(async () => { useUi.getState().openFeedBatch({ owner: 'u2', name: 'Вадим', ids, count, kind }); });
 }
 
 beforeEach(() => {
@@ -59,4 +59,22 @@ test('a failed load says so', async () => {
   shelf.b = null;
   await open(['b']);
   expect(screen.getByRole('alert')).toHaveTextContent('Не загрузилось');
+});
+
+test('a day of completions: its heading, ratings and the «Завершено» shelf', async () => {
+  shelf.b = { ...base, id: 'b', title: 'Бэтмен', status: 'done', rating: 9 };
+  shelf.d = { ...base, id: 'd', title: 'Драйв', year: 2011, status: 'done', rating: null };
+  await open(['b', 'd'], 2, 'completed');
+  expect(screen.getByRole('heading', { name: 'Вадим · завершено 2 тайтла' })).toBeInTheDocument();
+  expect(screen.getAllByRole('button', { name: /^«/ }).map((r) => r.getAttribute('aria-label')))
+    .toEqual(['«Бэтмен», Кино, 2022 · оценка 9/10', '«Драйв», Кино, 2011']);
+  await userEvent.click(screen.getByRole('button', { name: 'Вся полка «Завершено»' }));
+  expect(useUi.getState().friend).toEqual({ id: 'u2', tab: 'done' });
+});
+
+test('a day of starts leads to the «В процессе» shelf', async () => {
+  shelf.b = { ...base, id: 'b', title: 'Бэтмен', status: 'watching' };
+  await open(['b', 'x'], 2, 'started');
+  expect(screen.getByRole('heading', { name: 'Вадим · начато 2 тайтла' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Вся полка «В процессе»' })).toBeInTheDocument();
 });

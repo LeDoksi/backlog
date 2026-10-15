@@ -51,6 +51,16 @@ describe('social store', () => {
     expect(Object.keys(f.store.getState().friendsOn)).toEqual(['k1']);
   });
 
+  it('a busy friend\'s day comes into the store as one line', async () => {
+    const at = new Date(2026, 9, 7, 12).toISOString();
+    const ev = (id: string) => ({ actor_id: 'u', actor_name: 'Лёша', kind: 'started', title_id: id, cover: null, count: 1, at, on_shared_board: false });
+    const f = fake({ feed: [ev('a'), ev('b'), ev('c')], matches: [], my_inbox: inbox, my_friends: [] });
+    await f.store.getState().openFriends();
+    expect(f.store.getState().feed).toMatchObject([{ kind: 'started', count: 3, title_ids: ['a', 'b', 'c'] }]);
+    await f.store.getState().loadPeek();
+    expect(f.store.getState().feed).toHaveLength(1);
+  });
+
   it('the desktop column reads feed and matches without marking the feed seen', async () => {
     const f = fake({ feed: [{ kind: 'added' }], matches: [] });
     f.store.setState({ badge: 3 });

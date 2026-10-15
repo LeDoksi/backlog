@@ -8,14 +8,15 @@ import { getSupabase } from '../../data/supabase';
 import { friendTitle, type FriendTitleData } from '../../lib/social';
 import { resolveCover } from '../../lib/covers';
 import { CATEGORY_LABEL } from '../../data/labels';
-import { addedText } from '../../data/feedFormat';
+import { batchText, shelfTabFor } from '../../data/feedFormat';
 import { ASSET_ROOT } from '../../config';
 import type { Category } from '../../lib/types';
 import s from './FeedBatch.module.css';
 
-// The titles behind a «+N тайтлов» feed line, big enough to tell apart.
-// A tap opens the title's own card over this list; the friend's «Хочет»
-// shelf is one tap away for the rest.
+// The titles behind a feed line of several («добавлено 5 тайтлов», «начато
+// 3 тайтла»), big enough to tell apart. A tap opens the title's own card
+// over this list; the friend's shelf for that kind is one tap away.
+const SHELF_LABEL = { want: 'Хочет', watching: 'В процессе', done: 'Завершено' } as const;
 export function FeedBatch() {
   const batch = useUi((u) => u.feedBatch);
   const close = useUi((u) => u.closeFeedBatch);
@@ -40,16 +41,21 @@ export function FeedBatch() {
   function toShelf() {
     if (!batch) return;
     close();
-    useUi.getState().openFriend(batch.owner, 'want');
+    useUi.getState().openFriend(batch.owner, tab);
   }
 
-  const meta = (t: FriendTitleData) => [CATEGORY_LABEL[t.category as Category], t.year].filter(Boolean).join(', ');
+  const kind = batch?.kind ?? 'added';
+  const tab = shelfTabFor(kind);
+  const meta = (t: FriendTitleData) => {
+    const base = [CATEGORY_LABEL[t.category as Category], t.year].filter(Boolean).join(', ');
+    return kind === 'completed' && t.rating ? `${base} · оценка ${t.rating}/10` : base;
+  };
   return (
     <Sheet open={!!batch} onClose={close} labelledBy="feed-batch-title"
-      footer={batch && <Button variant="tonal" className={s.shelf} onClick={toShelf}>Вся полка «Хочет»</Button>}>
+      footer={batch && <Button variant="tonal" className={s.shelf} onClick={toShelf}>Вся полка «{SHELF_LABEL[tab]}»</Button>}>
       {batch && (
         <>
-          <h2 id="feed-batch-title" className={s.title}>{batch.name} · {addedText(batch.count)}</h2>
+          <h2 id="feed-batch-title" className={s.title}>{batch.name} · {batchText(kind, batch.count)}</h2>
           {failed && <p role="alert" className={s.error}>Не загрузилось. Проверь сеть.</p>}
           {!rows && !failed && <div className={s.list}>{batch.ids.slice(0, 4).map((id) => <Skeleton key={id} kind="row" />)}</div>}
           {rows && (
