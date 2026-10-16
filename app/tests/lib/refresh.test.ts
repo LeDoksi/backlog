@@ -1,7 +1,7 @@
 import { cardFixes } from '../../src/lib/refresh';
 import type { TitleRow } from '../../src/lib/titleRow';
 import { describe, expect, it } from 'vitest';
-import { fillTicksForDone, mergeParts, planMerge, seasonNumber, ticksWith, type FreshPart } from '../../src/lib/refresh';
+import { fillTicksForDone, mergeParts, planMerge, seasonNumber, ticksMoved, ticksWith, type FreshPart } from '../../src/lib/refresh';
 import { isCaughtUp, partsProgress } from '../../src/lib/storage';
 import type { Part, Title } from '../../src/lib/types';
 
@@ -141,6 +141,39 @@ describe('fillTicksForDone', () => {
   });
 });
 
+describe('mergeParts reorder (a title not finished follows the provider)', () => {
+  const p = (ref: string, extra = false): Part => ({ name: ref, year: 2020, released: true, ref, ...(extra ? { extra: true } : {}) });
+  const f = (ref: string, extra = false): FreshPart => ({ name: ref, year: 2020, released: true, ref, ...(extra ? { extra: true } : {}) });
+  const slime: Part[] = [p('s1'), p('s2'), p('s3'), p('ova', true), p('film1', true), p('film2', true)];
+  const fresh = [f('s1'), f('s2'), f('film1'), f('s3'), f('film2'), f('ova', true)];
+
+  it('films the provider now counts as main leave the extras and take their place; ticks move with them', () => {
+    const m = mergeParts(slime, fresh, { reorder: true });
+    expect(m.parts.map((x) => [x.ref, !!x.extra])).toEqual([['s1', false], ['s2', false], ['film1', false], ['s3', false], ['film2', false], ['ova', true]]);
+    expect(m.from).toEqual([0, 1, 4, 2, 5, 3]);
+    expect(ticksMoved({ '0': 'a', '2': 'b', '3': 'c' }, m.from!)).toEqual({ '0': 'a', '3': 'b', '5': 'c' });
+  });
+
+  it('without reorder (a finished title) the films stay extras and nothing moves', () => {
+    const m = mergeParts(slime, fresh);
+    expect(m.from).toBeUndefined();
+    expect(m.parts.filter((x) => x.extra).map((x) => x.ref)).toEqual(['ova', 'film1', 'film2']);
+  });
+
+  it('a list already in the provider\'s order is left as it is', () => {
+    const m = mergeParts(fresh.map((x) => ({ ...x })) as Part[], fresh, { reorder: true });
+    expect(m.from).toBeUndefined();
+    expect(m.changed).toBe(false);
+  });
+
+  it('a hand-edited list is never reordered; a part the provider does not name stays after its own', () => {
+    expect(mergeParts(slime, fresh, { reorder: true, manual: true }).from).toBeUndefined();
+    const m = mergeParts([...slime, { name: 'мой спешл' }], fresh, { reorder: true });
+    expect(m.parts.at(-1)).toEqual({ name: 'мой спешл' });
+    expect(m.from!.at(-1)).toBe(6);
+  });
+});
+
 describe('ticksWith', () => {
   it('keeps old dates and stamps new ticks', () => {
     expect(ticksWith({ '0': 'a' }, [0, 2], 'b')).toEqual({ '0': 'a', '2': 'b' });
@@ -176,10 +209,10 @@ describe('planMerge', () => {
       [t('ova', 'queue', '2025-01-01'), t('s3', 'queue', '2026-02-01'), t('s2', 'queue', '2026-01-01')],
       { ova: { key: 'k', ref: 'shiki:9', main: false }, s3: { key: 'k', ref: 'shiki:3', main: true }, s2: { key: 'k', ref: 'shiki:2', main: true } },
       { k: 'shiki:1' }, { s2: parts, s3: parts });
-    expect(plans).toEqual([{ keep: 's2', absorb: ['s3'], ticks: [], rating: null }]);
+    expect(plans).toEqual([{ keep: 's2', absorb: ['ova', 's3'], ticks: [], rating: null }]);
   });
 
-  it('only what lands whole is absorbed: spin-offs, titles in progress or with ticks stay', () => {
+  it('only what lands whole is absorbed: titles in progress or with ticks stay', () => {
     const parts: Part[] = [{ name: 's1', ref: 'shiki:1' }, { name: 's2', ref: 'shiki:2' }, { name: 's3', ref: 'shiki:3' }, { name: 's4', ref: 'shiki:4' },
       { name: 'school', ref: 'shiki:8', extra: true }];
     const plans = planMerge(
@@ -187,7 +220,26 @@ describe('planMerge', () => {
       { s1: { key: 'k', ref: 'shiki:1', main: true }, s2: { key: 'k', ref: 'shiki:2', main: true }, s3: { key: 'k', ref: 'shiki:3', main: true },
         s4: { key: 'k', ref: 'shiki:4', main: true }, school: { key: 'k', ref: 'shiki:8', main: false } },
       { k: 'shiki:1' }, { s1: parts }, new Set(['s3']));
-    expect(plans).toEqual([{ keep: 's1', absorb: ['s4'], ticks: [3], rating: null }]);
+    expect(plans).toEqual([{ keep: 's1', absorb: ['s4', 'school'], ticks: [3], rating: null }]);
+  });
+
+  it('an OVA of the franchise folds into the show and ticks its extra («Атака титанов OVA» on est\'s board)', () => {
+    const parts: Part[] = [{ name: 'Атака титанов', ref: 'shiki:16498' }, { name: 'Атака титанов 2', ref: 'shiki:25777' },
+      { name: 'Атака титанов OVA', ref: 'shiki:18397', extra: true }];
+    const plans = planMerge(
+      [t('aot', 'done', '1'), t('aot-ova', 'done', '2', 8)],
+      { aot: { key: 'k', ref: 'shiki:16498', main: true }, 'aot-ova': { key: 'k', ref: 'shiki:18397', main: false } },
+      { k: 'shiki:16498' }, { aot: parts });
+    expect(plans).toEqual([{ keep: 'aot', absorb: ['aot-ova'], ticks: [2], rating: 8 }]);
+  });
+
+  it('a side piece never becomes the keep', () => {
+    const parts: Part[] = [{ name: 's2', ref: 'shiki:2' }, { name: 'ova', ref: 'shiki:9', extra: true }];
+    const plans = planMerge(
+      [t('ova', 'queue', '1'), t('s2', 'queue', '2')],
+      { ova: { key: 'k', ref: 'shiki:9', main: false }, s2: { key: 'k', ref: 'shiki:2', main: true } },
+      { k: 'shiki:1' }, { s2: parts });
+    expect(plans).toEqual([{ keep: 's2', absorb: ['ova'], ticks: [], rating: null }]);
   });
 
   it('the keep has no part for the duplicate: nothing is merged', () => {
