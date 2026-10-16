@@ -305,13 +305,18 @@ export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial
   const { title, checked } = fromRow(row);
   const old = title.parts ?? [];
   if (sourceKnowsLess(old, fresh)) return 'none';
+  // The same order as `fresh` (every part is new here).
   const parts = mergeParts(undefined, fresh).parts;
   const before = checkedIndices(checked).filter((i) => old[i] && !old[i]!.extra);
   const dates = before.map((i) => checked[String(i)]!).sort();
   const main = parts.map((p, i) => (p.extra || p.released === false ? -1 : i)).filter((i) => i >= 0);
+  // The old site counted seasons: the ticks go to the TV seasons first, so a
+  // film between seasons («Магическая битва 0») does not take a season's tick.
+  const seasons = main.filter((i) => fresh[i]?.season);
+  const onto = seasons.length >= before.length ? seasons : main;
   let next: CheckedParts = {};
   if (title.status === 'done') next = ticksWith({}, fillTicksForDone(parts, 'done'), title.completedAt ?? UNDATED);
-  else main.slice(0, before.length).forEach((i, n) => { next[String(i)] = dates[n] ?? now.toISOString(); });
+  else onto.slice(0, before.length).forEach((i, n) => { next[String(i)] = dates[n] ?? now.toISOString(); });
   const m = materialize({ ...title, parts }, checkedIndices(next));
   const status = m.status === 'queue' && row.status === 'in_progress' && !checkedIndices(next).length ? 'in_progress' : m.status;
   const cols: Partial<TitleRow> = { parts, checked_parts: next, status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating: title.rating ?? null };

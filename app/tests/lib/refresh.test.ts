@@ -243,6 +243,9 @@ describe('cardFixes (wave 3)', () => {
       .toEqual({ original_title: 'Loki' });
     expect(cardFixes(show, { title: 'Локи (2021)', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' }, 'normalize'))
       .toEqual({ title: 'Локи (2021)' });
+    // Only the case differs: the name stays.
+    expect(cardFixes(row({ title: 'Что, если...?', category: 'series', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' }),
+      { title: 'Что, Если...?', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' }, 'normalize')).toBeNull();
   });
   it('daily never touches the name, genres or year', () => {
     expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT }), { title: 'Другое', genres: ['x'], year: 1999 }, 'daily')).toBeNull();
