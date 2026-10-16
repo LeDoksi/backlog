@@ -252,7 +252,9 @@ export function cardFixes(row: TitleRow, card: Raw, mode: 'daily' | 'normalize')
     // Russian name already on a film or show («Локи») is not given up for
     // it. Games keep their store names (Steam's own, often English).
     const losesRussian = row.category !== 'game' && /[а-яё]/i.test(row.title ?? '') && !/[а-яё]/i.test(title ?? '');
-    if (title && title !== row.title && !losesRussian) out.title = title;
+    // Only the letter case differs («Что, если...?» against TMDb's «Что, Если...?»): the name stays.
+    const caseOnly = !!title && title.toLowerCase() === (row.title ?? '').toLowerCase();
+    if (title && title !== row.title && !losesRussian && !caseOnly) out.title = title;
     const name = out.title ?? row.title;
     const orig = card.originalTitle?.trim();
     if (orig && orig !== name && orig !== (row.original_title ?? '')) out.original_title = orig;
