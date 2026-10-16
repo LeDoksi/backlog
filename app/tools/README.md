@@ -19,3 +19,18 @@ and later matching between friends work for them.
    out/sources-review.md` prints the SQL for those choices.
 
 Needs network access to TMDb, Shikimori, Steam/RAWG and the CORS proxy.
+
+## tidy-boards (BL-113, every board brought to what the app makes of it)
+
+Runs the one-time normalization, the daily refresh and a rebuild of every
+season list made by hand on all boards at once, so nobody has to open
+their board first, and gives game platforms and genres one spelling.
+
+1. Export `titles` to JSON (`select json_agg(t) from titles t`).
+2. `npx vite-node tools/tidy-boards-cli.ts run titles.json out/` writes
+   `out/tidy.sql` and `out/tidy-review.md` (what changes, title by title).
+3. Run `tidy.sql` in the SQL editor: one transaction, quiet (no feed),
+   each call as a member of its board; a title edited since the export is
+   skipped and counted in the last select.
+
+Needs network access to TMDb, Shikimori, Steam/RAWG and the CORS proxy.

@@ -48,7 +48,7 @@ const RETRY_MS = 30 * 60 * 1000;
 /** The date of a tick the refresh adds for a title finished on no known day: before every period but «за всё время». */
 const UNDATED = '1970-01-01T00:00:00.000Z';
 // The rules version is in the key: a fix to them runs again the same day.
-const key = (board: string) => `refresh:2:${board}`;
+const key = (board: string) => `refresh:3:${board}`;
 const retryKey = (board: string) => `refresh-retry:${board}`;
 const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -148,7 +148,11 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
       if (later && t.title.status !== 'queue' && t.title.status !== 'unreleased') return;
       if (t.title.status === 'done' && !f.some((p) => !p.extra && p.released !== false)) return;
     }
-    const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series' });
+    // A hand-made list on a title nobody started gives way to the provider's.
+    // (Not for a side piece: an OVA's own list is not the franchise's.)
+    const untouched = !checkedIndices(t.ticks).length && (t.title.status === 'queue' || t.title.status === 'unreleased')
+      && !(franchise[id] && !franchise[id]!.main);
+    const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series', untouched });
     partsAfter[id] = m.parts;
   });
 
@@ -259,4 +263,62 @@ async function refreshGames(deps: RefreshDeps, pause: (ms: number) => Promise<vo
     res = { data: null, error: e };
   }
   return res.error || typeof res.data !== 'number' || res.data < 0 ? [] : changes;
+}
+
+export interface RebuildDeps {
+  board: string;
+  row: TitleRow;
+  fetchFn: FetchLike;
+  client: SupabaseLike | null;
+  now: Date;
+  tmdbKey: string;
+  proxy: string | null;
+}
+
+/**
+ * The one-time tidy of every board (BL-113, tools/tidy-boards): the
+ * title's list of parts built again from its source, for a list the daily
+ * refresh leaves alone (made by hand on the old site, with progress on it). The ticks are carried over by count:
+ * someone who had 4 main parts ticked has the first 4 released main parts
+ * of the new list ticked, with the same dates, and checks them after; a
+ * finished title stays finished. Quiet, like the daily refresh: friends see
+ * nothing in the feed. 'none': the source has no list for it (a film on
+ * its own, an OVA whose list is its own) or did not answer; 'stale': the
+ * title changed meanwhile.
+ */
+export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial<TitleRow> } | 'none' | 'stale'> {
+  const { row, now } = deps;
+  if (!deps.client || !row.source_id || (row.source !== 'tmdb-series' && row.source !== 'shikimori')) return 'none';
+  let fresh: FreshPart[];
+  if (row.source === 'tmdb-series') {
+    const s = await Enrich.fetchTmdbSeasons(deps.fetchFn, deps.proxy, deps.tmdbKey, row.source_id);
+    if (!s || !s.seasons.length) return 'none';
+    fresh = partsFromTmdb(s.seasons, now);
+  } else {
+    const f = await Enrich.fetchShikimoriFranchise(deps.fetchFn, Number(row.source_id));
+    if (!f || !f.nodes.find((n) => n.id === Number(row.source_id))?.main) return 'none';
+    fresh = partsFromFranchise(f, now);
+  }
+  if (!fresh.length || isLoneWork(fresh)) return 'none';
+
+  const { title, checked } = fromRow(row);
+  const parts = mergeParts(undefined, fresh).parts;
+  const old = title.parts ?? [];
+  const before = checkedIndices(checked).filter((i) => old[i] && !old[i]!.extra);
+  const dates = before.map((i) => checked[String(i)]!).sort();
+  const main = parts.map((p, i) => (p.extra || p.released === false ? -1 : i)).filter((i) => i >= 0);
+  let next: CheckedParts = {};
+  if (title.status === 'done') next = ticksWith({}, fillTicksForDone(parts, 'done'), title.completedAt ?? UNDATED);
+  else main.slice(0, before.length).forEach((i, n) => { next[String(i)] = dates[n] ?? now.toISOString(); });
+  const m = materialize({ ...title, parts }, checkedIndices(next));
+  const status = m.status === 'queue' && row.status === 'in_progress' && !checkedIndices(next).length ? 'in_progress' : m.status;
+  const cols: Partial<TitleRow> = { parts, checked_parts: next, status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating: title.rating ?? null };
+  let res: { data: unknown; error: unknown };
+  try {
+    res = await deps.client.rpc('apply_title_refresh', { p_workspace: deps.board, p_updates: [{ id: row.id, base: base(row), ...cols }], p_deletes: [] });
+  } catch (e) {
+    res = { data: null, error: e };
+  }
+  if (res.error || typeof res.data !== 'number') return 'none';
+  return res.data < 0 ? 'stale' : { cols };
 }
