@@ -59,9 +59,35 @@ describe('Shikimori franchise', () => {
     expect(franchiseLabel(f)).toBe('4 сезона, 1 фильм');
   });
 
-  it('Синяя тюрьма: the announced third season is not out', async () => {
+  it('Синяя тюрьма: the film about Nagi between the seasons, the announced third season not out', async () => {
     const parts = partsFromFranchise(await franchise(49596), today);
-    expect(parts.filter((p) => !p.extra).map((p) => [p.ref, p.released])).toEqual([['shiki:49596', true], ['shiki:54865', true], ['shiki:62589', false]]);
+    expect(parts.filter((p) => !p.extra).map((p) => [p.ref, p.released]))
+      .toEqual([['shiki:49596', true], ['shiki:54866', true], ['shiki:54865', true], ['shiki:62589', false]]);
+  });
+
+  it('О моём перерождении в слизь: the films hung off a season are main, in their place; the diaries stay extras', () => {
+    const node = (id: number, kind: string, year: number | null, date: string, name = String(id)) =>
+      ({ id, kind, year, date: Date.parse(date) / 1000, name, image_url: '' });
+    const link = (source_id: number, target_id: number, relation: string) => ({ source_id, target_id, relation });
+    // The shape Shikimori gave on 2026-10-16 (ids and links as they are, dates approximate).
+    const data = {
+      nodes: [node(37430, 'TV Сериал', 2018, '2018-10-02'), node(39551, 'TV Сериал', 2021, '2021-01-12'), node(41487, 'TV Сериал', 2021, '2021-07-06'),
+        node(49877, 'Фильм', 2022, '2022-11-25', 'Алые узы'), node(53580, 'TV Сериал', 2024, '2024-04-05'),
+        node(59971, 'Фильм', 2026, '2026-02-27', 'Слёзы синего моря'), node(59970, 'TV Сериал', 2026, '2026-04-03'),
+        node(39607, 'TV Спецвыпуск', 2019, '2019-03-26', 'Дневник Вельдоры'), node(57434, 'Спецвыпуск', 2023, '2023-01-01')],
+      links: [link(37430, 39551, 'sequel'), link(39551, 37430, 'prequel'), link(39551, 41487, 'sequel'), link(41487, 39551, 'prequel'),
+        link(41487, 53580, 'sequel'), link(53580, 41487, 'prequel'), link(53580, 59970, 'sequel'), link(59970, 53580, 'prequel'),
+        link(49877, 41487, 'parent_story'), link(49877, 57434, 'other'), link(59971, 53580, 'parent_story'), link(39607, 37430, 'full_story')]
+    };
+    const fetchFn = () => Promise.resolve({ ok: true, json: () => Promise.resolve(data) });
+    return fetchShikimoriFranchise(fetchFn, 37430).then((f) => {
+      const parts = partsFromFranchise(f!, today);
+      expect(parts.filter((p) => !p.extra).map((p) => p.ref))
+        .toEqual(['shiki:37430', 'shiki:39551', 'shiki:41487', 'shiki:49877', 'shiki:53580', 'shiki:59971', 'shiki:59970']);
+      expect(parts.filter((p) => !p.extra).map((p) => p.season ?? null)).toEqual([1, 2, 3, null, 4, null, 5]);
+      expect(parts.find((p) => p.ref === 'shiki:39607')!.extra).toBe(true);
+      expect(franchiseLabel(f!)).toBe('5 сезонов, 2 фильма');
+    });
   });
 
   it('Фрирен: three seasons, the third ahead', async () => {

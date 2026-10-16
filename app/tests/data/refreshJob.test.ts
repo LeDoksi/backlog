@@ -77,7 +77,7 @@ describe('runDailyRefresh', () => {
     expect(args().p_updates[0]!.parts).toEqual([{ name: 'Мой сезон', ref: 'tmdb-season:1', released: true, year: 1999 }]);
   });
 
-  it('duplicates of a franchise merge into the first season; a spin-off and a title in progress stay', async () => {
+  it('duplicates of a franchise merge into the first season, a spin-off not started too; a title in progress stays', async () => {
     const { d, args } = deps([
       row('konosuba-3', 'anime', 'shikimori', '49458', 'done', { created_at: '2026-01-01T00:00:00Z', rating: 9, completed_at: '2026-02-01T00:00:00Z' }),
       row('konosuba', 'anime', 'shikimori', '30831', 'queue', { created_at: '2026-03-01T00:00:00Z', rating: 7 }),
@@ -85,14 +85,45 @@ describe('runDailyRefresh', () => {
       row('megumin', 'anime', 'shikimori', '51958', 'queue')
     ]);
     const r = await runDailyRefresh(d);
-    expect(r.merged).toBe(1);
-    expect(args().p_deletes.map((x) => x.id)).toEqual(['konosuba-3']);
+    expect(r.merged).toBe(2);
+    expect(args().p_deletes.map((x) => x.id)).toEqual(['konosuba-3', 'megumin']);
     const u = args().p_updates.find((x) => x.id === 'konosuba')!;
     const parts = u.parts as { ref: string }[];
     expect(u.checked_parts).toEqual({ [String(parts.findIndex((p) => p.ref === 'shiki:49458'))]: '2026-02-01T00:00:00Z' });
     expect(u.rating).toBe(9);
     expect(u.status).toBe('in_progress');
     expect(args().p_updates.map((x) => x.id)).not.toContain('konosuba-2');
+  });
+
+  it('a finished OVA folds into the finished show and ticks its extra («Атака титанов OVA» on est\'s board)', async () => {
+    const { d, args } = deps([
+      row('aot', 'anime', 'shikimori', '16498', 'done', { created_at: '2026-01-01T00:00:00Z' }),
+      row('aot-ova', 'anime', 'shikimori', '18397', 'done', { created_at: '2026-02-01T00:00:00Z', completed_at: '2026-03-01T00:00:00Z' })
+    ]);
+    const r = await runDailyRefresh(d);
+    expect(args().p_deletes.map((x) => x.id)).toEqual(['aot-ova']);
+    expect(r.merged).toBe(1);
+    const u = args().p_updates.find((x) => x.id === 'aot')!;
+    const parts = u.parts as { ref: string; extra?: boolean }[];
+    const ova = parts.findIndex((p) => p.ref === 'shiki:18397');
+    expect(parts[ova]!.extra).toBe(true);
+    expect((u.checked_parts as Record<string, string>)[String(ova)]).toBe('2026-03-01T00:00:00Z');
+    expect(u.status).toBe('done');
+  });
+
+  it('a list not finished is put in the provider\'s order; its ticks move with their parts', async () => {
+    // Konosuba's film once sat in the extras (the shape the Slime films had before 2026-10-16).
+    const parts = [
+      { name: 'S1', ref: 'shiki:30831', year: 2016, released: true }, { name: 'S2', ref: 'shiki:32937', year: 2017, released: true },
+      { name: 'S3', ref: 'shiki:49458', year: 2024, released: true }, { name: 'Film', ref: 'shiki:38040', year: 2019, released: true, extra: true }
+    ];
+    const { d, args } = deps([row('konosuba', 'anime', 'shikimori', '30831', 'in_progress', { parts, checked_parts: { '0': 'a', '2': 'c' } })]);
+    await runDailyRefresh(d);
+    const u = args().p_updates.find((x) => x.id === 'konosuba')!;
+    const after = u.parts as { ref: string; extra?: boolean }[];
+    expect(after.filter((p) => !p.extra).slice(0, 4).map((p) => p.ref)).toEqual(['shiki:30831', 'shiki:32937', 'shiki:38040', 'shiki:49458']);
+    expect(u.checked_parts).toEqual({ '0': 'a', [String(after.findIndex((p) => p.ref === 'shiki:49458'))]: 'c' });
+    expect(u.status).toBe('in_progress');
   });
 
   it('a first list only where the status survives it', async () => {

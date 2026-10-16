@@ -23,7 +23,7 @@ describe('anime search: one row per franchise', () => {
 
   it('«синяя тюрьма»: the franchise first, unrelated titles after it', async () => {
     const h = await hits('синяя тюрьма');
-    expect(h[0]).toMatchObject({ id: 49596, label: '3 сезона' });
+    expect(h[0]).toMatchObject({ id: 49596, label: '3 сезона, 1 фильм' });
     expect(h.slice(1).every((x) => !x.label)).toBe(true);
     expect(h.map((x) => x.id)).not.toContain(54865);
   });

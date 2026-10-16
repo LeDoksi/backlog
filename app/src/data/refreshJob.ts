@@ -11,7 +11,7 @@ import { isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise'
 import { cardForRetry } from './cardSources';
 import { isLandscapeCover } from '../lib/covers';
 import { good } from '../lib/sources';
-import { cardFixes, fillTicksForDone, mergeParts, planMerge, sourceKnowsLess, ticksWith, type FreshPart } from '../lib/refresh';
+import { cardFixes, fillTicksForDone, mergeParts, planMerge, sourceKnowsLess, ticksMoved, ticksWith, type FreshPart } from '../lib/refresh';
 import { checkedIndices, fromRow, type CheckedParts, type TitleRow } from '../lib/titleRow';
 import type { FetchLike, Part, StorageLike, SupabaseLike, Title } from '../lib/types';
 
@@ -48,7 +48,7 @@ const RETRY_MS = 30 * 60 * 1000;
 /** The date of a tick the refresh adds for a title finished on no known day: before every period but «за всё время». */
 const UNDATED = '1970-01-01T00:00:00.000Z';
 // The rules version is in the key: a fix to them runs again the same day.
-const key = (board: string) => `refresh:3:${board}`;
+const key = (board: string) => `refresh:4:${board}`;
 const retryKey = (board: string) => `refresh-retry:${board}`;
 const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -125,6 +125,7 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
 
   // New parts per title.
   const partsAfter: Record<string, Part[]> = {};
+  const movedFrom: Record<string, number[]> = {};
   Object.keys(fresh).forEach((id) => {
     const t = titles.get(id)!;
     const f = fresh[id]!;
@@ -152,8 +153,12 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
     // (Not for a side piece: an OVA's own list is not the franchise's.)
     const untouched = !checkedIndices(t.ticks).length && (t.title.status === 'queue' || t.title.status === 'unreleased')
       && !(franchise[id] && !franchise[id]!.main);
-    const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series', untouched });
+    // A title not finished follows the provider's order (a film moving into
+    // the main story takes its place); a finished one is never un-finished.
+    const reorder = t.title.status !== 'done';
+    const m = mergeParts(t.title.parts, f, { manual: !!t.row.parts_manual, lineUp: t.row.source === 'tmdb-series', untouched, reorder });
     partsAfter[id] = m.parts;
+    if (m.from) movedFrom[id] = m.from;
   });
 
   // A keep left without new parts would lose what the duplicates carry: no merge then.
@@ -167,7 +172,7 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   for (const [id, parts] of Object.entries(partsAfter)) {
     if (absorbed.has(id)) continue;
     const { row, title, ticks } = titles.get(id)!;
-    let next = parts.length ? ticks : {};
+    let next = !parts.length ? {} : movedFrom[id] ? ticksMoved(ticks, movedFrom[id]!) : ticks;
     // A finished title that just got its list keeps «Завершено» (spec 2.5 p.1).
     if (!(title.parts ?? []).length && title.status === 'done') next = ticksWith(next, fillTicksForDone(parts, 'done'), title.completedAt ?? UNDATED);
     const plan = plans.find((p) => p.keep === id);

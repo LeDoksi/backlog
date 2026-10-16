@@ -75,3 +75,34 @@ test('the daily refresh fills in seasons quietly on open', async ({ page }) => {
   const again = await page.evaluate(() => (window as unknown as { __rpcCalls?: { name: string }[] }).__rpcCalls?.filter((c) => c.name === 'apply_title_refresh').length ?? 0);
   expect(again).toBe(0);
 });
+
+test('on open, an OVA of a show folds into it and a film out of the extras takes its place (2026-10-16)', async ({ page }) => {
+  // Konosuba's film once sat in the extras, the way the Slime films did.
+  const kParts = [
+    { name: 'S1', ref: 'shiki:30831', year: 2016, released: true }, { name: 'S2', ref: 'shiki:32937', year: 2017, released: true },
+    { name: 'S3', ref: 'shiki:49458', year: 2024, released: true }, { name: 'Этот замечательный мир! Багровая легенда', ref: 'shiki:38040', year: 2019, released: true, extra: true }
+  ];
+  await installStub(page, {
+    signedIn: true, hasProfile: true,
+    titles: [
+      row('aot', 'Атака титанов', 'anime', 'done', { source: 'shikimori', source_id: '16498' }),
+      row('aot-ova', 'Атака титанов OVA', 'anime', 'done', { source: 'shikimori', source_id: '18397', created_at: '2026-02-01T00:00:00Z' }),
+      row('konosuba', 'Этот замечательный мир!', 'anime', 'queue', { source: 'shikimori', source_id: '30831', parts: kParts })
+    ]
+  });
+  await liveApis(page);
+  await page.goto('./');
+  await expect(page.locator('article')).toHaveCount(2);
+  await expect(page.locator('article', { hasText: 'Атака титанов OVA' })).toHaveCount(0);
+  await page.locator('article', { hasText: 'Этот замечательный мир!' }).getByRole('button', { name: /^Этот замечательный мир!/ }).click();
+  const sheet = page.getByRole('dialog');
+  // The film is in the main list, between the second and third seasons, not behind «Ещё».
+  const film = sheet.getByText('Этот замечательный мир! Багровая легенда');
+  await expect(film).toBeVisible();
+  await page.screenshot({ path: 'test-results/konosuba-film-main.png' });
+  await page.keyboard.press('Escape');
+  await page.locator('article', { hasText: 'Атака титанов' }).getByRole('button', { name: /^Атака титанов/ }).click();
+  await page.getByRole('button', { name: /^Ещё \d+: OVA и спешлы/ }).click();
+  await expect(page.getByRole('dialog').getByRole('checkbox', { name: /Атака титанов OVA/ })).toBeChecked();
+  await page.screenshot({ path: 'test-results/aot-ova-ticked.png' });
+});

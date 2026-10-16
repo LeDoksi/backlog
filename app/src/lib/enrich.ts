@@ -290,6 +290,17 @@ function searchShikimori(fetchFn: FetchLike, query: string, limit: number = MAX_
 // and 3, Gintama's «Финал» closes it). OVAs, ONAs and specials stay extras
 // even inside the chain (Re:Zero's «Memory Snow» is linked as a sequel, but
 // nobody counts it as a season). Clips, ads and promos are not taken at all.
+//
+// One more way into the main story (2026-10-16, «О моём перерождении в
+// слизь»): a film with its own plot, which Shikimori hangs off one TV season
+// as its `parent_story` («Алые узы», «Слёзы синего моря») instead of linking
+// it as a sequel. Recap and compilation films hang off a season the same
+// way, so such a film counts only when it is linked to nothing else in the
+// story (no sequel, prequel, alternative_version, full_story or summary:
+// «Атака титанов»'s recap films are chained to each other), hangs off one
+// season only («Лучшее из «Гинтамы» в кино» spans two) and came out before
+// the story ended (Gintama's 2024 re-edits came after «Финал»).
+
 export interface FranchiseNode {
   id: number;
   name: string;
@@ -339,6 +350,20 @@ function franchiseFrom(data: any, askedId: number): Franchise | null {
     (next[id] || []).forEach(function (to) { if (!seen[to]) { seen[to] = true; queue.push(to); } });
   }
   nodes.forEach(function (n) { n.main = !!seen[n.id] && MAIN_KINDS.indexOf(n.kind) !== -1; });
+  var byId: Record<number, FranchiseNode> = {};
+  nodes.forEach(function (n) { byId[n.id] = n; });
+  var ended = nodes.filter(function (n) { return n.main && n.year != null && n.date; })
+    .map(function (n) { return n.date as string; }).sort().pop() || '';
+  var STORY = ['sequel', 'prequel', 'alternative_version', 'full_story', 'summary'];
+  nodes.forEach(function (n) {
+    if (n.main || n.kind !== 'Фильм' || !n.date || n.date > ended) return;
+    var from = (Array.isArray(data.links) ? data.links : []).filter(function (l: any) { return l && l.source_id === n.id; });
+    var parents = from.filter(function (l: any) { return l.relation === 'parent_story'; });
+    var parent = parents.length === 1 ? byId[parents[0].target_id] : undefined;
+    if (!parent || !parent.main || parent.kind !== 'TV Сериал') return;
+    if (from.some(function (l: any) { return STORY.indexOf(l.relation) !== -1; })) return;
+    n.main = true;
+  });
   return { rootId: root.id, nodes: nodes };
 }
 

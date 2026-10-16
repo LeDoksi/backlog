@@ -39,7 +39,12 @@ function sameFacts(a: Part, b: Part): boolean {
   return (a.released !== false) === (b.released !== false) && (a.year ?? null) === (b.year ?? null) && !!a.extra === !!b.extra;
 }
 
-export interface MergeResult { parts: Part[]; changed: boolean }
+export interface MergeResult {
+  parts: Part[];
+  changed: boolean;
+  /** Set when the list was put back in the provider's order: new index → old index (-1 for a new part). Ticks follow it. */
+  from?: number[];
+}
 
 /**
  * Brings `fresh` into `current`. Parts with a ref take the provider's
@@ -64,7 +69,7 @@ export function sourceKnowsLess(current: Part[], fresh: FreshPart[]): boolean {
 export function mergeParts(
   current: Part[] | null | undefined,
   fresh: FreshPart[],
-  opts: { manual?: boolean; lineUp?: boolean; untouched?: boolean } = {}
+  opts: { manual?: boolean; lineUp?: boolean; untouched?: boolean; reorder?: boolean } = {}
 ): MergeResult {
   const cur = Array.isArray(current) ? current.filter(Boolean) : [];
   if (!fresh.length) return { parts: cur, changed: false };
@@ -123,8 +128,52 @@ export function mergeParts(
       out.push(between ? { ...clean(f), extra: true } : clean(f));
       changed = true;
     });
+    if (opts.reorder && cur.length === (current as Part[]).length) {
+      const again = inProviderOrder(cur, out, fresh);
+      if (again) return { parts: again.parts, changed: true, from: again.from };
+    }
   }
   return { parts: changed ? out : (current as Part[]), changed };
+}
+
+/**
+ * A title not finished yet follows the provider whole: its parts in the
+ * provider's order, a part the provider counts in the main story out of the
+ * extras («О моём перерождении в слизь»: its films came in as extras). Parts
+ * the provider does not name stay, after its own. Null when `merged`
+ * already reads that way.
+ */
+function inProviderOrder(cur: Part[], merged: Part[], fresh: FreshPart[]): { parts: Part[]; from: number[] } | null {
+  const oldAt = new Map<string, number>();
+  cur.forEach((p, i) => { if (p.ref && !oldAt.has(p.ref)) oldAt.set(p.ref, i); });
+  const byRef = new Map(merged.filter((p) => p.ref).map((p) => [p.ref!, p]));
+  const named = new Set(fresh.map((f) => f.ref));
+  const parts: Part[] = [];
+  const from: number[] = [];
+  fresh.forEach((f) => {
+    const p = byRef.get(f.ref) ?? clean(f);
+    const next: Part = { ...p };
+    if (f.extra) next.extra = true; else delete next.extra;
+    parts.push(next);
+    from.push(oldAt.get(f.ref) ?? -1);
+  });
+  cur.forEach((p, i) => {
+    if (p.ref && named.has(p.ref)) return;
+    parts.push(merged[i] ?? p);
+    from.push(i);
+  });
+  const key = (l: Part[]) => JSON.stringify(l.map((p) => [p.ref ?? p.name, !!p.extra]));
+  return key(parts) === key(merged) ? null : { parts, from };
+}
+
+/** Ticks after a reorder: each tick moves with its part, keeping its date. */
+export function ticksMoved(before: CheckedParts | undefined, from: number[]): CheckedParts {
+  const out: CheckedParts = {};
+  from.forEach((old, i) => {
+    const at = before?.[String(old)];
+    if (old >= 0 && at) out[String(i)] = at;
+  });
+  return out;
 }
 
 /** A finished title that just got its list: every released main part ticked, so the status stays «Завершено». */
@@ -158,10 +207,10 @@ export interface MergePlan {
  * holding the first TV season, else the main-story title added first.
  *
  * Only what can land whole is absorbed, so nothing is deleted with progress
- * that has nowhere to go: a main-story entry that the keep's parts carry,
- * not yet started or finished (a finished one ticks its part). Anything
- * else (a spin-off, a title in progress or with its own ticks) stays on
- * the board as it is.
+ * that has nowhere to go: an entry the keep's parts carry (a season, a film,
+ * or an OVA or spin-off from its extras), not yet started or finished (a
+ * finished one ticks its part). A title in progress or with its own ticks
+ * stays on the board as it is.
  */
 export function planMerge(
   board: Title[],
@@ -186,9 +235,9 @@ export function planMerge(
     const absorb: Title[] = [];
     const ticks: number[] = [];
     for (const t of byAdded) {
-      if (t.id === keep.id || !franchise[t.id]!.main) continue;
+      if (t.id === keep.id) continue;
       const at = parts.findIndex((p) => p.ref === franchise[t.id]!.ref);
-      if (at < 0 || parts[at]!.extra) continue;
+      if (at < 0) continue;
       if (t.status === 'done') ticks.push(at);
       else if (ticked.has(t.id) || (t.status !== 'queue' && t.status !== 'unreleased')) continue;
       absorb.push(t);
