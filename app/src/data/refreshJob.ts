@@ -11,7 +11,7 @@ import { isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise'
 import { cardForRetry } from './cardSources';
 import { isLandscapeCover } from '../lib/covers';
 import { good } from '../lib/sources';
-import { cardFixes, fillTicksForDone, mergeParts, planMerge, ticksWith, type FreshPart } from '../lib/refresh';
+import { cardFixes, fillTicksForDone, mergeParts, planMerge, sourceKnowsLess, ticksWith, type FreshPart } from '../lib/refresh';
 import { checkedIndices, fromRow, type CheckedParts, type TitleRow } from '../lib/titleRow';
 import type { FetchLike, Part, StorageLike, SupabaseLike, Title } from '../lib/types';
 
@@ -283,8 +283,9 @@ export interface RebuildDeps {
  * of the new list ticked, with the same dates, and checks them after; a
  * finished title stays finished. Quiet, like the daily refresh: friends see
  * nothing in the feed. 'none': the source has no list for it (a film on
- * its own, an OVA whose list is its own) or did not answer; 'stale': the
- * title changed meanwhile.
+ * its own, an OVA whose list is its own), knows fewer parts than the list
+ * (lib/refresh sourceKnowsLess) or did not answer; 'stale': the title
+ * changed meanwhile.
  */
 export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial<TitleRow> } | 'none' | 'stale'> {
   const { row, now } = deps;
@@ -302,8 +303,9 @@ export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial
   if (!fresh.length || isLoneWork(fresh)) return 'none';
 
   const { title, checked } = fromRow(row);
-  const parts = mergeParts(undefined, fresh).parts;
   const old = title.parts ?? [];
+  if (sourceKnowsLess(old, fresh)) return 'none';
+  const parts = mergeParts(undefined, fresh).parts;
   const before = checkedIndices(checked).filter((i) => old[i] && !old[i]!.extra);
   const dates = before.map((i) => checked[String(i)]!).sort();
   const main = parts.map((p, i) => (p.extra || p.released === false ? -1 : i)).filter((i) => i >= 0);

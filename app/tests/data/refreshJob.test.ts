@@ -292,6 +292,13 @@ describe('rebuildSeasons («Обновить сезоны»)', () => {
     expect(res.cols.status).toBe('done');
   });
 
+  it('a list that knows more parts than the source is kept («Бумажный дом», «Фоллаут» 3)', async () => {
+    const more = Array.from({ length: 13 }, (_, i) => ({ name: `Сезон ${i + 1}`, released: i < 11 }));
+    const { rpc, run } = call(row('twd', 'series', 'tmdb-series', '1402', 'in_progress', { parts: more, checked_parts: { '0': 'a' } }));
+    expect(await run()).toBe('none');
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it('a stale write says so', async () => {
     const r = row('frieren', 'anime', 'shikimori', '52991', 'queue', { parts: legacy });
     const rpc = vi.fn(async () => ({ data: -1, error: null }));
