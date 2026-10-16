@@ -254,3 +254,12 @@ describe('cardFixes (wave 3)', () => {
     expect(cardFixes(row(first), card, 'daily')).toBeNull();
   });
 });
+
+describe('mergeParts untouched, the source knowing less', () => {
+  it('keeps a hand-made list with more main parts than the source', () => {
+    const cur = [{ name: '1', released: true }, { name: '2', released: true }, { name: '3', released: false }];
+    const fresh = [{ name: 'Сезон 1', released: true, ref: 'tmdb-season:1', season: 1 }, { name: 'Сезон 2', released: true, ref: 'tmdb-season:2', season: 2 }];
+    const m = mergeParts(cur, fresh, { untouched: true, lineUp: false });
+    expect(m.parts.map((p) => p.name)).toEqual(['1', '2', '3']);
+  });
+});

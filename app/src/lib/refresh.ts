@@ -51,6 +51,16 @@ export interface MergeResult { parts: Part[]; changed: boolean }
  * the one people mean). `manual` (the list was edited by hand) allows only
  * the released flags to move.
  */
+/**
+ * The source names fewer main parts than the list already has: TMDb not
+ * listing an announced season yet («Фоллаут» 3), or one season where the
+ * list has two halves («Бумажный дом», «Властелины вселенной»). Such a list
+ * knows more than the source and is kept.
+ */
+export function sourceKnowsLess(current: Part[], fresh: FreshPart[]): boolean {
+  return fresh.filter((f) => !f.extra).length < current.filter((p) => p && !p.extra).length;
+}
+
 export function mergeParts(
   current: Part[] | null | undefined,
   fresh: FreshPart[],
@@ -69,7 +79,7 @@ export function mergeParts(
     // A hand-made list nobody has started (no tick, not «Смотрю» or
     // «Завершено») has no progress to lose: the provider's list takes its
     // place, and from then on it updates like any other.
-    if (opts.untouched) return { parts: fresh.map(clean), changed: true };
+    if (opts.untouched && !sourceKnowsLess(cur, fresh)) return { parts: fresh.map(clean), changed: true };
     // OVAs and specials in a hand-made list go to the extras block (the
     // flag moves nothing, ticks stay on their parts).
     const sided = out.map((p) => (!p.extra && SIDE_NAME.test(p.name ?? '') ? { ...p, extra: true } : p));
