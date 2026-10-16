@@ -276,14 +276,15 @@ export interface RebuildDeps {
 }
 
 /**
- * «Обновить сезоны» (BL-113): the title's list of parts built again from
- * its source, for a list the daily refresh leaves alone (made by hand on
- * the old site, with progress on it). The ticks are carried over by count:
+ * The one-time tidy of every board (BL-113, tools/tidy-boards): the
+ * title's list of parts built again from its source, for a list the daily
+ * refresh leaves alone (made by hand on the old site, with progress on it). The ticks are carried over by count:
  * someone who had 4 main parts ticked has the first 4 released main parts
  * of the new list ticked, with the same dates, and checks them after; a
  * finished title stays finished. Quiet, like the daily refresh: friends see
  * nothing in the feed. 'none': the source has no list for it (a film on
- * its own) or did not answer; 'stale': the title changed meanwhile.
+ * its own, an OVA whose list is its own) or did not answer; 'stale': the
+ * title changed meanwhile.
  */
 export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial<TitleRow> } | 'none' | 'stale'> {
   const { row, now } = deps;
@@ -295,7 +296,7 @@ export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial
     fresh = partsFromTmdb(s.seasons, now);
   } else {
     const f = await Enrich.fetchShikimoriFranchise(deps.fetchFn, Number(row.source_id));
-    if (!f) return 'none';
+    if (!f || !f.nodes.find((n) => n.id === Number(row.source_id))?.main) return 'none';
     fresh = partsFromFranchise(f, now);
   }
   if (!fresh.length || isLoneWork(fresh)) return 'none';
