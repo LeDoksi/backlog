@@ -29,7 +29,7 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b"}';
 select is(public.complete_signup()->>'status', 'created', 'invited guest is set up');
 select is(public.complete_signup()->>'status', 'exists', 'second call is a no-op');
 select results_eq($$select kind, title_count from public.my_boards()$$, $$values ('personal'::text, 0)$$, 'guest has one empty personal board');
-select is(public.my_profile()->>'display_name', 'Guest Person', 'display name comes from Google');
+select is(public.my_profile()->>'display_name', null, 'the Google name is not copied: the person picks one');
 reset role;
 select is((select count(*)::int from public.workspace_members where user_id = '00000000-0000-0000-0000-00000000000b'), 1, 'one membership');
 

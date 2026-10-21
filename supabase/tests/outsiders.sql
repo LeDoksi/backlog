@@ -8,7 +8,7 @@ insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-00
 
 set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-0000000000c9');
-select throws_ok($$select public.create_invite_link()$$, 'P0001', 'not_invited', 'an outsider cannot mint a link');
+select throws_ok($$select public.create_invite_link()$$, '42501', 'not_admin', 'an outsider cannot mint a link');
 reset role;
 -- Even a link planted in the table in their name does not open the door.
 insert into public.invite_links (token, created_by, expires_at) values ('selfmade01', '00000000-0000-0000-0000-0000000000c9', now() + interval '7 days');
@@ -22,7 +22,7 @@ set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-0000000000a1');
 select is(public.badge_count(), 0, 'a request from someone without a profile does not count');
 select is(json_array_length(public.my_inbox()->'friend_requests'), 0, 'and is not listed');
--- A member's own link still works for a newcomer (invites.sql covers the rest).
-select ok((public.create_invite_link()->>'token') is not null, 'members still get links');
+-- Only an admin makes links (invites.sql and closed_club.sql cover the rest).
+select throws_ok($$select public.create_invite_link()$$, '42501', 'not_admin', 'members do not get links either');
 select * from finish();
 rollback;
