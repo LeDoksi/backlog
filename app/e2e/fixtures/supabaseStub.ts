@@ -47,6 +47,10 @@ export interface StubOptions {
   friendsOn?: Row[];
   /** The newest «Что нового» entry opened; null: never. Default: everything read. */
   whatsNewSeenAt?: string | null;
+  /** The «Другое» tab is switched on. */
+  showOther?: boolean;
+  /** «Другое» lines by board (`personal` / `shared`); `mine: false` lines were written by someone else. */
+  otherItems?: { personal?: Row[]; shared?: Row[] };
   /** The account is the admin (invites new people). */
   isAdmin?: boolean;
   /** leaderboard answers by category; missing categories are an empty board. `off` when I do not take part. */
@@ -90,7 +94,16 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
     const me = { id: userId, email: 'e2e@example.com', display_name: 'E2E', nickname: opts.nickname === undefined ? 'e2e' : opts.nickname,
       // The account's theme outlives a reload, as on the server.
       theme: sessionStorage.getItem('e2e:theme') ?? 'system', is_admin: !!opts.isAdmin,
-      whats_new_seen_at: sessionStorage.getItem('e2e:whatsNew') ?? (opts.whatsNewSeenAt === undefined ? new Date().toISOString() : opts.whatsNewSeenAt) };
+      whats_new_seen_at: sessionStorage.getItem('e2e:whatsNew') ?? (opts.whatsNewSeenAt === undefined ? new Date().toISOString() : opts.whatsNewSeenAt),
+      show_other: (sessionStorage.getItem('e2e:showOther') ?? String(!!opts.showOther)) === 'true' };
+    // «Другое»: lines per board, newest first, as other_items() answers.
+    // Kept across a reload, as on the server.
+    const other: Record<string, Row[]> = JSON.parse(sessionStorage.getItem('e2e:other') ?? 'null') ?? {
+      [personal]: (opts.otherItems?.personal ?? []).map((r) => ({ mine: true, links: [], description: '', rating: null, status: 'want', ...r })),
+      [shared]: (opts.otherItems?.shared ?? []).map((r) => ({ mine: true, links: [], description: '', rating: null, status: 'want', ...r }))
+    };
+    let otherN = Object.values(other).flat().length;
+    const keepOther = () => sessionStorage.setItem('e2e:other', JSON.stringify(other));
     const pendingEmails: Row[] = [];
     const liveLinks: Row[] = [];
     const inDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString();
@@ -170,6 +183,28 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       nickname_available: (a) => ({ data: a.p_nickname !== 'taken', error: null }),
       set_profile: (a) => { me.display_name = String(a.p_display_name); me.nickname = String(a.p_nickname); return { data: null, error: null }; },
       mark_whats_new_seen: (a) => { me.whats_new_seen_at = String(a.p_at); sessionStorage.setItem('e2e:whatsNew', String(a.p_at)); return { data: null, error: null }; },
+      set_show_other: (a) => { me.show_other = !!a.p_on; sessionStorage.setItem('e2e:showOther', String(!!a.p_on)); return { data: null, error: null }; },
+      other_items: (a) => ({ data: [...(other[String(a.p_workspace)] ?? [])].sort((x, y) => String(y.created_at).localeCompare(String(x.created_at))), error: null }),
+      save_other_item: (a) => {
+        const list = other[String(a.p_workspace)] ??= [];
+        const item = a.p_item as Row;
+        const cur = list.find((r) => r.id === item.id);
+        if (cur && !cur.mine && (cur.title !== item.title || cur.category !== item.category)) return fail('not_author');
+        const same = list.find((r) => r !== cur && String(r.category).toLowerCase() === String(item.category).toLowerCase());
+        const row = { mine: true, ...(cur ?? {}), ...item, category: same ? same.category : item.category,
+          id: item.id ?? `00000000-0000-4000-8000-${String(++otherN).padStart(12, '0')}`, created_at: item.created_at ?? cur?.created_at ?? new Date().toISOString() };
+        if (cur) Object.assign(cur, row); else list.push(row);
+        keepOther();
+        return { data: row, error: null };
+      },
+      delete_other_item: (a) => {
+        const list = other[String(a.p_workspace)] ?? [];
+        const at = list.findIndex((r) => r.id === a.p_id);
+        if (at >= 0 && !list[at]!.mine) return fail('not_author');
+        if (at >= 0) list.splice(at, 1);
+        keepOther();
+        return { data: null, error: null };
+      },
       set_theme: (a) => { sessionStorage.setItem('e2e:theme', String(a.p_theme)); return { data: null, error: null }; },
       invite_email: (a) => {
         if (!me.is_admin) return { data: null, error: { message: 'not_admin', code: '42501' } };

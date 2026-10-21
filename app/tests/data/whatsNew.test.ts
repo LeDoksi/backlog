@@ -1,4 +1,4 @@
-import { WHATS_NEW, hasUnreadWhatsNew, latestWhatsNew, whatsNewDate, type WhatsNewEntry } from '../../src/data/whatsNew';
+import { WHATS_NEW, currentWhatsNew, hasUnreadWhatsNew, latestWhatsNew, whatsNewDate, type WhatsNewEntry } from '../../src/data/whatsNew';
 
 const two: WhatsNewEntry[] = [
   { date: '2026-11-05', title: 'Новое', points: ['a'] },
@@ -31,6 +31,11 @@ describe('whatsNew', () => {
       expect(e.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       expect(e.points.length).toBeGreaterThan(0);
     }
+  });
+
+  it('holds an entry back until its day comes', () => {
+    expect(currentWhatsNew(new Date('2026-11-04T23:59:00Z'), two).map((e) => e.date)).toEqual(['2026-10-21']);
+    expect(currentWhatsNew(new Date('2026-11-05T00:00:00Z'), two)).toHaveLength(2);
   });
 
   it('shows the date in Russian', () => {

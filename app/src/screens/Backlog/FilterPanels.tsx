@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Chip } from '../../ui/Chip';
 import { Switch } from '../../ui/Switch';
-import { useFilters, genreCounts, type SortKey, type StatusFilter } from '../../data/filters';
+import { useFilters, genreCounts, titleTab, type SortKey, type StatusFilter } from '../../data/filters';
 import { useTitles } from '../../data/titlesStore';
 import { STATUS_FILTER } from '../../data/labels';
 import s from './FilterPanels.module.css';
@@ -15,7 +15,7 @@ export function GenresPanel() {
   const category = useFilters((f) => f.category);
   const selected = useFilters((f) => f.genres);
   const setFilters = useFilters((f) => f.set);
-  const list = useMemo(() => genreCounts(titles, category), [titles, category]);
+  const list = useMemo(() => genreCounts(titles, titleTab(category)), [titles, category]);
   const toggle = (g: string) => setFilters({ genres: selected.includes(g) ? selected.filter((x) => x !== g) : [...selected, g] });
   return (
     <>

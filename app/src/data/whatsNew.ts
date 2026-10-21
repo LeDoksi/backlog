@@ -28,13 +28,24 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Раз в неделю постер, название и описание карточек из поиска сами обновляются из источника.',
       'Карточки из поиска больше не редактируются, у всех они выглядят одинаково. Статус, сезоны, оценка и «Скрыть от друзей» остаются твоими. Ручную карточку правит только тот, кто её создал.',
       'Если заметил ошибку в карточке, напиши мне.',
+      'Вкладка «Другое» для всего, чего нет в поиске: книги, комиксы, рестораны, спектакли. Включается в «Профиль → Оформление», по умолчанию выключена. Записи создаёшь сам (название, категория, описание, до трёх ссылок), свои категории становятся фильтрами, статусы «Хочу» и «Готово», есть оценка. Это только для тебя: в ленту, статистику, лидерборд и друзьям не попадает.',
       'И сам раздел «Что нового»: здесь буду рассказывать о заметных обновлениях. Когда появится новое, на «Профиле» загорится точка, и погаснет, как только прочитаешь.'
     ]
   }
 ];
 
+/**
+ * Entries whose day has come (UTC). An entry may be dated the day after the
+ * code ships: it then shows up on its own at midnight, instead of lighting a
+ * dot that opening the list cannot clear (the server keeps the mark ≤ now).
+ */
+export function currentWhatsNew(now: Date = new Date(), entries: WhatsNewEntry[] = WHATS_NEW): WhatsNewEntry[] {
+  const today = now.toISOString().slice(0, 10);
+  return entries.filter((e) => e.date <= today);
+}
+
 /** The date the read mark moves to when the list is opened. */
-export function latestWhatsNew(entries: WhatsNewEntry[] = WHATS_NEW): string | null {
+export function latestWhatsNew(entries: WhatsNewEntry[] = currentWhatsNew()): string | null {
   return entries.length ? `${entries[0]!.date}T00:00:00Z` : null;
 }
 
@@ -43,7 +54,7 @@ export function latestWhatsNew(entries: WhatsNewEntry[] = WHATS_NEW): string | n
  * the server (offline start): no dot rather than a false one. `null` is a
  * person who has never opened the list.
  */
-export function hasUnreadWhatsNew(seenAt: string | null | undefined, entries: WhatsNewEntry[] = WHATS_NEW): boolean {
+export function hasUnreadWhatsNew(seenAt: string | null | undefined, entries: WhatsNewEntry[] = currentWhatsNew()): boolean {
   const latest = latestWhatsNew(entries);
   if (!latest || seenAt === undefined) return false;
   if (seenAt === null) return true;

@@ -5,7 +5,7 @@ import { Sheet } from '../../ui/Sheet';
 import { Popover } from '../../ui/Popover';
 import { Button } from '../../ui/Button';
 import { useIsDesktop } from '../../ui/useMediaQuery';
-import { useFilters, activeFilterCount } from '../../data/filters';
+import { useFilters, activeFilterCount, titleTab } from '../../data/filters';
 import { useTitles } from '../../data/titlesStore';
 import { pickNext, randomEmpty, randomLabel } from '../../data/randomPick';
 import { openTitle } from '../../data/ui';
@@ -27,7 +27,8 @@ export function FilterChips({ shown }: { shown: number }) {
   const filtersRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
-  const inCategory = titles.filter((t) => f.category === 'all' || t.category === f.category);
+  const tab = titleTab(f.category);
+  const inCategory = titles.filter((t) => tab === 'all' || t.category === tab);
   const inProgress = inCategory.filter((t) => t.status === 'in_progress').length;
   const progressOn = f.statuses.length === 1 && f.statuses[0] === 'in_progress';
   const count = activeFilterCount(f);
@@ -39,8 +40,8 @@ export function FilterChips({ shown }: { shown: number }) {
   }
 
   function random() {
-    const pick = pickNext(titles, f.category, (id) => checked[id] ?? []);
-    if (!pick) { flash(randomEmpty(f.category)); return; }
+    const pick = pickNext(titles, tab, (id) => checked[id] ?? []);
+    if (!pick) { flash(randomEmpty(tab)); return; }
     openTitle(pick.id);
   }
 
@@ -57,7 +58,7 @@ export function FilterChips({ shown }: { shown: number }) {
     <div className={s.row}>
       <div className={s.chips}>
         <Chip tone="accent" icon={<DiceFive size={18} aria-hidden="true" />} onClick={random}>
-          <span aria-live="polite">{randomNote ?? randomLabel(f.category)}</span>
+          <span aria-live="polite">{randomNote ?? randomLabel(tab)}</span>
         </Chip>
         <Chip selected={progressOn} onClick={() => f.set({ statuses: progressOn ? [] : ['in_progress'] })}>В процессе {inProgress}</Chip>
         <Chip selected={f.stillAiring} onClick={() => f.set({ stillAiring: !f.stillAiring })}>Ещё выходит</Chip>
