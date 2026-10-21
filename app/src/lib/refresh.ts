@@ -9,8 +9,13 @@
 import { checkedIndices, type CheckedParts, type TitleRow } from './titleRow';
 import { isLandscapeCover } from './covers';
 import { good, type Raw } from './sources';
+import { canonicalGenres, canonicalPlatforms } from './gameNames';
+import { releaseStatus, type Release } from './release';
 import { MT_PREFIX } from './synopsis';
 import type { Part, Status, Title } from './types';
+
+/** A card from its sources, with a film's or game's release (data/cardSources). */
+export type Card = Raw & { release?: Release };
 
 /** A part as a provider sees it: `season` is the n-th main season (1-based) for lining up hand-made lists. */
 export interface FreshPart extends Part { ref: string; season?: number }
@@ -269,22 +274,28 @@ const RU = (s: string | null | undefined) => good('synopsis', s);
 
 /**
  * What a title's card should change to, given its sources' card, or null.
- * `daily` (games, spec 3.4): a wide or missing cover becomes a tall one;
- * an English or empty description becomes a Russian one. `normalize`
- * (titles moved from the old site, once): name, original name, cover,
- * description, genres and year as search gives them, except that a cover
- * someone chose stays, a tall cover never gives way to a wide one, and a
- * Russian description never gives way to a machine translation.
+ * `normalize` (titles moved from the old site, once): name, original name,
+ * cover, description, genres and year as search gives them, except that a
+ * cover someone chose stays, a tall cover never gives way to a wide one, and
+ * a Russian description never gives way to a machine translation.
+ * `weekly` (every card from search, BL-117, spec 2.4): the same, plus a
+ * film's, show's or anime's poster always follows its source, a game's
+ * platforms do too, and a film's or game's release dates and «Ещё не
+ * вышло» follow the source's (`today`: the local day, for a game that came
+ * out with no date).
  */
-export function cardFixes(row: TitleRow, card: Raw, mode: 'daily' | 'normalize'): Partial<TitleRow> | null {
+export function cardFixes(row: TitleRow, card: Card, mode: 'normalize' | 'weekly', today = ''): Partial<TitleRow> | null {
   const out: Partial<TitleRow> = {};
+  const game = row.category === 'game';
   const cover = card.cover?.trim();
   // A source's «no picture» is never a cover.
-  if (cover && !/\/assets\/globals\/missing|_placeholder\./.test(cover) && cover !== row.cover && replaceableCover(row.cover)) {
+  const real = !!cover && !/\/assets\/globals\/missing|_placeholder\./.test(cover);
+  if (real && cover !== row.cover && mode === 'weekly' && !game) out.cover = cover;
+  else if (real && cover !== row.cover && replaceableCover(row.cover)) {
     const none = !(row.cover ?? '').trim() || /_placeholder\.|\/assets\/globals\/missing/.test(row.cover ?? '');
     // Tall beats anything replaceable; a wide picture only fills a gap
     // (an old-site file is tall, another wide one is no better).
-    if (!isLandscapeCover(cover) || none) out.cover = cover;
+    if (!isLandscapeCover(cover!) || none) out.cover = cover;
   }
   const syn = card.synopsis?.trim();
   if (syn && syn !== (row.synopsis ?? '').trim()) {
@@ -292,23 +303,41 @@ export function cardFixes(row: TitleRow, card: Raw, mode: 'daily' | 'normalize')
     const machine = syn.startsWith(MT_PREFIX.trim());
     if (!cur) out.synopsis = syn;
     else if (RU(syn) && !RU(cur)) out.synopsis = syn;
-    else if (mode === 'normalize' && RU(syn) && !machine) out.synopsis = syn;
-    else if (mode === 'normalize' && !RU(syn) && !RU(cur)) out.synopsis = syn;
+    else if (RU(syn) && !machine) out.synopsis = syn;
+    else if (!RU(syn) && !RU(cur)) out.synopsis = syn;
   }
-  if (mode === 'normalize') {
-    const title = card.title?.trim();
-    // TMDb answers with the original name when it has no Russian one: a
-    // Russian name already on a film or show («Локи») is not given up for
-    // it. Games keep their store names (Steam's own, often English).
-    const losesRussian = row.category !== 'game' && /[а-яё]/i.test(row.title ?? '') && !/[а-яё]/i.test(title ?? '');
-    // Only the letter case differs («Что, если...?» against TMDb's «Что, Если...?»): the name stays.
-    const caseOnly = !!title && title.toLowerCase() === (row.title ?? '').toLowerCase();
-    if (title && title !== row.title && !losesRussian && !caseOnly) out.title = title;
-    const name = out.title ?? row.title;
-    const orig = card.originalTitle?.trim();
-    if (orig && orig !== name && orig !== (row.original_title ?? '')) out.original_title = orig;
-    if (Array.isArray(card.genres) && card.genres.length && JSON.stringify(card.genres) !== JSON.stringify(row.genres ?? [])) out.genres = card.genres;
-    if (typeof card.year === 'number' && card.year !== (row.year ?? null)) out.year = card.year;
+  const title = card.title?.trim();
+  // TMDb answers with the original name when it has no Russian one: a
+  // Russian name already on a film or show («Локи») is not given up for
+  // it. Games keep their store names (Steam's own, often English).
+  const losesRussian = !game && /[а-яё]/i.test(row.title ?? '') && !/[а-яё]/i.test(title ?? '');
+  // Only the letter case differs («Что, если...?» against TMDb's «Что, Если...?»): the name stays.
+  const caseOnly = !!title && title.toLowerCase() === (row.title ?? '').toLowerCase();
+  if (title && title !== row.title && !losesRussian && !caseOnly) out.title = title;
+  const name = out.title ?? row.title;
+  const orig = card.originalTitle?.trim();
+  if (orig && orig !== name && orig !== (row.original_title ?? '')) out.original_title = orig;
+  if (Array.isArray(card.genres) && card.genres.length) {
+    // A game's genres are kept in their canonical names (lib/gameNames).
+    const genres = game && mode === 'weekly' ? canonicalGenres(card.genres) : card.genres;
+    const now = game && mode === 'weekly' ? canonicalGenres(row.genres ?? []) : row.genres ?? [];
+    if (JSON.stringify(genres) !== JSON.stringify(now)) out.genres = genres;
+  }
+  if (typeof card.year === 'number' && card.year !== (row.year ?? null)) out.year = card.year;
+  if (mode === 'weekly') {
+    if (game && card.platforms?.length) {
+      const platforms = canonicalPlatforms(card.platforms)!;
+      if (JSON.stringify(platforms) !== JSON.stringify(canonicalPlatforms(row.platforms) ?? [])) out.platforms = platforms;
+    }
+    const rel = card.release;
+    if (rel && (game || row.category === 'movie')) {
+      const status = releaseStatus(row.status as Status, rel.out);
+      if (status !== row.status) out.status = status;
+      // A game out with no day given came out today, as far as anyone here knows.
+      const date = rel.date ?? (rel.out ? row.release_date ?? (status !== row.status && today ? today : null) : null);
+      if (date !== (row.release_date ?? null)) out.release_date = date;
+      if (rel.digital !== (row.digital_date ?? null)) out.digital_date = rel.digital;
+    }
   }
   return Object.keys(out).length ? out : null;
 }

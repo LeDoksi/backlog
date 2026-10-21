@@ -3,6 +3,7 @@ import { CORS_PROXY, RAWG_KEY, TMDB_KEY } from '../config';
 import { browserLoadImage, cardFor } from './cardSources';
 import { franchiseLabel, isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise';
 import type { FreshPart } from '../lib/refresh';
+import type { Release } from '../lib/release';
 import type { Category, FetchLike, Part } from '../lib/types';
 
 export type Provider = 'tmdb-movie' | 'tmdb-series' | 'shikimori' | 'steam' | 'rawg';
@@ -122,7 +123,7 @@ export function alreadyOnBoard(hit: Hit, titles: { source?: string | null; sourc
   });
 }
 
-export async function details(hit: Hit, fetchFn: FetchLike | null = nativeFetch(), loadImage: (url: string) => Promise<boolean> = browserLoadImage): Promise<(Enrich.Details & { source: string; sourceId: string; parts?: Part[] }) | null> {
+export async function details(hit: Hit, fetchFn: FetchLike | null = nativeFetch(), loadImage: (url: string) => Promise<boolean> = browserLoadImage): Promise<(Enrich.Details & { source: string; sourceId: string; parts?: Part[]; release?: Release }) | null> {
   if (!fetchFn) return null;
   // Every field from its best source (spec 3.1, lib/sources).
   const d = await cardFor(hit.provider, String(hit.id), { fetchFn, proxy: CORS_PROXY, tmdbKey: TMDB_KEY, rawgKey: RAWG_KEY, loadImage }) as Enrich.Details | null;
@@ -133,7 +134,7 @@ export async function details(hit: Hit, fetchFn: FetchLike | null = nativeFetch(
   if (hit.parts?.length) parts = hit.parts.map(stripSeason);
   else if (hit.provider === 'tmdb-series' && d.tmdbSeasons) parts = partsFromTmdb((d.tmdbSeasons as Enrich.TmdbSeasons).seasons, new Date()).map(stripSeason);
   const { tmdbSeasons: _seasons, ...rest } = d;
-  return { ...rest, ...(parts?.length ? { parts } : {}), source: hit.provider, sourceId: String(hit.id) } as Enrich.Details & { source: string; sourceId: string; parts?: Part[] };
+  return { ...rest, ...(parts?.length ? { parts } : {}), source: hit.provider, sourceId: String(hit.id) } as Enrich.Details & { source: string; sourceId: string; parts?: Part[]; release?: Release };
 }
 
 function stripSeason({ season: _season, ...p }: FreshPart): Part { return p; }

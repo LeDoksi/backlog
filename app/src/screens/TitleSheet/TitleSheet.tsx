@@ -12,6 +12,7 @@ import { resolveCover } from '../../lib/covers';
 import { Cover } from '../../ui/Cover';
 import { synopsisText } from '../../lib/synopsis';
 import { isStillAiring } from '../../lib/query';
+import { cinemaLabel, isSearchCard, localDay } from '../../lib/release';
 import { ASSET_ROOT } from '../../config';
 import { StatusControl } from './StatusControl';
 import { PartsChecklist } from './PartsChecklist';
@@ -50,6 +51,7 @@ export function TitleSheet() {
 
   const cover = title ? resolveCover(title.cover, ASSET_ROOT) : '';
   const meta = title ? [metaLine(title), (title.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
+  const cinema = title ? cinemaLabel(title, localDay(new Date())) : null;
 
   return (
     <>
@@ -83,6 +85,7 @@ export function TitleSheet() {
                 {title.originalTitle && title.originalTitle !== title.title && <div className={s.original}>{title.originalTitle}</div>}
                 <div className={s.meta}>{meta}</div>
                 {isStillAiring(title) && <div className={s.airing}>Всё ещё выходит</div>}
+                {cinema && <div className={s.airing}>{cinema}</div>}
                 {title.hidden && <div className={s.hiddenNote}><EyeSlash size={14} aria-hidden="true" />Скрыт от друзей</div>}
               </div>
             </div>
@@ -93,7 +96,9 @@ export function TitleSheet() {
                 onAllReleased={() => store().setAllReleasedChecked(title.id)} />
             ) : (
               <>
-                {title.status === 'unreleased' && <p className={s.unreleased}>Ещё не вышло. Когда выйдет, сними отметку в редактировании.</p>}
+                {title.status === 'unreleased' && <p className={s.unreleased}>
+                  {isSearchCard(title) ? 'Ещё не вышло. Снимем отметку сами, когда выйдет.' : 'Ещё не вышло. Когда выйдет, сними отметку в редактировании.'}
+                </p>}
                 {title.status !== 'unreleased' && <StatusControl value={title.status} category={title.category} onChange={(st) => store().setStatus(title.id, st)} />}
               </>
             )}

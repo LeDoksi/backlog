@@ -1,19 +1,20 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { LayoutGroup } from 'motion/react';
 import { useSession } from './data/session';
 import { useTitles, mirror, outbox } from './data/titlesStore';
 import { useBoards } from './data/boardsStore';
 import { startSync } from './data/syncEngine';
-import { refreshBoardDaily } from './data/dailyRefresh';
 import { getSupabase } from './data/supabase';
 import { useUi } from './data/ui';
+
+// Search and its sources load on the first «+» (spec: 250 KB first load).
+const QuickAdd = lazy(() => import('./screens/QuickAdd/QuickAdd').then((m) => ({ default: m.QuickAdd })));
 import { SignIn } from './screens/SignIn';
 import { NotInvited } from './screens/NotInvited';
 import { Onboarding } from './screens/Onboarding/Onboarding';
 import { Backlog } from './screens/Backlog/Backlog';
 import { TitleSheet } from './screens/TitleSheet/TitleSheet';
 import { EditTitle } from './screens/EditTitle/EditTitle';
-import { QuickAdd } from './screens/QuickAdd/QuickAdd';
 import { Stats } from './screens/Stats/Stats';
 import { Profile } from './screens/Profile/Profile';
 import { Friends } from './screens/Friends/Friends';
@@ -40,8 +41,14 @@ function Signed({ profile, onProfile, onSignOut, onDeleted }: SignedProps) {
   const section = useUi((u) => u.section);
   const setSection = useUi((u) => u.setSection);
   const setQuickAdd = useUi((u) => u.setQuickAdd);
+  // Mounted from the first open on, so closing it still animates.
+  const quickAddSeen = useRef(false);
+  const quickAddUsed = useUi((u) => u.quickAddOpen) || quickAddSeen.current;
+  quickAddSeen.current = quickAddUsed;
 
-  useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase, onPulled: refreshBoardDaily }), []);
+  // The background checks against the sources load after the first paint (spec: 250 KB first load).
+  useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase,
+    onPulled: (board) => { void import('./data/dailyRefresh').then((m) => m.refreshBoardDaily(board)).catch(() => {}); } }), []);
   useEffect(() => { void useBoards.getState().refresh(); }, []);
   const badge = useSocial((st) => st.badge);
   useEffect(() => {
@@ -62,7 +69,7 @@ function Signed({ profile, onProfile, onSignOut, onDeleted }: SignedProps) {
       </AppShell>
       <TitleSheet />
       <EditTitle />
-      <QuickAdd />
+      {quickAddUsed && <Suspense fallback={null}><QuickAdd /></Suspense>}
       <FriendProfile />
       <FeedBatch />
       <FriendTitle />
