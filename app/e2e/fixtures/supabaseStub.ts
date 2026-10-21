@@ -45,6 +45,8 @@ export interface StubOptions {
   matches?: Row[];
   /** friends_on_titles rows; the stub returns those whose title_key was asked for. */
   friendsOn?: Row[];
+  /** The newest «Что нового» entry opened; null: never. Default: everything read. */
+  whatsNewSeenAt?: string | null;
   /** The account is the admin (invites new people). */
   isAdmin?: boolean;
   /** leaderboard answers by category; missing categories are an empty board. `off` when I do not take part. */
@@ -87,7 +89,8 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
     const invited = opts.hasProfile !== false;
     const me = { id: userId, email: 'e2e@example.com', display_name: 'E2E', nickname: opts.nickname === undefined ? 'e2e' : opts.nickname,
       // The account's theme outlives a reload, as on the server.
-      theme: sessionStorage.getItem('e2e:theme') ?? 'system', is_admin: !!opts.isAdmin };
+      theme: sessionStorage.getItem('e2e:theme') ?? 'system', is_admin: !!opts.isAdmin,
+      whats_new_seen_at: sessionStorage.getItem('e2e:whatsNew') ?? (opts.whatsNewSeenAt === undefined ? new Date().toISOString() : opts.whatsNewSeenAt) };
     const pendingEmails: Row[] = [];
     const liveLinks: Row[] = [];
     const inDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString();
@@ -166,6 +169,7 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       my_boards: () => ({ data: boards(), error: null }),
       nickname_available: (a) => ({ data: a.p_nickname !== 'taken', error: null }),
       set_profile: (a) => { me.display_name = String(a.p_display_name); me.nickname = String(a.p_nickname); return { data: null, error: null }; },
+      mark_whats_new_seen: (a) => { me.whats_new_seen_at = String(a.p_at); sessionStorage.setItem('e2e:whatsNew', String(a.p_at)); return { data: null, error: null }; },
       set_theme: (a) => { sessionStorage.setItem('e2e:theme', String(a.p_theme)); return { data: null, error: null }; },
       invite_email: (a) => {
         if (!me.is_admin) return { data: null, error: { message: 'not_admin', code: '42501' } };

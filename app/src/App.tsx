@@ -29,6 +29,7 @@ import { AppShell } from './ui/AppShell';
 import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
 import type { Profile as ProfileData } from './lib/auth';
+import { hasUnreadWhatsNew } from './data/whatsNew';
 
 const SECTIONS: Section[] = ['backlog', 'friends', 'stats', 'profile'];
 // The badge is the only notification (decision 38); it is re-read when the
@@ -61,7 +62,7 @@ function Signed({ profile, onProfile, onSignOut, onDeleted }: SignedProps) {
 
   return (
     <LayoutGroup>
-      <AppShell sections={SECTIONS} section={section} badge={badge} onNavigate={setSection} onAdd={() => setQuickAdd(true)}>
+      <AppShell sections={SECTIONS} section={section} badge={badge} dot={hasUnreadWhatsNew(profile.whats_new_seen_at)} onNavigate={setSection} onAdd={() => setQuickAdd(true)}>
         {section === 'backlog' && <Backlog />}
         {section === 'friends' && <Friends />}
         {section === 'stats' && <Stats />}

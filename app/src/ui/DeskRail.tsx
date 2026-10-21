@@ -6,7 +6,7 @@ import s from './DeskRail.module.css';
 
 const ICON = { backlog: SquaresFour, friends: UsersThree, stats: ChartBar, profile: UserCircle };
 
-interface Props { sections: Section[]; active: Section; badge?: number; onNavigate: (s: Section) => void; onAdd: () => void }
+interface Props { sections: Section[]; active: Section; badge?: number; dot?: boolean; onNavigate: (s: Section) => void; onAdd: () => void }
 
 // The rail's button is a quick flip between the two themes; the full
 // "Светлая / Тёмная / Как в системе" choice lives in the profile.
@@ -16,7 +16,7 @@ function effectiveDark(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
-export function DeskRail({ sections, active, badge = 0, onNavigate, onAdd }: Props) {
+export function DeskRail({ sections, active, badge = 0, dot = false, onNavigate, onAdd }: Props) {
   const [dark, setDark] = useState(effectiveDark);
 
   function flipTheme() {
@@ -33,10 +33,11 @@ export function DeskRail({ sections, active, badge = 0, onNavigate, onAdd }: Pro
           const Icon = ICON[key];
           const on = key === active;
           return (
-            <button key={key} type="button" aria-current={on ? 'page' : undefined} className={on ? `${s.item} ${s.on}` : s.item} onClick={() => onNavigate(key)}>
+            <button key={key} type="button" aria-label={key === 'profile' && dot && !on ? `${SECTION_LABEL[key]}, есть новое` : undefined} aria-current={on ? 'page' : undefined} className={on ? `${s.item} ${s.on}` : s.item} onClick={() => onNavigate(key)}>
               <Icon size={22} weight={on ? 'fill' : 'regular'} aria-hidden="true" />
               {SECTION_LABEL[key]}
               {key === 'friends' && badge > 0 && !on && <span className={s.badge}>{badge}</span>}
+              {key === 'profile' && dot && !on && <span className={s.dot} aria-hidden="true" />}
             </button>
           );
         })}

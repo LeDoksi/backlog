@@ -30,6 +30,7 @@
 .invite { display: flex; align-items: center; gap: 12px; }
 .inviteText { flex: 1; min-width: 0; font-size: var(--fs-md); line-height: 1.35; }
 .iconBtn { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: var(--r-pill); background: var(--sunken); color: var(--text-2); display: grid; place-items: center; }
+.dot { width: 10px; height: 10px; flex-shrink: 0; border-radius: 50%; background: var(--badge); }
 .count { color: var(--muted); font-size: var(--fs-md); font-weight: 600; }
 .link { padding: 16px; border-radius: var(--r-card); background: var(--accent-soft); display: flex; flex-direction: column; gap: 12px; }
 .linkHead { display: flex; flex-direction: column; gap: 4px; }
