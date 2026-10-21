@@ -34,9 +34,9 @@ const SECTIONS: Section[] = ['backlog', 'friends', 'stats', 'profile'];
 // app comes back to the foreground and every few minutes while it is open.
 const BADGE_EVERY_MS = 3 * 60 * 1000;
 
-interface SignedProps { profile: ProfileData; onProfile(p: ProfileData): void; onSignOut(): void }
+interface SignedProps { profile: ProfileData; onProfile(p: ProfileData): void; onSignOut(): void; onDeleted(): void }
 
-function Signed({ profile, onProfile, onSignOut }: SignedProps) {
+function Signed({ profile, onProfile, onSignOut, onDeleted }: SignedProps) {
   const section = useUi((u) => u.section);
   const setSection = useUi((u) => u.setSection);
   const setQuickAdd = useUi((u) => u.setQuickAdd);
@@ -58,7 +58,7 @@ function Signed({ profile, onProfile, onSignOut }: SignedProps) {
         {section === 'backlog' && <Backlog />}
         {section === 'friends' && <Friends />}
         {section === 'stats' && <Stats />}
-        {section === 'profile' && <Profile profile={profile} onProfile={onProfile} onSignOut={onSignOut} />}
+        {section === 'profile' && <Profile profile={profile} onProfile={onProfile} onSignOut={onSignOut} onDeleted={onDeleted} />}
       </AppShell>
       <TitleSheet />
       <EditTitle />
@@ -89,6 +89,12 @@ export function App() {
         // a pull still in flight cannot write the old account back.
         await session.signOut();
         // The next account starts from the skeleton, not an empty board.
+        clearMirror();
+      }}
+      onDeleted={async () => {
+        // The account is gone on the server: nothing in the queue may be
+        // sent again, so it is dropped with the mirror instead of flushed.
+        await session.signOut();
         clearMirror();
       }} />
   );

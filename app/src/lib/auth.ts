@@ -94,8 +94,10 @@ export interface Profile {
   share_activity?: boolean;
   share_matches?: boolean;
   findable_by_nick?: boolean;
+  /** Only the admin invites new people; the server checks it on every invite call. */
+  is_admin?: boolean;
 }
-export interface BoardMember { id: string; name: string; nickname: string | null; email?: string }
+export interface BoardMember { id: string; name: string; nickname: string | null }
 export interface BoardRow { id: string; kind: 'personal' | 'shared'; visibility: string; title_count: number; members: BoardMember[] | null; in_leaderboard?: boolean }
 
 function callRpc(client: SupabaseLike, name: string, args?: Record<string, unknown>): Promise<Result> {
@@ -142,8 +144,19 @@ function myBoards(client: SupabaseLike): Promise<BoardRow[] | null> {
 }
 
 // Grants access to the app only; joining a board is a separate invite.
+// Admin only: anyone else gets an error from the server.
 function inviteEmail(client: SupabaseLike, email: string): Promise<Result> {
   return callRpc(client, 'invite_email', { target_email: email });
+}
+
+export type DeleteStatus = 'deleted' | 'wrong_nickname' | 'last_admin';
+
+// The nickname is the confirmation; the server compares it with the profile.
+function deleteMyAccount(client: SupabaseLike, nickname: string): Promise<DeleteStatus | null> {
+  return callRpc(client, 'delete_my_account', { p_nickname: nickname }).then(function (res) {
+    var status = !res.error && res.data ? (res.data as { status?: string }).status : null;
+    return status === 'deleted' || status === 'wrong_nickname' || status === 'last_admin' ? status : null;
+  });
 }
 
 export {
@@ -159,5 +172,6 @@ export {
   getSession,
   onAuthStateChange,
   hasProfile,
-  inviteEmail
+  inviteEmail,
+  deleteMyAccount
 };

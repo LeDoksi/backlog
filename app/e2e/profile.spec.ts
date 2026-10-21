@@ -22,16 +22,61 @@ test('the theme choice changes data-theme, survives a reload and goes to the acc
   await expect(page.locator('html')).not.toHaveAttribute('data-theme', /./);
 });
 
-test('inviting by email only lets the person into the app', async ({ page }) => {
+test('the admin invites by email and with a link, sees live invites and takes one back', async ({ page }) => {
+  await installStub(page, { signedIn: true, hasProfile: true, isAdmin: true });
+  await page.goto('./');
+  await openProfile(page);
+  await page.getByRole('button', { name: 'Пригласить в Бэклог' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Пригласить в Бэклог' });
+  await expect(sheet.getByText('Сейчас нет неиспользованных приглашений')).toBeVisible();
+  await sheet.getByRole('textbox', { name: 'Почта Google' }).fill('friend@example.com');
+  await sheet.getByRole('button', { name: 'Пригласить', exact: true }).click();
+  await expect(sheet.getByRole('status')).toContainText('Готово');
+  expect(await rpcCalls(page)).toContainEqual({ name: 'invite_email', args: { target_email: 'friend@example.com' } });
+  const live = sheet.getByRole('list', { name: 'Действующие приглашения' });
+  await expect(live.getByRole('listitem')).toHaveCount(1);
+
+  await sheet.getByRole('radio', { name: 'Ссылкой' }).click();
+  await sheet.getByRole('textbox', { name: 'Почта Google' }).fill('pal@example.com');
+  await sheet.getByRole('button', { name: 'Создать ссылку' }).click();
+  await expect(sheet.getByText('Пустит только pal@example.com, один раз')).toBeVisible();
+  await expect(sheet.getByText('#f/g7k2q4m9x0', { exact: false })).toBeVisible();
+  expect(await rpcCalls(page)).toContainEqual({ name: 'create_invite_link', args: { p_email: 'pal@example.com' } });
+  await expect(live.getByRole('listitem')).toHaveCount(2);
+
+  await live.getByRole('button', { name: 'Отозвать: friend@example.com' }).click();
+  await expect(live.getByRole('listitem')).toHaveCount(1);
+  expect(await rpcCalls(page)).toContainEqual({ name: 'admin_revoke_invite', args: { p_kind: 'email', p_key: 'friend@example.com' } });
+});
+
+test('a member does not see «Пригласить в Бэклог» and never asks for invites', async ({ page }) => {
   await installStub(page, { signedIn: true, hasProfile: true });
   await page.goto('./');
   await openProfile(page);
-  await page.getByRole('button', { name: 'Пригласить по почте' }).click();
-  const sheet = page.getByRole('dialog', { name: 'Пригласить по почте' });
-  await sheet.getByRole('textbox', { name: 'Почта Google' }).fill('friend@example.com');
-  await sheet.getByRole('button', { name: 'Пригласить' }).click();
-  await expect(sheet.getByRole('status')).toContainText('Готово');
-  expect(await rpcCalls(page)).toContainEqual({ name: 'invite_email', args: { target_email: 'friend@example.com' } });
+  await expect(page.getByText('Данные и аккаунт')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Пригласить в Бэклог' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Пригласить по почте/ })).toHaveCount(0);
+  const names = (await rpcCalls(page)).map((c) => c.name);
+  expect(names).not.toContain('admin_invites');
+  expect(names).not.toContain('create_invite_link');
+});
+
+test('deleting the account needs the nickname, then lands on the sign-in screen with the mirror gone', async ({ page }) => {
+  await installStub(page, { signedIn: true, hasProfile: true, titles: catalogRows(2) });
+  await page.goto('./');
+  await openProfile(page);
+  await page.getByRole('button', { name: 'Удалить аккаунт' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Удалить аккаунт?' });
+  const confirm = sheet.getByRole('button', { name: 'Удалить аккаунт' });
+  await expect(confirm).toBeDisabled();
+  await sheet.getByRole('textbox').fill('someone');
+  await expect(confirm).toBeDisabled();
+  await sheet.getByRole('textbox').fill('@E2E');
+  await confirm.click();
+  await expect(page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
+  expect(await rpcCalls(page)).toContainEqual({ name: 'delete_my_account', args: { p_nickname: 'e2e' } });
+  const left = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('bl2:titles:')));
+  expect(left).toEqual([]);
 });
 
 test('the profile shows the nickname and both boards with their counts', async ({ page }) => {

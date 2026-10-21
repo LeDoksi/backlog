@@ -55,6 +55,8 @@ export default defineConfig({
         // Retires v1's caches and tabs once.
         importScripts: ['sw-retire-v1.js'],
         navigateFallback: 'index.html',
+        // data-info.json is the «Как мы используем данные» text, readable offline too.
+        globPatterns: ['**/*.{js,css,html,json}'],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {

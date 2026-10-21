@@ -7,6 +7,18 @@ test('signed out shows the sign-in screen', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Войти через Google' })).toBeVisible();
 });
 
+test('the sign-in screen says it is a closed club and explains the data without signing in', async ({ page }) => {
+  await installStub(page, { signedIn: false });
+  await page.goto('./');
+  await expect(page.getByText('Закрытое пространство для друзей · Только по приглашению')).toBeVisible();
+  await page.getByRole('button', { name: 'Как мы используем данные' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Как мы используем данные' });
+  await expect(sheet.getByRole('heading', { name: 'Какие данные хранятся' })).toBeVisible();
+  await expect(sheet.getByText('This product uses the TMDB API but is not endorsed or certified by TMDB')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+});
+
 test('signed in without a profile shows not-invited', async ({ page }) => {
   await installStub(page, { signedIn: true, hasProfile: false });
   await page.goto('./');

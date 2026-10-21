@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CaretRight, EnvelopeSimple, EyeSlash, LinkSimple, LockSimple, Plus, SignOut } from '@phosphor-icons/react';
+import { CaretRight, EyeSlash, Info, LockSimple, Plus, SignOut, Trash, UserPlus } from '@phosphor-icons/react';
 import { Avatar } from '../../ui/Avatar';
 import { Button } from '../../ui/Button';
 import { Segmented } from '../../ui/Segmented';
@@ -19,14 +19,15 @@ import { useUi } from '../../data/ui';
 import { HiddenTitles } from '../Privacy/HiddenTitles';
 import { myHiddenTitles } from '../../lib/social';
 import { boardLine, boardName } from './boardTexts';
-import { AddFriendSheet } from '../Friends/AddFriendSheet';
+import { DeleteAccountSheet } from './DeleteAccountSheet';
+import { DataInfo } from '../DataInfo';
 import s from './Profile.module.css';
 
-interface Props { profile: Auth.Profile; onProfile(p: Auth.Profile): void; onSignOut(): void }
+interface Props { profile: Auth.Profile; onProfile(p: Auth.Profile): void; onSignOut(): void; onDeleted(): void }
 
-type Panel = 'email' | 'link' | 'nick' | 'members' | 'edit' | 'privacy' | 'hidden' | null;
+type Panel = 'invite' | 'nick' | 'members' | 'edit' | 'privacy' | 'hidden' | 'data' | 'delete' | null;
 
-export function Profile({ profile, onProfile, onSignOut }: Props) {
+export function Profile({ profile, onProfile, onSignOut, onDeleted }: Props) {
   const [theme, setThemeState] = useState<ThemePref>(readTheme);
   const [panel, setPanel] = useState<Panel>(null);
   const privacyRequested = useUi((u) => u.privacyRequested);
@@ -110,18 +111,30 @@ export function Profile({ profile, onProfile, onSignOut }: Props) {
             <span className={s.count}>{hiddenCount}</span><CaretRight size={18} aria-hidden="true" />
           </button>
         )}
-        <button type="button" className={s.row} onClick={() => setPanel('link')}>
-          <LinkSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить в Бэклог</span><CaretRight size={18} aria-hidden="true" />
-        </button>
-        <button type="button" className={s.row} onClick={() => setPanel('email')}>
-          <EnvelopeSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить по почте</span><CaretRight size={18} aria-hidden="true" />
-        </button>
+        {profile.is_admin && (
+          <button type="button" className={s.row} onClick={() => setPanel('invite')}>
+            <UserPlus size={22} aria-hidden="true" /><span className={s.rowLabel}>Пригласить в Бэклог</span><CaretRight size={18} aria-hidden="true" />
+          </button>
+        )}
+      </section>
+
+      <section className={s.card}>
+        <h2 className={s.h2}>Данные и аккаунт</h2>
+        <div className={s.rows}>
+          <button type="button" className={s.row} onClick={() => setPanel('data')}>
+            <Info size={22} aria-hidden="true" /><span className={s.rowLabel}>Как мы используем данные</span><CaretRight size={18} aria-hidden="true" />
+          </button>
+          <button type="button" className={s.row} onClick={() => setPanel('delete')}>
+            <Trash size={22} aria-hidden="true" /><span className={s.rowLabel}>Удалить аккаунт</span><CaretRight size={18} aria-hidden="true" />
+          </button>
+        </div>
       </section>
 
       <button type="button" className={s.signOut} onClick={() => setLeaving(true)}><SignOut size={20} aria-hidden="true" />Выйти из аккаунта</button>
 
-      <AddFriendSheet open={panel === 'link'} onClose={() => setPanel(null)} />
-      <InviteSheet open={panel === 'email'} onClose={() => setPanel(null)} />
+      {profile.is_admin && <InviteSheet open={panel === 'invite'} onClose={() => setPanel(null)} />}
+      <DataInfo open={panel === 'data'} onClose={() => setPanel(null)} />
+      <DeleteAccountSheet open={panel === 'delete'} nickname={profile.nickname} onClose={() => setPanel(null)} onDeleted={onDeleted} />
       <NickInviteSheet open={panel === 'nick'} creating={!shared} onClose={() => { setPanel(null); refresh(); }} />
       <MembersSheet open={panel === 'members'} board={shared} userId={userId} onClose={() => setPanel(null)} onInvite={() => setPanel('nick')} />
       <Privacy open={panel === 'privacy'} profile={profile} onProfile={onProfile} onClose={() => setPanel(null)} />

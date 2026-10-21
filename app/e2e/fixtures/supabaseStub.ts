@@ -45,6 +45,8 @@ export interface StubOptions {
   matches?: Row[];
   /** friends_on_titles rows; the stub returns those whose title_key was asked for. */
   friendsOn?: Row[];
+  /** The account is the admin (invites new people). */
+  isAdmin?: boolean;
   /** leaderboard answers by category; missing categories are an empty board. `off` when I do not take part. */
   leaderboard?: Record<string, Row> | 'off';
 }
@@ -85,7 +87,10 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
     const invited = opts.hasProfile !== false;
     const me = { id: userId, email: 'e2e@example.com', display_name: 'E2E', nickname: opts.nickname === undefined ? 'e2e' : opts.nickname,
       // The account's theme outlives a reload, as on the server.
-      theme: sessionStorage.getItem('e2e:theme') ?? 'system' };
+      theme: sessionStorage.getItem('e2e:theme') ?? 'system', is_admin: !!opts.isAdmin };
+    const pendingEmails: Row[] = [];
+    const liveLinks: Row[] = [];
+    const inDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString();
     const titles: Row[] = [...opts.titles, ...(opts.sharedTitles ?? [])];
     let sharedMembers: { id: string; name: string; nickname: string | null }[] | null = opts.sharedTitles
       ? [{ id: userId, name: me.display_name, nickname: me.nickname }, ...(opts.sharedWith ?? [])]
@@ -162,7 +167,23 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       nickname_available: (a) => ({ data: a.p_nickname !== 'taken', error: null }),
       set_profile: (a) => { me.display_name = String(a.p_display_name); me.nickname = String(a.p_nickname); return { data: null, error: null }; },
       set_theme: (a) => { sessionStorage.setItem('e2e:theme', String(a.p_theme)); return { data: null, error: null }; },
-      invite_email: () => ({ data: null, error: null }),
+      invite_email: (a) => {
+        if (!me.is_admin) return { data: null, error: { message: 'not_admin', code: '42501' } };
+        pendingEmails.unshift({ email: String(a.target_email).toLowerCase(), created_at: inDays(0), expires_at: inDays(30) });
+        return { data: null, error: null };
+      },
+      admin_invites: () => me.is_admin ? { data: { links: liveLinks, emails: pendingEmails }, error: null } : { data: null, error: { message: 'not_admin', code: '42501' } },
+      admin_revoke_invite: (a) => {
+        const list = a.p_kind === 'link' ? liveLinks : pendingEmails;
+        const at = list.findIndex((r) => (a.p_kind === 'link' ? r.token : r.email) === a.p_key);
+        if (at >= 0) list.splice(at, 1);
+        return { data: null, error: null };
+      },
+      delete_my_account: (a) => {
+        if (a.p_nickname !== me.nickname) return { data: { status: 'wrong_nickname' }, error: null };
+        session = null;
+        return { data: { status: 'deleted' }, error: null };
+      },
       find_user_by_nick: (a) => ({ data: (opts.users ?? []).filter((u) => u.nickname === a.p_nickname), error: null }),
       invite_to_shared_board: (a) => sharedMembers?.some((m) => m.id === a.p_user) ? fail('already_member') : { data: null, error: null },
       my_board_invites: () => ({ data: invites, error: null }),
@@ -197,7 +218,12 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
         return { data: null, error: null };
       },
       my_hidden_titles: () => ({ data: titles.filter((t) => t.hidden).map((t) => ({ workspace_id: t.workspace_id, id: t.id, title: t.title, category: t.category, year: t.year, cover: t.cover })), error: null }),
-      create_invite_link: () => ({ data: { token: 'g7k2q4m9x1', expires_at: new Date(Date.now() + 7 * 864e5).toISOString() }, error: null }),
+      create_invite_link: (a) => {
+        if (!me.is_admin) return { data: null, error: { message: 'not_admin', code: '42501' } };
+        const link = { token: 'g7k2q4m9x' + liveLinks.length, email: a.p_email ?? null, created_at: inDays(0), expires_at: inDays(7) };
+        liveLinks.unshift(link);
+        return { data: link, error: null };
+      },
       search_users: (a) => ({
         data: (opts.people ?? []).filter((p) => p.nickname.startsWith(String(a.p_prefix)))
           .map((p) => ({ is_friend: false, requested: false, incoming: false, ...p })), error: null
@@ -254,7 +280,8 @@ export async function installStub(page: Page, options: StubOptions): Promise<voi
       }
     };
 
-    const session = opts.signedIn ? { user: { id: userId, email: 'e2e@example.com' } } : null;
+    // Deleting the account ends the session, as on the server.
+    let session = opts.signedIn ? { user: { id: userId, email: 'e2e@example.com' } } : null;
     const client = {
       auth: {
         getSession: () => Promise.resolve({ data: { session }, error: null }),
