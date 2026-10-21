@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { Sheet } from '../../src/ui/Sheet';
+import { Sheet, keyboardPanelStyle } from '../../src/ui/Sheet';
 
 function Harness() {
   const [open, setOpen] = useState(false);
@@ -34,4 +34,12 @@ test('Tab stays inside the sheet', async () => {
   await userEvent.tab();
   await userEvent.tab();
   expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true);
+});
+
+test('with a keyboard up the panel covers just the visible part of the screen', () => {
+  expect(keyboardPanelStyle({ layoutHeight: 844, height: 844, offsetTop: 0 })).toBeUndefined();
+  // iPhone: 844 tall, keyboard 336, Safari panned the page by 120.
+  expect(keyboardPanelStyle({ layoutHeight: 844, height: 388, offsetTop: 120 })).toEqual({ top: 128, bottom: 'auto', maxHeight: 380 });
+  // A toolbar-sized difference is not a keyboard.
+  expect(keyboardPanelStyle({ layoutHeight: 844, height: 780, offsetTop: 0 })).toBeUndefined();
 });

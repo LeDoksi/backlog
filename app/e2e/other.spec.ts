@@ -120,3 +120,31 @@ test('on a shared board someone else\'s line: status yes, text no', async ({ pag
   await sheet.getByRole('radio', { name: 'Готово' }).click();
   await expect(sheet.getByRole('radio', { name: 'Готово' })).toHaveAttribute('aria-checked', 'true');
 });
+
+const KB = 300, PAN = 150;
+// iOS keeps the window full height under the keyboard and pans the page; a
+// stand-in visualViewport plays that: the form must sit in what is visible.
+test('with the phone keyboard up the form stays in view: name on top, buttons above the keys', async ({ page }, info) => {
+  test.skip(info.project.name !== 'phone');
+  await page.addInitScript(([kb, pan]) => {
+    const t = new EventTarget() as EventTarget & { height: number; offsetTop: number; width: number };
+    Object.assign(t, { height: window.innerHeight, offsetTop: 0, width: window.innerWidth });
+    Object.defineProperty(window, 'visualViewport', { value: t });
+    (window as unknown as { __kb(on: boolean): void }).__kb = (on) => {
+      t.height = on ? window.innerHeight - kb! - pan! : window.innerHeight; t.offsetTop = on ? pan! : 0;
+      t.dispatchEvent(new Event('resize'));
+    };
+  }, [KB, PAN]);
+  await installStub(page, { signedIn: true, hasProfile: true, showOther: true });
+  await page.goto('./');
+  await page.getByRole('navigation', { name: 'Категории' }).getByRole('button', { name: /^Другое/ }).click();
+  await page.getByRole('button', { name: 'Добавить запись' }).click();
+  await page.evaluate(() => (window as unknown as { __kb(on: boolean): void }).__kb(true));
+  const form = page.getByRole('dialog', { name: 'Новая запись' });
+  await page.waitForTimeout(500);
+  const bottom = page.viewportSize()!.height - KB;
+  const title = (await form.getByLabel('Название').boundingBox())!;
+  const save = (await form.getByRole('button', { name: 'Сохранить' }).boundingBox())!;
+  expect(title.y).toBeGreaterThanOrEqual(PAN);
+  expect(save.y + save.height).toBeLessThanOrEqual(bottom);
+});
