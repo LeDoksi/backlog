@@ -3,5 +3,6 @@
 .item { position: relative; flex: 1; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: var(--fs-micro); font-weight: 500; }
 .on { background: var(--accent-soft); color: var(--accent-text); font-weight: 700; }
 .badge { position: absolute; top: 7px; right: 13px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--badge); color: var(--on-accent); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.dot { position: absolute; top: 9px; right: calc(50% - 20px); width: 9px; height: 9px; border-radius: 50%; background: var(--badge); box-shadow: 0 0 0 2px var(--glass); }
 .fab { width: var(--tabbar-h); height: var(--tabbar-h); flex-shrink: 0; border: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-fab); display: flex; align-items: center; justify-content: center; }
 @media (min-width: 1024px) { .wrap { display: none; } }

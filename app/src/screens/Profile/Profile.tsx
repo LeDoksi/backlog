@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CaretRight, EyeSlash, Info, LockSimple, Plus, SignOut, Trash, UserPlus } from '@phosphor-icons/react';
+import { CaretRight, EyeSlash, Info, LockSimple, Plus, SignOut, Sparkle, Trash, UserPlus } from '@phosphor-icons/react';
 import { Avatar } from '../../ui/Avatar';
 import { Button } from '../../ui/Button';
 import { Segmented } from '../../ui/Segmented';
@@ -21,11 +21,13 @@ import { myHiddenTitles } from '../../lib/social';
 import { boardLine, boardName } from './boardTexts';
 import { DeleteAccountSheet } from './DeleteAccountSheet';
 import { DataInfo } from '../DataInfo';
+import { WhatsNewSheet } from './WhatsNewSheet';
+import { hasUnreadWhatsNew, latestWhatsNew } from '../../data/whatsNew';
 import s from './Profile.module.css';
 
 interface Props { profile: Auth.Profile; onProfile(p: Auth.Profile): void; onSignOut(): void; onDeleted(): void }
 
-type Panel = 'invite' | 'nick' | 'members' | 'edit' | 'privacy' | 'hidden' | 'data' | 'delete' | null;
+type Panel = 'invite' | 'nick' | 'members' | 'edit' | 'privacy' | 'hidden' | 'data' | 'delete' | 'whatsNew' | null;
 
 export function Profile({ profile, onProfile, onSignOut, onDeleted }: Props) {
   const [theme, setThemeState] = useState<ThemePref>(readTheme);
@@ -51,6 +53,17 @@ export function Profile({ profile, onProfile, onSignOut, onDeleted }: Props) {
   // each time the profile opens so they match what was just added.
   useEffect(refresh, []);
   useEffect(() => { void myHiddenTitles(getSupabase()).then((r) => { if (r) setHiddenCount(r.length); }); }, []);
+
+  const unread = hasUnreadWhatsNew(profile.whats_new_seen_at);
+  // The dot goes out at once; if the mark does not reach the server
+  // (offline), it lights again on the next start, which is harmless.
+  function openWhatsNew() {
+    setPanel('whatsNew');
+    const latest = latestWhatsNew();
+    if (!unread || !latest) return;
+    onProfile({ ...profile, whats_new_seen_at: latest });
+    void Auth.markWhatsNewSeen(getSupabase(), latest);
+  }
 
   function changeTheme(v: ThemePref) {
     setTheme(v);
@@ -102,6 +115,11 @@ export function Profile({ profile, onProfile, onSignOut, onDeleted }: Props) {
       </section>
 
       <section className={s.card}>
+        <button type="button" className={s.row} aria-label={unread ? 'Что нового, есть новое' : undefined} onClick={openWhatsNew}>
+          <Sparkle size={22} aria-hidden="true" /><span className={s.rowLabel}>Что нового</span>
+          {unread && <span className={s.dot} aria-hidden="true" />}
+          <CaretRight size={18} aria-hidden="true" />
+        </button>
         <button type="button" className={s.row} onClick={() => setPanel('privacy')}>
           <LockSimple size={22} aria-hidden="true" /><span className={s.rowLabel}>Приватность</span><CaretRight size={18} aria-hidden="true" />
         </button>
@@ -133,6 +151,7 @@ export function Profile({ profile, onProfile, onSignOut, onDeleted }: Props) {
       <button type="button" className={s.signOut} onClick={() => setLeaving(true)}><SignOut size={20} aria-hidden="true" />Выйти из аккаунта</button>
 
       {profile.is_admin && <InviteSheet open={panel === 'invite'} onClose={() => setPanel(null)} />}
+      <WhatsNewSheet open={panel === 'whatsNew'} onClose={() => setPanel(null)} />
       <DataInfo open={panel === 'data'} onClose={() => setPanel(null)} />
       <DeleteAccountSheet open={panel === 'delete'} nickname={profile.nickname} onClose={() => setPanel(null)} onDeleted={onDeleted} />
       <NickInviteSheet open={panel === 'nick'} creating={!shared} onClose={() => { setPanel(null); refresh(); }} />

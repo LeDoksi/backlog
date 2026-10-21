@@ -96,6 +96,8 @@ export interface Profile {
   findable_by_nick?: boolean;
   /** Only the admin invites new people; the server checks it on every invite call. */
   is_admin?: boolean;
+  /** The newest «Что нового» entry this person opened; null: never opened. */
+  whats_new_seen_at?: string | null;
 }
 export interface BoardMember { id: string; name: string; nickname: string | null }
 export interface BoardRow { id: string; kind: 'personal' | 'shared'; visibility: string; title_count: number; members: BoardMember[] | null; in_leaderboard?: boolean }
@@ -149,6 +151,11 @@ function inviteEmail(client: SupabaseLike, email: string): Promise<Result> {
   return callRpc(client, 'invite_email', { target_email: email });
 }
 
+// `at` is the date of the newest entry shown; the server keeps the later one.
+function markWhatsNewSeen(client: SupabaseLike, at: string): Promise<boolean> {
+  return callRpc(client, 'mark_whats_new_seen', { p_at: at }).then(function (res) { return !res.error; });
+}
+
 export type DeleteStatus = 'deleted' | 'wrong_nickname' | 'last_admin';
 
 // The nickname is the confirmation; the server compares it with the profile.
@@ -173,5 +180,6 @@ export {
   onAuthStateChange,
   hasProfile,
   inviteEmail,
+  markWhatsNewSeen,
   deleteMyAccount
 };
