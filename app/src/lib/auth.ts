@@ -98,6 +98,8 @@ export interface Profile {
   is_admin?: boolean;
   /** The newest «Что нового» entry this person opened; null: never opened. */
   whats_new_seen_at?: string | null;
+  /** The «Другое» tab is on (off by default). */
+  show_other?: boolean;
 }
 export interface BoardMember { id: string; name: string; nickname: string | null }
 export interface BoardRow { id: string; kind: 'personal' | 'shared'; visibility: string; title_count: number; members: BoardMember[] | null; in_leaderboard?: boolean }

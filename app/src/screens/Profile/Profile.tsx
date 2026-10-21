@@ -3,6 +3,7 @@ import { CaretRight, EyeSlash, Info, LockSimple, Plus, SignOut, Sparkle, Trash, 
 import { Avatar } from '../../ui/Avatar';
 import { Button } from '../../ui/Button';
 import { Segmented } from '../../ui/Segmented';
+import { Switch } from '../../ui/Switch';
 import { Confirm } from '../../ui/Confirm';
 import { readTheme, setTheme, type ThemePref } from '../../design/theme';
 import { useTitles } from '../../data/titlesStore';
@@ -15,7 +16,6 @@ import { NickInviteSheet } from './NickInviteSheet';
 import { MembersSheet } from './MembersSheet';
 import { EditProfileSheet } from './EditProfileSheet';
 import { Privacy } from '../Privacy/Privacy';
-import { useUi } from '../../data/ui';
 import { HiddenTitles } from '../Privacy/HiddenTitles';
 import { myHiddenTitles } from '../../lib/social';
 import { boardLine, boardName } from './boardTexts';
@@ -23,6 +23,8 @@ import { DeleteAccountSheet } from './DeleteAccountSheet';
 import { DataInfo } from '../DataInfo';
 import { WhatsNewSheet } from './WhatsNewSheet';
 import { hasUnreadWhatsNew, latestWhatsNew } from '../../data/whatsNew';
+import { setShowOther } from '../../lib/otherApi';
+import { useUi } from '../../data/ui';
 import s from './Profile.module.css';
 
 interface Props { profile: Auth.Profile; onProfile(p: Auth.Profile): void; onSignOut(): void; onDeleted(): void }
@@ -63,6 +65,14 @@ export function Profile({ profile, onProfile, onSignOut, onDeleted }: Props) {
     if (!unread || !latest) return;
     onProfile({ ...profile, whats_new_seen_at: latest });
     void Auth.markWhatsNewSeen(getSupabase(), latest);
+  }
+
+  // Shown at once; if the server does not take it, it goes back with a note.
+  async function changeShowOther(on: boolean) {
+    onProfile({ ...profile, show_other: on });
+    if (await setShowOther(getSupabase(), on)) return;
+    onProfile({ ...profile, show_other: !on });
+    useUi.getState().showToast('Не получилось сохранить. Проверь сеть и попробуй ещё раз.');
   }
 
   function changeTheme(v: ThemePref) {
@@ -112,6 +122,10 @@ export function Profile({ profile, onProfile, onSignOut, onDeleted }: Props) {
         <h2 className={s.h2}>Оформление</h2>
         <Segmented label="Тема" value={theme} onChange={changeTheme}
           options={[{ value: 'light', label: 'Светлая' }, { value: 'dark', label: 'Тёмная' }, { value: 'system', label: 'Как в системе' }]} />
+        <div className={s.switchBox}>
+          <Switch label="Вкладка «Другое»" hint="Книги, рестораны, спектакли: всё, чего нет в поиске. Видно только на твоих досках"
+            checked={!!profile.show_other} onChange={(on) => void changeShowOther(on)} />
+        </div>
       </section>
 
       <section className={s.card}>

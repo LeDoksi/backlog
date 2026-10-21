@@ -8,8 +8,11 @@ export type StatusFilter = Status | 'waiting';
 
 export type SortKey = 'status' | 'added' | 'name' | 'year';
 
+/** A category tab; «Другое» (BL-119) is its own list, not titles. */
+export type BoardTab = 'all' | Category | 'other';
+
 export interface FilterState {
-  category: 'all' | Category;
+  category: BoardTab;
   statuses: StatusFilter[];
   genres: string[];
   stillAiring: boolean;
@@ -24,6 +27,7 @@ export const DEFAULT_FILTERS: FilterState = {
 
 const KEY = 'bl2:filters';
 const CATEGORIES: ('all' | Category)[] = ['all', 'anime', 'movie', 'series', 'game'];
+const TABS: BoardTab[] = [...CATEGORIES, 'other'];
 const STATUSES: StatusFilter[] = ['queue', 'in_progress', 'waiting', 'done', 'unreleased'];
 const SORTS: SortKey[] = ['status', 'added', 'name', 'year'];
 
@@ -34,7 +38,7 @@ function load(): FilterState {
     const raw = JSON.parse(localStorage.getItem(KEY) || '{}');
     return {
       ...DEFAULT_FILTERS,
-      category: CATEGORIES.includes(raw.category) ? raw.category : 'all',
+      category: TABS.includes(raw.category) ? raw.category : 'all',
       statuses: Array.isArray(raw.statuses) ? raw.statuses.filter((s: StatusFilter) => STATUSES.includes(s)) : [],
       genres: Array.isArray(raw.genres) ? raw.genres.filter((g: unknown) => typeof g === 'string') : [],
       stillAiring: raw.stillAiring === true,
@@ -76,7 +80,13 @@ export function isWaiting(t: Title, checked: number[] | undefined): boolean {
   return t.status === 'in_progress' && isCaughtUp(t, checked ?? []);
 }
 
+/** The title tab that applies: «Другое» is not a title category, so title logic under it reads «Всё». */
+export function titleTab(tab: BoardTab): 'all' | Category {
+  return tab === 'other' ? 'all' : tab;
+}
+
 export function visibleTitles(titles: Title[], f: FilterState, checked: Record<string, number[]> = {}): Title[] {
+  if (f.category === 'other') return [];
   const waiting = (t: Title) => isWaiting(t, checked[t.id]);
   const list = titles.filter((t) => {
     if (f.category !== 'all' && t.category !== f.category) return false;
