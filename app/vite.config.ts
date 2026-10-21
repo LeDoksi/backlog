@@ -27,8 +27,13 @@ const repoImages: Plugin = {
   configurePreviewServer(server) { server.middlewares.use(serveRepoImages); }
 };
 
+// supabase-js bundles file storage and edge functions, which the app does
+// not use; see src/lib/vendor/supabaseUnused.ts.
+const unusedSupabase = resolve(__dirname, 'src/lib/vendor/supabaseUnused.ts');
+
 export default defineConfig({
   base,
+  resolve: { alias: { '@supabase/storage-js': unusedSupabase, '@supabase/functions-js': unusedSupabase } },
   plugins: [
     react(),
     repoImages,

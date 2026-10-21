@@ -6,6 +6,7 @@
 .capsule { display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 36px; background: var(--glass); border: 1px solid var(--glass-border); box-shadow: var(--shadow-soft); }
 .item { position: relative; width: 60px; height: 62px; border: 0; border-radius: 30px; background: transparent; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: var(--fs-micro); font-weight: 500; }
 .on { background: var(--accent-soft); color: var(--accent-text); font-weight: 700; }
+.dot { position: absolute; top: 9px; right: 14px; width: 9px; height: 9px; border-radius: 50%; background: var(--badge); box-shadow: 0 0 0 2px var(--glass); }
 .badge { position: absolute; top: 6px; right: 8px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--badge); color: var(--on-accent); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .spacer { flex: 1; }
 .theme { width: 48px; height: 48px; border: 0; border-radius: 50%; background: var(--surface); color: var(--muted); box-shadow: var(--shadow-soft); display: flex; align-items: center; justify-content: center; }

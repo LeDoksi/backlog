@@ -168,3 +168,35 @@ test('with a hidden title the row is there with its count', async ({ page }) => 
   await openProfile(page);
   await expect(page.getByRole('button', { name: /Скрытые тайтлы/ })).toContainText('1');
 });
+
+test('«Что нового» lights a dot until opened, and the mark goes to the account', async ({ page }) => {
+  await installStub(page, { signedIn: true, hasProfile: true, whatsNewSeenAt: null });
+  await page.goto('./');
+  const tab = page.getByRole('navigation', { name: 'Разделы' }).filter({ visible: true }).getByRole('button', { name: 'Профиль' });
+  await expect(tab).toHaveAccessibleName('Профиль, есть новое');
+  await openProfile(page);
+  const row = page.getByRole('button', { name: /^Что нового/ });
+  await expect(row).toHaveAccessibleName('Что нового, есть новое');
+  await row.click();
+  const sheet = page.getByRole('dialog', { name: 'Что нового' });
+  await expect(sheet.getByRole('heading', { name: 'Что изменилось с середины октября' })).toBeVisible();
+  await expect(sheet.getByText('21 октября')).toBeVisible();
+  expect(await rpcCalls(page)).toContainEqual({ name: 'mark_whats_new_seen', args: { p_at: '2026-10-21T00:00:00Z' } });
+  await page.keyboard.press('Escape');
+  await expect(row).toHaveAccessibleName('Что нового');
+  await page.getByRole('navigation', { name: 'Разделы' }).filter({ visible: true }).getByRole('button', { name: 'Бэклог' }).click();
+  await expect(tab).toHaveAccessibleName('Профиль');
+  // Another device reads the same mark from the account.
+  await page.reload();
+  await expect(tab).toHaveAccessibleName('Профиль');
+});
+
+test('a person who has read everything sees no dot', async ({ page }) => {
+  await installStub(page, { signedIn: true, hasProfile: true });
+  await page.goto('./');
+  await openProfile(page);
+  await expect(page.getByRole('button', { name: /^Что нового/ })).toHaveAccessibleName('Что нового');
+  await page.getByRole('button', { name: /^Что нового/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Что нового' })).toBeVisible();
+  expect((await rpcCalls(page)).map((c) => c.name)).not.toContain('mark_whats_new_seen');
+});
