@@ -1,9 +1,10 @@
 import { makeId, slugify, uniqueId } from '../lib/slug';
+import { isOut, localDay, releaseStatus, type Release } from '../lib/release';
 import type { Category, Part, Title } from '../lib/types';
 
 export const PLACEHOLDER_COVER = 'images/covers/_placeholder.svg';
 
-interface Picked { title?: string; originalTitle?: string; year?: number | null; genres?: string[]; synopsis?: string; cover?: string; platforms?: string[]; source?: string; sourceId?: string; parts?: Part[] }
+interface Picked { title?: string; originalTitle?: string; year?: number | null; genres?: string[]; synopsis?: string; cover?: string; platforms?: string[]; source?: string; sourceId?: string; parts?: Part[]; release?: Release }
 
 // A known year makes the id `slug-year`, the same id a re-add of the same
 // title would produce, so a clash with a title of the same category is a real
@@ -30,5 +31,12 @@ export function buildTitle(category: Category, typed: string, picked: Picked, ex
   if (picked.originalTitle?.trim() && picked.originalTitle.trim() !== name) t.originalTitle = picked.originalTitle.trim();
   if (category === 'game' && picked.platforms?.length) t.platforms = picked.platforms;
   if ((category === 'series' || category === 'anime') && picked.parts?.length) t.parts = picked.parts;
+  // A film or game from search not out yet (or with no date at all) comes
+  // in as «Ещё не вышло»; the daily refresh takes it off (BL-117).
+  if ((category === 'movie' || category === 'game') && picked.source && picked.release) {
+    t.releaseDate = picked.release.date;
+    t.digitalDate = picked.release.digital;
+    t.status = releaseStatus('queue', isOut(picked.release, year, localDay(new Date())));
+  }
   return t;
 }

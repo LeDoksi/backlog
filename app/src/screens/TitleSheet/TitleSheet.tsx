@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { DotsThree, EyeSlash, PencilSimple } from '@phosphor-icons/react';
+import { DotsThree, Eye, EyeSlash, PencilSimple } from '@phosphor-icons/react';
 import { Sheet } from '../../ui/Sheet';
 import { Button } from '../../ui/Button';
 import { Popover } from '../../ui/Popover';
@@ -12,6 +12,7 @@ import { resolveCover } from '../../lib/covers';
 import { Cover } from '../../ui/Cover';
 import { synopsisText } from '../../lib/synopsis';
 import { isStillAiring } from '../../lib/query';
+import { cinemaLabel, isSearchCard, localDay } from '../../lib/release';
 import { ASSET_ROOT } from '../../config';
 import { StatusControl } from './StatusControl';
 import { PartsChecklist } from './PartsChecklist';
@@ -19,7 +20,8 @@ import { FriendsOnTitle } from './FriendsOnTitle';
 import { RatingControl } from './RatingControl';
 import s from './TitleSheet.module.css';
 
-export function TitleSheet() {
+/** `me`: the signed-in person, who edits the hand-made cards they made (BL-118). */
+export function TitleSheet({ me }: { me?: string | null }) {
   const id = useUi((u) => u.openTitleId);
   const close = useUi((u) => u.closeTitle);
   const openEdit = useUi((u) => u.openEdit);
@@ -50,10 +52,15 @@ export function TitleSheet() {
 
   const cover = title ? resolveCover(title.cover, ASSET_ROOT) : '';
   const meta = title ? [metaLine(title), (title.genres ?? []).join(', ')].filter(Boolean).join('. ') : '';
+  const cinema = title ? cinemaLabel(title, localDay(new Date())) : null;
+  // A card from search is nobody's to edit; a hand-made one its author's (or anyone's, made before authors were kept).
+  const editable = !!title && !isSearchCard(title) && (!title.createdBy || title.createdBy === me);
+
+  function toggleHidden(t: { id: string; hidden?: boolean }) { store().editTitle(t.id, { hidden: !t.hidden }); }
 
   return (
     <>
-      <Sheet open={open} onClose={close} labelledBy="title-sheet-title" footer={title && (
+      <Sheet open={open} onClose={close} labelledBy="title-sheet-title" footer={title && (editable ? (
         <>
           <Button variant="inverse" className={s.edit} icon={<PencilSimple size={20} aria-hidden="true" />} onClick={() => openEdit(title.id)}>Редактировать</Button>
           <div className={s.moreWrap}>
@@ -62,7 +69,7 @@ export function TitleSheet() {
             </Button>
             <Popover open={menu} onClose={() => setMenu(false)} anchor={moreRef} label="Ещё" align="end" side="above" className={s.menu}>
               <div className={s.menuList}>
-                <button type="button" className={s.menuItem} onClick={() => { setMenu(false); store().editTitle(title.id, { hidden: !title.hidden }); }}>
+                <button type="button" className={s.menuItem} onClick={() => { setMenu(false); toggleHidden(title); }}>
                   {title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'}
                 </button>
                 <button type="button" className={`${s.menuItem} ${s.menuDanger}`} onClick={() => remove(title.id, title.title)}>Удалить</button>
@@ -70,6 +77,14 @@ export function TitleSheet() {
             </Popover>
           </div>
         </>
+      ) : (
+        // A card from search looks as its source does: nothing to edit (BL-118).
+        <>
+          <Button variant="neutral" className={s.edit} icon={title.hidden ? <Eye size={20} aria-hidden="true" /> : <EyeSlash size={20} aria-hidden="true" />}
+            onClick={() => toggleHidden(title)}>{title.hidden ? 'Показать друзьям' : 'Скрыть от друзей'}</Button>
+          <Button variant="danger" className={s.edit} onClick={() => remove(title.id, title.title)}>Удалить</Button>
+        </>
+      )
       )}>
         {title && (
           <div className={s.content}>
@@ -83,6 +98,7 @@ export function TitleSheet() {
                 {title.originalTitle && title.originalTitle !== title.title && <div className={s.original}>{title.originalTitle}</div>}
                 <div className={s.meta}>{meta}</div>
                 {isStillAiring(title) && <div className={s.airing}>Всё ещё выходит</div>}
+                {cinema && <div className={s.airing}>{cinema}</div>}
                 {title.hidden && <div className={s.hiddenNote}><EyeSlash size={14} aria-hidden="true" />Скрыт от друзей</div>}
               </div>
             </div>
@@ -93,7 +109,9 @@ export function TitleSheet() {
                 onAllReleased={() => store().setAllReleasedChecked(title.id)} />
             ) : (
               <>
-                {title.status === 'unreleased' && <p className={s.unreleased}>Ещё не вышло. Когда выйдет, сними отметку в редактировании.</p>}
+                {title.status === 'unreleased' && <p className={s.unreleased}>
+                  {isSearchCard(title) ? 'Ещё не вышло. Снимем отметку сами, когда выйдет.' : 'Ещё не вышло. Когда выйдет, сними отметку в редактировании.'}
+                </p>}
                 {title.status !== 'unreleased' && <StatusControl value={title.status} category={title.category} onChange={(st) => store().setStatus(title.id, st)} />}
               </>
             )}

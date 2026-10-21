@@ -32,17 +32,22 @@ export interface TitleRow {
   created_at?: string;
   updated_at?: string;
   parts_manual?: boolean;
+  release_date?: string | null;
+  digital_date?: string | null;
+  created_by?: string | null;
 }
 
 // Title field → column, for the fields whose names differ.
 const COLUMNS: Record<string, string> = {
   manualStatus: 'manual_status', airingStatus: 'airing_status', originalTitle: 'original_title',
   seasonInfo: 'season_info', sourceId: 'source_id', startedAt: 'started_at', completedAt: 'completed_at',
-  createdAt: 'created_at', partsManual: 'parts_manual'
+  createdAt: 'created_at', partsManual: 'parts_manual',
+  releaseDate: 'release_date', digitalDate: 'digital_date'
 };
 // Fields a client may write. Dates belong to the titles_touch trigger.
 const WRITABLE = ['title', 'category', 'status', 'manualStatus', 'airingStatus', 'originalTitle', 'year', 'genres',
-  'synopsis', 'cover', 'seasonInfo', 'platforms', 'parts', 'source', 'sourceId', 'hidden', 'rating', 'partsManual'];
+  'synopsis', 'cover', 'seasonInfo', 'platforms', 'parts', 'source', 'sourceId', 'hidden', 'rating', 'partsManual',
+  'releaseDate', 'digitalDate'];
 
 export function checkedIndices(checked: CheckedParts | null | undefined): number[] {
   if (!checked || typeof checked !== 'object') return [];
@@ -75,7 +80,10 @@ export function fromRow(row: TitleRow): { title: Title; checked: CheckedParts } 
     startedAt: row.started_at ?? null,
     completedAt: row.completed_at ?? null,
     createdAt: row.created_at,
-    partsManual: !!row.parts_manual
+    partsManual: !!row.parts_manual,
+    releaseDate: row.release_date ?? null,
+    digitalDate: row.digital_date ?? null,
+    createdBy: row.created_by ?? null
   } as Title;
   const checked = row.checked_parts && typeof row.checked_parts === 'object' ? { ...row.checked_parts } : {};
   return { title, checked };

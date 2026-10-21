@@ -38,3 +38,16 @@ it('a name slugify cannot read still gets an id', () => {
   const t = buildTitle('anime', '君の名は', {}, []) as Title;
   expect(t.id).toBe('anime-title');
 });
+
+it('a film from search not out yet comes in as «Ещё не вышло», with its dates (BL-117)', () => {
+  const t = buildTitle('movie', 'Дюна 3', { title: 'Дюна: Часть третья', year: 2026, source: 'tmdb-movie', sourceId: '1170608', release: { date: '2026-12-15', digital: null, out: false } }, []) as Title;
+  expect(t).toMatchObject({ status: 'unreleased', releaseDate: '2026-12-15', digitalDate: null });
+});
+it('a game with no date at all is not out; an out film stays in the queue', () => {
+  expect((buildTitle('game', 'TES 6', { title: 'TES VI', source: 'rawg', sourceId: '58781', release: { date: null, digital: null, out: false } }, []) as Title).status).toBe('unreleased');
+  expect((buildTitle('movie', 'Одиссея', { title: 'Одиссея', year: 2026, source: 'tmdb-movie', sourceId: '1368337', release: { date: '2026-07-15', digital: '2026-11-17', out: true } }, []) as Title)).toMatchObject({ status: 'queue', digitalDate: '2026-11-17' });
+});
+it('a hand-made card and a pick whose details failed keep «В очереди»', () => {
+  expect((buildTitle('movie', 'Кино', {}, []) as Title).status).toBe('queue');
+  expect((buildTitle('movie', 'Кино', { title: 'Кино', source: 'tmdb-movie', sourceId: '5' }, []) as Title).status).toBe('queue');
+});

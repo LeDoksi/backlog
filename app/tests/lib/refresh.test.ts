@@ -262,21 +262,30 @@ describe('cardFixes (wave 3)', () => {
   const RU_TEXT = 'Hogwarts Legacy — ролевая игра с открытым миром.';
   const row = (o: Partial<TitleRow> = {}): TitleRow => ({ id: 'h', title: 'Hogwarts Legacy', category: 'game', status: 'queue', cover: HEADER, synopsis: EN, genres: ['RPG'], year: 2023, ...o });
 
-  it('daily: a Steam header becomes the tall cover, English becomes Russian', () => {
-    expect(cardFixes(row(), { cover: TALL, synopsis: RU_TEXT }, 'daily')).toEqual({ cover: TALL, synopsis: RU_TEXT });
+  it('weekly: a Steam header becomes the tall cover, English becomes Russian', () => {
+    expect(cardFixes(row(), { cover: TALL, synopsis: RU_TEXT }, 'weekly')).toEqual({ cover: TALL, synopsis: RU_TEXT });
   });
-  it('a cover someone chose is never replaced', () => {
-    expect(cardFixes(row({ cover: 'data:image/jpeg;base64,AAA' }), { cover: TALL }, 'daily')).toBeNull();
+  it('weekly (BL-118): a cover someone chose gives way to the source\'s, but never to a wide one', () => {
+    expect(cardFixes(row({ cover: 'data:image/jpeg;base64,AAA' }), { cover: TALL }, 'weekly')).toEqual({ cover: TALL });
+    expect(cardFixes(row({ cover: 'data:image/jpeg;base64,AAA' }), { cover: HEADER }, 'weekly')).toBeNull();
+    expect(cardFixes(row({ category: 'movie', cover: 'https://example.com/my.jpg' }), { cover: 'https://image.tmdb.org/t/p/w500/p.jpg' }, 'weekly'))
+      .toEqual({ cover: 'https://image.tmdb.org/t/p/w500/p.jpg' });
+    expect(cardFixes(row({ cover: TALL, synopsis: EN, season_info: 'Сезон 1 — 2019' }), { cover: TALL }, 'weekly')).toEqual({ season_info: null });
+  });
+  it('normalize: a cover someone chose is never replaced', () => {
     expect(cardFixes(row({ cover: 'https://example.com/my.jpg' }), { cover: TALL }, 'normalize')).toBeNull();
     expect(cardFixes(row({ cover: 'https://rjdnpwamcxvhryiigbvt.supabase.co/storage/v1/object/public/covers/x.jpg' }), { cover: TALL }, 'normalize')).toBeNull();
   });
   it('an old-site file gives way to a tall cover, not to a wide one', () => {
     expect(cardFixes(row({ cover: 'images/covers/haven-2020.jpg' }), { cover: TALL }, 'normalize')).toEqual({ cover: TALL });
     expect(cardFixes(row({ cover: 'images/covers/haven-2020.jpg' }), { cover: HEADER }, 'normalize')).toBeNull();
-    expect(cardFixes(row({ cover: 'images/covers/_placeholder.svg' }), { cover: HEADER }, 'daily')).toEqual({ cover: HEADER });
+    expect(cardFixes(row({ cover: 'images/covers/_placeholder.svg' }), { cover: HEADER }, 'weekly')).toEqual({ cover: HEADER });
+    expect(cardFixes(row({ cover: TALL }), { cover: HEADER }, 'weekly')).toBeNull();
   });
-  it('a Russian description stays in daily mode, and never gives way to a machine translation', () => {
-    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: 'Другое русское описание.' }, 'daily')).toBeNull();
+  it('a Russian description never gives way to a machine translation or English', () => {
+    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: 'Другое русское описание.' }, 'weekly')).toEqual({ synopsis: 'Другое русское описание.' });
+    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: '[mt] Машинный перевод.' }, 'weekly')).toBeNull();
+    expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: EN }, 'weekly')).toBeNull();
     expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: '[mt] Машинный перевод.' }, 'normalize')).toBeNull();
     expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: 'Описание из поиска.' }, 'normalize')).toEqual({ synopsis: 'Описание из поиска.' });
     expect(cardFixes(row({ synopsis: 'Своё описание по-русски.' }), { synopsis: EN }, 'normalize')).toBeNull();
@@ -299,14 +308,43 @@ describe('cardFixes (wave 3)', () => {
     expect(cardFixes(row({ title: 'Что, если...?', category: 'series', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' }),
       { title: 'Что, Если...?', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' }, 'normalize')).toBeNull();
   });
-  it('daily never touches the name, genres or year', () => {
-    expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT }), { title: 'Другое', genres: ['x'], year: 1999 }, 'daily')).toBeNull();
+  it('weekly: a film\'s poster follows its source, «Локи» stays «Локи»', () => {
+    const film = row({ title: 'Дюна', category: 'movie', cover: 'https://image.tmdb.org/t/p/w500/d.jpg', synopsis: 'Наследник.' });
+    expect(cardFixes(film, { cover: 'https://image.tmdb.org/t/p/w500/new.jpg', synopsis: 'Наследник.' }, 'weekly')).toEqual({ cover: 'https://image.tmdb.org/t/p/w500/new.jpg' });
+    expect(cardFixes(film, { cover: 'https://shikimori.one/assets/globals/missing_original.jpg' }, 'weekly')).toBeNull();
+    const loki = row({ title: 'Локи', category: 'series', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'Бог обмана.' });
+    expect(cardFixes(loki, { title: 'Loki', cover: 'https://image.tmdb.org/t/p/w500/l.jpg', synopsis: 'God of mischief.' }, 'weekly')).toBeNull();
+  });
+  it('weekly: a game\'s platforms and genres in their canonical names', () => {
+    expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT, platforms: ['PC'] }), { platforms: ['PC', 'PlayStation 5'] }, 'weekly')).toEqual({ platforms: ['PC', 'PS5'] });
+    expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT, platforms: ['PC', 'PS5'] }), { platforms: ['PC', 'PlayStation 5'] }, 'weekly')).toBeNull();
+  });
+  it('weekly: release dates and the badge (BL-117)', () => {
+    const film = (o: Partial<TitleRow> = {}) => row({ title: 'Дюна 3', category: 'movie', cover: 'c', synopsis: 'Текст.', ...o });
+    expect(cardFixes(film(), { release: { date: '2026-12-15', digital: null, out: false } }, 'weekly', '2026-10-21'))
+      .toEqual({ status: 'unreleased', release_date: '2026-12-15' });
+    expect(cardFixes(film({ status: 'unreleased', release_date: '2026-12-15' }), { release: { date: '2026-12-15', digital: null, out: true } }, 'weekly', '2026-12-15'))
+      .toEqual({ status: 'queue' });
+    // Seen at a festival: started or finished keeps its status.
+    expect(cardFixes(film({ status: 'done' }), { release: { date: '2026-12-15', digital: null, out: false } }, 'weekly', '2026-10-21'))
+      .toEqual({ release_date: '2026-12-15' });
+    // Postponed: the badge comes back on a title nobody started.
+    expect(cardFixes(film({ release_date: '2026-10-01' }), { release: { date: '2027-03-01', digital: null, out: false } }, 'weekly', '2026-10-21'))
+      .toEqual({ status: 'unreleased', release_date: '2027-03-01' });
+    // A game out with no day given: today.
+    expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT, status: 'unreleased' }), { release: { date: null, digital: null, out: true } }, 'weekly', '2026-10-21'))
+      .toEqual({ status: 'queue', release_date: '2026-10-21' });
+    // An old film TMDb keeps no date for is not «not out yet».
+    expect(cardFixes(film({ year: 1987 }), { release: { date: null, digital: null, out: false } }, 'weekly', '2026-10-21')).toBeNull();
+    // Normalize leaves releases alone; a series has none.
+    expect(cardFixes(film(), { release: { date: '2026-12-15', digital: null, out: false } }, 'normalize')).toBeNull();
+    expect(cardFixes(film({ category: 'series' }), { release: { date: '2026-12-15', digital: null, out: false } }, 'weekly')).toBeNull();
   });
   it('a second pass changes nothing', () => {
     const card = { title: 'Hogwarts Legacy', cover: TALL, synopsis: RU_TEXT, genres: ['Ролевые игры'], year: 2023 };
     const first = cardFixes(row(), card, 'normalize')!;
     expect(cardFixes(row(first), card, 'normalize')).toBeNull();
-    expect(cardFixes(row(first), card, 'daily')).toBeNull();
+    expect(cardFixes(row(first), card, 'weekly')).toBeNull();
   });
 });
 

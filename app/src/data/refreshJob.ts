@@ -1,17 +1,13 @@
 // refreshJob.ts — once a day, on the first open of a board, its series and
 // anime are checked against TMDb and Shikimori (spec 2.5, BL-94, BL-95,
 // BL-109): missing seasons are filled in, new ones appended, duplicates of
-// a franchise merged; games get a tall cover and a Russian description in
-// place of a wide or missing one and an English or empty one (spec 3.4).
+// a franchise merged. Card faces and releases are data/faceJob's (BL-117).
 // Everything goes to the server in one quiet
 // apply_title_refresh() call, so friends see none of it in the feed.
 import * as Enrich from '../lib/enrich';
 import { materialize } from '../lib/derive';
 import { isLoneWork, partsFromFranchise, partsFromTmdb } from '../lib/franchise';
-import { cardForRetry } from './cardSources';
-import { isLandscapeCover } from '../lib/covers';
-import { good } from '../lib/sources';
-import { cardFixes, fillTicksForDone, mergeParts, planMerge, sourceKnowsLess, ticksMoved, ticksWith, type FreshPart } from '../lib/refresh';
+import { fillTicksForDone, mergeParts, planMerge, sourceKnowsLess, ticksMoved, ticksWith, type FreshPart } from '../lib/refresh';
 import { checkedIndices, fromRow, type CheckedParts, type TitleRow } from '../lib/titleRow';
 import type { FetchLike, Part, StorageLike, SupabaseLike, Title } from '../lib/types';
 
@@ -27,9 +23,6 @@ export interface RefreshDeps {
   now: Date;
   tmdbKey: string;
   proxy: string | null;
-  /** Games (wave 3): RAWG's key and a check that a picture loads tall. */
-  rawgKey?: string;
-  loadImage?: (url: string) => Promise<boolean>;
   pause?: (ms: number) => Promise<void>;
 }
 
@@ -66,17 +59,6 @@ export function cardBase(r: TitleRow, cols: Partial<TitleRow>) {
   const out: Record<string, unknown> = base(r);
   Object.keys(cols).forEach((k) => { out[k] = (r as unknown as Record<string, unknown>)[k] ?? null; });
   return out;
-}
-
-/**
- * A game whose card the daily pass may improve (spec 3.4): a wide or
- * missing cover, an English or empty description. An old-site file is
- * tall already: that is the one-time normalization's to replace.
- */
-export function gameNeedsCard(r: TitleRow): boolean {
-  const cover = (r.cover ?? '').trim();
-  const wideOrNone = !cover || /_placeholder\./.test(cover) || isLandscapeCover(cover);
-  return wideOrNone || !good('synopsis', r.synopsis ?? '');
 }
 
 export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult> {
@@ -201,8 +183,7 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
 
   if (!updates.length && !deletes.length) {
     markDone(storage, board, now);
-    const games = await refreshGames(deps, pause, asked > 0);
-    return { ran: true, updated: games.length, merged: 0, skipped, changes: games };
+    return { ran: true, updated: 0, merged: 0, skipped, changes: [] };
   }
 
   let res: { data: unknown; error: unknown };
@@ -219,55 +200,7 @@ export async function runDailyRefresh(deps: RefreshDeps): Promise<RefreshResult>
   }
   // A source that did not answer is skipped until tomorrow (spec 2.5).
   markDone(storage, board, now);
-  // Games go after the seasons and in a write of their own: their sources
-  // are slow, and a stale game must not cost the seasons their write.
-  const games = await refreshGames(deps, pause, true);
-  return { ran: true, updated: updates.length + games.length, merged: deletes.length, skipped, changes: [...changes, ...games] };
-}
-
-const gamesKey = (board: string) => `refresh-games:${board}`;
-/** A game asked about is asked again only after a week: nothing better usually stays so. */
-const GAME_EVERY_MS = 7 * 24 * 60 * 60 * 1000;
-
-/**
- * Games (spec 3.4): a wide or missing cover becomes a tall one, an English
- * or empty description a Russian one. One game at a time, each at most
- * once a week; the rows are the board as it was when the refresh started,
- * and a game edited since makes the write stale (its base names the
- * fields), which is simply tried next week.
- */
-async function refreshGames(deps: RefreshDeps, pause: (ms: number) => Promise<void>, pauseFirst: boolean): Promise<RefreshResult['changes']> {
-  const { board, storage, now } = deps;
-  let asked: Record<string, number> = {};
-  try { asked = JSON.parse(storage.getItem(gamesKey(board)) ?? '{}') ?? {}; } catch { /* start over */ }
-  const games = deps.rows.filter((r) => r.category === 'game' && r.source_id && (r.source === 'steam' || r.source === 'rawg')
-    && !deps.pendingIds.has(r.id) && gameNeedsCard(r) && !(now.getTime() - (asked[r.id] ?? 0) < GAME_EVERY_MS));
-  if (!games.length) return [];
-  const updates: Record<string, unknown>[] = [];
-  const changes: RefreshResult['changes'] = [];
-  let first = !pauseFirst;
-  for (const r of games) {
-    if (!first) await pause(PAUSE_MS);
-    first = false;
-    const card = await cardForRetry(r.source!, r.source_id!, {
-      fetchFn: deps.fetchFn, proxy: deps.proxy ?? '', tmdbKey: deps.tmdbKey, rawgKey: deps.rawgKey ?? '', loadImage: deps.loadImage ?? (async () => false)
-    }, pause);
-    // A game whose source did not answer is asked again tomorrow, not in a week.
-    if (card) asked[r.id] = now.getTime();
-    const cols = card ? cardFixes(r, card, 'daily') : null;
-    if (!cols) continue;
-    updates.push({ id: r.id, base: cardBase(r, cols), ...cols });
-    changes.push({ id: r.id, cols });
-  }
-  try { storage.setItem(gamesKey(board), JSON.stringify(asked)); } catch { /* asked again tomorrow */ }
-  if (!updates.length || !deps.client) return [];
-  let res: { data: unknown; error: unknown };
-  try {
-    res = await deps.client.rpc('apply_title_refresh', { p_workspace: board, p_updates: updates, p_deletes: [] });
-  } catch (e) {
-    res = { data: null, error: e };
-  }
-  return res.error || typeof res.data !== 'number' || res.data < 0 ? [] : changes;
+  return { ran: true, updated: updates.length, merged: deletes.length, skipped, changes };
 }
 
 export interface RebuildDeps {
@@ -324,7 +257,8 @@ export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial
   else onto.slice(0, before.length).forEach((i, n) => { next[String(i)] = dates[n] ?? now.toISOString(); });
   const m = materialize({ ...title, parts }, checkedIndices(next));
   const status = m.status === 'queue' && row.status === 'in_progress' && !checkedIndices(next).length ? 'in_progress' : m.status;
-  const cols: Partial<TitleRow> = { parts, checked_parts: next, status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating: title.rating ?? null };
+  // Built from the source, the list is the daily refresh's to keep up again.
+  const cols: Partial<TitleRow> = { parts, checked_parts: next, status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating: title.rating ?? null, parts_manual: false };
   let res: { data: unknown; error: unknown };
   try {
     res = await deps.client.rpc('apply_title_refresh', { p_workspace: deps.board, p_updates: [{ id: row.id, base: base(row), ...cols }], p_deletes: [] });

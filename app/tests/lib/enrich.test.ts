@@ -162,7 +162,8 @@ test('fetchRawgDetails normalizes a game details response', async () => {
     description_raw: 'Gather your party.',
     background_image: 'https://media.rawg.io/x.jpg'
   });
-  var details = await fetchRawgDetails(fetchFn, 'k', 324997);
+  var { releaseRaw, ...details } = (await fetchRawgDetails(fetchFn, 'k', 324997))!;
+  assert.deepEqual(releaseRaw, { from: 'rawg', data: { released: '2023-08-03', tba: undefined } });
   assert.deepEqual(details, {
     title: "Baldur's Gate III",
     originalTitle: "Baldur's Gate III",
@@ -324,7 +325,8 @@ test('fetchSteamDetails normalizes a details response (Russian genres, plain-tex
       }
     }
   });
-  var details = await fetchSteamDetails(fetchFn, '', 620);
+  var { releaseRaw: steamRaw, ...details } = (await fetchSteamDetails(fetchFn, '', 620))!;
+  assert.equal(steamRaw!.from, 'steam');
   assert.deepEqual(details, {
     title: 'Portal 2',
     originalTitle: 'Portal 2',

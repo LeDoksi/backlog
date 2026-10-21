@@ -42,6 +42,12 @@ export interface Title {
   // The list of parts was edited by hand: the daily refresh leaves it alone
   // except for the released flags.
   partsManual?: boolean;
+  // BL-117: a film's first theatrical release (a game's release) and its
+  // first digital release, `YYYY-MM-DD`, from the source.
+  releaseDate?: string | null;
+  digitalDate?: string | null;
+  /** Who added it (BL-118: a hand-made card is edited by its author). Read only. */
+  createdBy?: string | null;
 }
 
 export interface StorageLike {
