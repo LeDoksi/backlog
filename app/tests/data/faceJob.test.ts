@@ -114,3 +114,21 @@ describe('runFaceJob', () => {
     expect(updates()[0]).toMatchObject({ status: 'queue', release_date: '2025-09-04' });
   });
 });
+
+describe('runFaceJob after BL-118', () => {
+  it('a hand-made list of seasons on a search show is built again from the source, the ticks carried over', async () => {
+    const { liveFetch } = await import('../fixtures/liveFetch');
+    const hand: TitleRow = { workspace_id: 'b1', id: 'twd', title: 'Ходячие мертвецы', category: 'series', status: 'in_progress', source: 'tmdb-series', source_id: '1402',
+      parts: [{ name: '1', released: true }, { name: '2', released: true }], checked_parts: { 0: '2026-01-01T00:00:00Z' }, parts_manual: true,
+      season_info: 'Сезоны 1-11', created_at: '2026-01-01T00:00:00Z' };
+    const { d, rpc, onChanges } = deps([hand], { fetchFn: liveFetch });
+    await runFaceJob(d);
+    const first = (rpc.mock.calls[0]![1] as { p_updates: Record<string, unknown>[] }).p_updates[0]!;
+    expect(first.parts_manual).toBe(false);
+    expect((first.parts as unknown[]).length).toBeGreaterThan(2);
+    expect(first.checked_parts).toEqual({ 0: '2026-01-01T00:00:00Z' });
+    const later = rpc.mock.calls.slice(1).map((c) => (c[1] as { p_updates: Record<string, unknown>[] }).p_updates[0]!);
+    expect(later.some((u) => u.season_info === null)).toBe(true);
+    expect(onChanges).toHaveBeenCalled();
+  });
+});

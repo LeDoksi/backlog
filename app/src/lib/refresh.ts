@@ -278,11 +278,12 @@ const RU = (s: string | null | undefined) => good('synopsis', s);
  * cover, description, genres and year as search gives them, except that a
  * cover someone chose stays, a tall cover never gives way to a wide one, and
  * a Russian description never gives way to a machine translation.
- * `weekly` (every card from search, BL-117, spec 2.4): the same, plus a
- * film's, show's or anime's poster always follows its source, a game's
- * platforms do too, and a film's or game's release dates and «Ещё не
- * вышло» follow the source's (`today`: the local day, for a game that came
- * out with no date).
+ * `weekly` (every card from search, BL-117 and BL-118, which nobody
+ * edits): the same, except that the source's cover is taken whoever chose
+ * the old one (a game's tall cover still never gives way to a wide one),
+ * a game's platforms follow the source too, the old site's season notes
+ * go, and a film's or game's release dates and «Ещё не вышло» follow the
+ * source's (`today`: the local day, for a game that came out with no date).
  */
 export function cardFixes(row: TitleRow, card: Card, mode: 'normalize' | 'weekly', today = ''): Partial<TitleRow> | null {
   const out: Partial<TitleRow> = {};
@@ -290,11 +291,13 @@ export function cardFixes(row: TitleRow, card: Card, mode: 'normalize' | 'weekly
   const cover = card.cover?.trim();
   // A source's «no picture» is never a cover.
   const real = !!cover && !/\/assets\/globals\/missing|_placeholder\./.test(cover);
-  if (real && cover !== row.cover && mode === 'weekly' && !game) out.cover = cover;
-  else if (real && cover !== row.cover && replaceableCover(row.cover)) {
+  // Weekly (BL-118: nobody edits a search card): the source's poster always,
+  // except that a game's tall cover never gives way to a wide picture.
+  if (real && cover !== row.cover && mode === 'weekly' && !(game && isLandscapeCover(cover!) && !replaceableCover(row.cover))) out.cover = cover;
+  else if (mode === 'normalize' && real && cover !== row.cover && replaceableCover(row.cover)) {
     const none = !(row.cover ?? '').trim() || /_placeholder\.|\/assets\/globals\/missing/.test(row.cover ?? '');
-    // Tall beats anything replaceable; a wide picture only fills a gap
-    // (an old-site file is tall, another wide one is no better).
+    // A cover someone chose stays. Tall beats anything replaceable; a wide
+    // picture only fills a gap (an old-site file is tall, another wide one is no better).
     if (!isLandscapeCover(cover!) || none) out.cover = cover;
   }
   const syn = card.synopsis?.trim();
@@ -325,6 +328,8 @@ export function cardFixes(row: TitleRow, card: Card, mode: 'normalize' | 'weekly
   }
   if (typeof card.year === 'number' && card.year !== (row.year ?? null)) out.year = card.year;
   if (mode === 'weekly') {
+    // The old site's hand-written season notes are not the source's.
+    if ((row.season_info ?? '').trim()) out.season_info = null;
     if (game && card.platforms?.length) {
       const platforms = canonicalPlatforms(card.platforms)!;
       if (JSON.stringify(platforms) !== JSON.stringify(canonicalPlatforms(row.platforms) ?? [])) out.platforms = platforms;

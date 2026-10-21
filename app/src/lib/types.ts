@@ -46,6 +46,8 @@ export interface Title {
   // first digital release, `YYYY-MM-DD`, from the source.
   releaseDate?: string | null;
   digitalDate?: string | null;
+  /** Who added it (BL-118: a hand-made card is edited by its author). Read only. */
+  createdBy?: string | null;
 }
 
 export interface StorageLike {

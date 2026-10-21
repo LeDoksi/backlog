@@ -67,7 +67,7 @@ function Signed({ profile, onProfile, onSignOut, onDeleted }: SignedProps) {
         {section === 'stats' && <Stats />}
         {section === 'profile' && <Profile profile={profile} onProfile={onProfile} onSignOut={onSignOut} onDeleted={onDeleted} />}
       </AppShell>
-      <TitleSheet />
+      <TitleSheet me={profile.id} />
       <EditTitle />
       {quickAddUsed && <Suspense fallback={null}><QuickAdd /></Suspense>}
       <FriendProfile />

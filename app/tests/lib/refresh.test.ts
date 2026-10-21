@@ -265,8 +265,14 @@ describe('cardFixes (wave 3)', () => {
   it('weekly: a Steam header becomes the tall cover, English becomes Russian', () => {
     expect(cardFixes(row(), { cover: TALL, synopsis: RU_TEXT }, 'weekly')).toEqual({ cover: TALL, synopsis: RU_TEXT });
   });
-  it('a cover someone chose is never replaced', () => {
-    expect(cardFixes(row({ cover: 'data:image/jpeg;base64,AAA' }), { cover: TALL }, 'weekly')).toBeNull();
+  it('weekly (BL-118): a cover someone chose gives way to the source\'s, but never to a wide one', () => {
+    expect(cardFixes(row({ cover: 'data:image/jpeg;base64,AAA' }), { cover: TALL }, 'weekly')).toEqual({ cover: TALL });
+    expect(cardFixes(row({ cover: 'data:image/jpeg;base64,AAA' }), { cover: HEADER }, 'weekly')).toBeNull();
+    expect(cardFixes(row({ category: 'movie', cover: 'https://example.com/my.jpg' }), { cover: 'https://image.tmdb.org/t/p/w500/p.jpg' }, 'weekly'))
+      .toEqual({ cover: 'https://image.tmdb.org/t/p/w500/p.jpg' });
+    expect(cardFixes(row({ cover: TALL, synopsis: EN, season_info: 'Сезон 1 — 2019' }), { cover: TALL }, 'weekly')).toEqual({ season_info: null });
+  });
+  it('normalize: a cover someone chose is never replaced', () => {
     expect(cardFixes(row({ cover: 'https://example.com/my.jpg' }), { cover: TALL }, 'normalize')).toBeNull();
     expect(cardFixes(row({ cover: 'https://rjdnpwamcxvhryiigbvt.supabase.co/storage/v1/object/public/covers/x.jpg' }), { cover: TALL }, 'normalize')).toBeNull();
   });

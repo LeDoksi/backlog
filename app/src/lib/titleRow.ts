@@ -34,6 +34,7 @@ export interface TitleRow {
   parts_manual?: boolean;
   release_date?: string | null;
   digital_date?: string | null;
+  created_by?: string | null;
 }
 
 // Title field → column, for the fields whose names differ.
@@ -81,7 +82,8 @@ export function fromRow(row: TitleRow): { title: Title; checked: CheckedParts } 
     createdAt: row.created_at,
     partsManual: !!row.parts_manual,
     releaseDate: row.release_date ?? null,
-    digitalDate: row.digital_date ?? null
+    digitalDate: row.digital_date ?? null,
+    createdBy: row.created_by ?? null
   } as Title;
   const checked = row.checked_parts && typeof row.checked_parts === 'object' ? { ...row.checked_parts } : {};
   return { title, checked };

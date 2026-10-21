@@ -27,8 +27,12 @@ select is((select synopsis || '|' || genres::text || '|' || year || '|' || origi
 select is((select status from public.titles where id = 'hogwarts'), 'queue', 'the status is untouched');
 select is(pg_temp.events(), 0::bigint, 'no feed events');
 
--- Someone renamed it meanwhile: a base naming the old title is stale.
+-- Renamed meanwhile (another refresh): a base naming the old title is stale.
+reset role;
+select set_config('request.jwt.claims', '', true);
 update public.titles set title = 'Хогвартс' where id = 'hogwarts';
+set local role authenticated;
+select pg_temp.login('00000000-0000-0000-0000-0000000000a1');
 select is(public.apply_title_refresh('00000000-0000-0000-0000-0000000000b1',
   '[{"id":"hogwarts","base":{"parts":null,"checked_parts":{},"status":"queue","title":"Hogwarts"},"title":"Hogwarts Legacy"}]'),
   -1, 'a changed field makes the call stale');

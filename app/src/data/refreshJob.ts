@@ -257,7 +257,8 @@ export async function rebuildSeasons(deps: RebuildDeps): Promise<{ cols: Partial
   else onto.slice(0, before.length).forEach((i, n) => { next[String(i)] = dates[n] ?? now.toISOString(); });
   const m = materialize({ ...title, parts }, checkedIndices(next));
   const status = m.status === 'queue' && row.status === 'in_progress' && !checkedIndices(next).length ? 'in_progress' : m.status;
-  const cols: Partial<TitleRow> = { parts, checked_parts: next, status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating: title.rating ?? null };
+  // Built from the source, the list is the daily refresh's to keep up again.
+  const cols: Partial<TitleRow> = { parts, checked_parts: next, status, manual_status: m.manualStatus, airing_status: m.airingStatus, rating: title.rating ?? null, parts_manual: false };
   let res: { data: unknown; error: unknown };
   try {
     res = await deps.client.rpc('apply_title_refresh', { p_workspace: deps.board, p_updates: [{ id: row.id, base: base(row), ...cols }], p_deletes: [] });

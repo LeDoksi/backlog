@@ -10,8 +10,11 @@
 // second), each in its own quiet apply_title_refresh() write: a card someone
 // changed meanwhile is simply skipped until its next turn, and closing the
 // tab halfway loses nothing. Hand-made cards are never asked about.
+//
+// Since BL-118 nobody edits a search card, so nothing on one is kept as
+// someone's own: the first run on a board rolls old hand edits back.
 import { cardForRetry, categoryOf, type SourceDeps } from './cardSources';
-import { cardBase } from './refreshJob';
+import { cardBase, rebuildSeasons } from './refreshJob';
 import { cardFixes } from '../lib/refresh';
 import { cinemaLabel, IN_CINEMA, localDay } from '../lib/release';
 import type { TitleRow } from '../lib/titleRow';
@@ -39,7 +42,8 @@ const PAUSE_MS = 250;
 export const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 /** Failures in a row after which a source is left alone until the next run. */
 const SOURCE_DOWN = 4;
-const key = (board: string) => `face:${board}`;
+// `2`: BL-118 locked search cards, and every board rolls their old hand edits back at once.
+const key = (board: string) => `face:2:${board}`;
 
 /** When each title's source last answered, ms. */
 function load(storage: StorageLike, board: string): Record<string, number> {
@@ -81,6 +85,13 @@ export async function runFaceJob(deps: FaceDeps): Promise<FaceResult> {
   const ask = async (r: TitleRow) => {
     if ((failedInRow.get(r.source!) ?? 0) >= SOURCE_DOWN) { result.skipped++; return; }
     if (result.asked++) await pause(PAUSE_MS);
+    // A list of seasons edited by hand before BL-118 is built again from the
+    // source, the ticks carried over (as in the BL-113 tidy).
+    if (r.parts_manual && (r.category === 'series' || r.category === 'anime')) {
+      const rebuilt = await rebuildSeasons({ board, row: r, fetchFn: deps.fetchFn, client: deps.client, now, tmdbKey: deps.tmdbKey, proxy: deps.proxy || null });
+      if (typeof rebuilt === 'object') { deps.onChanges([{ id: r.id, cols: rebuilt.cols }]); r = { ...r, ...rebuilt.cols }; }
+      await pause(PAUSE_MS);
+    }
     const card = await cardForRetry(r.source!, r.source_id!, { ...deps, today }, pause);
     // A source that did not answer is asked again on the next run.
     if (!card) { result.skipped++; failedInRow.set(r.source!, (failedInRow.get(r.source!) ?? 0) + 1); return; }

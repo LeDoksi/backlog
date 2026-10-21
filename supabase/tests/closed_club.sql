@@ -98,6 +98,7 @@ set local role authenticated;
 -- Deleting an account. The mate (a4) shares board b5 with me and has a
 -- title there, a personal board with a title, a friend and an event.
 reset role;
+select set_config('request.jwt.claims', '', true);
 select pg_temp.put('00000000-0000-0000-0000-0000000000b4', 'mates-own');
 select pg_temp.put('00000000-0000-0000-0000-0000000000b5', 'on-shared');
 update public.titles set created_by = '00000000-0000-0000-0000-0000000000a4' where id = 'on-shared';
