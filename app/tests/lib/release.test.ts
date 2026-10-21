@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { cinemaLabel, isSearchCard, movieRelease, parseSteamDate, rawgRelease, releaseEvents, releaseStatus, releaseToast, steamRelease } from '../../src/lib/release';
+import { cinemaLabel, isOut, isSearchCard, movieRelease, parseSteamDate, rawgRelease, releaseEvents, releaseStatus, releaseToast, steamRelease } from '../../src/lib/release';
 import type { Title } from '../../src/lib/types';
 
 const live = (f: string) => JSON.parse(readFileSync(join(__dirname, '../fixtures/live', f), 'utf8'));
@@ -123,5 +123,15 @@ describe('releaseEvents and the toast', () => {
     expect(releaseToast([{ id: 'g', title: 'GTA VI', kind: 'game' }])).toEqual({ text: 'Вышло: GTA VI', id: 'g' });
     expect(releaseToast(releaseEvents(titles, '2026-10-15', TODAY))).toEqual({ text: 'Вышло: Дюна 3 и ещё 2', id: null });
     expect(releaseToast([])).toBeNull();
+  });
+});
+
+describe('isOut', () => {
+  it('no date anywhere but an earlier year: out; this year or no year: not out', () => {
+    const none = { date: null, digital: null, out: false };
+    expect(isOut(none, 1987, TODAY)).toBe(true);
+    expect(isOut(none, 2026, TODAY)).toBe(false);
+    expect(isOut(none, null, TODAY)).toBe(false);
+    expect(isOut({ date: '2026-12-15', digital: null, out: false }, 2020, TODAY)).toBe(false);
   });
 });

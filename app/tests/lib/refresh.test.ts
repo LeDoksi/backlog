@@ -328,6 +328,8 @@ describe('cardFixes (wave 3)', () => {
     // A game out with no day given: today.
     expect(cardFixes(row({ cover: TALL, synopsis: RU_TEXT, status: 'unreleased' }), { release: { date: null, digital: null, out: true } }, 'weekly', '2026-10-21'))
       .toEqual({ status: 'queue', release_date: '2026-10-21' });
+    // An old film TMDb keeps no date for is not «not out yet».
+    expect(cardFixes(film({ year: 1987 }), { release: { date: null, digital: null, out: false } }, 'weekly', '2026-10-21')).toBeNull();
     // Normalize leaves releases alone; a series has none.
     expect(cardFixes(film(), { release: { date: '2026-12-15', digital: null, out: false } }, 'normalize')).toBeNull();
     expect(cardFixes(film({ category: 'series' }), { release: { date: '2026-12-15', digital: null, out: false } }, 'weekly')).toBeNull();

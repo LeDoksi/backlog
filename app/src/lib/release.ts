@@ -63,6 +63,14 @@ export function rawgRelease(d: any, today: string): Release {
   return { date, digital: null, out: d?.tba !== true && !!date && date <= today };
 }
 
+/**
+ * Out, or dated nowhere but known from an earlier year: an old film or
+ * game a source keeps no date for is not «not out yet».
+ */
+export function isOut(rel: Release, year: number | null | undefined, today: string): boolean {
+  return rel.out || (!rel.date && year != null && year < Number(today.slice(0, 4)));
+}
+
 /** The badge goes only on «В очереди», and only the badge comes off: started or finished stays. */
 export function releaseStatus(status: Status, out: boolean): Status {
   if (!out && status === 'queue') return 'unreleased';

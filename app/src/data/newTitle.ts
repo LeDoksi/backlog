@@ -1,5 +1,5 @@
 import { makeId, slugify, uniqueId } from '../lib/slug';
-import { releaseStatus, type Release } from '../lib/release';
+import { isOut, localDay, releaseStatus, type Release } from '../lib/release';
 import type { Category, Part, Title } from '../lib/types';
 
 export const PLACEHOLDER_COVER = 'images/covers/_placeholder.svg';
@@ -36,7 +36,7 @@ export function buildTitle(category: Category, typed: string, picked: Picked, ex
   if ((category === 'movie' || category === 'game') && picked.source && picked.release) {
     t.releaseDate = picked.release.date;
     t.digitalDate = picked.release.digital;
-    t.status = releaseStatus('queue', picked.release.out);
+    t.status = releaseStatus('queue', isOut(picked.release, year, localDay(new Date())));
   }
   return t;
 }

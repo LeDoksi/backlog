@@ -10,7 +10,7 @@ import { checkedIndices, type CheckedParts, type TitleRow } from './titleRow';
 import { isLandscapeCover } from './covers';
 import { good, type Raw } from './sources';
 import { canonicalGenres, canonicalPlatforms } from './gameNames';
-import { releaseStatus, type Release } from './release';
+import { isOut, releaseStatus, type Release } from './release';
 import { MT_PREFIX } from './synopsis';
 import type { Part, Status, Title } from './types';
 
@@ -331,7 +331,7 @@ export function cardFixes(row: TitleRow, card: Card, mode: 'normalize' | 'weekly
     }
     const rel = card.release;
     if (rel && (game || row.category === 'movie')) {
-      const status = releaseStatus(row.status as Status, rel.out);
+      const status = releaseStatus(row.status as Status, isOut(rel, out.year ?? row.year, today));
       if (status !== row.status) out.status = status;
       // A game out with no day given came out today, as far as anyone here knows.
       const date = rel.date ?? (rel.out ? row.release_date ?? (status !== row.status && today ? today : null) : null);
