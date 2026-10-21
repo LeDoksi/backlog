@@ -29,6 +29,8 @@ import type { Section } from './ui/TabBar';
 import { Skeleton } from './ui/Skeleton';
 import type { Profile as ProfileData } from './lib/auth';
 import { hasUnreadWhatsNew } from './data/whatsNew';
+import { useFilters } from './data/filters';
+import { useOther } from './data/otherStore';
 
 const SECTIONS: Section[] = ['backlog', 'friends', 'stats', 'profile'];
 // The badge is the only notification (decision 38); it is re-read when the
@@ -41,6 +43,12 @@ function Signed({ profile, onProfile, onSignOut, onDeleted }: SignedProps) {
   const section = useUi((u) => u.section);
   const setSection = useUi((u) => u.setSection);
   const setQuickAdd = useUi((u) => u.setQuickAdd);
+  const showOther = !!profile.show_other;
+  // «+» on the «Другое» tab writes a line by hand: there is no search there.
+  const add = () => {
+    if (showOther && useUi.getState().section === 'backlog' && useFilters.getState().category === 'other') useOther.getState().openForm({});
+    else setQuickAdd(true);
+  };
 
   useEffect(() => startSync({ store: useTitles, storage: mirror, outbox, client: getSupabase, onPulled: refreshBoardDaily }), []);
   useEffect(() => { void useBoards.getState().refresh(); }, []);
@@ -55,8 +63,8 @@ function Signed({ profile, onProfile, onSignOut, onDeleted }: SignedProps) {
 
   return (
     <LayoutGroup>
-      <AppShell sections={SECTIONS} section={section} badge={badge} dot={hasUnreadWhatsNew(profile.whats_new_seen_at)} onNavigate={setSection} onAdd={() => setQuickAdd(true)}>
-        {section === 'backlog' && <Backlog />}
+      <AppShell sections={SECTIONS} section={section} badge={badge} dot={hasUnreadWhatsNew(profile.whats_new_seen_at)} onNavigate={setSection} onAdd={add}>
+        {section === 'backlog' && <Backlog showOther={showOther} />}
         {section === 'friends' && <Friends />}
         {section === 'stats' && <Stats />}
         {section === 'profile' && <Profile profile={profile} onProfile={onProfile} onSignOut={onSignOut} onDeleted={onDeleted} />}

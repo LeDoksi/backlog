@@ -1,0 +1,50 @@
+/* «Другое» (BL-119): a list, not a poster grid — there are no pictures. */
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: -4px calc(-1 * var(--gutter)) 14px; padding: 0 var(--gutter); }
+.chips::-webkit-scrollbar { display: none; }
+.sep { width: 1px; flex-shrink: 0; align-self: stretch; margin: 6px 2px; background: var(--dash); }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.row { width: 100%; min-height: 64px; padding: 12px 16px; border: 0; border-radius: var(--r-sm); background: var(--surface); box-shadow: var(--shadow-soft); color: var(--text); display: flex; align-items: center; gap: 12px; text-align: left; transition: transform var(--dur-fast) var(--ease-out); }
+.row:active { transform: scale(0.97); }
+.rowText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.rowTitle { font-size: var(--fs-md); font-weight: 600; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.rowMeta { font-size: var(--fs-sm); color: var(--muted); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill { height: 28px; padding: 0 11px 0 9px; flex-shrink: 0; border-radius: var(--r-pill); display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; }
+.pillDot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.want { color: var(--st-queue); background: var(--st-queue-soft); }
+.done { color: var(--st-done); background: var(--st-done-soft); }
+.rows { display: flex; flex-direction: column; gap: 8px; }
+
+/* The line's panel. */
+.content { display: flex; flex-direction: column; gap: 18px; }
+.heading { display: flex; flex-direction: column; gap: 6px; }
+.name { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 1.22; overflow-wrap: anywhere; }
+.meta { font-size: var(--fs-sm); color: var(--text-2); }
+.description { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--text-2); white-space: pre-line; overflow-wrap: anywhere; }
+.links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.link { min-height: 44px; padding: 0 16px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-text); font-size: var(--fs-base); font-weight: 600; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; white-space: nowrap; }
+.note { margin: 0; font-size: var(--fs-sm); color: var(--muted); line-height: 1.4; }
+.grow { flex: 1; }
+.iconBtn { width: 56px; padding: 0; flex-shrink: 0; }
+.sectionTitle { margin: 0; font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; }
+.section { display: flex; flex-direction: column; gap: 8px; }
+
+/* The form. */
+.title { margin: 0 0 16px; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-title-sm); }
+.form { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.input, .textarea { min-height: 50px; padding: 0 14px; border-radius: var(--r-sm); border: 0; background: var(--sunken); font-size: var(--fs-input); outline: none; width: 100%; }
+.textarea { min-height: 96px; padding: 12px 14px; resize: vertical; line-height: 1.45; }
+.input:focus-visible, .textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); outline: none; }
+.input[aria-invalid="true"], .textarea[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--danger); }
+.error { margin: 0; font-size: var(--fs-sm); color: var(--danger); font-weight: 500; }
+.suggest { display: flex; flex-wrap: wrap; gap: 8px; }
+.suggest > button:not([aria-pressed="true"]) { background: var(--sunken); }
+.linkRow { display: flex; gap: 8px; align-items: center; }
+.remove { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: var(--r-pill); background: var(--sunken); color: var(--text-2); display: grid; place-items: center; }
+.addLink { align-self: flex-start; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; font-size: var(--fs-base); display: inline-flex; align-items: center; gap: 6px; }
+.footBtn { flex: 1; }
+@media (min-width: 1024px) {
+  .chips { margin: -4px 0 18px; padding: 0; flex-wrap: wrap; overflow: visible; }
+  .list { max-width: 760px; }
+}

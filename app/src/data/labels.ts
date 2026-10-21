@@ -4,7 +4,7 @@ import { partsProgress, hasPartsChecklist } from '../lib/storage';
 export const CATEGORY_LABEL: Record<Category, string> = { anime: 'Аниме', movie: 'Кино', series: 'Сериал', game: 'Игра' };
 /** Category choices in the order forms offer them. */
 export const CATEGORY_OPTIONS: { value: Category; label: string }[] = (['movie', 'series', 'anime', 'game'] as const).map((value) => ({ value, label: CATEGORY_LABEL[value] }));
-export const CATEGORY_TAB: Record<'all' | Category, string> = { all: 'Всё', anime: 'Аниме', movie: 'Кино', series: 'Сериалы', game: 'Игры' };
+export const CATEGORY_TAB: Record<'all' | Category | 'other', string> = { all: 'Всё', anime: 'Аниме', movie: 'Кино', series: 'Сериалы', game: 'Игры', other: 'Другое' };
 export const STATUS_CARD: Record<Status, string> = { queue: 'В бэклоге', in_progress: 'Смотрю', done: 'Завершено', unreleased: 'Ещё не вышло' };
 /** The card's status word; a game in progress is «Играю». */
 export function statusLabel(status: Status, category: Category): string {

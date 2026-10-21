@@ -44,3 +44,4 @@
 .memberText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .danger { color: var(--danger); }
 .stack { display: flex; flex-direction: column; gap: 16px; }
+.switchBox { border-radius: var(--r-sm); background: var(--sunken); }
