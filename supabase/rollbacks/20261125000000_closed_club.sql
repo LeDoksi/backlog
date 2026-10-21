@@ -1,6 +1,7 @@
--- Undo 20261125000000_closed_club: the open invites of phase D. Links
--- revoked by the migration stay revoked (their columns go, so they read as
--- live again until they expire); admins and deleted accounts are not restored.
+-- Undo 20261125000000_closed_club: the open invites of phase D. Links that
+-- were revoked, spent or bound to one email are expired first, so dropping
+-- those columns does not turn them into open links; admins and deleted
+-- accounts are not restored.
 do $$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
@@ -23,6 +24,18 @@ language sql stable security definer set search_path = public as $$
   from workspaces w join workspace_members m on m.workspace_id = w.id
   where m.user_id = auth.uid()
   order by (w.kind = 'shared');
+$$;
+
+create or replace function public.find_user_by_nick(p_nickname text) returns table (id uuid, name text, nickname text)
+language sql stable security definer set search_path = public as $$
+  select p.id, coalesce(p.display_name, split_part(p.email, '@', 1)), p.nickname::text
+  from profiles p where p.nickname = lower(p_nickname) and p.findable_by_nick and p.id <> auth.uid();
+$$;
+
+create or replace function public.my_board_invites() returns table (id bigint, from_id uuid, from_name text, from_nickname text, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select i.id, p.id, coalesce(p.display_name, split_part(p.email, '@', 1)), p.nickname::text, i.created_at
+  from board_invites i join profiles p on p.id = i.from_user where i.to_user = auth.uid() order by i.created_at desc;
 $$;
 
 create or replace function public.my_profile() returns json
@@ -155,6 +168,8 @@ alter table public.titles drop constraint titles_created_by_fkey,
 alter table public.workspaces drop constraint workspaces_created_by_fkey,
   add constraint workspaces_created_by_fkey foreign key (created_by) references auth.users(id);
 
+update public.invite_links set expires_at = least(expires_at, now())
+where revoked_at is not null or used_at is not null or email is not null;
 alter table public.invite_links drop column revoked_at, drop column used_at, drop column used_by, drop column email;
 alter table public.allowed_emails drop column expires_at;
 -- Same grant order as before, so the ACL reads the same.

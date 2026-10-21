@@ -21,7 +21,7 @@ $$;
 create function public.assert_admin() returns void
 language plpgsql stable security definer set search_path = public as $$
 begin
-  if not exists (select 1 from admins where user_id = auth.uid()) then
+  if not is_admin() then
     raise exception 'not_admin' using errcode = '42501';
   end if;
 end $$;
@@ -33,9 +33,15 @@ drop policy "insert own invites" on public.allowed_emails;
 drop policy "update own invites" on public.allowed_emails;
 revoke all on table public.allowed_emails, public.invite_links, public.invite_redemptions from anon, authenticated;
 
--- An email invite lapses after 30 days unless used. Pending ones get the
--- same 30 days from now; used ones (the person has a profile) are history.
+-- An email invite lapses after 30 days unless used; used ones (the person
+-- has a profile) are history. Pending ones made by someone in the app get
+-- 30 days from now; the rest may have come through the old policy (a
+-- stranger inviting their own address) and go.
 alter table public.allowed_emails add column expires_at timestamptz;
+delete from public.allowed_emails a
+where not exists (select 1 from public.profiles p where p.email = lower(a.email))
+  and (a.invited_by is null or not exists (select 1 from public.profiles p where p.id = a.invited_by)
+       or exists (select 1 from auth.users u where u.id = a.invited_by and lower(u.email) = lower(a.email)));
 update public.allowed_emails a set expires_at = now() + interval '30 days'
 where not exists (select 1 from public.profiles p where p.email = lower(a.email));
 
@@ -66,9 +72,10 @@ declare em text := lower(trim(target_email));
 begin
   perform assert_admin();
   if em !~ '^[^@\s]+@[^@\s]+$' then raise exception 'bad_email' using errcode = 'P0001'; end if;
-  -- Inviting again renews a pending invite; someone already in stays as is.
+  -- Inviting again renews a pending invite (and drops an old v1 board
+  -- invite riding on it); someone already in stays as is.
   insert into allowed_emails (email, invited_by, expires_at) values (em, auth.uid(), now() + interval '30 days')
-  on conflict (email) do update set invited_by = excluded.invited_by, expires_at = excluded.expires_at, created_at = now()
+  on conflict (email) do update set invited_by = excluded.invited_by, expires_at = excluded.expires_at, created_at = now(), workspace_id = null
   where not exists (select 1 from profiles p where p.email = em);
 end $$;
 
@@ -135,8 +142,8 @@ begin
 end $$;
 
 -- An existing account following a link: a friend request from the admin
--- who made it. A link spent by someone else, revoked or made by a non-admin
--- counts as expired.
+-- who made it. A link spent by someone else, bound to another email,
+-- revoked or made by a non-admin counts as expired.
 create or replace function public.redeem_invite(p_token text) returns json
 language plpgsql security definer set search_path = public as $$
 declare
@@ -147,6 +154,7 @@ begin
   select l.created_by into inviter from invite_links l
    where l.token = lower(trim(p_token)) and l.expires_at > now() and l.revoked_at is null
      and (l.used_at is null or l.used_by = auth.uid())
+     and (l.email is null or l.email = (select lower(trim(u.email)) from auth.users u where u.id = auth.uid()))
      and exists (select 1 from admins a where a.user_id = l.created_by);
   if inviter is null then return json_build_object('status', 'expired'); end if;
   outcome := request_friendship(inviter, auth.uid());
@@ -184,9 +192,11 @@ begin
   select lower(trim(u.email)) into em from auth.users u where u.id = uid;
   select * into allowed from allowed_emails a where lower(a.email) = em and (a.expires_at is null or a.expires_at > now());
   if not had_profile and allowed.email is null and tok is not null then
-    -- Claiming the link in one update: two people racing on it cannot both get in.
+    -- Claiming the link in one update: two people racing on it cannot both
+    -- get in. The same person's second, overlapping sign-in check may claim
+    -- it again (and then stops at the existing profile, as before).
     update invite_links l set used_by = uid, used_at = now()
-     where l.token = tok and l.expires_at > now() and l.used_at is null and l.revoked_at is null
+     where l.token = tok and l.expires_at > now() and (l.used_at is null or l.used_by = uid) and l.revoked_at is null
        and l.created_by <> uid and exists (select 1 from admins a where a.user_id = l.created_by)
        and (l.email is null or l.email = em)
     returning l.created_by into inviter;
@@ -214,11 +224,24 @@ create or replace function public.my_profile() returns json
 language sql stable security definer set search_path = public as $$
   select json_build_object('id', id, 'email', email, 'display_name', display_name, 'nickname', nickname, 'theme', theme,
     'in_leaderboard', in_leaderboard, 'share_activity', share_activity, 'share_matches', share_matches,
-    'findable_by_nick', findable_by_nick, 'is_admin', exists (select 1 from admins a where a.user_id = profiles.id))
+    'findable_by_nick', findable_by_nick, 'is_admin', is_admin())
   from profiles where id = auth.uid();
 $$;
 
--- Board mates no longer get each other's email, nor its first half as a name.
+-- Nobody gets anyone's email, nor its first half as a name: a person
+-- without a display name shows by nickname.
+create or replace function public.find_user_by_nick(p_nickname text) returns table (id uuid, name text, nickname text)
+language sql stable security definer set search_path = public as $$
+  select p.id, display_name_of(p), p.nickname::text
+  from profiles p where p.nickname = lower(p_nickname) and p.findable_by_nick and p.id <> auth.uid();
+$$;
+
+create or replace function public.my_board_invites() returns table (id bigint, from_id uuid, from_name text, from_nickname text, created_at timestamptz)
+language sql stable security definer set search_path = public as $$
+  select i.id, p.id, display_name_of(p), p.nickname::text, i.created_at
+  from board_invites i join profiles p on p.id = i.from_user where i.to_user = auth.uid() order by i.created_at desc;
+$$;
+
 create or replace function public.my_boards() returns table (id uuid, kind text, visibility text, title_count int, members json, in_leaderboard boolean)
 language sql stable security definer set search_path = public as $$
   select w.id, w.kind, w.visibility,
@@ -248,13 +271,18 @@ begin
      or coalesce(lower(ltrim(trim(p_nickname), '@')), '') <> me.nickname::text then
     return json_build_object('status', 'wrong_nickname');
   end if;
-  if exists (select 1 from admins where user_id = uid) and not exists (select 1 from admins where user_id <> uid) then
-    return json_build_object('status', 'last_admin');
+  if exists (select 1 from admins where user_id = uid) then
+    -- Two admins leaving at once must not both see the other one stay.
+    lock table admins in share row exclusive mode;
+    if not exists (select 1 from admins where user_id <> uid) then
+      return json_build_object('status', 'last_admin');
+    end if;
   end if;
   delete from workspaces w
   where exists (select 1 from workspace_members m where m.workspace_id = w.id and m.user_id = uid)
     and not exists (select 1 from workspace_members m where m.workspace_id = w.id and m.user_id <> uid);
   delete from allowed_emails where lower(email) = lower(me.email);
+  update invite_links set email = null where used_by = uid;
   delete from auth.users where id = uid;
   return json_build_object('status', 'deleted');
 end $$;

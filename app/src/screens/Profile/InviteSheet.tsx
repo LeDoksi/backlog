@@ -26,13 +26,15 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
   const [url, setUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [live, setLive] = useState<AdminInvites | null>(null);
+  const [listFailed, setListFailed] = useState(false);
+  const [revokeFailed, setRevokeFailed] = useState(false);
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
-  const reload = () => { void adminInvites(getSupabase()).then(setLive); };
+  const reload = () => { void adminInvites(getSupabase()).then((r) => { setListFailed(!r); if (r) setLive(r); }); };
   useEffect(() => { if (open) reload(); }, [open]);
 
   function reset() { setEmail(''); setState('idle'); setUrl(null); setCopied(false); }
-  function close() { reset(); setMode('email'); onClose(); }
+  function close() { reset(); setMode('email'); setRevokeFailed(false); onClose(); }
 
   async function send() {
     const value = email.trim();
@@ -56,7 +58,9 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
   }
 
   async function revoke(kind: 'link' | 'email', key: string) {
-    if (await revokeInvite(getSupabase(), kind, key)) reload();
+    const ok = await revokeInvite(getSupabase(), kind, key);
+    setRevokeFailed(!ok);
+    if (ok) reload();
   }
 
   const items = live ? [
@@ -113,7 +117,8 @@ export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => v
         )}
       </div>
       <h3 className={s.h3}>Действующие приглашения</h3>
-      {items === null ? <p className={s.muted}>Загружаем…</p>
+      {revokeFailed && <p role="alert" className={s.error}>Не получилось отозвать. Проверь сеть.</p>}
+      {items === null ? <p className={s.muted}>{listFailed ? 'Не получилось загрузить список. Проверь сеть и открой панель снова.' : 'Загружаем…'}</p>
         : items.length === 0 ? <p className={s.muted}>Сейчас нет неиспользованных приглашений.</p>
         : (
           <ul className={s.members} aria-label="Действующие приглашения">

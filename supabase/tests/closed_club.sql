@@ -3,7 +3,7 @@
 -- see each other's email, and a person can delete their own account
 -- without taking anyone else's data with them.
 begin;
-select plan(61);
+select plan(67);
 \ir support/social_fixture.sql
 insert into public.admins (user_id) values ('00000000-0000-0000-0000-0000000000a1');
 insert into auth.users (id, email, raw_user_meta_data) values
@@ -55,8 +55,18 @@ create temp table bound as select public.create_invite_link('Bound@test') as j;
 select is((select j->>'email' from bound), 'bound@test', 'the link remembers the email');
 select pg_temp.login('00000000-0000-0000-0000-0000000000c3');
 select is(public.complete_signup((select j->>'token' from bound))->>'status', 'not_invited', 'another account cannot use it');
+select pg_temp.login('00000000-0000-0000-0000-0000000000a3');
+select is(public.redeem_invite((select j->>'token' from bound))->>'status', 'expired', 'nor can a member it was forwarded to');
 select pg_temp.login('00000000-0000-0000-0000-0000000000c2');
 select is(public.complete_signup((select j->>'token' from bound))->>'status', 'created', 'the named account can');
+reset role;
+-- A second, overlapping check from the same sign-in reads «no profile yet»
+-- before the first one commits; it may claim the link again (and then
+-- stops at the profile) instead of answering «not invited».
+delete from public.workspaces w using public.workspace_members m where m.workspace_id = w.id and m.user_id = '00000000-0000-0000-0000-0000000000c2';
+delete from public.profiles where id = '00000000-0000-0000-0000-0000000000c2';
+set local role authenticated;
+select is(public.complete_signup((select j->>'token' from bound))->>'status', 'created', 'the same person may claim their own link again');
 select pg_temp.login('00000000-0000-0000-0000-0000000000a1');
 create temp table loose as select public.create_invite_link() as j;
 select is(json_array_length(public.admin_invites()->'links'), 1, 'only the unspent link is listed');
@@ -70,9 +80,20 @@ select lives_ok($$select public.admin_revoke_invite('email', 'WRONG@test')$$, 'a
 select pg_temp.login('00000000-0000-0000-0000-0000000000c3');
 select is(public.complete_signup()->>'status', 'not_invited', 'a revoked email invite lets nobody in');
 
--- Board mates see names, not addresses.
+-- Board mates see names, not addresses, nor the first half of one.
 select pg_temp.login('00000000-0000-0000-0000-0000000000a1');
 select is((select count(*)::int from public.my_boards() b, json_array_elements(b.members) m where m->>'email' is not null), 0, 'no email in board members');
+select is((select name from public.find_user_by_nick('stranger')), 'stranger', 'someone without a name shows by nickname, not by email');
+
+-- Re-inviting a pending v1 board invite drops the board.
+reset role;
+insert into public.allowed_emails (email, invited_by, workspace_id) values ('old@test', '00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000b5');
+set local role authenticated;
+select lives_ok($$select public.invite_email('old@test')$$, 're-invite a pending address');
+reset role;
+select results_eq($$select invited_by, workspace_id from public.allowed_emails where email = 'old@test'$$,
+  $$values ('00000000-0000-0000-0000-0000000000a1'::uuid, null::uuid)$$, 'the invite is the admin''s now, without the old board');
+set local role authenticated;
 
 -- Deleting an account. The mate (a4) shares board b5 with me and has a
 -- title there, a personal board with a title, a friend and an event.
@@ -82,6 +103,8 @@ select pg_temp.put('00000000-0000-0000-0000-0000000000b5', 'on-shared');
 update public.titles set created_by = '00000000-0000-0000-0000-0000000000a4' where id = 'on-shared';
 insert into public.friendships (user_a, user_b) values ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000a4');
 insert into public.allowed_emails (email, invited_by) values ('mate@test', '00000000-0000-0000-0000-0000000000a1'), ('invited-by-mate@test', '00000000-0000-0000-0000-0000000000a4');
+insert into public.invite_links (token, created_by, expires_at, email, used_by, used_at)
+values ('matelink01', '00000000-0000-0000-0000-0000000000a1', now() + interval '1 day', 'mate@test', '00000000-0000-0000-0000-0000000000a4', now());
 set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-0000000000a4');
 select is(public.delete_my_account('someone_else')->>'status', 'wrong_nickname', 'the wrong nickname deletes nothing');
@@ -99,6 +122,8 @@ select results_eq($$select id, created_by from public.titles where workspace_id 
 select is((select count(*)::int from public.workspace_members where workspace_id = '00000000-0000-0000-0000-0000000000b5'), 1, 'the shared board stays with the other member');
 select results_eq($$select email, invited_by from public.allowed_emails where email in ('mate@test', 'invited-by-mate@test')$$,
   $$values ('invited-by-mate@test'::text, null::uuid)$$, 'their own invite is gone, the ones they made forget them');
+select results_eq($$select email, used_by, used_at is not null from public.invite_links where token = 'matelink01'$$,
+  $$values (null::text, null::uuid, true)$$, 'the link they used forgets their address and stays spent');
 
 -- The last admin cannot delete themselves by accident.
 set local role authenticated;
