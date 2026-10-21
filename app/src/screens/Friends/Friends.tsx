@@ -43,7 +43,7 @@ export function Friends() {
     : matches && <p className={s.note}>Совпадений пока нет. Здесь появятся тайтлы, которые вы с другом оба хотите посмотреть или уже смотрите.</p>;
   const friendsBlock = hasFriends
     ? <FriendsList friends={friends} />
-    : friends && <p className={s.note}>Друзей пока нет. Нажми «Добавить», чтобы позвать по ссылке или найти по нику.</p>;
+    : friends && <p className={s.note}>Друзей пока нет. Нажми «Добавить» и найди друга по нику.</p>;
   const addButton = <button type="button" className={s.add} onClick={() => setAdding(true)}><UserPlus size={20} aria-hidden="true" />Добавить</button>;
   const error = failed && <p role="alert" className={s.error}>Не всё загрузилось. Проверь сеть.</p>;
 

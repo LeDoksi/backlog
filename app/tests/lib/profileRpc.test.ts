@@ -68,4 +68,12 @@ describe('profile RPC wrappers', () => {
     expect((await Auth.inviteEmail(client, 'a@b.c')).error).toBeNull();
     expect(calls[0]).toEqual({ name: 'invite_email', args: { target_email: 'a@b.c' } });
   });
+
+  it('deleteMyAccount sends the nickname and returns the server status', async () => {
+    const { client, calls } = rpcClient(() => ({ data: { status: 'deleted' }, error: null }));
+    expect(await Auth.deleteMyAccount(client, 'dasha')).toBe('deleted');
+    expect(calls[0]).toEqual({ name: 'delete_my_account', args: { p_nickname: 'dasha' } });
+    expect(await Auth.deleteMyAccount(rpcClient(() => ({ data: { status: 'last_admin' }, error: null })).client, 'x')).toBe('last_admin');
+    expect(await Auth.deleteMyAccount(rpcClient(() => ({ data: null, error: { message: 'offline' } })).client, 'x')).toBeNull();
+  });
 });

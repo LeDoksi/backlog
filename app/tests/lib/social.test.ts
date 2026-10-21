@@ -32,6 +32,23 @@ describe('social RPC wrappers', () => {
     expect(await Social.createInviteLink(rpcClient(fail).client)).toBeNull();
   });
 
+  it('createInviteLink binds the link to an email only when one is given', async () => {
+    const r = rpcClient(ok({ token: 'abc', expires_at: 'x', email: 'a@b.c' }));
+    await Social.createInviteLink(r.client, 'a@b.c');
+    await Social.createInviteLink(r.client, '');
+    expect(r.calls).toEqual([{ name: 'create_invite_link', args: { p_email: 'a@b.c' } }, { name: 'create_invite_link', args: undefined }]);
+  });
+
+  it('adminInvites returns both lists, null on a refusal; revokeInvite says whether it worked', async () => {
+    const body = { links: [{ token: 't', email: null, created_at: 'c', expires_at: 'e' }], emails: [] };
+    expect(await Social.adminInvites(rpcClient(ok(body)).client)).toEqual(body);
+    expect(await Social.adminInvites(rpcClient(() => ({ data: null, error: { message: 'not_admin', code: '42501' } })).client)).toBeNull();
+    const r = rpcClient(ok());
+    expect(await Social.revokeInvite(r.client, 'email', 'a@b.c')).toBe(true);
+    expect(r.calls[0]).toEqual({ name: 'admin_revoke_invite', args: { p_kind: 'email', p_key: 'a@b.c' } });
+    expect(await Social.revokeInvite(rpcClient(fail).client, 'link', 't')).toBe(false);
+  });
+
   it('redeemInvite returns the outcome', async () => {
     const r = rpcClient(ok({ status: 'already_friends', from_name: 'Г' }));
     expect(await Social.redeemInvite(r.client, 'tok')).toEqual({ status: 'already_friends', from_name: 'Г' });

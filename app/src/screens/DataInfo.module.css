@@ -1,0 +1,6 @@
+.title { margin: 0 0 16px; font-family: var(--font-display); font-weight: 600; font-size: var(--fs-title-sm); }
+.doc { display: flex; flex-direction: column; gap: 18px; }
+.part { display: flex; flex-direction: column; gap: 6px; }
+.h3 { margin: 0; font-family: var(--font-display); font-size: var(--fs-base); font-weight: 600; }
+.p { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--text-2); }
+.small { margin: 0; font-size: var(--fs-xs); line-height: 1.4; color: var(--muted); }

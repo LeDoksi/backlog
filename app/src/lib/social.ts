@@ -10,7 +10,9 @@ import type { FeedRow } from '../data/feedFormat';
 export type InviteStatus = 'requested' | 'friends' | 'already_friends' | 'self' | 'expired';
 export interface InviteOutcome { status: InviteStatus; from_name?: string | null }
 export interface Signup { status: SignupStatus; invite: InviteOutcome | null }
-export interface InviteLink { token: string; expires_at: string }
+export interface InviteLink { token: string; expires_at: string; email?: string | null }
+export interface PendingEmail { email: string; created_at: string; expires_at: string | null }
+export interface AdminInvites { links: (InviteLink & { created_at: string })[]; emails: PendingEmail[] }
 export interface FoundPerson { id: string; name: string; nickname: string; is_friend: boolean; requested: boolean; incoming: boolean }
 export type RequestStatus = 'requested' | 'friends' | 'already_friends' | 'self' | 'not_found';
 export interface InboxItem { id: number; user_id: string; name: string; nickname: string | null; at: string }
@@ -30,9 +32,20 @@ export async function completeSignup(client: SupabaseLike, token?: string | null
   return { status: body.status as SignupStatus, invite: body.invite ?? null };
 }
 
-export async function createInviteLink(client: SupabaseLike): Promise<InviteLink | null> {
-  const link = data<InviteLink>(await callRpc(client, 'create_invite_link'));
+// Invites are the admin's (the server refuses everyone else). A link lets
+// one person in; with an email, only that Google account.
+export async function createInviteLink(client: SupabaseLike, email?: string | null): Promise<InviteLink | null> {
+  const link = data<InviteLink>(await callRpc(client, 'create_invite_link', email ? { p_email: email } : undefined));
   return link && typeof link.token === 'string' ? link : null;
+}
+
+export async function adminInvites(client: SupabaseLike): Promise<AdminInvites | null> {
+  const body = data<AdminInvites>(await callRpc(client, 'admin_invites'));
+  return body && Array.isArray(body.links) && Array.isArray(body.emails) ? body : null;
+}
+
+export async function revokeInvite(client: SupabaseLike, kind: 'link' | 'email', key: string): Promise<boolean> {
+  return !(await callRpc(client, 'admin_revoke_invite', { p_kind: kind, p_key: key })).error;
 }
 
 export async function redeemInvite(client: SupabaseLike, token: string): Promise<InviteOutcome | null> {

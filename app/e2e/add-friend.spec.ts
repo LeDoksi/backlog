@@ -11,13 +11,15 @@ test('search by nickname: «Добавить» turns into «Заявка отп�
   await nav(page).getByRole('button', { name: /Друзья/ }).click();
   await page.getByRole('button', { name: 'Добавить', exact: true }).click();
   const sheet = page.getByRole('dialog', { name: 'Добавить друга' });
-  await expect(sheet.getByText('ledoksi.github.io', { exact: false }).or(sheet.getByText('#f/g7k2q4m9x1', { exact: false }))).toBeVisible();
+  // Members find people already in the app; letting someone new in is the admin's.
+  await expect(sheet.getByText('Твоя ссылка')).toHaveCount(0);
   await sheet.getByRole('textbox', { name: 'Ник' }).fill('kat');
   await expect(sheet.getByRole('list', { name: 'Найдено' }).getByRole('listitem')).toHaveCount(1);
   await sheet.getByRole('button', { name: 'Добавить: Катя' }).click();
   await expect(sheet.getByRole('status')).toHaveText('Заявка отправлена');
   expect(await rpcCalls(page)).toContainEqual({ name: 'send_friend_request', args: { p_user: katya.id } });
   expect(await rpcCalls(page)).toContainEqual({ name: 'search_users', args: { p_prefix: 'kat' } });
+  expect((await rpcCalls(page)).map((c) => c.name)).not.toContain('create_invite_link');
 });
 
 test('a friend request waits above the feed and accepting adds the friend', async ({ page }) => {

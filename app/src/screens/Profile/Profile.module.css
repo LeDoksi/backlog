@@ -31,3 +31,15 @@
 .inviteText { flex: 1; min-width: 0; font-size: var(--fs-md); line-height: 1.35; }
 .iconBtn { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: var(--r-pill); background: var(--sunken); color: var(--text-2); display: grid; place-items: center; }
 .count { color: var(--muted); font-size: var(--fs-md); font-weight: 600; }
+.link { padding: 16px; border-radius: var(--r-card); background: var(--accent-soft); display: flex; flex-direction: column; gap: 12px; }
+.linkHead { display: flex; flex-direction: column; gap: 4px; }
+.linkTitle { font-size: var(--fs-md); font-weight: 600; }
+.linkText { font-size: var(--fs-sm); color: var(--text-2); line-height: 1.4; }
+.address { min-height: 48px; padding: 0 6px 0 14px; border-radius: var(--r-sm); background: var(--surface); display: flex; align-items: center; gap: 8px; }
+.addressText { flex: 1; min-width: 0; font-size: var(--fs-base); font-weight: 500; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy { min-height: 36px; padding: 0 12px; border: 0; border-radius: var(--r-xs); background: var(--sunken); color: var(--text); font-size: var(--fs-sm); font-weight: 600; white-space: nowrap; }
+.share { width: 100%; }
+.h3 { margin: 22px 0 8px; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.memberText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.danger { color: var(--danger); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
