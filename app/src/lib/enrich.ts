@@ -29,6 +29,8 @@ export interface Candidate {
   kind?: string;
 }
 
+export interface ReleaseRaw { from: 'tmdb' | 'steam' | 'rawg'; data: unknown }
+
 // The fields a picked hit fills in on the quick-add form.
 export interface Details {
   title: string;
@@ -39,6 +41,8 @@ export interface Details {
   synopsis: string;
   cover: string;
   platforms?: string[];
+  /** The source's own release answer, read by lib/release (films and games). */
+  releaseRaw?: ReleaseRaw;
   [extra: string]: unknown;
 }
 
@@ -117,8 +121,9 @@ function searchTmdb(fetchFn: FetchLike, proxyBase: string | null | undefined, ke
 }
 
 function fetchTmdbDetails(fetchFn: FetchLike, proxyBase: string | null | undefined, key: string, category: string, tmdbId: number | string): Promise<Details | null> {
+  // A film's answer carries its release dates per country (BL-117, lib/release).
   var url = 'https://api.themoviedb.org/3/' + tmdbEndpoint(category) + '/' + tmdbId +
-    '?api_key=' + key + '&language=ru-RU';
+    '?api_key=' + key + '&language=ru-RU' + (category === 'series' ? '' : '&append_to_response=release_dates');
   return safeFetchWithFallback(fetchFn, url, proxyBase ? proxyBase + url : null).then(function (d) {
     if (!d || d.id == null) return null;
     var out: Details = {
@@ -131,6 +136,7 @@ function fetchTmdbDetails(fetchFn: FetchLike, proxyBase: string | null | undefin
     };
     // A series answer already lists its seasons: no second request on add.
     if (category === 'series' && Array.isArray(d.seasons)) out.tmdbSeasons = tmdbSeasons(d);
+    if (category !== 'series') out.releaseRaw = { from: 'tmdb', data: { release_date: d.release_date, release_dates: d.release_dates } };
     return out;
   });
 }
@@ -191,7 +197,8 @@ function fetchRawgDetails(fetchFn: FetchLike, key: string, rawgId: number | stri
         ? d.platforms.map(function (p: any) { return p.platform.name; })
         : [],
       synopsis: d.description_raw || '',
-      cover: d.background_image || ''
+      cover: d.background_image || '',
+      releaseRaw: { from: 'rawg', data: { released: d.released, tba: d.tba } }
     };
   });
 }
@@ -492,7 +499,8 @@ function fetchSteamDetails(fetchFn: FetchLike, proxyBase: string, appid: number 
       genres: steamGenres(d.genres),
       synopsis: d.short_description || stripHtml(d.detailed_description || ''),
       cover: d.header_image || '',
-      platforms: steamPlatforms(d.platforms)
+      platforms: steamPlatforms(d.platforms),
+      releaseRaw: { from: 'steam', data: { release_date: d.release_date } }
     };
   });
 }

@@ -1,5 +1,7 @@
 // A card from its sources (spec 3.1–3.3).
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { cardFor, type SourceDeps } from '../../src/data/cardSources';
 import type { FetchLike } from '../../src/lib/types';
 
@@ -90,4 +92,24 @@ describe('a RAWG game with a Steam version', () => {
 it('films and anime come from their one source', async () => {
   const card = await cardFor('tmdb-movie', '438631', deps(routes([[/\/3\/movie\/438631/, { id: 438631, title: 'Дюна', original_title: 'Dune', release_date: '2021-09-15', genres: [{ name: 'фантастика' }], overview: 'Наследник знаменитого дома.', poster_path: '/d.jpg' }]])));
   expect(card).toMatchObject({ title: 'Дюна', originalTitle: 'Dune', year: 2021, genres: ['фантастика'], cover: 'https://image.tmdb.org/t/p/w500/d.jpg' });
+});
+
+describe('release (BL-117)', () => {
+  const live = (f: string) => JSON.parse(readFileSync(join(__dirname, '../fixtures/live', f), 'utf8'));
+  it('a film carries its theatrical and digital dates', async () => {
+    const calls: string[] = [];
+    const card = await cardFor('tmdb-movie', '1153576', { ...deps(routes([[/\/3\/movie\/1153576\?/, live('tmdb-movie-1153576.json')]], calls)), today: '2026-10-21' });
+    expect(calls[0]).toMatch(/append_to_response=release_dates/);
+    expect(card!.release).toEqual({ date: '2026-10-13', digital: '2026-12-01', out: true });
+  });
+  it('a Steam game coming soon is not out; a RAWG game is read from RAWG', async () => {
+    const steam = await cardFor('steam', '4435490', { ...deps(routes([steamApp('4435490', live('steam-app-4435490.json')['4435490'].data)])), today: '2026-10-21' });
+    expect(steam!.release).toEqual({ date: '2026-10-22', digital: null, out: false });
+    const rawg = await cardFor('rawg', '972995', { ...deps(routes([[/api\/games\/972995\?/, live('rawg-game-972995.json')]])), today: '2026-10-21' });
+    expect(rawg!.release).toEqual({ date: '2026-11-19', digital: null, out: false });
+  });
+  it('a series has none', async () => {
+    const card = await cardFor('tmdb-series', '1', deps(routes([[/\/3\/tv\/1\?/, { id: 1, name: 'X', seasons: [] }]])));
+    expect(card!.release).toBeUndefined();
+  });
 });

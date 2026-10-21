@@ -4,6 +4,7 @@
 // (lib/enrich), the field table on the other (lib/sources).
 import * as Enrich from '../lib/enrich';
 import { assemble, MT_PREFIX, type Raw, type SourceName } from '../lib/sources';
+import { localDay, movieRelease, rawgRelease, steamRelease, type Release } from '../lib/release';
 import type { Category, FetchLike } from '../lib/types';
 
 export interface SourceDeps {
@@ -13,9 +14,18 @@ export interface SourceDeps {
   rawgKey: string;
   /** Resolves true when the picture loads and is taller than wide. */
   loadImage: (url: string) => Promise<boolean>;
+  /** The day release dates are read against (local `YYYY-MM-DD`); today by default. */
+  today?: string;
 }
 
-export type Card = Raw & { tmdbSeasons?: Enrich.TmdbSeasons };
+export type Card = Raw & { tmdbSeasons?: Enrich.TmdbSeasons; release?: Release };
+
+/** A source's release answer read against `today`. */
+export function releaseOf(raw: Enrich.ReleaseRaw | undefined, today: string): Release | undefined {
+  if (!raw) return undefined;
+  if (raw.from === 'tmdb') return movieRelease(raw.data, today);
+  return raw.from === 'steam' ? steamRelease(raw.data, today) : rawgRelease(raw.data, today);
+}
 
 /** In the browser: a portrait picture that actually loads. */
 export function browserLoadImage(url: string): Promise<boolean> {
@@ -53,6 +63,8 @@ export async function cardFor(source: string, sourceId: string, deps: SourceDeps
     if (!d) return null;
     const card: Card = await assemble(source === 'tmdb-series' ? 'series' : 'movie', (s) => Promise.resolve(s === 'tmdb' ? d : null));
     if (d.tmdbSeasons) card.tmdbSeasons = d.tmdbSeasons as Enrich.TmdbSeasons;
+    const release = releaseOf(d.releaseRaw, deps.today ?? localDay(new Date()));
+    if (release) card.release = release;
     return card;
   }
   if (source === 'shikimori') {
@@ -98,7 +110,11 @@ export async function cardFor(source: string, sourceId: string, deps: SourceDeps
     tmdb: () => Promise.resolve(null),
     shikimori: () => Promise.resolve(null)
   };
-  return assemble('game', (s) => loaders[s]());
+  const card: Card = await assemble('game', (s) => loaders[s]());
+  // A game's release is its own source's word.
+  const release = releaseOf((source === 'steam' ? own : await rawg())?.releaseRaw, deps.today ?? localDay(new Date()));
+  if (release) card.release = release;
+  return card;
 }
 
 /**
